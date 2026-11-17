@@ -1,0 +1,197 @@
+{
+  "schema_version": "1.1.0",
+  "generado_por": {
+    "skill": "edf-orquestador",
+    "version": "1.1.0",
+    "actualizado_en": "2026-11-03T09:00:00-05:00",
+    "vista_md_regenerada_en": "2026-11-03T09:00:00-05:00"
+  },
+  "ingesta": {
+    "id": "sisben",
+    "nombre": "SISBEN",
+    "descripcion": "Ingesta piloto EXP-023. Fuente SISBEN / DNP, ~1.2M registros por semana. Datos de prueba sinteticos.",
+    "creada_en": "2026-11-03T09:00:00-05:00",
+    "periodo": null,
+    "es_ingesta_nueva": true,
+    "fuente_oficial": "indeterminado",
+    "jerarquia_fuente": "Nacionales: Registraduria > Camaras de comercio > SISBEN. Extranjeros: Migracion > SISBEN. Posicion de SISBEN sin confirmar (PA-003).",
+    "business_light_code": null,
+    "reuse_pin": false,
+    "epoca_epoc": null,
+    "epoca_activada": false,
+    "contrato_archivo": {
+      "patron_nombre": "SISBEN_EXPERIAN_AAAAMM",
+      "delimitador": "|",
+      "encoding": "UTF-8",
+      "header": true,
+      "footer": false,
+      "event_type": 30,
+      "num_columnas": 22,
+      "formato": "plano delimitado"
+    },
+    "rutas_pipeline": {
+      "entrada": "Colombia Data/Sisben",
+      "validated": "validation/validated/",
+      "accepted": "acceptance/accepted/",
+      "rejects_files": "acceptance/rejects/files",
+      "rejects_records": "acceptance/rejects/records",
+      "curated": "curation/curated/",
+      "generacion_epoc": null,
+      "joblogs": "JobLogs/<fecha>"
+    }
+  },
+  "etapa_actual": "analisis",
+  "etapas": [
+    {
+      "id": "analisis", "orden": 0, "nombre": "Analisis de Requerimiento y Contexto",
+      "en_pipeline_configurado": false, "dag_airflow": null,
+      "clasificacion_compromiso": "habilitador", "riesgo_tipico": "bajo",
+      "estado": "no_iniciada", "depende_de": [],
+      "iniciada_en": null, "cerrada_en": null,
+      "artefactos": [
+        { "id": "ART-001", "tipo": "documento", "nombre": "contexto-ingesta.md", "ruta": "analisis/contexto-ingesta.md", "obligatorio": true, "estado_artefacto": "ausente", "riesgo": null, "hash": null },
+        { "id": "ART-002", "tipo": "documento", "nombre": "mapeo-campos.md (los 22 campos)", "ruta": "analisis/mapeo-campos.md", "obligatorio": true, "estado_artefacto": "ausente", "riesgo": null, "hash": null },
+        { "id": "ART-003", "tipo": "documento", "nombre": "dependencias.md", "ruta": "analisis/dependencias.md", "obligatorio": true, "estado_artefacto": "ausente", "riesgo": null, "hash": null },
+        { "id": "ART-004", "tipo": "documento", "nombre": "plan-de-ruta.md", "ruta": "analisis/plan-de-ruta.md", "obligatorio": true, "estado_artefacto": "ausente", "riesgo": null, "hash": null }
+      ],
+      "evidencia_pipeline": { "ruta_s3_esperada": null, "observada": null },
+      "aprobacion_requerida": true, "ref_aprobacion": null,
+      "riesgo_evaluado": null, "nivel_friccion": null,
+      "preguntas_abiertas": ["PA-001", "PA-002", "PA-003", "PA-004"],
+      "riesgos": ["RG-001"],
+      "transicion_habilitada": false,
+      "nota_regla_de_corte": null
+    },
+    {
+      "id": "validation", "orden": 1, "nombre": "Validation",
+      "en_pipeline_configurado": true, "dag_airflow": "daily-validation",
+      "clasificacion_compromiso": "aceptacion", "riesgo_tipico": "medio",
+      "estado": "no_iniciada", "depende_de": ["analisis"],
+      "artefactos": [
+        { "id": "ART-010", "tipo": "configuracion", "nombre": "insumo: source-spec-validation.yaml (edf-analisis)", "ruta": "insumos/source-spec-validation.yaml", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-011", "tipo": "codigo", "nombre": "SISBENValidationProcessor.scala + Spec, ValidatedEvent, FileMetadata", "ruta": "propuestas/validation/", "obligatorio": true, "estado_artefacto": "ausente", "prevalidacion": { "compila": null, "linting": null, "reportada_por": null, "reportada_en": null } },
+        { "id": "ART-012", "tipo": "codigo", "nombre": "Capa A: FieldSpec, FieldValidators, FieldValidatorsSpec", "ruta": "propuestas/validation/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-013", "tipo": "prueba", "nombre": "SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-sisben.csv", "ruta": "propuestas/validation/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-014", "tipo": "configuracion", "nombre": "HOCON aditivo: validation-configs-sisben.conf, lookups-sisben.conf", "ruta": "propuestas/validation/propuesta/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-015", "tipo": "metadata", "nombre": "manifest.json", "ruta": "propuestas/validation/manifest.json", "obligatorio": true, "estado_artefacto": "ausente" }
+      ],
+      "evidencia_pipeline": { "ruta_s3_esperada": "validation/validated/", "observada": null, "joblog": null, "cluster_id": null, "step_id": null, "reportada_por": null, "verificada_en": null },
+      "aprobacion_requerida": true, "ref_aprobacion": null,
+      "preguntas_abiertas": ["PA-001"], "riesgos": [],
+      "transicion_habilitada": false
+    },
+    {
+      "id": "acceptance", "orden": 2, "nombre": "Acceptance",
+      "en_pipeline_configurado": true, "dag_airflow": "acceptance-curation-flow",
+      "clasificacion_compromiso": "aceptacion", "riesgo_tipico": "medio",
+      "estado": "no_iniciada", "depende_de": ["validation"],
+      "artefactos": [
+        { "id": "ART-020", "tipo": "configuracion", "nombre": "insumo: source-spec-acceptance.yaml (edf-analisis)", "ruta": "insumos/source-spec-acceptance.yaml", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-021", "tipo": "configuracion", "nombre": "bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable)", "ruta": "propuestas/acceptance/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-022", "tipo": "configuracion", "nombre": "condiciones con nombre (fileConditions[])", "ruta": "propuestas/acceptance/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-023", "tipo": "prueba", "nombre": "AcceptanceExpressionsSpec + fixture de eventos validados sinteticos", "ruta": "propuestas/acceptance/", "obligatorio": true, "estado_artefacto": "ausente" }
+      ],
+      "evidencia_pipeline": { "ruta_s3_esperada": "acceptance/accepted/", "observada": null, "conteos": { "total": null, "aceptados": null, "rechazados": null, "menores_silenciosos": null, "quality_score": null }, "reportada_por": null, "verificada_en": null },
+      "aprobacion_requerida": true, "ref_aprobacion": null,
+      "preguntas_abiertas": ["PA-002"], "riesgos": [],
+      "transicion_habilitada": false
+    },
+    {
+      "id": "curation_flow", "orden": 3, "nombre": "Curation - Flow",
+      "en_pipeline_configurado": true, "dag_airflow": "acceptance-curation-flow",
+      "clasificacion_compromiso": "exito", "riesgo_tipico": "medio",
+      "estado": "no_iniciada", "depende_de": ["acceptance"],
+      "artefactos": [
+        { "id": "ART-030", "tipo": "configuracion", "nombre": "insumo: source-spec-curation.yaml (edf-analisis)", "ruta": "insumos/source-spec-curation.yaml", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-031", "tipo": "codigo", "nombre": "SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado", "ruta": "propuestas/curation/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-032", "tipo": "configuracion", "nombre": "bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary", "ruta": "propuestas/curation/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-033", "tipo": "prueba", "nombre": "fixture sintetico y tests de curation", "ruta": "propuestas/curation/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-034", "tipo": "documento", "nombre": "contrato Curation -> Pinning de la ingesta (steering 11 §4)", "ruta": "insumos/contrato-curation-pinning.md", "obligatorio": true, "estado_artefacto": "ausente" }
+      ],
+      "evidencia_pipeline": { "ruta_s3_esperada": "curation/curated/ (curatedDir/flow)", "observada": null, "marcador": "ready-curate", "reportada_por": null, "verificada_en": null },
+      "aprobacion_requerida": true, "ref_aprobacion": null,
+      "preguntas_abiertas": [], "riesgos": [],
+      "transicion_habilitada": false, "nota_regla_de_corte": null
+    },
+    {
+      "id": "curation_stock", "orden": 4, "nombre": "Curation - Stock",
+      "en_pipeline_configurado": true, "dag_airflow": "collection-stock",
+      "clasificacion_compromiso": "exito", "riesgo_tipico": "medio",
+      "estado": "no_iniciada", "depende_de": ["acceptance"],
+      "artefactos": [
+        { "id": "ART-040", "tipo": "documento", "nombre": "mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock)", "ruta": "propuestas/curation/", "obligatorio": true, "estado_artefacto": "ausente" }
+      ],
+      "evidencia_pipeline": { "ruta_s3_esperada": "curatedDir/stock", "observada": null, "reportada_por": null, "verificada_en": null },
+      "aprobacion_requerida": true, "ref_aprobacion": null,
+      "preguntas_abiertas": [], "riesgos": [],
+      "transicion_habilitada": false, "nota_regla_de_corte": null
+    },
+    {
+      "id": "pinning", "orden": 5, "nombre": "Pinning",
+      "en_pipeline_configurado": true, "dag_airflow": "state-generation",
+      "clasificacion_compromiso": "exito", "riesgo_tipico": "alto",
+      "estado": "no_iniciada", "depende_de": ["curation_flow", "curation_stock"],
+      "artefactos": [
+        { "id": "ART-050", "tipo": "configuracion", "nombre": "insumo: yaml-skill-pinning.yaml (edf-analisis)", "ruta": "insumos/yaml-skill-pinning.yaml", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-051", "tipo": "codigo", "nombre": "SisbenIdentityMatcher.scala (con verificacion aritmetica del umbral)", "ruta": "propuestas/pinning/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-052", "tipo": "configuracion", "nombre": "identifying-attributes.json", "ruta": "propuestas/pinning/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-053", "tipo": "configuracion", "nombre": "bloque HOCON de pinning-application.conf con reusePIN = false (ingesta nueva)", "ruta": "propuestas/pinning/", "obligatorio": true, "estado_artefacto": "ausente", "riesgo": "alto" }
+      ],
+      "evidencia_pipeline": { "ruta_s3_esperada": "carpeta de generacion por epoca EPOC", "observada": null, "reportada_por": null, "verificada_en": null },
+      "aprobacion_requerida": true, "ref_aprobacion": null,
+      "preguntas_abiertas": [], "riesgos": ["RG-002"],
+      "transicion_habilitada": false, "nota_regla_de_corte": null
+    },
+    {
+      "id": "synthesis", "orden": 6, "nombre": "Synthesis / Consistency",
+      "en_pipeline_configurado": true, "dag_airflow": "state-generation",
+      "clasificacion_compromiso": "exito", "riesgo_tipico": "alto",
+      "estado": "no_iniciada", "depende_de": ["pinning"],
+      "artefactos": [
+        { "id": "ART-060", "tipo": "configuracion", "nombre": "insumo: yaml-skill-synthesis.yaml (edf-analisis)", "ruta": "insumos/yaml-skill-synthesis.yaml", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-061", "tipo": "configuracion", "nombre": "GDD domaindictionary.json (campo -> handler LFP/LAP/EUC, solo confirmados)", "ruta": "propuestas/synthesis/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-062", "tipo": "configuracion", "nombre": "bloque HOCON oxygen.stage.consistencyCheck", "ruta": "propuestas/synthesis/", "obligatorio": true, "estado_artefacto": "ausente" }
+      ],
+      "evidencia_pipeline": { "ruta_s3_esperada": "carpeta de generacion por epoca EPOC", "observada": null, "reportada_por": null, "verificada_en": null },
+      "aprobacion_requerida": true, "ref_aprobacion": null,
+      "preguntas_abiertas": [], "riesgos": [],
+      "transicion_habilitada": false, "nota_regla_de_corte": null
+    },
+    {
+      "id": "state_calculation", "orden": 7, "nombre": "State Calculation",
+      "en_pipeline_configurado": true, "dag_airflow": "state-generation",
+      "clasificacion_compromiso": "exito", "riesgo_tipico": "critico",
+      "estado": "no_iniciada", "depende_de": ["synthesis"],
+      "artefactos": [
+        { "id": "ART-070", "tipo": "configuracion", "nombre": "insumo: yaml-skill-statecalc.yaml (edf-analisis)", "ruta": "insumos/yaml-skill-statecalc.yaml", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-071", "tipo": "configuracion", "nombre": "fields[] de statecalc-foundation-local.json", "ruta": "propuestas/statecalc/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-072", "tipo": "configuracion", "nombre": "CalculationSection de statecalc-calculation-local.json", "ruta": "propuestas/statecalc/", "obligatorio": true, "estado_artefacto": "ausente" },
+        { "id": "ART-073", "tipo": "prueba", "nombre": "CA1: Data Provisioning consulta datos SISBEN en XPM", "ruta": null, "obligatorio": true, "estado_artefacto": "ausente", "riesgo": "critico" }
+      ],
+      "evidencia_pipeline": { "ruta_s3_esperada": "carpeta de generacion por epoca EPOC -> XPM", "observada": null, "reportada_por": null, "verificada_en": null },
+      "aprobacion_requerida": true, "ref_aprobacion": null,
+      "preguntas_abiertas": [], "riesgos": [],
+      "transicion_habilitada": false, "nota_regla_de_corte": null
+    }
+  ],
+  "aprobaciones": [],
+  "preguntas_abiertas": [
+    { "id": "PA-001", "pregunta": "fec_digitacion: es numerico o caracter?", "origen": "[A1 | 00:15:43]", "etapa_afectada": "validation", "bloqueante": true, "estado": "abierta", "abierta_en": "2026-11-03T09:00:00-05:00", "resuelta_en": null, "respuesta": null, "ref_bitacora": "BIT-0001" },
+    { "id": "PA-002", "pregunta": "Por que SISBEN y judicial comparten el codigo/event type 30?", "origen": "[A2 | 00:57:28]", "etapa_afectada": "acceptance", "bloqueante": true, "estado": "abierta", "abierta_en": "2026-11-03T09:00:00-05:00", "resuelta_en": null, "respuesta": null, "ref_bitacora": "BIT-0001" },
+    { "id": "PA-003", "pregunta": "SISBEN es fuente oficial? Posicion en la jerarquia de best data para PIN.", "origen": "[A1 | 00:38:48]", "etapa_afectada": "analisis", "bloqueante": true, "estado": "abierta", "abierta_en": "2026-11-03T09:00:00-05:00", "resuelta_en": null, "respuesta": null, "ref_bitacora": "BIT-0001" },
+    { "id": "PA-004", "pregunta": "Reglas en vuelo: campos obligatorios que pasaran a aceptar null, 2 campos nuevos, catalogos modificables a mitad de camino.", "origen": "[A4 | 00:30:07]", "etapa_afectada": "analisis", "bloqueante": false, "estado": "abierta", "abierta_en": "2026-11-03T09:00:00-05:00", "resuelta_en": null, "respuesta": null, "ref_bitacora": "BIT-0001" }
+  ],
+  "riesgos": [
+    { "id": "RG-001", "descripcion": "El analisis produce un mapeo incompleto por specs ambiguas de SISBEN; el contexto defectuoso se arrastra a las etapas siguientes.", "nivel": "alto", "etapa_afectada": "analisis", "mitigacion": "Deteccion de ambiguedades + preguntar antes de cerrar; no asumir reglas no aprobadas (B6, B10).", "estado": "abierto" },
+    { "id": "RG-002", "descripcion": "reusePIN mal declarado en una ingesta nueva corrompe la asignacion de PIN.", "nivel": "alto", "etapa_afectada": "pinning", "mitigacion": "reusePIN es artefacto obligatorio de Pinning y elevador automatico de riesgo a alto.", "estado": "abierto" }
+  ],
+  "backlog_evolutivo": [],
+  "patrones_conocidos": [],
+  "bitacora": {
+    "ruta": "bitacora.md",
+    "ultimo_evento": "BIT-0001",
+    "eventos_totales": 1,
+    "append_only": true,
+    "retencion_meses": 24
+  }
+}

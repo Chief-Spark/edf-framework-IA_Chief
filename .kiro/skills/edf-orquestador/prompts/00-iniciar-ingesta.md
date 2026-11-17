@@ -1,0 +1,52 @@
+# Prompt 00 — Iniciar una ingesta (crear el expediente)
+
+**Reproducible:** mismo prompt + misma fuente → mismo expediente inicial. Componente ② de la certificación.
+
+## Invocación
+
+```
+Orquestador: inicia el expediente de la ingesta <NOMBRE>.
+Fuente: <ruta de la HU> y <ruta de la spec de Confluence>.
+Workspace del expediente: expedientes/<id>/
+```
+
+La HU y la spec de Confluence son obligatorias. Si falta alguna, el análisis no arranca: se dice cuál falta y se detiene.
+
+## Qué debe hacer el Orquestador
+
+0. **Compuerta de entrada.** La HU y la spec de Confluence son obligatorias. Si falta alguna, el análisis no arranca: se dice cuál falta y se detiene. Busca un archivo `HU*` y otro `spec*` en `expedientes/<id>/fuentes/`. Si no están, pide al Desarrollador la ruta y regístrala en `expedientes/<id>/fuentes/rutas-fuentes.json` (`{"hu": "<ruta>", "spec": "<ruta>"}`). El hook `.kiro/hooks/compuerta-etapa0.json` bloquea la creación del expediente mientras falte alguna; la carpeta `fuentes/` está exenta del bloqueo.
+1. **Verificar que no exista** ya `expedientes/<id>/estado-ingesta.json`. Si existe, **no sobrescribir**: reportar el estado actual (prompt 01) y preguntar si se quiere continuar ese expediente.
+2. **Hacer las 5 preguntas de apertura** y no sembrar el expediente hasta tenerlas (o marcarlas `indeterminado`, que genera pregunta abierta bloqueante):
+   - ¿Es **fuente oficial**? (`si` / `no` / `mixto` / `indeterminado`) y su posición en la jerarquía de best data para PIN.
+   - **Business Light Code**: ¿por dónde llega el dato (batch / oficial / high frequency)?
+   - ¿Es **ingesta nueva**? → si sí, `reusePIN = false`.
+   - **Contrato del archivo**: patrón de nombre, delimitador, encoding, header/footer, event type, nº de columnas, formato.
+   - **Rutas del pipeline** (solo lectura): entrada, validated, accepted, rejects, curated, joblogs.
+3. **Sembrar `estado-ingesta.json`** a partir de `templates/estado-ingesta.seed.json`, con las 8 entradas de etapa (orden 0–7: etapa 0 + 6 etapas, Curation en Flow y Stock), sus dependencias, `clasificacion_compromiso`, `riesgo_tipico`, `dag_airflow` y los artefactos obligatorios de cada contrato (`references/04-contratos-por-skill.md`). **Todas** las etapas arrancan en `no_iniciada` con `transicion_habilitada: false`.
+4. **Registrar las preguntas abiertas** conocidas de la fuente. Para el piloto SISBEN: PA-001..PA-004 de steering `10-piloto-sisben`.
+5. **Registrar los riesgos** heredados del Inception (mínimo RG-001: mapeo incompleto por specs ambiguas).
+6. **Crear `bitacora.md`** desde `templates/bitacora.template.md` y apendizar `BIT-0001` tipo `inicio_expediente`.
+7. **Generar `estado-ingesta.md`** desde el JSON.
+8. **Crear** las carpetas vacías `analisis/`, `insumos/` y `propuestas/`.
+9. **Validar** el JSON con `python tools/validar-expedientes.py <id>` (esquema + invariantes) antes de darlo por creado.
+
+## Salida esperada
+
+```
+✅ Expediente creado: expedientes/<id>/
+   - estado-ingesta.json  (schema 1.1.0, validado)
+   - estado-ingesta.md
+   - bitacora.md          (BIT-0001)
+
+Etapa actual: analisis (no_iniciada)
+Transiciones habilitadas: ninguna
+⛔ Preguntas abiertas bloqueantes: <n> → <lista de IDs>
+
+Siguiente paso propuesto: pide a `edf-analisis` la etapa 0 ("analiza la ingesta <id>, etapa 0")
+para producir contexto-ingesta.md, mapeo-campos.md, dependencias.md y plan-de-ruta.md.
+No habilito `validation` hasta que el contexto esté aprobado, las preguntas bloqueantes resueltas
+y `insumos/source-spec-validation.yaml` aprobado.
+```
+
+## Guardrails aplicables
+GR-5 (solo fixtures sintéticos), GR-6 (sin PII en el expediente), GR-8 (no aprobar en nombre del Desarrollador).

@@ -1,0 +1,24 @@
+// NOTA: identifying-attributes.json es un archivo JSON real (sin comentarios).
+// Esta plantilla usa comentarios // solo para guiar la generación; elimínalos
+// en el archivo final — el JSON real debe ser válido, un array plano de strings.
+//
+// REGLA DE CONTENIDO (ver references/contrato-identitymatcher.md §2, dimensión 9):
+// Incluir SOLO los atributos con estado [C] confirmado. Los atributos en
+// [A:sin-clasificar] o [P] se EXCLUYEN del array hasta que se resuelva el
+// pendiente correspondiente — no se incluyen "por si acaso" ni se omiten
+// silenciosamente: documenta los excluidos en el reporte de generación, no
+// solo en el código.
+//
+// REGLA DE UBICACIÓN: este archivo se carga vía classloader (resource de
+// classpath), no como ruta de filesystem arbitraria. La clave HOCON
+// identifyingAttributesFile debe apuntar a un ÚNICO elemento en la lista —
+// el motor real solo lee el primero, cualquier adicional se ignora en
+// silencio.
+
+[
+  "{{ATRIBUTO_MOTOR_1}}",
+  "{{ATRIBUTO_MOTOR_2}}",
+  "{{ATRIBUTO_MOTOR_3}}"
+  // -- un elemento por cada atributo con estado [C], en el mismo orden que
+  //    aparecen en el IdentityMatcher generado --
+]

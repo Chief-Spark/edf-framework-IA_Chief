@@ -1,0 +1,10 @@
+errorcode,errorvalue,value,
+errorCode1,02,false
+errorCode2,02,true
+errorCode3,02,true
+errorCode4,18,false
+errorCode5,20,true
+errorCode6,21,true
+errorCode6,22,true
+errorCode6,23,true
+errorCode6,24,true

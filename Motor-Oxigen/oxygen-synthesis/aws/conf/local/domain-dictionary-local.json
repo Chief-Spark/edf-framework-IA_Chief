@@ -1,0 +1,129 @@
+{
+  "domain": "creditBureau",
+  "version": 1,
+  "fields": [
+    {
+      "name": "accountOpeningDate",
+      "handler": "EUC",
+      "periodicity": false
+    },
+    {
+      "name": "nationalId",
+      "handler": "EUC",
+      "periodicity": false
+    },
+    {
+      "name": "firstName",
+      "handler": "LAP"
+    },
+    {
+      "name": "middleName",
+      "handler": "LAP"
+    },
+    {
+      "name": "firstLastName",
+      "handler": "LAP"
+    },
+    {
+      "name": "address",
+      "struct": ["street1", "city", "State"],
+      "singleValued": true,
+      "handler": "LAP"
+    },
+    {
+      "name": "clientInfo",
+      "struct": ["opr", "dateOfContract", "installment"],
+      "singleValued": false,
+      "handler": "LAP"
+    },
+    {
+      "name": "paymentInfo",
+      "struct": ["paymentDate", "amount"],
+      "singleValued": false,
+      "handler": "LAP"
+    },
+    {
+      "name": "secondLastName",
+      "handler": "LAP"
+    },
+    {
+      "name": "dueDate"
+    },
+    {
+      "name": "creditLimit"
+    },
+    {
+      "name": "balance"
+    },
+    {
+      "name": "paymentDate"
+    },
+    {
+      "name": "ageOfMora"
+    },
+    {
+      "name": "refersToRelation",
+      "periodicity": false
+    },
+    {
+      "name": "isAccountClosed",
+      "periodicity": false,
+      "handler": "EUC"
+    },
+    {
+      "name": "isNewSubscriberRelation",
+      "periodicity": false
+    },
+    {
+      "name": "isBlocked",
+      "handler": "LAP"
+    },
+    {
+      "name": "blockDate",
+      "handler": "LAP"
+    },
+    {
+      "name": "accountExpirationDate",
+      "handler": "EUC"
+    },
+    {
+      "name": "isDelinquent"
+    },
+    {
+      "name": "delinquencyDaysCount"
+    },
+    {
+      "name": "accountType",
+      "handler": "EUC"
+    },
+    {
+      "name": "isMigration"
+    },
+    {
+      "name": "destinationSubscriber"
+
+    },
+    {
+      "name": "destinationSubscriberRelation"
+
+    },
+    {
+      "name": "destinationAccountType"
+
+    },
+    {
+      "name": "accountInformation",
+      "synthesizer": "com.experian.edf.oxygen.consistencycheck.extension.SyntheticFieldCustomProcessor"
+    },
+    {
+      "name": "accountInformationLAP",
+      "handler": "LAP",
+      "synthesizer": "com.experian.edf.oxygen.consistencycheck.extension.SyntheticFieldCustomProcessor"
+    },
+    {
+      "name": "accountInformationEUC",
+      "handler": "EUC",
+      "synthesizer": "com.experian.edf.oxygen.consistencycheck.extension.SyntheticFieldCustomProcessor"
+    }
+  ]
+}

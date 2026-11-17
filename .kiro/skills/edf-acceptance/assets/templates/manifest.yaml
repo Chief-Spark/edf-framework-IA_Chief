@@ -1,0 +1,47 @@
+# Manifiesto de plantillas del skill edf-acceptance-stage (inventario acceptance_template.config).
+# El orden de la lista ES el orden de generación del inventario (pasos 1 a 5).
+# Sintaxis de plantilla: ver references/inventario-plantillas.md §Motor de plantillas.
+#   salida      ruta relativa al directorio de salida; admite {{huecos}}
+#   condicion   ruta booleana de la spec; si es false la plantilla se omite (y se reporta)
+#   por_cada    ruta de una lista de la spec; se genera un archivo por elemento
+#   parcial     true = solo se incluye desde otra plantilla con {{> nombre}}
+plantillas:
+  - id: ACC-TPL-02
+    paso: 1
+    plantilla: file-conditions.conf.tpl
+    salida: "hocon/{{fuente}}-acc-tpl-02-file-conditions.conf"
+    tipo: parametrizada
+  - id: ACC-TPL-03
+    paso: 2
+    plantilla: reason-severity.csv.tpl
+    salida: "lookups/{{severidades.tableName}}.csv"
+    condicion: severidades.habilitado
+    tipo: datos
+  - id: ACC-TPL-03
+    paso: 2
+    plantilla: reason-severity-lookup.conf.tpl
+    salida: "hocon/{{fuente}}-acc-tpl-03-lookup.conf"
+    condicion: severidades.habilitado
+    tipo: datos
+  - id: ACC-TPL-01
+    paso: 3
+    plantilla: acceptance-block.conf.tpl
+    salida: "hocon/{{fuente}}-acc-tpl-01-acceptance-block.conf"
+    tipo: parametrizada
+  - id: ACC-TPL-04
+    paso: 4
+    plantilla: contextual-override.conf.tpl
+    parcial: true                 # se incrusta en ACC-TPL-01 solo si contextual_override.decision_humana
+    condicion: contextual_override.decision_humana
+    tipo: parametrizada
+  - id: ACC-TPL-06
+    paso: 5
+    plantilla: validated-events.json.tpl
+    salida: "src/test/resources/{{fuente}}/validated/{{directorio}}/part-00000.json"
+    por_cada: fixture.archivos
+    tipo: datos
+  - id: ACC-TPL-05
+    paso: 5
+    plantilla: AcceptanceExpressionsSpec.scala.tpl
+    salida: "{{rutas_destino.raiz_tests}}{{Fuente}}AcceptanceExpressionsSpec.scala"
+    tipo: esqueleto

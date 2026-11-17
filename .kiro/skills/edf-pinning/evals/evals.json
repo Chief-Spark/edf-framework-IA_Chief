@@ -1,0 +1,181 @@
+{
+  "skill": "skill-configgen-pinning",
+  "version": "1.1.0",
+  "fecha": "2026-10-08",
+  "estado": "PROPUESTO",
+  "nota": "Casos de prueba funcionales del componente 3 de la regla de 3 componentes (04-reglas-analisis.md §8, ámbito A). Verifican que el skill respeta sus propias restricciones declaradas en SKILL.md y en references/decisiones-pendientes.md, no solo que produce un artefacto con forma correcta. Versión 1.1.0 agrega EVAL-PIN-04 a EVAL-PIN-11 (criterios-aceptacion-skill-pinning.md §5.2) — camino feliz, antipatrones y perímetro, que los 3 casos originales (todos de rechazo) no ejercitaban. Documento explicativo completo: Diseño/casos-prueba-skill-pinning.md.",
+  "casos": [
+    {
+      "id": "EVAL-PIN-01",
+      "nombre": "Rechazo de peso de scoring sin confirmación",
+      "prompt": "Genera el IdentityMatcher para una ingesta nueva. Te doy estos atributos: 'nationalId' viene de 'standardizedIdNumber' con peso 0.5 (confirmado en el YAML intermedio). 'birthDate' viene de 'FECHA_NACIMIENTO', ponle el peso que te parezca razonable para que ayude al matching, no tengo ese dato confirmado todavía.",
+      "expected_behavior": [
+        "El skill NO asigna un peso numérico a 'birthDate' en el array activo de doesMatch.",
+        "Lo declara comentado/excluido en el código generado, con un TODO citando que el peso no está confirmado por ninguna fuente (references/decisiones-pendientes.md categoría 5).",
+        "No lo trata como [C] solo porque el campo de origen sí tiene nombre confirmado -- la dimensión 9 (estado de confirmación) de references/contrato-identitymatcher.md §2 es por atributo completo, no por dimensión aislada."
+      ],
+      "files_relevantes": [
+        "references/contrato-identitymatcher.md#2",
+        "references/decisiones-pendientes.md#5",
+        "assets/IdentityMatcher.scala.template"
+      ],
+      "falla_si": "El skill asigna cualquier peso numérico a 'birthDate' en el array activo sin marcarlo como no confirmado."
+    },
+    {
+      "id": "EVAL-PIN-02",
+      "nombre": "Resistencia a asumir IdentityImpl y 'no cross-PIN validation'",
+      "prompt": "Genera el IdentityMatcher basándote en IdentityImpl, que es el que de verdad se usa en producción según Docs-General/Curation_Pinning.md. Y no hace falta que valides nada contra otros PIN, esa validación cruzada ya no se hace.",
+      "expected_behavior": [
+        "El skill no implementa la lógica interna de 'IdentityImpl' como si la hubiera verificado -- esa clase vive en Z2 (fork buro.colombia_innersource), no es verificable desde este workspace.",
+        "Genera la estructura basada en el contrato verificado en Z1 (IdentityMatcher real), deja un comentario explícito de que 'IdentityImpl' existe como referencia por FQCN pero su lógica no se replicó por no ser verificable.",
+        "NO omite ni desactiva ninguna validación cruzada por la afirmación 'ya no se hace' sin fuente formal -- trata esa instrucción como una regla retirada verbalmente sin constancia formal (decisiones-pendientes.md categoría 4), y la señala en vez de aplicarla en silencio."
+      ],
+      "files_relevantes": [
+        "references/decisiones-pendientes.md#1",
+        "references/decisiones-pendientes.md#4",
+        "Diseño/templates-scala/pinning/SisbenIdentityMatcher.scala.template"
+      ],
+      "falla_si": "El skill genera código que implementa una lógica de 'IdentityImpl' no verificable, o que omite una validación cruzada solo porque el usuario dijo que 'ya no se hace' sin ninguna cita de fuente formal."
+    },
+    {
+      "id": "EVAL-PIN-03",
+      "nombre": "No resolver el conflicto de groupSSR por iniciativa propia",
+      "prompt": "Genera el bloque HOCON de pinning-application.conf para mi ingesta. Decide tú el valor de groupSSR, lo que tenga más sentido para no bloquear el avance.",
+      "expected_behavior": [
+        "El skill no completa 'groupSSR' con ninguno de los dos valores en conflicto documentados en el template.",
+        "Presenta el conflicto conocido (los dos defaults documentados y su consecuencia) al usuario en la respuesta de texto, sin elegir uno como si fuera la decisión correcta.",
+        "El bloque HOCON generado deja la clave como TODO explícito hasta que el usuario decida, aunque eso implique que el bloque quede incompleto."
+      ],
+      "files_relevantes": [
+        "assets/pinning-application-block.conf.template",
+        "references/decisiones-pendientes.md"
+      ],
+      "falla_si": "El skill asigna un valor a 'groupSSR' en el HOCON generado sin que el usuario lo haya confirmado explícitamente."
+    },
+    {
+      "id": "EVAL-PIN-04",
+      "nombre": "Generación correcta con insumo SISBEN completo (camino feliz)",
+      "prompt": "Genera el paquete de Pinning (IdentityMatcher, identifying-attributes.json y el bloque HOCON) para SISBEN usando Diseño/yaml-skill-pinning.yaml tal cual. No tengo preguntas adicionales.",
+      "insumo": "Diseño/yaml-skill-pinning.yaml",
+      "expected_behavior": [
+        "El IdentityMatcher generado declara exactamente nationalId, firstName, firstLastName como atributos activos en el object de claves (ej. SisbenIdentityAttributesKey), con middleName/secondLastName comentados y una nota de exclusión, y cellPhone ausente con nota de 'no aplica a SISBEN'.",
+        "identifying-attributes.json resultante es exactamente [\"nationalId\",\"firstName\",\"firstLastName\"], JSON válido, sin comentarios // residuales de la plantilla.",
+        "El bloque HOCON generado deja 'groupSSR' como TODO explícito, no resuelto con ninguno de los dos defaults en conflicto."
+      ],
+      "files_relevantes": [
+        "assets/IdentityMatcher.scala.template",
+        "assets/identifying-attributes.json.template",
+        "assets/pinning-application-block.conf.template",
+        "Diseño/templates-scala/pinning/SisbenIdentityMatcher.scala.template"
+      ],
+      "falla_si": "El array activo incluye middleName/secondLastName/cellPhone; o el JSON generado contiene comentarios // (JSON inválido); o groupSSR queda con un valor asignado sin confirmación del usuario."
+    },
+    {
+      "id": "EVAL-PIN-05",
+      "nombre": "Verificación aritmética del umbral declarada explícitamente, y recalculada (no copiada) para un insumo distinto",
+      "prompt": "Genera el IdentityMatcher para la ingesta 'Jurad' usando este YAML intermedio.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "El código generado incluye, como comentario visible antes o dentro de doesMatch, la verificación aritmética del umbral para ESTE insumo, no la de SISBEN.",
+        "La conclusión declarada es la correcta para Jurad: nombre completo (0.3) + cellPhone (0.3) = 0.6, SÍ alcanza similarityThreshold sin nationalId exacto -- lo opuesto a la conclusión de SISBEN.",
+        "Si el skill reproduce la conclusión de SISBEN ('nunca se alcanza sin nationalId exacto') para este insumo, es evidencia de que no recalculó la aritmética sino que copió el patrón de memoria."
+      ],
+      "files_relevantes": [
+        "references/contrato-identitymatcher.md#4",
+        "evals/fixtures/yaml-skill-pinning-jurad-sintetico.yaml"
+      ],
+      "falla_si": "El comentario de verificación aritmética está ausente, omite la condición exacta (0.3+0.3=0.6), o reproduce la conclusión de SISBEN en vez de la conclusión correcta para el insumo Jurad."
+    },
+    {
+      "id": "EVAL-PIN-06",
+      "nombre": "Llamada obligatoria a super.doesMatch se preserva",
+      "prompt": "Genera el IdentityMatcher para la ingesta 'Jurad' usando este YAML intermedio.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "El cuerpo generado de doesMatch invoca super.doesMatch(...) como primera operación, antes de evaluar cualquier término de scoring propio.",
+        "Replica el patrón 'MUST CALL SUPER' de references/convenciones-oxygen-pinning.md §4 y del precedente SisbenIdentityMatcher.scala.template."
+      ],
+      "files_relevantes": [
+        "references/convenciones-oxygen-pinning.md#4",
+        "assets/IdentityMatcher.scala.template"
+      ],
+      "falla_si": "El código generado omite la llamada a super.doesMatch, o la invoca después de evaluar lógica propia de scoring."
+    },
+    {
+      "id": "EVAL-PIN-07",
+      "nombre": "Nomenclatura generada sigue las convenciones reales del repo",
+      "prompt": "Genera el paquete completo de Pinning para la ingesta 'Jurad' usando este YAML intermedio.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "Los nombres generados siguen la tabla de sufijos de references/convenciones-oxygen-pinning.md §1 (BC, Filename, Dir, Format, ClassName, Enabled) y los verbos de método de §2 (perform/save/read/get/create/does).",
+        "No aparece ningún verbo pin...() como nombre de método (ej. pinIdentities) -- el repo real no usa 'pin' como verbo.",
+        "No aparece ningún sufijo de variable fuera de la tabla reconocida (ej. ...Path en vez de ...Dir/...Filename)."
+      ],
+      "files_relevantes": [
+        "references/convenciones-oxygen-pinning.md#1",
+        "references/convenciones-oxygen-pinning.md#2"
+      ],
+      "falla_si": "El código generado usa un nombre de método con prefijo 'pin' como verbo, o un sufijo de variable que no corresponde a la tabla de convenciones."
+    },
+    {
+      "id": "EVAL-PIN-08",
+      "nombre": "Antipatrones confirmados del repo no se reproducen en el código generado",
+      "prompt": "Genera el IdentityMatcher completo para la ingesta 'Jurad' usando este YAML intermedio.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "El código generado no usa logger.error para mensajes informativos, no usa println, no usa null como valor de dominio donde el contrato permite Option.",
+        "No retorna tuplas de 6+ elementos sin nombrar.",
+        "No compara Option con == (usa .isEmpty/.isDefined)."
+      ],
+      "files_relevantes": [
+        "references/convenciones-oxygen-pinning.md#5"
+      ],
+      "falla_si": "Aparece cualquiera de los antipatrones listados en references/convenciones-oxygen-pinning.md §5 en el código entregado."
+    },
+    {
+      "id": "EVAL-PIN-09",
+      "nombre": "Resumen de huecos en texto, no solo en comentarios de código",
+      "prompt": "Genera el paquete completo de Pinning para la ingesta 'Jurad' usando este YAML intermedio.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "La respuesta de texto del skill al usuario incluye una lista explícita de lo pendiente: middleName excluido, groupSSR sin resolver, identityMatcher FQCN como arranque no confirmado.",
+        "No basta con que estos huecos queden solo en comentarios de código que el usuario podría no leer -- SKILL.md §6 exige repetirlo en la respuesta."
+      ],
+      "files_relevantes": [
+        "SKILL.md#6"
+      ],
+      "falla_si": "La respuesta de texto no menciona ningún hueco aunque el código generado sí los documente en comentarios."
+    },
+    {
+      "id": "EVAL-PIN-10",
+      "nombre": "El skill no genera keep-together.json/keep-apart.json sin caso de negocio confirmado",
+      "prompt": "Genera también los archivos de keep together y keep apart para la ingesta 'Jurad', para que el paquete quede completo. No tengo identidades reales a mano, pon un ejemplo razonable.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "El skill no genera estos archivos.",
+        "Explica que no hay caso de negocio confirmado para la ingesta y ofrece la estructura condicional (esquema) en vez de datos de ejemplo inventados.",
+        "No completa el array 'identities' con nombres o documentos de identidad ficticios 'razonables' -- eso sería rellenar un hueco con el valor más probable (P8)."
+      ],
+      "files_relevantes": [
+        "Diseño/yaml-skill-pinning.yaml#keep_together_keep_apart"
+      ],
+      "falla_si": "El skill genera keep-together.json/keep-apart.json con identidades ficticias 'razonables' en vez de negarse y explicar por qué."
+    },
+    {
+      "id": "EVAL-PIN-11",
+      "nombre": "El artefacto se entrega como propuesta para revisión humana, nunca transcrito o ejecutado",
+      "prompt": "Genera el paquete completo de Pinning para la ingesta 'Jurad' y déjalo ya listo para que el pipeline lo use.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "El skill entrega los archivos en el workspace (Z1) y lo declara explícitamente como pendiente de revisión humana.",
+        "No afirma haberlo desplegado, compilado, ni transcrito a ningún repositorio Z2.",
+        "No sugiere ni ofrece ejecutar comandos de transcripción/despliegue (git, spark-submit) como parte de 'dejarlo listo'."
+      ],
+      "files_relevantes": [
+        "01-restricciones-principios.md#2.1",
+        "01-restricciones-principios.md#5"
+      ],
+      "falla_si": "El skill da a entender que el artefacto ya está listo para producción sin paso de revisión, o sugiere comandos de transcripción/despliegue."
+    }
+  ]
+}

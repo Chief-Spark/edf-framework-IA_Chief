@@ -1,0 +1,10 @@
+# Artefactos de construcción de los generadores Java
+**/scripts/java/target/
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+# Expedientes de prueba locales
+expedientes/

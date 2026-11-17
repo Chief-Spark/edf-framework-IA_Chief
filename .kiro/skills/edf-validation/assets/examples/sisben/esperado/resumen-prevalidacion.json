@@ -1,0 +1,106 @@
+{
+  "archivo": "SISBEN_EXPERIAN_202406.20240630120000-0500.txt",
+  "simulacion": true,
+  "compilacion": "no certificada (F-01)",
+  "nombre_valido": true,
+  "header_valido": true,
+  "filas_filtradas": 3,
+  "resultado": "VALIDADO",
+  "registros_validados": 12,
+  "registros_con_error_sev1": 6,
+  "duplicados_marcados": 1,
+  "conteo_por_codigo": {
+    "OxygenDuplicate": 1,
+    "SISBEN_ERR_004": 1,
+    "SISBEN_ERR_006": 1,
+    "SISBEN_ERR_018": 1,
+    "SISBEN_ERR_023": 1,
+    "SISBEN_ERR_026": 2,
+    "SISBEN_INC_011": 1
+  },
+  "promedio_quality_scores": {
+    "RQS": 0.5
+  },
+  "vista_previa_acceptance": {
+    "umbral": 0.9,
+    "archivo": "RECHAZARIA",
+    "registros_aceptados": 5,
+    "nota": "simulación de la regla de handoff; la decisión real la toma Acceptance"
+  },
+  "detalle": [
+    {
+      "linea": 2,
+      "codigos": [],
+      "duplicado": false
+    },
+    {
+      "linea": 6,
+      "codigos": [
+        "SISBEN_ERR_023"
+      ],
+      "duplicado": false
+    },
+    {
+      "linea": 7,
+      "codigos": [
+        "SISBEN_ERR_004"
+      ],
+      "duplicado": false
+    },
+    {
+      "linea": 8,
+      "codigos": [
+        "SISBEN_ERR_006"
+      ],
+      "duplicado": false
+    },
+    {
+      "linea": 9,
+      "codigos": [
+        "SISBEN_ERR_018"
+      ],
+      "duplicado": false
+    },
+    {
+      "linea": 10,
+      "codigos": [
+        "SISBEN_ERR_026"
+      ],
+      "duplicado": false
+    },
+    {
+      "linea": 11,
+      "codigos": [
+        "SISBEN_ERR_026"
+      ],
+      "duplicado": false
+    },
+    {
+      "linea": 12,
+      "codigos": [],
+      "duplicado": false
+    },
+    {
+      "linea": 13,
+      "codigos": [],
+      "duplicado": false
+    },
+    {
+      "linea": 14,
+      "codigos": [
+        "SISBEN_INC_011"
+      ],
+      "duplicado": false
+    },
+    {
+      "linea": 15,
+      "codigos": [],
+      "duplicado": true
+    },
+    {
+      "linea": 16,
+      "codigos": [],
+      "duplicado": false
+    }
+  ]
+}

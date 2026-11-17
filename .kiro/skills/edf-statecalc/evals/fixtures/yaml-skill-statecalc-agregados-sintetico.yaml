@@ -1,0 +1,60 @@
+# ─────────────────────────────────────────────────────────────
+# FIXTURE SINTÉTICO DE PRUEBA — NO es un insumo real de ninguna ingesta.
+# Ingesta ficticia "Cuentas" (dominio FIXTURE-SINTETICO-cuentas). Construido
+# únicamente para ejercitar EVAL-SC-03 y EVAL-SC-11 del arnés de evals de
+# Skill-ConfigGen-StateCalculation sobre un insumo DISTINTO de SISBEN.
+#
+# Por qué existe: el insumo real de SISBEN (yaml-skill-statecalc.yaml) solo
+# tiene 2 campos de nivel A (personIdType, personIdNumber) y ninguno numérico,
+# así que no permite ejercitar una agregación (SUM sobre un campo numérico) ni
+# un `where` sobre un valor numérico. Este fixture declara dos campos de
+# nivel A —uno STRING, uno DOUBLE— para que la sección AGGREGATES del prompt de
+# EVAL-SC-03 tenga un campo Foundation confirmado sobre el cual agregar.
+#
+# Ningún dato de este archivo representa personas, entidades o reglas de
+# negocio reales. Todo nombre de campo es inventado para esta prueba
+# (04-reglas-analisis.md §9 — fixtures sintéticos por defecto, siempre).
+# Este archivo no pasa por ningún pipeline ni contiene registros de datos.
+# ─────────────────────────────────────────────────────────────
+
+documento:
+  tipo: "intermediario-skill-fixture"
+  etapa_pipeline: "State Calculation"
+  version: "1.0.0-fixture"
+  fecha: "2026-10-16"
+  estado: "FIXTURE-DE-PRUEBA"
+  aprobador: "no-aplica-es-fixture-sintetico"
+
+mapeo_campos:
+  campos:
+    - campo_negocio: "identificador de cuenta"
+      campo_curado_origen: "accountNumber"
+      nombre_en_foundation: "accountId"
+      tipo_foundation: "DERIVED"
+      dataType: "STRING"
+      nivel_confianza: "A"
+      estado: "[C]"
+      fuente: "fixture sintético (confirmación simulada)"
+
+    - campo_negocio: "saldo de la cuenta"
+      campo_curado_origen: "currentBalance"
+      nombre_en_foundation: "balance"
+      tipo_foundation: "DERIVED"
+      dataType: "DOUBLE"
+      nivel_confianza: "A"
+      estado: "[C]"
+      fuente: "fixture sintético (confirmación simulada)"
+
+    - campo_negocio: "teléfono del titular"
+      campo_curado_origen: "[A:sin-clasificar]"
+      nombre_en_foundation: "[PM]"
+      nivel_confianza: "B"
+      estado: "[A:sin-clasificar]"
+      fuente: "fixture sintético (solo nombre de destino propuesto)"
+
+secciones_calculation_confirmadas:
+  # Ninguna sección está confirmada en este fixture. Las agregaciones se piden
+  # únicamente en el prompt del caso. Por tanto, un `contains` solo puede
+  # apuntar a secciones que el propio skill declare antes en el mismo array.
+  secciones: []
+  predicados_where_confirmados: []     # ningún predicado `where` confirmado por el usuario

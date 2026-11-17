@@ -1,0 +1,60 @@
+{
+  "referenceCache": [
+    {
+      "name": "SameSubscriberAsSubjectEvent",
+      "predicates": [
+        "subscriber"
+      ]
+    },
+    {
+      "name": "SameSubscriberAndSubscriberRelationAsSubjectEvent",
+      "predicates": [
+        "subscriber",
+        "subscriberRelation"
+      ]
+    },
+    {
+      "name": "SameStandardizedIdNumberAsSubjectEvent",
+      "predicates": [
+        "standardizedIdNumber"
+      ]
+    },
+    {
+      "name": "SameSubscriberRelationAsSubjectEvent",
+      "predicates": [
+        "subscriberRelation"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "checkName": "grouped-check",
+      "description": "This is a check to compare reference event to a single value",
+      "isEnabled": true,
+      "shouldSynthesizeSubjectEvent": false,
+      "triggerCondition": "any",
+      "referenceCache": "SameSubscriberAsSubjectEvent",
+      "withReferenceEvents": "",
+      "groupedChecks" : [
+        {
+          "check": "referenceEventCount == 0",
+          "shouldFilterEventOnError": false,
+          "consistencyInfo": {
+            "code": "F-192",
+            "subCode": "",
+            "level": "10"
+          }
+        },
+        {
+          "check": "referenceEventCount > 0",
+          "shouldFilterEventOnError": false,
+          "consistencyInfo": {
+            "code": "F-192",
+            "subCode": "",
+            "level": "first.external.consistencyfiltertable1.filter(errorcode == errorCode5).select(errorvalue)"
+          }
+        }
+      ]
+    }
+  ]
+}

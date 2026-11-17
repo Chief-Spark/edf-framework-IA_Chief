@@ -1,0 +1,307 @@
+# Esquema (JSON Schema 2020-12, escrito en YAML) del source-spec de la etapa Validation.
+# El ingeniero de datos llena un archivo con esta forma; el generador Java (scripts/java) lo valida antes de generar.
+# Cada propiedad indica en `x-placeholders` qué huecos {{...}} de las plantillas alimenta.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: source-spec (Validation EDF/Oxygen)
+type: object
+additionalProperties: false
+required: [spec_version, fuente, paquetes, archivo, guard_rails, campos, reglas_entre_campos, filtro_filas,
+           quality_scores, metricas, duplicados, codigos_especiales, diagnostico_archivo, ambiente, catalogos,
+           handoff_acceptance, fixture]
+
+$defs:
+  codigo:
+    type: string
+    pattern: "^[A-Za-z0-9_]+$"
+    description: Código de error. Todos los códigos de la fuente deben tener la misma longitud y no ser de 11 caracteres.
+  nivel:
+    type: string
+    enum: ["1", "3"]
+    description: Severidad de un carácter (1 = error, 3 = inconsistencia). Sin severidad 0 (F-10).
+  nombre_campo:
+    type: string
+    pattern: "^[A-Z][A-Z0-9_]*$"
+  supuestos:
+    type: array
+    uniqueItems: true
+    items: {type: string, pattern: '^(F-\d{2}|VAL-P[AT]\d{2}|VAL-SP\d{2})$'}
+    description: >-
+      Opcional. IDs de references/decisiones-y-abiertos.md cuyo valor llega a este elemento. El generador
+      escribe una marca `ASSUMPTION <ID>` por cada uno junto al código del elemento y manifest.json los lista
+      (ADR-G1, AC-18a).
+
+properties:
+  spec_version:
+    type: string
+    x-placeholders: [spec_version]
+
+  fuente:
+    type: object
+    additionalProperties: false
+    required: [Fuente, fuente, event_type, datasource, subscriber, zona_horaria]
+    properties:
+      Fuente: {type: string, pattern: "^[A-Z][A-Za-z0-9]*$", x-placeholders: [Fuente]}
+      fuente: {type: string, pattern: "^[a-z][a-z0-9]*$", x-placeholders: [fuente]}
+      event_type: {type: integer, x-placeholders: [event_type]}
+      datasource: {type: string, minLength: 1, x-placeholders: [datasource]}
+      subscriber: {type: string, minLength: 1, x-placeholders: [subscriber]}
+      zona_horaria: {type: string, minLength: 1, x-placeholders: [zona_horaria]}
+
+  paquetes:
+    type: object
+    additionalProperties: false
+    required: [comun, base_fuente]
+    properties:
+      comun: {type: string, pattern: "^[a-z][a-z0-9_.]*$", x-placeholders: [paquete_comun, ruta_comun]}
+      base_fuente:
+        type: string
+        pattern: "^[a-z][a-z0-9_.]*$"
+        description: paquete_fuente = base_fuente + "." + fuente.fuente
+        x-placeholders: [paquete_fuente, processor_fqcn, ruta_fuente]
+
+  archivo:
+    type: object
+    additionalProperties: false
+    required: [formato, delimitador, filas_header, filas_footer, file_pattern, nombre]
+    properties:
+      formato: {type: string, enum: [text], x-placeholders: [file_format]}
+      delimitador: {type: string, minLength: 1, x-placeholders: [delimitador_scala]}
+      filas_header: {type: integer, minimum: 0, maximum: 1, x-placeholders: [filas_header]}
+      filas_footer: {type: integer, minimum: 0, x-placeholders: [filas_footer]}
+      footer_regex:
+        type: [string, "null"]
+        description: Obligatorio si filas_footer > 0.
+        x-placeholders: [is_footer_row_expr]
+      encoding:
+        type: [string, "null"]
+        description: null → no se emite la clave `encoding` (ruta textFile UTF-8).
+        x-placeholders: [linea_encoding]
+      file_pattern:
+        type: string
+        pattern: "^\\.\\*"
+        description: Regex del HOCON; debe empezar con `.*` (el motor compara contra la ruta completa).
+        x-placeholders: [file_pattern_hocon]
+      nombre:
+        type: object
+        additionalProperties: false
+        required: [descripcion, regex, grupos, file_tag_por_prefijo, file_as_of_date]
+        properties:
+          descripcion: {type: string}
+          regex: {type: string, x-placeholders: [regex_nombre_scala]}
+          grupos:
+            type: object
+            additionalProperties: false
+            required: [prefijo, periodo, marca_tiempo, offset]
+            properties:
+              prefijo: {type: integer, minimum: 1, x-placeholders: [grupo_prefijo]}
+              periodo: {type: integer, minimum: 1, x-placeholders: [grupo_periodo]}
+              marca_tiempo: {type: integer, minimum: 1, x-placeholders: [grupo_marca_tiempo]}
+              offset: {type: integer, minimum: 1, x-placeholders: [grupo_offset]}
+          file_tag_por_prefijo:
+            type: object
+            additionalProperties: {type: string}
+            x-placeholders: [bloque_file_tags]
+          file_as_of_date:
+            type: string
+            enum: [ultimo_dia_periodo, primer_dia_periodo]
+            x-placeholders: [expr_file_as_of_date, file_as_of_date_desc]
+
+  guard_rails:
+    type: object
+    additionalProperties: false
+    required: [subscriber_relation, as_of_date, received_date]
+    properties:
+      subscriber_relation: {$ref: "#/$defs/nombre_campo", x-placeholders: [campo_subscriber_relation]}
+      as_of_date: {$ref: "#/$defs/nombre_campo", x-placeholders: [campo_as_of_date]}
+      received_date: {type: string, enum: [marca_tiempo_nombre], x-placeholders: [received_date_desc]}
+
+  campos:
+    type: array
+    minItems: 1
+    x-placeholders: [bloque_constantes_campos, bloque_fieldspecs, bloque_accesores, bloque_mapa_json,
+                     bloque_casos_campo, header_linea, header_linea_scala, registro_base_scala, numero_campos,
+                     bloque_codigos_error]
+    items:
+      type: object
+      additionalProperties: false
+      required: [posicion, nombre, alias, obligatorio, severidad, tipo, codigo, ejemplo_invalido]
+      properties:
+        posicion: {type: integer, minimum: 1}
+        nombre: {$ref: "#/$defs/nombre_campo"}
+        alias: {type: array, items: {type: string}}
+        obligatorio: {type: boolean}
+        severidad: {$ref: "#/$defs/nivel"}
+        tipo: {type: string, enum: [alfanumerico, numerico, fecha]}
+        longitud_max: {type: integer, minimum: 1}
+        rango: {type: array, items: {type: integer}, minItems: 2, maxItems: 2}
+        dominio: {type: array, items: {type: string}, minItems: 1}
+        catalogo:
+          type: object
+          additionalProperties: false
+          required: [tabla, columna]
+          properties: {tabla: {type: string}, columna: {type: string}}
+        formatos_fecha: {type: array, items: {type: string}}
+        no_futura: {type: boolean}
+        normalizacion: {type: array, items: {type: string, enum: [quitar_espacios, quitar_ceros_izquierda]}}
+        codigo: {$ref: "#/$defs/codigo"}
+        ejemplo_invalido:
+          type: string
+          description: Valor SINTÉTICO que debe producir `codigo` al sustituirlo en el registro base.
+        supuestos: {$ref: "#/$defs/supuestos"}
+
+  reglas_entre_campos:
+    type: array
+    x-placeholders: [bloque_reglas]
+    items:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [id, tipo, campo_codigo, campo_nombre, tabla, columna_clave, columna_nombre, codigo, severidad]
+          properties:
+            id: {type: string}
+            tipo: {const: correspondencia_catalogo}
+            campo_codigo: {$ref: "#/$defs/nombre_campo"}
+            campo_nombre: {$ref: "#/$defs/nombre_campo"}
+            tabla: {type: string}
+            columna_clave: {type: string}
+            columna_nombre: {type: string}
+            codigo: {$ref: "#/$defs/codigo"}
+            severidad: {$ref: "#/$defs/nivel"}
+            supuestos: {$ref: "#/$defs/supuestos"}
+        - type: object
+          additionalProperties: false
+          required: [id, tipo, campo, valores, codigo, severidad, causa]
+          properties:
+            id: {type: string}
+            tipo: {const: valor_con_codigo_propio}
+            campo: {$ref: "#/$defs/nombre_campo"}
+            valores: {type: array, items: {type: string}, minItems: 1}
+            codigo: {$ref: "#/$defs/codigo"}
+            severidad: {$ref: "#/$defs/nivel"}
+            causa: {type: string, pattern: "^[A-Z_]+$"}
+            supuestos: {$ref: "#/$defs/supuestos"}
+
+  filtro_filas:
+    type: object
+    additionalProperties: false
+    required: [lineas_vacias]
+    properties:
+      lineas_vacias: {type: boolean, x-placeholders: [filtro_lineas_vacias, filtro_descripcion]}
+      campo: {$ref: "#/$defs/nombre_campo", x-placeholders: [filtro_posicion_scala]}
+      valores: {type: array, items: {type: string}, x-placeholders: [filtro_valores_scala]}
+
+  quality_scores:
+    type: array
+    minItems: 1
+    x-placeholders: [bloque_quality_scores]
+    items:
+      type: object
+      additionalProperties: false
+      required: [nombre, anulan_niveles]
+      properties:
+        nombre: {type: string, pattern: "^[A-Za-z][A-Za-z0-9]*$"}
+        anulan_niveles: {type: array, items: {$ref: "#/$defs/nivel"}}
+
+  metricas:
+    type: array
+    x-placeholders: [bloque_metricas]
+    items:
+      type: object
+      additionalProperties: false
+      required: [id, expr]
+      properties: {id: {type: string}, expr: {type: string}}
+
+  duplicados:
+    type: object
+    additionalProperties: false
+    required: [habilitado, clave, modo]
+    properties:
+      habilitado: {type: boolean, x-placeholders: [dup_habilitado]}
+      clave: {type: array, items: {$ref: "#/$defs/nombre_campo"}, x-placeholders: [dup_clave_scala, dup_descripcion]}
+      modo: {type: string, enum: [EXTN, RANDOM, AS-IS], x-placeholders: [dedup_version]}
+      campo_fecha: {type: [string, "null"], x-placeholders: [dup_campo_fecha_scala, dup_campo_fecha_desc]}
+      umbral: {type: [integer, "null"], x-placeholders: [linea_duplicate_threshold]}
+
+  codigos_especiales:
+    type: object
+    additionalProperties: false
+    required: [nombre_archivo, header, estructura, interno]
+    properties:
+      nombre_archivo: {$ref: "#/$defs/codigo", x-placeholders: [codigo_nombre_archivo]}
+      header: {$ref: "#/$defs/codigo", x-placeholders: [codigo_header]}
+      estructura: {$ref: "#/$defs/codigo", x-placeholders: [codigo_estructura]}
+      interno: {$ref: "#/$defs/codigo", x-placeholders: [codigo_interno]}
+
+  diagnostico_archivo:
+    type: object
+    additionalProperties: false
+    required: [fileName, header]
+    properties:
+      fileName: {type: string, minLength: 1, x-placeholders: [validate_file_name_hocon]}
+      header: {type: string, minLength: 1, x-placeholders: [validate_header_hocon]}
+
+  ambiente:
+    type: object
+    additionalProperties: false
+    required: [default_output_structure, historic_attributes, lambda]
+    description: >-
+      No se escribe como clave en el inner; render lo deja en el manifiesto y en el comentario de requisitos de
+      ambiente del bloque HOCON (ASSUMPTION F-04) para que el técnico lo verifique.
+    properties:
+      default_output_structure: {type: boolean, x-placeholders: [default_output_structure]}
+      historic_attributes: {type: boolean, const: false}
+      lambda: {type: string, const: batch}
+
+  catalogos:
+    type: array
+    x-placeholders: [bloque_lookups, bloque_catalogo_sintetico]
+    items:
+      type: object
+      additionalProperties: false
+      required: [tabla, archivo, delimitador, columnas, keys, filas_sinteticas]
+      properties:
+        tabla: {type: string}
+        archivo: {type: string}
+        delimitador: {type: string}
+        columnas: {type: array, items: {type: string}, minItems: 1}
+        keys: {type: array, items: {type: string}, minItems: 1}
+        filas_sinteticas: {type: array, items: {type: array, items: {type: string}}}
+        supuestos: {$ref: "#/$defs/supuestos"}
+
+  handoff_acceptance:
+    type: object
+    additionalProperties: false
+    required: [umbral_rqs, record_acceptance]
+    properties:
+      umbral_rqs: {type: number, minimum: 0, maximum: 1}
+      record_acceptance: {type: string}
+
+  fixture:
+    type: object
+    additionalProperties: false
+    required: [nombre_archivo, fecha_referencia, registro_base, casos]
+    properties:
+      nombre_archivo: {type: string, x-placeholders: [fixture_nombre_archivo]}
+      fecha_referencia: {type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$", x-placeholders: [fecha_referencia_scala]}
+      registro_base: {type: array, items: {type: string}, x-placeholders: [registro_base_scala]}
+      casos:
+        type: array
+        x-placeholders: [bloque_registros_fixture, bloque_casos_fixture]
+        items:
+          type: object
+          additionalProperties: false
+          required: [id, descripcion, esperado]
+          properties:
+            id: {type: string, pattern: "^[A-Z0-9_]+$"}
+            descripcion: {type: string}
+            cambios: {type: object, additionalProperties: {type: string}}
+            linea: {type: string}
+            columnas: {type: integer, minimum: 1}
+            columnas_extra: {type: array, items: {type: string}}
+            esperado:
+              type: object
+              additionalProperties: false
+              properties:
+                filtrado: {type: boolean}
+                codigos: {type: array, items: {type: string}}
+                duplicado: {type: boolean}

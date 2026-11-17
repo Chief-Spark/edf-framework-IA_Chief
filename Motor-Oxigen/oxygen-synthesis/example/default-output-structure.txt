@@ -1,0 +1,23 @@
+{userHome}
+├── {appName}-app
+│├── acceptance
+│├── curation
+│├── diff
+│├── generations
+││├── default
+│││└── person
+│││    ├── consistency
+│││    │├── archived
+│││    │├── checked
+│││    │└── synthesized
+│││    ├── pinning
+│││    ├── statecalc
+│││    └── vle
+││├── gen1
+││└── gen2
+│├── processed
+│├── relationship
+│└── validation
+├── oxygen-is-data
+├── oxygen-is-keep-apart
+└── oxygen-is-keep-together

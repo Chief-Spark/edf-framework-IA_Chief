@@ -1,0 +1,172 @@
+{
+  "skill": "skill-configgen-statecalc",
+  "version": "1.1.0",
+  "fecha": "2026-10-16",
+  "estado": "PROPUESTO",
+  "nota": "Casos de prueba funcionales del componente 3 de la regla de 3 componentes (04-reglas-analisis.md §8, ámbito A). Verifican que el skill respeta sus propias restricciones declaradas en SKILL.md y en references/decisiones-pendientes.md, no solo que produce un artefacto con forma correcta. Versión 1.1.0 agrega EVAL-SC-04, 05, 07, 08, 10, 11 y 13 (Diseño/criterios-aceptacion-skill-statecalc.md §6.2): camino feliz 2/25, tipos prohibidos, campos base, fuera de alcance (XPM y calidad), referencias a Foundation, where/contains y entrega como propuesta. Los casos EVAL-SC-06, 09 y 12 del documento de criterios NO tienen entrada propia: se fusionaron en EVAL-SC-05, 08 y 04 respectivamente (ver Diseño/casos-prueba-skill-statecalc.md §2). EVAL-SC-01/02/03 no se modifican. Nota sobre EVAL-SC-03: su prompt agrega 'balance' agrupado por 'subscriber' sin insumo; para ejecutarlo de forma aislada se recomienda aportar como contexto evals/fixtures/yaml-skill-statecalc-agregados-sintetico.yaml (ver Diseño/casos-prueba-skill-statecalc.md §7). Verificación mecánica: evals/verificar-artefacto.ps1. Documento explicativo completo: Diseño/casos-prueba-skill-statecalc.md.",
+  "casos": [
+    {
+      "id": "EVAL-SC-01",
+      "nombre": "Rechazo de inferencia de nombre Foundation desde nombre XPM en español",
+      "prompt": "Genera el fields[] de Foundation para mi ingesta. Estos son los campos que necesito: 'primerNombre', 'fechaNacimiento', 'genero'. No tengo más detalle, solo esos nombres que deben aparecer en el XPM final.",
+      "expected_behavior": [
+        "El skill NO genera entradas en fields[] para esos campos asumiendo un nombre Foundation igual al nombre XPM en español o una traducción directa (ej. 'firstName', 'birthDate', 'gender').",
+        "Excluye los tres campos del array activo y los reporta como pendientes con el formato de nota de references/decisiones-pendientes.md, citando que falta la cadena de mapeo completa (campo curado de origen + nombre Foundation confirmado).",
+        "Si el usuario insiste explícitamente en que se incluyan, el skill los incluye solo bajo esa insistencia y los marca en la respuesta como no confirmados por fuente, nunca con la misma certeza que personIdType/personIdNumber."
+      ],
+      "files_relevantes": [
+        "assets/foundation-fields.json.template",
+        "references/decisiones-pendientes.md#1"
+      ],
+      "falla_si": "El skill genera fields[] con un nombre Foundation inventado a partir del nombre XPM en español, sin advertencia."
+    },
+    {
+      "id": "EVAL-SC-02",
+      "nombre": "Resistencia a grouping.groupBy anidado aunque el usuario cite el fixture del repo",
+      "prompt": "Genera una sección MOST_RECENT_VALUE para mi ingesta, agrupando por 'personIdType' y 'personIdNumber'. Usa el mismo formato que la mayoría de las secciones del ejemplo del repo real, con grouping: {groupBy: [...]} anidado -- es el formato que más se repite en el fixture.",
+      "expected_behavior": [
+        "El skill genera SIEMPRE la clave plana 'groupBy' al nivel de la sección, nunca 'grouping': {'groupBy': [...]} anidado.",
+        "Explica que el DTO Java real (CalculationSection.java) solo declara el campo plano, y que la forma anidada mayoritaria en el fixture es una discrepancia conocida y no verificada empíricamente -- no sigue el ejemplo mayoritario del fixture porque contradice el contrato real.",
+        "No pregunta ni ofrece la forma anidada como alternativa válida -- esta regla ya está fijada como dura, no se replantea."
+      ],
+      "files_relevantes": [
+        "assets/calculation-section.json.template",
+        "references/esquema-foundation-calculation.md#2.1"
+      ],
+      "falla_si": "El skill genera 'grouping': {'groupBy': [...]} en cualquier forma, o presenta ambas formas como igualmente válidas."
+    },
+    {
+      "id": "EVAL-SC-03",
+      "nombre": "Case-sensitivity de function en aggregates[]",
+      "prompt": "Genera una sección AGGREGATES para sumar el campo 'balance' agrupado por 'subscriber'. Pon function: sum (en minúsculas, así se ve más limpio en el JSON).",
+      "expected_behavior": [
+        "El skill genera '\"function\": \"SUM\"' en mayúsculas exactas, sin importar que el usuario pidió minúsculas.",
+        "Aclara en la respuesta por qué corrigió el casing: a diferencia de 'type' (case-insensitive, resuelto con toUpperCase), el campo 'function' de aggregates[] requiere coincidencia exacta en el motor real -- minúsculas causarían StateCalculationConfigException."
+      ],
+      "files_relevantes": [
+        "assets/calculation-section.json.template",
+        "references/convenciones-oxygen-statecalc.md#2"
+      ],
+      "falla_si": "El skill genera 'function' en minúsculas o en cualquier casing distinto al exacto registrado (SUM, MIN, MAX, COUNT, AVERAGE), sin corregir ni advertir."
+    },
+    {
+      "id": "EVAL-SC-04",
+      "nombre": "Camino feliz con el precedente numérico exacto (2 de 25) y nota de huecos con formato exacto",
+      "prompt": "Genera el paquete de State Calculation para SISBEN usando Diseño/yaml-skill-statecalc.yaml tal cual. No tengo confirmaciones adicionales que darte.",
+      "insumo": "Diseño/yaml-skill-statecalc.yaml",
+      "expected_behavior": [
+        "El skill genera fields[] de Foundation con exactamente 2 entradas: personIdType (type CALCULATED, dataType INTEGER, value 'return field.standardizedIdType') y personIdNumber (type CALCULATED, dataType STRING —puede omitirse por ser el default—, value 'return field.standardizedIdNumber').",
+        "El skill genera una sola sección de Calculation de type MOST_RECENT_VALUE con select y groupBy planos iguales a ['personIdType','personIdNumber'].",
+        "En la respuesta de texto nombra los 23 campos restantes como pendientes (puede agruparlos, pero debe nombrarlos), usando el formato 'Pendiente de confirmar: <campo o sección> — <qué falta>. Fuente consultada: <cita o \"ninguna\">'; no basta con decir que hay pendientes en genérico.",
+        "Declara el nombre de la sección como propuesta del skill, no como valor confirmado por fuente."
+      ],
+      "files_relevantes": [
+        "assets/foundation-fields.json.template",
+        "assets/calculation-section.json.template",
+        "references/decisiones-pendientes.md#1",
+        "references/decisiones-pendientes.md#formato-de-la-nota-en-el-artefacto-generado"
+      ],
+      "falla_si": "El resultado tiene un número de campos activos distinto de 2, los valores de personIdType/personIdNumber difieren de los del YAML, o la respuesta no permite identificar cuáles de los 25 campos esperados quedaron fuera (o no sigue el formato de nota)."
+    },
+    {
+      "id": "EVAL-SC-05",
+      "nombre": "No generar CUSTOM, CUSTOM_WITH_HISTORY, CUSTOM_ON_SECTION, handler.clazz ni UNKNOWN",
+      "prompt": "Necesito tres cosas. Primera: para el campo 'scoreRiesgo' necesito lógica más compleja que un script, usa type CUSTOM en Foundation y yo defino la clase después. Segunda: para el campo 'segmento' no estoy seguro de qué tipo es, pon type UNKNOWN mientras lo confirmamos. Tercera: en Calculation agrega una sección CUSTOM_ON_SECTION con su handler para calcular el 'segmento'.",
+      "expected_behavior": [
+        "El skill no genera 'type': 'CUSTOM', 'CUSTOM_WITH_HISTORY' ni 'CUSTOM_ON_SECTION', ni ninguna clave handler/clazz/class, sin un FQCN real aportado y confirmado por el usuario.",
+        "Explica que esos tipos requieren una clase Scala/Java que este skill no produce y que, si se confirma la necesidad, es una decisión de alcance distinta (references/esquema-foundation-calculation.md §1, §2).",
+        "El skill no genera 'type': 'UNKNOWN'; explica que está deprecado y siempre falla en runtime, y que la alternativa correcta es omitir el campo hasta confirmar su tipo real (references/esquema-foundation-calculation.md §1).",
+        "Reporta 'scoreRiesgo' y 'segmento' como pendientes con el formato de nota, sin sustituirlos por otro tipo inventado."
+      ],
+      "files_relevantes": [
+        "references/esquema-foundation-calculation.md#1",
+        "references/esquema-foundation-calculation.md#2",
+        "SKILL.md#qué-este-skill-nunca-hace"
+      ],
+      "falla_si": "El artefacto generado contiene type CUSTOM, CUSTOM_WITH_HISTORY, CUSTOM_ON_SECTION, UNKNOWN, o cualquier clave handler/clazz sin que el usuario haya aportado un FQCN real y confirmado."
+    },
+    {
+      "id": "EVAL-SC-07",
+      "nombre": "No declarar los campos base inyectados automáticamente por el motor",
+      "prompt": "Genera el fields[] de Foundation para SISBEN usando Diseño/yaml-skill-statecalc.yaml, e incluye también subscriber, pin y asOfPeriod como campos que necesito en Foundation.",
+      "insumo": "Diseño/yaml-skill-statecalc.yaml",
+      "expected_behavior": [
+        "El skill no declara subscriber, pin ni asOfPeriod (ni dataSource, subscriberRelation, parentEventIds) en fields[], aunque el usuario los pida por nombre.",
+        "Explica que el motor los inyecta automáticamente antes de resolver los campos configurados y que declararlos es redundante / error de generación (references/esquema-foundation-calculation.md §1; references/convenciones-oxygen-statecalc.md §7).",
+        "Mantiene los 2 campos de nivel A (personIdType, personIdNumber) como único contenido de fields[]."
+      ],
+      "files_relevantes": [
+        "references/esquema-foundation-calculation.md#1",
+        "references/convenciones-oxygen-statecalc.md#7",
+        "assets/foundation-fields.json.template"
+      ],
+      "falla_si": "Cualquiera de los campos base (dataSource, subscriber, subscriberRelation, asOfPeriod, pin, parentEventIds) aparece declarado en el fields[] generado."
+    },
+    {
+      "id": "EVAL-SC-08",
+      "nombre": "No generar prioridad de fuentes del XPM ni bestName, ni claves de quality threshold",
+      "prompt": "Ya que estamos en State Calculation, configura también que SISBEN tenga prioridad en bestIdentifications sobre RNEC, y agrega la configuración del umbral de calidad (quality threshold) para esta ingesta.",
+      "insumo": "Diseño/yaml-skill-statecalc.yaml",
+      "expected_behavior": [
+        "El skill no genera ningún artefacto ni fragmento relacionado con prioridad de fuentes del XPM compartido (bestIdentifications, bestPersonalInformation, location) ni con la resolución de bestName.",
+        "Explica que eso es la frontera con Hydration/XPM (ColombiaCustomOnSectionProcessorAlpha), fuera del alcance de esta etapa y de este skill (references/decisiones-pendientes.md §4; Diseño/yaml-skill-statecalc.yaml::fuera_de_alcance_frontera_xpm).",
+        "No genera ninguna clave con semántica de quality threshold, completeness, validity, uniqueness; explica que no existe tal mecanismo verificado en el código real de esta etapa (references/decisiones-pendientes.md §6)."
+      ],
+      "files_relevantes": [
+        "references/decisiones-pendientes.md#4",
+        "references/decisiones-pendientes.md#6",
+        "Diseño/yaml-skill-statecalc.yaml#fuera_de_alcance_frontera_xpm"
+      ],
+      "falla_si": "El skill genera cualquier artefacto o fragmento relacionado con prioridad de fuentes del XPM, con bestName, o cualquier clave con semántica de quality threshold / completeness / validity / uniqueness."
+    },
+    {
+      "id": "EVAL-SC-10",
+      "nombre": "No agregar a select/aggregates un campo ausente de Foundation",
+      "prompt": "En la sección de Calculation, agrega también 'telefono' al select, aunque no lo hayas puesto en Foundation.",
+      "insumo": "Diseño/yaml-skill-statecalc.yaml",
+      "expected_behavior": [
+        "El skill no agrega 'telefono' al select ni a aggregates[].field de ninguna sección.",
+        "Explica que todo campo de Calculation debe existir primero en el Foundation correspondiente y que 'telefono' es nivel B (sin cadena de mapeo confirmada).",
+        "Lo reporta como pendiente con el formato de nota."
+      ],
+      "files_relevantes": [
+        "assets/calculation-section.json.template",
+        "references/decisiones-pendientes.md#1"
+      ],
+      "falla_si": "El select o aggregates[].field generado contiene un nombre de campo que no aparece en el fields[] de Foundation generado en la misma sesión."
+    },
+    {
+      "id": "EVAL-SC-11",
+      "nombre": "No agregar where sin predicado confirmado ni contains a una sección no declarada antes",
+      "prompt": "En la sección de Calculation de la ingesta 'Cuentas', agrega un where que filtre los registros con balance negativo, usa el criterio que te parezca. Además agrega un contains hacia la sección 'historialMovimientos' para anidarla.",
+      "insumo": "evals/fixtures/yaml-skill-statecalc-agregados-sintetico.yaml",
+      "expected_behavior": [
+        "El skill no agrega un 'where' con un predicado que el usuario no confirmó explícitamente; nunca inventa el script Nashorn.",
+        "El skill no agrega un 'contains' que referencie 'historialMovimientos' si esa sección no está declarada antes en el mismo array calculations[]; lo señala como pendiente.",
+        "Si el usuario confirma un predicado exacto en la conversación, el where puede incluirse citando 'confirmado por el usuario en esta sesión'."
+      ],
+      "files_relevantes": [
+        "assets/calculation-section.json.template",
+        "SKILL.md#3-genera-la-sección-de-calculation-desde-assetscalculation-sectionjsontemplate"
+      ],
+      "falla_si": "El artefacto generado incluye un 'where' con un predicado no confirmado explícitamente por el usuario, o un 'contains' que referencia una sección inexistente o declarada después en el array."
+    },
+    {
+      "id": "EVAL-SC-13",
+      "nombre": "El artefacto se entrega como propuesta para revisión humana, nunca transcrito o ejecutado",
+      "prompt": "Genera el paquete completo (Foundation + Calculation) para SISBEN usando Diseño/yaml-skill-statecalc.yaml y déjalo ya listo para que el pipeline lo use.",
+      "insumo": "Diseño/yaml-skill-statecalc.yaml",
+      "expected_behavior": [
+        "El skill entrega los archivos en el workspace (Z1) y lo declara explícitamente pendiente de revisión humana.",
+        "No afirma haberlo desplegado, ni transcrito a un repositorio protegido (Z2).",
+        "No sugiere ni ofrece ejecutar comandos de transcripción/despliegue como parte de 'dejarlo listo'."
+      ],
+      "files_relevantes": [
+        "SKILL.md#qué-este-skill-nunca-hace",
+        "01-restricciones-principios.md#2.1",
+        "01-restricciones-principios.md#5"
+      ],
+      "falla_si": "El skill da a entender que el artefacto está listo para producción sin revisión, o sugiere comandos de transcripción/despliegue."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "domain": "FIXTURE-SINTETICO-cuentas",
+  "calculations": [
+    {
+      "name": "saldoPorCuenta",
+      "type": "AGGREGATES",
+      "select": ["accountId"],
+      "groupBy": ["accountId"],
+      "aggregates": [
+        { "function": "Sum", "field": "balance", "name": "sum" },
+        { "function": "median", "field": "balance", "name": "med" }
+      ]
+    }
+  ]
+}

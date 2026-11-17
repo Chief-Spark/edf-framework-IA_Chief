@@ -1,0 +1,45 @@
+# Los tres diccionarios de Synthesis — esquema exacto
+
+Fuente de verdad verificada por lectura directa de código: `Diseño/logica-synthesis.md` §5. Synthesis se gobierna por **tres diccionarios independientes**, no uno. Confundirlos es el error de generación más grave posible en esta etapa — tienen esquemas y propósitos distintos, y generar contenido del diccionario equivocado produce un artefacto que el motor ni siquiera intentará leer donde se espera.
+
+Este skill solo genera contenido para el **primero** (GDD). Los otros dos se describen aquí para que sepas identificarlos y para que nunca los confundas ni generes contenido en ellos sin evidencia explícita de que la ingesta los necesita.
+
+## 1. GDD — Global Domain Dictionary (`domaindictionary.json`) — EL QUE ESTE SKILL GENERA
+
+Raíz: `{"domain": "<nombre>", "version": 1, "fields": [...]}`.
+
+| Campo de cada elemento de `fields` | Tipo | Obligatorio | Efecto |
+|---|---|---|---|
+| `name` | string | sí | nombre del campo del dominio en el GDD |
+| `handler` | `"EUC"` \| `"LAP"` \| ausente | no | ausente = LFP implícito (comportamiento por defecto del motor, sin clase propia) |
+| `periodicity` | boolean | no, default `true` | si el campo participa en la lógica periódica |
+| `struct` | array de strings | no | subcampos de un campo compuesto (ej. `address` → `["street1","city","State"]`) |
+| `singleValued` | boolean | no | acompaña a `struct` |
+| `synthesizer` | string (FQCN) | no | clase `SynthesisProcessor` custom — este skill NUNCA la asigna, ver `decisiones-pendientes.md` |
+
+Reglas verificadas que debes respetar al generar:
+
+- **`handler` y `synthesizer` son ortogonales.** Un campo puede tener `handler` y `synthesizer` a la vez (el fixture real confirma esto con `accountInformationLAP` y `accountInformationEUC`, ambos con el mismo `synthesizer`). Esto no te habilita a asignar `synthesizer` por tu cuenta — solo significa que si el usuario ya confirmó uno, no entra en conflicto con el `handler`.
+- **Tres campos de sistema se inyectan automáticamente** por el motor (`inferredAsDeleted`, `shouldDelete`, `fileTag`, todos `LAP`) — **nunca los declares tú** en el array `fields[]` que generas; ya existen sin que el usuario los pida.
+- El motor soporta versión 1 (deprecated, con warning) y versión 2 del formato. Usa siempre `"version": 2` salvo que el usuario pida explícitamente compatibilidad con sistemas que todavía leen versión 1.
+- Si el GDD no declara ningún `"version"`, el motor real lanza `OxygenException` — nunca generes un GDD sin ese campo.
+
+## 2. Diccionario de reglas de consistencia (`consistency-checks.json`) — ESTE SKILL NUNCA LO GENERA
+
+Raíz: `{"referenceCache": [...], "checks": [...]}`. Define reglas `CONS-*` con `checkName`, `triggerCondition`, `check` (DSL propio con parser combinators), `shouldFilterEventOnError`, etc.
+
+**Por qué este skill no lo toca:** para que exista contenido real en este archivo, la ingesta necesita reglas de consistencia específicas más allá de las que el framework ya aplica de forma estándar. Si no tienes evidencia explícita de que la ingesta las requiere (una HU, una decisión de negocio citada, o el usuario diciéndolo literalmente), no generes nada aquí — ver `decisiones-pendientes.md`.
+
+## 3. Diccionario de reglas custom de filtrado/visibilidad (`custom-rules.json`) — ESTE SKILL NUNCA LO GENERA
+
+Array plano de reglas de ocultar/marcar campos o eventos completos, con un DSL **distinto** al de consistencia (`this.campo`, `mostRecent(...)`, `xor(...)`). El valor por defecto de la plataforma es un archivo vacío (`custom-rules-empty.json`) — es decir, "sin reglas custom" es el estado normal, no una ausencia que haya que llenar.
+
+**Por qué este skill no lo toca:** mismo criterio que el diccionario de consistencia — sin evidencia explícita de caso de negocio, el archivo vacío es el estado correcto, no un hueco a rellenar.
+
+## Resumen operable
+
+| Diccionario | ¿Este skill genera contenido? | Condición para hacerlo en el futuro |
+|---|---|---|
+| GDD (`domaindictionary.json`) | **Sí** — es su propósito | — |
+| `consistency-checks.json` | No | Evidencia explícita de reglas CONS-* específicas requeridas |
+| `custom-rules.json` | No | Evidencia explícita de necesidad de ocultar/marcar campos o eventos |

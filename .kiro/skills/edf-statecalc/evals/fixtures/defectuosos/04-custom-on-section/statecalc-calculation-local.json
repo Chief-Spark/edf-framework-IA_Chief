@@ -1,0 +1,12 @@
+{
+  "domain": "FIXTURE-SINTETICO-sisben",
+  "calculations": [
+    {
+      "name": "seccionEspecial",
+      "type": "CUSTOM_ON_SECTION",
+      "select": ["personIdType"],
+      "groupBy": ["personIdType"],
+      "handler": { "class": "com.ejemplo.sintetico.SeccionProcessor" }
+    }
+  ]
+}

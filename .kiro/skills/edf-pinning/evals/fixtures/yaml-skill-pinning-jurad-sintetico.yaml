@@ -1,0 +1,126 @@
+# ─────────────────────────────────────────────────────────────
+# FIXTURE SINTÉTICO DE PRUEBA — NO es un insumo real de ninguna ingesta.
+# Ingesta ficticia "Jurad" (nombre usado como ejemplo en SKILL.md del propio
+# skill). Construido únicamente para ejercitar EVAL-PIN-04/05/06/07/08 del
+# arnés de evals de Skill-ConfigGen-Pinning sobre un insumo DISTINTO de SISBEN,
+# y así verificar que el skill generaliza y no memoriza el caso SISBEN.
+#
+# Ningún dato de este archivo representa personas, entidades o reglas de
+# negocio reales. Toda cifra, peso y nombre de campo es inventado para esta
+# prueba (04-reglas-analisis.md §9 — fixtures sintéticos por defecto, siempre).
+# ─────────────────────────────────────────────────────────────
+
+documento:
+  tipo: "intermediario-skill"
+  etapa_pipeline: "Pinning"
+  version: "1.0.0-fixture"
+  fecha: "2026-10-08"
+  estado: "FIXTURE-DE-PRUEBA"
+  aprobador: "no-aplica-es-fixture-sintetico"
+
+procedencia:
+  fuente_analisis:
+    ruta: "no-aplica — fixture de prueba, no deriva de un análisis real"
+  repositorio_base:
+    nombre: "oxygen-pinning"
+    naturaleza: "Z2 — solo lectura"
+  skill_destino: "Skill-ConfigGen-Pinning"
+
+alcance:
+  genera:
+    - "identifying-attributes.json"
+    - "pinning-application.conf (bloque de negocio)"
+  no_genera:
+    - "identityMatcher con FQCN a medida — se deja como arranque, igual que en SISBEN"
+    - "keep-together.json / keep-apart.json — sin caso de negocio en este fixture"
+
+mapeo_identidad:
+  atributos:
+    - atributo_motor: "nationalId"
+      campo_curado_jurad: "docIdNumber"
+      rol_en_matching:
+        - "doesMatch: +0.5 si coincide exacto"
+        - "nearNeighborKeys: clave propia"
+      obligatorio: true
+      pertenece_llave_identidad: true
+      pii: true
+      estado: "[C]"
+      fuente: "fixture sintético, decisión de prueba 2026-10-08"
+
+    - atributo_motor: "firstName"
+      campo_curado_jurad: "NOM_1"
+      rol_en_matching:
+        - "doesMatch: +0.3 combinado con firstLastName"
+        - "nearNeighborKeys: prefijo 5 caracteres combinado"
+      obligatorio: true
+      pertenece_llave_identidad: true
+      pii: true
+      estado: "[C]"
+      fuente: "fixture sintético"
+
+    - atributo_motor: "firstLastName"
+      campo_curado_jurad: "APE_1"
+      rol_en_matching:
+        - "doesMatch: +0.3 combinado con firstName"
+        - "nearNeighborKeys: sufijo 5 caracteres combinado"
+      obligatorio: true
+      pertenece_llave_identidad: true
+      pii: true
+      estado: "[C]"
+      fuente: "fixture sintético"
+
+    - atributo_motor: "cellPhone"
+      campo_curado_jurad: "TELEFONO_CONTACTO"
+      rol_en_matching:
+        - "doesMatch: +0.3 si coincide exacto"
+        - "nearNeighborKeys: clave propia"
+      obligatorio: false
+      pertenece_llave_identidad: false
+      pii: true
+      estado: "[C]"
+      fuente: "fixture sintético — a diferencia de SISBEN, esta ingesta ficticia SÍ trae teléfono, deliberadamente, para ejercitar el término de peso que SISBEN no puede probar"
+
+    - atributo_motor: "middleName"
+      campo_curado_jurad: "NOM_2"
+      rol_en_matching:
+        - "sin uso confirmado en el algoritmo de scoring — mismo caso que SISBEN"
+      obligatorio: false
+      pertenece_llave_identidad: false
+      pii: true
+      estado: "[A:sin-clasificar]"
+      nota: "Deliberadamente dejado sin confirmar para verificar que el skill lo excluye del array activo (EVAL-PIN-04)."
+      fuente: "fixture sintético"
+
+instruccion_generacion:
+  contenido_a_escribir:
+    valor_resultante:
+      - "nationalId"
+      - "firstName"
+      - "firstLastName"
+      - "cellPhone"
+    excluidos_hasta_resolver:
+      - atributo: "middleName"
+        razon: "estado [A:sin-clasificar] en este fixture"
+    advertencia_consecuencia: >
+      Con nationalId (0.5) + firstName+firstLastName (0.3) + cellPhone (0.3),
+      a diferencia de SISBEN, esta ingesta SÍ puede alcanzar
+      similarityThreshold = 0.6 sin nationalId exacto: nombre completo +
+      teléfono = 0.3 + 0.3 = 0.6, exactamente en el umbral. Esta es la
+      verificación aritmética que EVAL-PIN-05 debe encontrar en el código
+      generado para este fixture, y es intencionalmente DISTINTA de la
+      conclusión de SISBEN (donde sin nationalId nunca se alcanza el umbral) —
+      para comprobar que el skill calcula la aritmética real del insumo dado,
+      no que copia la conclusión de SISBEN de memoria.
+    estado: "[C] para la aritmética del fixture"
+
+claves_configuracion_pinning:
+  bloque_oxygen_stage_pinning:
+    - clave: "oxygen.stage.pinning.groupSSR"
+      valor_a_escribir: "CONFLICTO SIN RESOLVER — igual que en SISBEN, no se decide en este fixture"
+      estado: "[A:sin-clasificar]"
+
+# ═════════════════════════════════════════════════════════════
+# FIN DEL FIXTURE — yaml-skill-pinning-jurad-sintetico.yaml
+# Uso exclusivo: arnés de evals de Skill-ConfigGen-Pinning. No es un YAML
+# intermedio de producto real y no debe tratarse como tal.
+# ═════════════════════════════════════════════════════════════

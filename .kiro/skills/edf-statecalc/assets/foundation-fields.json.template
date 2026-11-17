@@ -1,0 +1,49 @@
+// NOTA: statecalc-foundation-local.json es un archivo JSON real (sin comentarios).
+// Esta plantilla usa comentarios // solo para guiar la generación; elimínalos en el
+// archivo final.
+//
+// REGLA DE CONTENIDO (ver references/decisiones-pendientes.md §1):
+// Incluye en fields[] SOLO los campos con cadena de mapeo completa y verificada:
+// campo curado de origen confirmado + nombre de campo Foundation confirmado por
+// una fuente verificable (código real, HU formal, o confirmación explícita del
+// usuario en esta sesión). Si un campo solo tiene un nombre de destino XPM
+// propuesto por un documento de negocio, sin su campo curado de origen confirmado,
+// NO lo incluyas -- repórtalo como pendiente en tu respuesta de texto.
+//
+// REGLA DE CAMPOS BASE: NUNCA declares aquí dataSource, subscriber,
+// subscriberRelation, asOfPeriod, pin ni parentEventIds -- el motor los inyecta
+// automáticamente antes de resolver los campos configurados; declararlos es
+// redundante y es un error de generación.
+//
+// REGLA DE TIPO: este skill solo genera type=DERIVED (omitir la clave "type" por
+// completo, es el default) o type=CALCULATED con un "value" (script Nashorn)
+// confirmado por fuente. NUNCA genera CUSTOM, CUSTOM_WITH_HISTORY ni UNKNOWN --
+// los dos primeros requieren una clase Scala que este skill no produce.
+
+{
+  "domain": "{{DOMINIO_NOMBRE}}",
+  "fields": [
+    // --- Un objeto por campo DERIVED con cadena de mapeo confirmada ---
+    // DERIVED lee directo del evento curado; usar cuando el campo Foundation
+    // debe tomar el valor tal cual viene, sin transformación.
+    {
+      "name": "{{NOMBRE_CAMPO_FOUNDATION_1}}"
+      // "dataType": "STRING",      // omitir si STRING (default); usar INTEGER/LONG/DOUBLE/BOOLEAN si corresponde
+      // "defaultValue": "...",     // solo si el usuario confirma un valor por defecto para cuando falte en el evento
+      // "aliases": ["..."],        // solo si el usuario confirma nombres alternativos
+      // "nullable": false          // omitir si true (default)
+    }
+
+    // --- Un objeto por campo CALCULATED con script Nashorn confirmado ---
+    // Ejemplo real verificado (Diseño/logica-statecalc.md §5.1):
+    // {
+    //   "name": "personIdType",
+    //   "dataType": "INTEGER",
+    //   "type": "CALCULATED",
+    //   "value": "return field.standardizedIdType"
+    // }
+
+    // -- un objeto más por cada campo con cadena de mapeo confirmada --
+    // -- NO agregues campos de nivel B (solo nombre XPM, sin origen confirmado) "por completitud" --
+  ]
+}

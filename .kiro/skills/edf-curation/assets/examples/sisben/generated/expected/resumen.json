@@ -1,0 +1,59 @@
+{
+  "sintetico": true,
+  "eventos_entrada": 8,
+  "eventos_curados": 7,
+  "eventos_descartados_por_motor": [
+    {
+      "eventId": "evt-0008",
+      "fileName": "OTRA_FUENTE_202401.20240205103000-0500.txt",
+      "motivo": "sin processor para lineage.fileName (CUR-AP02, descarte sin log)"
+    }
+  ],
+  "eventos_con_advertencias": 3,
+  "advertencias": {
+    "evt-0005": [
+      "fechaActualizacionPersona:FORMATO_INVALIDO"
+    ],
+    "evt-0006": [
+      "idHogar:FORMATO_INVALIDO"
+    ],
+    "evt-0007": [
+      "tipoDocumento:HOMOLOGACION_PENDIENTE"
+    ]
+  },
+  "claves_omitidas_por_severidad": {
+    "evt-0004": [
+      "segundoApellido"
+    ]
+  },
+  "homologacion_tipo_documento": {
+    "evt-0001": [
+      "3",
+      1
+    ],
+    "evt-0002": [
+      "PPT",
+      11
+    ],
+    "evt-0003": [
+      "8",
+      9
+    ],
+    "evt-0004": [
+      "4",
+      4
+    ],
+    "evt-0005": [
+      "5",
+      8
+    ],
+    "evt-0006": [
+      "6",
+      5
+    ],
+    "evt-0007": [
+      "7",
+      null
+    ]
+  }
+}

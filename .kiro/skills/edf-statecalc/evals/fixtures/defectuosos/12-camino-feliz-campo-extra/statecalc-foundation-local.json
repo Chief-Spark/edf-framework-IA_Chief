@@ -1,0 +1,8 @@
+{
+  "domain": "FIXTURE-SINTETICO-sisben",
+  "fields": [
+    { "name": "personIdType", "dataType": "INTEGER", "type": "CALCULATED", "value": "return field.standardizedIdType" },
+    { "name": "personIdNumber", "dataType": "STRING", "type": "CALCULATED", "value": "return field.standardizedIdNumber" },
+    { "name": "primerNombre" }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "EDF: validar expediente tras escritura del agente",
+      "trigger": "PostToolUse",
+      "matcher": "fs_write|str_replace|fs_append",
+      "action": {
+        "type": "agent",
+        "prompt": "Regla del framework EDF: si la herramienta que acabas de usar modifico un archivo dentro de `expedientes/` (estado-ingesta.json, estado-ingesta.md o bitacora.md), ejecuta ahora `python tools/validar-expedientes.py <ingesta-id>` (en macOS/Linux usa `python3`) y muestra el resultado. Si reporta HALLAZGOS: no habilites ninguna transicion ni continues el flujo; corrige el expediente y registra la correccion como un evento nuevo en la bitacora. Si el archivo modificado no esta dentro de `expedientes/`, ignora esta instruccion."
+      }
+    },
+    {
+      "name": "EDF: validar expediente al guardar a mano",
+      "trigger": "PostFileSave",
+      "matcher": "expedientes[\\\\/][^\\\\/]+[\\\\/](estado-ingesta\\.json|bitacora\\.md)$",
+      "action": {
+        "type": "agent",
+        "prompt": "Regla del framework EDF: se guardo a mano un archivo del expediente. Ejecuta `python tools/validar-expedientes.py` (en macOS/Linux `python3`) y reporta el resultado. Recuerda: el expediente lo escribe solo el Orquestador; si el cambio manual habilita una transicion sin aprobacion registrada, reportalo como hallazgo y registralo en la bitacora."
+      }
+    }
+  ]
+}

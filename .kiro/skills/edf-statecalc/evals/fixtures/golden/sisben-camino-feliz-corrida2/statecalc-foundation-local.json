@@ -1,0 +1,7 @@
+{
+  "domain": "FIXTURE-SINTETICO-sisben",
+  "fields": [
+    { "name": "personIdType", "description": "redaccion distinta en la corrida 2", "dataType": "INTEGER", "type": "CALCULATED", "value": "return field.standardizedIdType" },
+    { "name": "personIdNumber", "type": "CALCULATED", "value": "return field.standardizedIdNumber" }
+  ]
+}

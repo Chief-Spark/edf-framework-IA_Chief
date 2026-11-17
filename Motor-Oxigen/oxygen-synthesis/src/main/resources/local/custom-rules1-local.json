@@ -1,0 +1,25 @@
+[
+  {
+    "name": "ApplicationOfLaw",
+    "description": "This is a description",
+    "check": "this.accountType in (\"02\", \"03\") && $this.asOfPeriod.asPeriod <= env.$CURRENT_DATE_TIME.asPeriod - 84",
+    "action": "hide",
+    "precedence": 0
+  },
+  {
+    "name": "AccountInDispute",
+    "description": "This is a description",
+    "check": "mostRecent($isHistoricalBlock.asBoolean) == true",
+    "action": "hide",
+    "fields": ["balance"],
+    "precedence": 1
+  },
+  {
+    "name": "AccountInDispute",
+    "description": "This is a description",
+    "check": "xor($accountStatus.asString)",
+    "action": "hide",
+    "fields": ["balance"],
+    "precedence": 2
+  }
+]

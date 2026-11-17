@@ -1,0 +1,33 @@
+{userHome}
+├── {appName}-app
+│├── acceptance
+│├── curation
+│├── diff
+│├── generations
+││├── default
+│││└── person
+│││    ├── consistency
+│││    ├── pinning
+│││    ├── statecalc
+│││    │└── additionalFoundation
+│││    │    ├── {timestamp}
+│││    │    │├──.json
+│││    │├── archived
+│││    │└── calculated
+│││    │    ├── {timestamp}
+│││    │    │├──.json
+│││    │└── calculatedTsv
+│││    │    ├── {timestamp}
+│││    │    │├──.json
+│││    │└── foundation
+│││    │    ├── {timestamp}
+│││    │    │├──.json
+│││    └── vle
+││├── gen1
+││└── gen2
+│├── processed
+│├── relationship
+│└── validation
+├── oxygen-is-data
+├── oxygen-is-keep-apart
+└── oxygen-is-keep-together

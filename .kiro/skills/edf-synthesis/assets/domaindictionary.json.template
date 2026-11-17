@@ -1,0 +1,31 @@
+// NOTA: domaindictionary.json es un archivo JSON real (sin comentarios).
+// Esta plantilla usa comentarios // solo para guiar la generación; elimínalos
+// en el archivo final.
+//
+// REGLA DE CONTENIDO (ver references/decisiones-pendientes.md §2):
+// Incluye en fields[] SOLO los campos cuyo handler esté confirmado por una
+// fuente verificable (código real, HU formal, o confirmación explícita del
+// usuario en esta sesión). Si el usuario no confirma el handler de un campo,
+// NO lo incluyas con un handler inventado -- o lo omites y lo reportas como
+// pendiente, o lo incluyes SIN la clave "handler" (que es LFP implícito) solo
+// si eso también fue confirmado como la intención real, no por default tuyo.
+//
+// REGLA DE SISTEMA: NUNCA declares aquí los 3 campos de sistema que el motor
+// inyecta automáticamente (inferredAsDeleted, shouldDelete, fileTag) -- ya
+// existen sin que el usuario los pida, duplicarlos es un error de generación.
+
+{
+  "domain": "{{DOMINIO_NOMBRE}}",
+  "version": 2,
+  "fields": [
+    // --- Un objeto por campo con handler CONFIRMADO ---
+    {
+      "name": "{{NOMBRE_CAMPO_GDD_1}}",
+      "handler": "{{HANDLER_1}}"   // "EUC" | "LAP" -- omitir esta clave por completo si es LFP
+      // "periodicity": true,       // omitir salvo que el usuario confirme false explícitamente
+      // "synthesizer": "{{FQCN_SYNTHESIZER}}"  // solo si el usuario confirma lógica custom (ver decisiones-pendientes.md)
+    }
+    // -- un objeto más por cada campo confirmado --
+    // -- NO agregues campos sin handler confirmado "por completitud" --
+  ]
+}

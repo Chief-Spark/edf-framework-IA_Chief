@@ -1,0 +1,2 @@
+# El renderer escribe LF; los artefactos versionados deben compararse byte a byte con su salida.
+* text=auto eol=lf

@@ -1,0 +1,30 @@
+{
+  "domain": "FIXTURE-SINTETICO-cuentas",
+  "calculations": [
+    {
+      "name": "saldoPorCuenta",
+      "type": "AGGREGATES",
+      "select": ["accountId"],
+      "groupBy": ["accountId"],
+      "aggregates": [
+        { "function": "SUM", "field": "balance", "name": "sum" },
+        { "function": "AVERAGE", "field": "balance", "name": "avg" },
+        { "function": "COUNT", "field": "balance", "name": "count" }
+      ]
+    },
+    {
+      "name": "cuentasDistintas",
+      "type": "DISTINCT",
+      "transient": true,
+      "select": ["accountId"],
+      "groupBy": ["accountId"]
+    },
+    {
+      "name": "resumenCuentas",
+      "type": "ALL",
+      "select": ["accountId"],
+      "groupBy": ["accountId"],
+      "contains": [ { "name": "saldos", "section": "saldoPorCuenta" } ]
+    }
+  ]
+}

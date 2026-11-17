@@ -1,0 +1,172 @@
+# ─────────────────────────────────────────────────────────────
+# FIXTURE SINTÉTICO DE PRUEBA — NO es un insumo real de ninguna ingesta.
+# Ingesta ficticia "Jurad" (mismo nombre de ejemplo ya usado en el fixture
+# sintético de Skill-ConfigGen-Pinning, para mantener consistencia entre los
+# arneses de evals de las dos etapas). Construido únicamente para ejercitar
+# EVAL-SYN-04 a EVAL-SYN-12 del arnés de evals de Skill-ConfigGen-Synthesis
+# sobre un insumo DISTINTO de SISBEN.
+#
+# A diferencia del insumo real de SISBEN (yaml-skill-synthesis.yaml), donde
+# NINGÚN campo llegó a [C] y el GDD generable es vacío por diseño, este
+# fixture declara deliberadamente:
+#   - un campo con handler EUC confirmado por fuente verificable ([C] real,
+#     no [P]), para poder ejercitar el camino feliz positivo (EVAL-SYN-04
+#     necesita contraste: SISBEN prueba el camino feliz NEGATIVO —GDD vacío—,
+#     este fixture prueba que el skill SÍ genera contenido cuando la fuente
+#     sí lo confirma, sin ampliarlo a más de lo confirmado),
+#   - un campo con handler LAP confirmado, para que no todo el fixture sea EUC,
+#   - un bloque de campos "restantes" sin desglosar (igual que SISBEN), para
+#     poder reusar EVAL-SYN-05 sobre un insumo distinto si se necesita en el
+#     futuro,
+#   - un eventType real distinto de los tres de ejemplo del fixture del repo
+#     (sisben/jurad/judicial) — OJO: el nombre de la ingesta ficticia es
+#     "Jurad" pero su eventType real NO es literalmente "jurad" del fixture
+#     del repo; se usa "jurad-v2" a propósito para que EVAL-SYN-10 pueda
+#     detectar si el skill copia el valor de ejemplo del repo en vez de usar
+#     el valor real de esta ingesta.
+#
+# Ningún dato de este archivo representa personas, entidades o reglas de
+# negocio reales. Toda cifra, nombre de campo y handler es inventado para
+# esta prueba (04-reglas-analisis.md §9 — fixtures sintéticos por defecto,
+# siempre).
+# ─────────────────────────────────────────────────────────────
+
+documento:
+  tipo: "intermediario-skill-fixture"
+  etapa_pipeline: "Synthesis/Consistency"
+  version: "1.0.0-fixture"
+  fecha: "2026-10-13"
+  estado: "FIXTURE-DE-PRUEBA"
+  aprobador: "no-aplica-es-fixture-sintetico"
+
+procedencia:
+  fuente_analisis:
+    ruta: "no-aplica — fixture de prueba, no deriva de un análisis real"
+  repositorio_base:
+    nombre: "oxygen-synthesis"
+    naturaleza: "Z2 — solo lectura"
+  skill_destino: "Skill-ConfigGen-Synthesis"
+
+alcance:
+  genera:
+    - "domaindictionary.json (GDD) — con contenido real, a diferencia del YAML de SISBEN"
+    - "bloque HOCON oxygen.stage.consistencyCheck"
+  no_genera:
+    - "consistency-checks.json / custom-rules.json — sin caso de negocio en este fixture, mismo criterio que SISBEN"
+    - "SynthesisProcessor en Scala — ningún campo de este fixture requiere synthesizer custom"
+
+mapeo_campos_handler:
+
+  nota_general: >
+    A diferencia del insumo real de SISBEN, este fixture SÍ declara campos
+    con handler en estado [C] (confirmado), con cita de una fuente ficticia
+    pero verificable DENTRO del propio fixture (el propio fixture actúa como
+    "código real" simulado para efectos de la prueba). Esto permite verificar
+    que el skill genera contenido real cuando la confirmación existe, no solo
+    que se abstiene cuando no existe (que ya lo prueba el caso SISBEN).
+
+  campos_con_mapeo_confirmado:
+
+    - campo_curado_jurad: "FEC_RADICACION"
+      nombre_en_gdd: "filingDate"
+      handler_propuesto: "EUC"
+      justificacion: >
+        Fecha de radicación inicial del caso. Confirmado como EUC por el
+        equipo de dominio de la ingesta ficticia "Jurad" en sesión de prueba,
+        análogo a una HU formal real (fixture de prueba, cita simulada).
+      nivel_confianza: "confirmación explícita y consciente, equivalente a HU formal para efectos de esta prueba"
+      estado: "[C]"
+      fuente: "fixture sintético — confirmación de prueba 2026-10-13, categoría equivalente a HU formal"
+
+    - campo_curado_jurad: "ESTADO_PROCESO"
+      nombre_en_gdd: "caseStatus"
+      handler_propuesto: "LAP"
+      justificacion: >
+        El estado del proceso judicial cambia con el tiempo y debe reflejar
+        el valor más reciente visto entre periodos, incluso si llega
+        desordenado respecto a otros campos. Confirmado explícitamente por
+        el equipo de dominio para esta ingesta ficticia.
+      nivel_confianza: "confirmación explícita y consciente, equivalente a HU formal para efectos de esta prueba"
+      estado: "[C]"
+      fuente: "fixture sintético — confirmación de prueba 2026-10-13"
+
+    - campo_curado_jurad: "NUM_RADICADO"
+      nombre_en_gdd: "caseNumber"
+      handler_propuesto: null
+      justificacion: >
+        El número de radicado del caso debe reflejar siempre el último
+        evento recibido tal cual llega — comportamiento LFP implícito,
+        confirmado explícitamente (no se omite por descuido, se confirma
+        que la ausencia de handler es la intención real).
+      nivel_confianza: "confirmación explícita de LFP implícito (ausencia de handler), equivalente a HU formal para esta prueba"
+      estado: "[C]"
+      fuente: "fixture sintético — confirmación de prueba 2026-10-13"
+
+  campos_sin_mapeo_confirmado:
+    descripcion: >
+      Igual que en SISBEN, existe un bloque de campos mencionados en bloque,
+      sin desglosar, que NO debe expandirse a una lista inventada.
+    campos_que_la_fuente_menciona_por_categoria:
+      - "datos del despacho judicial (juzgado, ciudad, departamento) — sin nombre de campo curado Jurad confirmado ni handler específico"
+    estado: "[A:sin-clasificar] — bloque completo, no se genera nada de este grupo"
+    fuente: "fixture sintético — bloque deliberadamente sin desglosar, análogo a SISBEN_V4_..._Levantamiento.md §7.3"
+
+instruccion_generacion_gdd:
+  archivo: "domaindictionary.json"
+  seccion: "fields[]"
+  contenido_a_escribir:
+    regla: >
+      Generar ÚNICAMENTE los 3 campos de campos_con_mapeo_confirmado. El
+      campo "caseNumber" se declara en el GDD SIN la clave "handler" (LFP
+      implícito), nunca con el string literal "LFP".
+    campos_a_generar:
+      - nombre_en_gdd: "filingDate"
+        handler: "EUC"
+      - nombre_en_gdd: "caseStatus"
+        handler: "LAP"
+      - nombre_en_gdd: "caseNumber"
+        handler: null
+    estado: "[C] para los 3 campos listados; el resto del dominio queda [A:sin-clasificar]"
+
+claves_configuracion_synthesis:
+  claves:
+    - clave: "oxygen.stage.consistencyCheck.eventTypeList"
+      valor_a_escribir: '["jurad-v2"]'
+      regla: >
+        El eventType real de esta ingesta ficticia es "jurad-v2", NO "jurad"
+        (que es uno de los tres valores de ejemplo del fixture local real del
+        repo oxygen-synthesis). Esta distinción es deliberada: si el skill
+        genera "jurad" en vez de "jurad-v2", es evidencia de que copió el
+        valor de ejemplo del repo en vez de usar el eventType real de esta
+        ingesta (ver EVAL-SYN-10).
+      estado: "[C]"
+      fuente: "fixture sintético — confirmación de prueba 2026-10-13"
+
+    - clave: "oxygen.stage.consistencyCheck.dateType"
+      valor_a_escribir: "receivedDate"
+      regla: "coincide con el default documentado; sin instrucción distinta del usuario para este fixture"
+      estado: "[C]"
+      fuente: "fixture sintético, mismo default que SISBEN"
+
+    - clave: "oxygen.stage.consistencyCheck.paths.dictionaryFile"
+      valor_a_escribir: "PENDIENTE — sin confirmación de si esta ingesta usa consistencia estándar o reglas propias"
+      estado: "[A:sin-clasificar]"
+      fuente: "fixture sintético — deliberadamente sin resolver, mismo caso que SISBEN"
+
+    - clave: "oxygen.stage.consistencyCheck.paths.domainDictionaryFile"
+      valor_a_escribir: "domaindictionary.json"
+      regla: "debe coincidir con el nombre de archivo del GDD generado en esta misma pasada"
+      estado: "[C]"
+      fuente: "fixture sintético — confirmación de prueba 2026-10-13"
+
+    - clave: "oxygen.stage.consistencyCheck.synthesisOutputAsTSV"
+      valor_a_escribir: false
+      regla: "default documentado, sin instrucción distinta del usuario"
+      estado: "[C]"
+      fuente: "fixture sintético, mismo default que SISBEN"
+
+# ═════════════════════════════════════════════════════════════
+# FIN DEL FIXTURE — yaml-skill-synthesis-jurad-sintetico.yaml
+# Uso exclusivo: arnés de evals de Skill-ConfigGen-Synthesis. No es un YAML
+# intermedio de producto real y no debe tratarse como tal.
+# ═════════════════════════════════════════════════════════════

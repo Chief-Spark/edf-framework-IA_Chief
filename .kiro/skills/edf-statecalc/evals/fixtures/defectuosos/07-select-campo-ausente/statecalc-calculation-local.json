@@ -1,0 +1,11 @@
+{
+  "domain": "FIXTURE-SINTETICO-cuentas",
+  "calculations": [
+    {
+      "name": "cuentasConTelefono",
+      "type": "MOST_RECENT_VALUE",
+      "select": ["accountId", "telefono"],
+      "groupBy": ["accountId"]
+    }
+  ]
+}

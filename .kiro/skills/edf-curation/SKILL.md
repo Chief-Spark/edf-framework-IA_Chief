@@ -1,0 +1,243 @@
+---
+name: edf-curation
+description: |
+  Genera y verifica los artefactos de la etapa Curation de EDF/Oxygen para una fuente nueva
+  (piloto SISBEN V4): processor Scala, evento curado, especificación de mapeo, bloque HOCON,
+  lookups, domain dictionary, fixture sintético y tests. Curation PERSISTE las transformaciones
+  (normalización, homologación de TIP_DOCUMENTO, fechas a epoch, padding DANE). Automatiza lo
+  posible y guía al experto en lo demás; propone y espera aprobación antes de entregar.
+metadata:
+  stage: curation
+  framework: EDF/Oxygen
+  pilot: SISBEN V4
+  version: "0.1.0"
+  human-clarification: "true"
+  artefact-verification: "true"
+---
+
+# EDF/Oxygen · Curation stage
+
+## Paso 0 · Habilitación por el expediente (obligatorio, framework EDF)
+
+Esta skill es parte del framework `edf-framework-IA` y opera **debajo del Orquestador** (`.kiro/steering/00-framework-edf.md` §3). Antes de generar cualquier artefacto:
+
+1. **Identifica la ingesta** (`<ingesta-id>`) y abre `expedientes/<ingesta-id>/estado-ingesta.json`. Si no existe → no generes; pide al Desarrollador que inicie el expediente con `edf-orquestador`.
+2. **Verifica la habilitación:** en `etapas[]`, la etapa `acceptance` debe estar en `aprobada`, `completada_manualmente` u `omitida` (esta última solo con aprobación de omisión del PO, `edf-orquestador/references/03` §4b), con `transicion_habilitada: true`. Tu etapa en el expediente es `curation_flow` y `curation_stock` (un mismo processor sirve a ambas).
+3. **Verifica el insumo:** `expedientes/<ingesta-id>/insumos/source-spec-curation.yaml` (valida contra `assets/schema/source-spec.schema.yaml` de esta skill) debe existir y figurar como `aprobado` en los artefactos de tu etapa. Si falta → no generes; deriva a `edf-analisis` ("prepara el insumo de Curation para la ingesta <id>").
+4. **Si algo falla:** responde con lo que falta, sin generar nada y sin ofrecer cómo saltarse el control. Deriva a `edf-orquestador`.
+
+Excepción única: trabajo sobre fixtures sintéticos de evaluación (`evals/` o `assets/examples/`) fuera de una ingesta real. Decláralo al inicio de tu respuesta.
+
+Al terminar: escribe la propuesta en `expedientes/<ingesta-id>/propuestas/curation/` y entrega al Desarrollador la lista de artefactos (ruta, tipo, supuestos abiertos, resultado de las verificaciones) **para que el Orquestador la registre**. Esta skill **no escribe** `estado-ingesta.json` ni `bitacora.md`.
+
+## Requisito del framework · Claves de identidad para Pinning (steering `11`)
+
+Pinning compara texto exacto y lee solo las claves de `identifying-attributes` de Colombia (`standardizedId*`). Por decisión del 2026-11-04 (opción A, `docs/arquitectura.md` DA-11 y DA-13), todo `source-spec-curation.yaml` de una ingesta de Colombia **agrega** estas entradas a `campos_curados` (aditivo: las claves actuales se mantienen):
+
+```yaml
+  - {destino: standardizedIdType,   origen: "", transformacion: {tipo: copia_de, campo: tipoDocumento},   tipo_salida: entero, estado: cerrado}
+  - {destino: standardizedIdNumber, origen: "", transformacion: {tipo: copia_de, campo: numeroDocumento}, tipo_salida: texto,  estado: cerrado}
+```
+
+- `standardizedIdNumber` hereda la regla de `reglas_documento`. Decisión DA-13: **se eliminan los ceros a la izquierda**. Si se aplica a todos los tipos (incluidos PPT y pasaporte, que en el ejemplo SISBEN los conservan) está pendiente de confirmar: hasta entonces se deja como en el ejemplo y se reporta como supuesto.
+
+Y declara en `campos_abiertos` lo que el generador todavía no puede producir:
+
+```yaml
+campos_abiertos:
+  - {destino: standardizedIdName, motivo: "Concatenación PriNombre SegNombre PriApellido SegApellido con catálogos 111 y 113, omitiendo vacíos (CUR-SIS-03). El generador no tiene transformación de concatenación: requiere desarrollo en RenderTemplates y Transformations (pendiente framework)."}
+  - {destino: "<nombre pendiente> (NUM_DOCUMENTO_SISBEN)", motivo: "Valor original de NUM_DOCUMENTO para PPT (CUR-SIS-02). Nombre de la clave y si se publica solo para PPT pendientes de confirmar."}
+```
+
+Pendientes que **no** se resuelven aquí y se reportan en la entrega:
+- Formato de `subscriberRelation` (por defecto `NUM_DOCUMENTO` sin normalizar; PIN-SIS-04 pide `standardizedIdType_standardizedIdNumber`): steering `11` §6 #8. Solo se cambia si el `source-spec-curation.yaml` aprobado declara el bloque opcional `extension_subscriber_relation: {campos: [...], separador: "_"}` (D14): el processor arma `subscriberRelation` con esos campos curados y, si falta alguno, conserva el del evento aceptado. La firma del gancho no está verificada contra el JAR (F-01): se reporta como supuesto.
+- Fechas ISO: `parametros.formatos_fecha` admite `uuuu-MM-dd` además de `dd/MM/uuuu` y `uuuu-MM-dd HH:mm:ss`. `homologacion_tipo_documento.pendientes` puede ir vacío (`[]`).
+- `standardizedIdNumber` y el resto de los números de documento salen en mayúsculas (`reglas_documento` con `conservar_original: true` los devuelve tal como vinieron).
+- Bandera de fuente para el matcher de Colombia (`isOfficialSource` o una nueva): `OQ-TR-6`. Si se decide, Curation la publica como `constante`.
+
+El ejemplo `assets/examples/sisben/source-spec.sisben.yaml` **no** incluye estas entradas a propósito: sus salidas esperadas y pruebas se generaron sin ellas. Al cambiarlo hay que regenerar con `mvn -q -f scripts/java/pom.xml verify`.
+
+
+Skill portable y autocontenido. Todas las rutas son relativas a la carpeta del skill.
+
+## Cuándo usarlo
+
+- Un ingeniero de datos debe enchufar una fuente nueva en Curation (fork de oxygen-curation).
+- Hay que revisar o regenerar los artefactos de Curation de SISBEN V4.
+- Hay que explicar qué hace Curation frente a Validation y Acceptance.
+
+No usarlo para: diagnosticar registros (Validation), aceptar/rechazar (Acceptance), consolidar
+(Synthesis), ni modificar el motor `SparkCurator`.
+
+## Qué hace Curation (y qué no)
+
+Curation transforma **uno a uno** los eventos aceptados al modelo canónico y **persiste** el
+resultado. Validation solo normaliza **en memoria** para validar. Curation no filtra, no deduplica,
+no infiere borrados y no tiene canal de errores propio: lo que no se puede transformar queda `null`
+y se lista en el campo de advertencias del propio evento (D13).
+
+Transformaciones SISBEN (RF-CUR-04..10): nombres en mayúsculas sin tildes ni especiales; tipos de
+dato; fechas a epoch ms; **homologación de `TIP_DOCUMENTO`** SISBEN→Experian
+`1→10, 2→7, 3→1, 4→4, 5→8, 6→5, 7→pendiente (nunca un código arbitrario), 8→9, PPT→11`, con el
+original en `tipoDocumentoSisben`; número de documento (espacios, ceros, PEP sin letras, PPT
+original); padding DANE; severidad 3 → no se almacena, severidad 0 → se anula. Enriquecimiento:
+tipo de archivo y fecha de corte desde el nombre. De los 7 lookups SISBEN, Curation persiste la
+homologación (`202_SISBEN_PROCESS_ID_TYPE_HO`); los otros seis los consulta Validation.
+
+## Guardarraíles (no negociables)
+
+1. **Configuración aditiva**: solo se agrega un elemento a `oxygen.stage.curation.configs[]`,
+   `oxygen.lookups[]` y entradas al domain dictionary del *inner*. Nunca se edita el conf base, ni
+   claves de etapa (`runMode`, `partitionSize`, `enableSSRWrite`, `includeQualityCodes`,
+   `includeErrorCodes`, `excludes`), ni bloques de otras ingestas.
+2. **Solo datos sintéticos** en fixtures, lookups de prueba, ejemplos y tests. Nunca datos reales.
+3. **Nunca** leer, copiar, citar valores ni adjuntar `settings-artifactory.xml` ni otro archivo con
+   credenciales. Si aparece uno expuesto, pedir rotación.
+4. Sin PII en logs ni en advertencias (solo `campo:MOTIVO`).
+5. Compilación **no certificada** (F-01): no hay acceso a los JAR del framework. Decirlo siempre.
+6. Todo valor sin evidencia sale con `ASSUMPTION:` y queda en `references/decisiones-y-abiertos.md`.
+   Los campos abiertos no se inventan: no se generan.
+7. No se integra nada sin **aprobación explícita** del humano (HITL).
+
+## Flujo
+
+### 1. Contexto
+
+Leer `references/alcance-y-glosario.md` y `references/patrones.md`. Confirmar con el usuario:
+fuente, repo destino (fork de oxygen-curation) y si es la primera ingesta (se generan Capa A y sus
+tests) o una más (se reutilizan).
+
+### 2. Source-spec
+
+- SISBEN: usar `assets/examples/sisben/source-spec.sisben.yaml` (prellenado).
+- Fuente nueva: copiarlo y completarlo siguiendo `assets/schema/source-spec.schema.yaml`. Preguntar
+  solo lo que falte; cada respuesta se registra con su estado (cerrado, propuesta, inferido,
+  supuesto, abierto). La carpeta de lookups del fixture (`fixture.lookups_dir`) debe traer un
+  `LEEME.md` que marque los CSV como sintéticos: sin él el generador sale con código 1 ("falta la
+  marca de sintético de los lookups"; desde el 2026-10-21, H-12 de `G_2026-10-21`).
+- Zona de fechas (AC-CUR-10, ADR-G4): `parametros.zona_horaria_fechas` con su origen
+  `parametros.zona_horaria_fechas_origen` (`requisito` | `supuesto`; por defecto `supuesto`) y la zona en
+  que la etapa anterior calcula `asOfDate`, `parametros.zona_asofdate_etapa_anterior` (por defecto
+  `America/Bogota`, D3). Si las dos zonas difieren, el generador lo advierte (paso 3).
+
+Campos mínimos: identidad (`Fuente`, `eventType`), convención de nombre y `filePattern`, campos de
+entrada, códigos de error → campo, homologación, reglas de documento, catálogos, mapeo
+`campos_curados`, campos abiertos, rutas destino, fixture sintético.
+
+### 3. Generar
+
+```bash
+mvn -q -f scripts/java/pom.xml verify          # una vez: construye el generador (Java 17) y corre sus pruebas
+java -jar scripts/java/target/render-templates.jar --spec <source-spec.yaml> --out <carpeta-salida>
+```
+
+`--out` se borra y se vuelve a crear: use una carpeta dedicada. Si `zona_horaria_fechas` difiere de
+`zona_asofdate_etapa_anterior`, el generador escribe en **stderr** `ADVERTENCIA: zona_horaria_fechas (<z1>)
+difiere de la zona de asOfDate de la etapa anterior (<z2>) (C-CUR-04)` y la guarda en
+`MANIFEST.json["advertencias"]`; stdout sigue terminando en `OK: …` (con la spec SISBEN, `UTC`, sale siempre
+mientras C-CUR-04 siga abierta). Sin `--out` se escribe en
+`assets/examples/sisben/generated`. La versión Python (`scripts/render_templates.py`) está deprecada
+(`scripts/DEPRECADOS.md`).
+
+Valida el spec (esquema + coherencia: nombres únicos, orígenes existentes, `filePattern` contra
+ejemplos y contraejemplos, campos abiertos excluidos), rellena las 12 plantillas
+(`references/inventario-plantillas.md`), rechaza huecos sin resolver y escribe:
+
+| Salida | Contenido |
+|---|---|
+| `src/main/scala/.../source/common/` | Capa A: `FieldMapping.scala`, `Transformaciones.scala` |
+| `src/main/scala/.../source/<fuente>/` | Capa B `config/<F>CurationSpec.scala`, `<F>CuratedEvent.scala`, `<F>AcceptedRecord.scala`, Capa C `processor/<F>CurationProcessor.scala` |
+| `src/test/scala/...` | `TransformacionesSpec.scala`, `<F>CurationProcessorSpec.scala` (casos del fixture) |
+| `src/test/resources/<fuente>/` | `accepted-events.json` (JSON lines) + `lookups/*.csv` sintéticos + `lookups/LEEME.md` (marca de sintético, AC-30) |
+| `fragmentos/` | HOCON del bloque, HOCON de lookups, entradas del domain dictionary (**a fusionar**) |
+| `expected/` | salida esperada del fixture (implementación de referencia `Referencia.java`). Con `--write-expected <dir>` se copia además a `<dir>`: para SISBEN, la copia versionada `assets/examples/sisben/expected/`, que es la que compara `salidaIgualALaVersionada` (hoy iguales; H-09 de `G_2026-10-20`) |
+| `MANIFEST.json` | plantilla → archivo → ¿fusionar? (12 entradas en `archivos`); `marcas_sintetico` lista la marca de los lookups; `otros_archivos` lista, con `ruta` y `sha256`, los CSV de lookups y `expected/` (todo lo generado salvo el propio manifest, ADR-G3); `zona_horaria_fechas: {valor, origen}` y `advertencias` (ADR-G4) |
+
+Parte manual (`TODO(manual)` en el processor): enriquecimiento sin valores (Business Line Code,
+Type of Data) y nombre completo (bloqueado por P2).
+
+### 4. Verificar
+
+```bash
+mvn -q -f scripts/java/pom.xml verify                       # generador + referencia; HOCON con Typesafe Config
+python -m pytest scripts/tests -q                           # hocon_check y portabilidad (las deprecadas se excluyen, ADR-04)
+python scripts/hocon_check.py <carpeta-salida>/fragmentos/*.conf
+```
+
+Recorrer `assets/checklist-entrega.md`. Revisar `expected/resumen.json`
+(`references/interpretar-salida.md`). Confirmar que no hay PII, credenciales ni rutas personales.
+
+### 5. Proponer y esperar (HITL)
+
+Presentar al usuario, en este orden:
+
+1. Qué se generó (tabla del manifest) y qué hay que fusionar a mano.
+2. Resultado de la verificación (tests, parse-check, checklist) y lo que **no** se pudo verificar
+   (compilación, ejecución en Spark).
+3. Supuestos aplicados (`ASSUMPTION:`, cada uno con su ID de `references/decisiones-y-abiertos.md`), la zona
+   de fechas con su origen y las `advertencias` del manifest, y campos abiertos no generados.
+4. Cambios requeridos en el ambiente (claves que deben existir, features a revisar).
+
+Terminar con una pregunta explícita: *¿Apruebas integrar estos artefactos en el fork o quieres
+cambios?* **No continuar** hasta recibir respuesta. Si pide cambios: editar el source-spec,
+regenerar y volver al paso 4.
+
+### 6. Integrar y ejecutar (guiado)
+
+Seguir `references/runbook-ejecucion.md`: copiar a rutas del fork, fusionar fragmentos, `mvn
+package` / `mvn test`, ejecución local, Docker o EMR, y diagnóstico. Interpretar con
+`references/interpretar-salida.md`.
+
+## Contrato de entrada (hand-off desde Acceptance)
+
+Curation consume lo que Acceptance deja en `acceptedDir`. Antes de generar, confirmar:
+
+| Elemento | Qué espera Curation | Si no se cumple |
+|---|---|---|
+| Evento | `TaggedValidatedEvent` con `validatedRecordJson` (claves = nombres de dominio, SUPUESTO C-CUR-07) | `registro:REGISTRO_ILEGIBLE`, campos nulos |
+| Registros | Solo aceptados: sin severidad 1 ni `OxygenDuplicate` (regla de Acceptance `errorlevelNotIn("1") and errorcodeNotIn("OxygenDuplicate")`) | Curation no filtra: curaría también los inválidos |
+| `errorCodes` | Conservan los de severidad 3 (y 0) para RF-CUR-10 | No se puede omitir/anular por severidad |
+| Guard-rails | `asOfDate` (epoch de `FECHA_ACTUALIZACION_CNS`), `subscriber` 999722, `subscriberRelation` (`NUM_DOCUMENTO`), `lineage` (DNP) ya resueltos en Validation | Curation los copia tal cual; no los corrige |
+| `lineage.fileName` | Coincide con el `filePattern` de Curation (mismo nombre que vio Validation) | El motor descarta el evento sin log |
+| Borrados | `inferredAsDeleted` marcado por `contextualOverride` solo con decisión humana (D2) | El motor los cura con su processor de borrado |
+| Ruta | `acceptedDir` del ambiente; discrepancia de rutas entre HU-004 y HU-005 abierta (N1) | Confirmar antes de ejecutar |
+| Archivos rechazados | No llegan a Curation | — |
+
+Salida hacia Synthesis: `curatedDir/flow|stock` + entradas del domain dictionary (nombre y tipo de
+cada campo publicado; sin renombrar después).
+
+## Referencias
+
+| Archivo | Para qué |
+|---|---|
+| `references/alcance-y-glosario.md` | alcance, frontera con otras etapas, automático vs guiado, glosario |
+| `references/patrones.md` | patrones, antipatrones, contrato y capas (de `curation_patrones.yaml`) |
+| `references/inventario-plantillas.md` | CUR-TPL-01..12, huecos y orden (de `curation_template.config`) |
+| `references/especificacion-sisben.md` | layout, transformaciones, homologación, lookups, campos publicados |
+| `references/dsl-config-reference.md` | claves HOCON, lookups, domain dictionary, constructor |
+| `references/runbook-ejecucion.md` | generar, integrar, compilar, local / Docker / EMR, diagnóstico |
+| `references/interpretar-salida.md` | lectura del evento curado, motivos, conciliación, ejemplo |
+| `references/decisiones-y-abiertos.md` | D*, F-*, C-CUR-*, puntos abiertos, discrepancias |
+| `assets/checklist-entrega.md` | checklist previo a la propuesta |
+| `VERIFICACION.md` | qué se ejecutó para verificar esta versión del skill |
+
+## Requisitos para los scripts
+
+Java 17 y Maven para el generador y la implementación de referencia (`scripts/java/`; la primera
+construcción descarga sus dependencias de Maven Central). Python 3.10+ con `pyyaml` y `pytest` para
+`hocon_check.py` y las pruebas de portabilidad (`pyhocon` opcional).
+
+## Fuentes
+
+Documentos de diseño y requisitos del piloto SISBEN V4 (citados por nombre):
+
+- `curation_patrones.yaml` y `curation_template.config` (patrones e inventario de plantillas de Curation).
+- `CURATION_DISEÑO_PROCESSOR.md` (diseño del processor de Curation).
+- `requirements.md` del piloto SISBEN V4 (§4.2 layout, §4.4 homologación, §6 Curation, §9 decisiones D1-D14, §10 preguntas abiertas).
+- HU-SISBEN-001, 003, 004, 005 y 006 (historias de usuario SISBEN).
+- `04_Etapas_Validation-Acceptance.md` y `02_Especificación_SISBEN_V4_validacion.md` (entendimiento funcional).
+- Código de oxygen-curation (`SparkCurator.scala`, `Curator.scala`, `CurationProcessor.scala`,
+  `CuratorUtils.scala`, `CreditCurationProcessorJson.scala`, `CreditCuratedEventJson.scala`, `Util.scala`), su README y Dockerfile.
+- Código de oxygen-core (`CurationStageParser.scala`, `CurationStageConfiguration.scala`,
+  `CurationRunMode.java`, `TypesafeOxygenConfigurationParser.scala`, `oxygen-config-default.conf`, `Constants.scala`).
+- Archivo de hechos compartidos de los skills EDF (claves verificadas, supuestos F-01..F-17).

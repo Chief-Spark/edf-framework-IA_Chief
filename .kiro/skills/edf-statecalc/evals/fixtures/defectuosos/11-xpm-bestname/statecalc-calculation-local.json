@@ -1,0 +1,12 @@
+{
+  "domain": "FIXTURE-SINTETICO-sisben",
+  "calculations": [
+    {
+      "name": "sisbenMostRecentValue",
+      "type": "MOST_RECENT_VALUE",
+      "select": ["personIdType", "personIdNumber"],
+      "groupBy": ["personIdType", "personIdNumber"],
+      "bestName": true
+    }
+  ]
+}

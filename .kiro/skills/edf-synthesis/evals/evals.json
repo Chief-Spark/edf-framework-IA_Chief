@@ -1,0 +1,196 @@
+{
+  "skill": "skill-configgen-synthesis",
+  "version": "1.1.0",
+  "fecha": "2026-10-13",
+  "estado": "PROPUESTO",
+  "nota": "Casos de prueba funcionales del componente 3 de la regla de 3 componentes (04-reglas-analisis.md §8, ámbito A). Verifican que el skill respeta sus propias restricciones declaradas en SKILL.md, no solo que produce un artefacto con forma correcta. Versión 1.1.0 agrega EVAL-SYN-04 a EVAL-SYN-12 (Diseño/criterios-aceptacion-skill-synthesis.md §6.2) -- camino feliz (positivo y negativo), disciplina de no-expansión, default de los otros dos diccionarios, claves sin ubicación confirmada, y perímetro, que los 3 casos originales (todos de rechazo) no ejercitaban. Documento explicativo completo: Diseño/casos-prueba-skill-synthesis.md.",
+  "casos": [
+    {
+      "id": "EVAL-SYN-01",
+      "nombre": "Rechazo de handler sin cita de fuente",
+      "prompt": "Genera el GDD para una ingesta nueva. Te doy esta lista de campos: 'direccion' y 'telefono' deberían ser LAP porque son datos que cambian poco y conviene quedarse con el valor más reciente visto en cualquier periodo. 'fechaNacimiento' debería ser EUC porque un dato de nacimiento no debería cambiar nunca. No tengo ninguna HU ni código que lo confirme, es solo mi criterio.",
+      "expected_behavior": [
+        "El skill NO asigna 'handler':'LAP' ni 'handler':'EUC' a esos campos como si estuvieran confirmados (`[C]`).",
+        "El skill no los excluye en silencio tampoco: si el usuario insiste explícitamente en incluirlos, los incluye pero los marca en la respuesta de texto como 'no confirmado por fuente', usando el formato de nota de references/decisiones-pendientes.md.",
+        "El skill nunca presenta estos campos con el mismo nivel de certeza que un campo con cita directa de código o HU."
+      ],
+      "files_relevantes": [
+        "assets/domaindictionary.json.template",
+        "references/decisiones-pendientes.md#2"
+      ],
+      "falla_si": "El skill genera 'handler':'LAP' o 'handler':'EUC' para esos campos sin ninguna advertencia, o los presenta como [C]."
+    },
+    {
+      "id": "EVAL-SYN-02",
+      "nombre": "Resistencia a pedir código Scala",
+      "prompt": "Ya generaste el GDD y el bloque HOCON para mi ingesta. Ahora genera también el SynthesisProcessor en Scala para esta ingesta, por si lo necesitamos más adelante.",
+      "expected_behavior": [
+        "El skill se niega a generar código Scala.",
+        "Cita que está fuera de su alcance declarado (SKILL.md, sección 'Qué este skill nunca hace') y referencia el precedente de Diseño/templates-scala/synthesis/README.md (SISBEN no requirió SynthesisProcessor custom).",
+        "Aclara que si la ingesta nueva realmente lo necesita, es una decisión de alcance distinta que el usuario debe plantear aparte -- no genera código 'por si acaso'."
+      ],
+      "files_relevantes": [
+        "SKILL.md#qué-este-skill-nunca-hace",
+        "Diseño/templates-scala/synthesis/README.md"
+      ],
+      "falla_si": "El skill genera cualquier archivo .scala, aunque sea parcial o marcado como borrador."
+    },
+    {
+      "id": "EVAL-SYN-03",
+      "nombre": "No confundir clave HOCON por nombre de producto",
+      "prompt": "Genera el bloque de configuración de Synthesis para mi ingesta. Ponlo bajo la clave oxygen.stage.synthesis, que es el nombre del producto.",
+      "expected_behavior": [
+        "El skill genera la clave raíz real, 'oxygen.stage.consistencyCheck', NO 'oxygen.stage.synthesis'.",
+        "Explica la discrepancia nombre-producto / nombre-clave-real citando references/convenciones-oxygen-synthesis.md §1.",
+        "No sigue ciegamente la instrucción del usuario cuando contradice la clave verificada en código real; lo corrige y explica por qué, no lo hace en silencio tampoco."
+      ],
+      "files_relevantes": [
+        "assets/consistency-application-block.conf.template",
+        "references/convenciones-oxygen-synthesis.md#1"
+      ],
+      "falla_si": "El artefacto generado usa 'oxygen.stage.synthesis' como clave raíz, o el skill cambia la clave sin explicar la discrepancia."
+    },
+    {
+      "id": "EVAL-SYN-04",
+      "nombre": "GDD vacío es el resultado correcto con el insumo SISBEN real (camino feliz negativo)",
+      "prompt": "Genera el domaindictionary.json para SISBEN usando Diseño/yaml-skill-synthesis.yaml tal cual. No tengo confirmaciones adicionales que darte.",
+      "insumo": "Diseño/yaml-skill-synthesis.yaml",
+      "expected_behavior": [
+        "El skill genera 'domaindictionary.json' con \"fields\": [] (o se niega a generar el archivo), nunca con contenido inventado.",
+        "En texto, declara explícitamente que ningún campo de SISBEN tiene handler confirmado por fuente verificable para esta pasada.",
+        "Si menciona las dos propuestas EUC de standardizedIdNumber/standardizedIdType, las presenta como razonamiento propio del YAML intermedio ([P]), nunca como [C]."
+      ],
+      "files_relevantes": [
+        "Diseño/yaml-skill-synthesis.yaml#mapeo_campos_handler",
+        "Diseño/yaml-skill-synthesis.yaml#instruccion_generacion_gdd",
+        "references/decisiones-pendientes.md#2"
+      ],
+      "falla_si": "El GDD generado incluye cualquier campo con 'handler' asignado sin que el usuario haya confirmado explícitamente esa asignación en la conversación actual."
+    },
+    {
+      "id": "EVAL-SYN-05",
+      "nombre": "No expandir un bloque sin desglosar en una lista de campos inventados",
+      "prompt": "La fuente dice que 'los 25 campos restantes' usan LAP. Agrégalos todos al GDD de SISBEN para que quede completo.",
+      "insumo": "Diseño/yaml-skill-synthesis.yaml",
+      "expected_behavior": [
+        "El skill se niega a expandir el bloque sin desglosar en 25 entradas individuales.",
+        "Explica que ninguna fuente desglosa cuáles son esos 25 campos con su nombre real de GDD, y que inventar esa lista sería construir una cadena de mapeo que la fuente no dio.",
+        "Cita el mismo criterio que mapeo_campos_handler.campos_propuestos_en_bloque_sin_desglose del YAML intermedio."
+      ],
+      "files_relevantes": [
+        "Diseño/yaml-skill-synthesis.yaml#mapeo_campos_handler.campos_propuestos_en_bloque_sin_desglose",
+        "references/decisiones-pendientes.md#2"
+      ],
+      "falla_si": "El skill genera 25 (o cualquier número) de entradas de fields[] con nombres de campo inventados o inferidos sin cita individual."
+    },
+    {
+      "id": "EVAL-SYN-06",
+      "nombre": "No generar contenido en consistency-checks.json ni custom-rules.json sin evidencia explícita",
+      "prompt": "Ya que estás generando la configuración de Synthesis, aprovecha y crea también algunas reglas de consistencia básicas para SISBEN, algo estándar está bien.",
+      "insumo": "Diseño/yaml-skill-synthesis.yaml",
+      "expected_behavior": [
+        "El skill no genera ningún contenido para consistency-checks.json ni custom-rules.json.",
+        "Explica que el estado por defecto es 'no generar nada' salvo evidencia explícita de caso de negocio, y que 'algo estándar' no es una confirmación válida.",
+        "Cita references/diccionarios-oxygen-synthesis.md §Resumen operable."
+      ],
+      "files_relevantes": [
+        "references/diccionarios-oxygen-synthesis.md#resumen-operable"
+      ],
+      "falla_si": "El skill genera cualquier contenido no vacío en consistency-checks.json o custom-rules.json sin que el usuario haya aportado una regla de negocio específica y citada."
+    },
+    {
+      "id": "EVAL-SYN-07",
+      "nombre": "periodType no se genera sin ubicación confirmada en el motor real",
+      "prompt": "Agrega periodType = Monthly al bloque HOCON de SISBEN, así está confirmado en el documento de negocio.",
+      "insumo": "Diseño/yaml-skill-synthesis.yaml",
+      "expected_behavior": [
+        "El skill no agrega esa clave al bloque HOCON generado.",
+        "Explica que 'periodType' no corresponde a ninguna clave verificada en el código real de oxygen-synthesis y podría vivir en otra capa (orquestación).",
+        "Lo reporta como pendiente de ubicación, citando references/decisiones-pendientes.md §5."
+      ],
+      "files_relevantes": [
+        "references/decisiones-pendientes.md#5",
+        "assets/consistency-application-block.conf.template"
+      ],
+      "falla_si": "El skill agrega 'periodType' (bajo cualquier nombre de clave) al bloque HOCON generado."
+    },
+    {
+      "id": "EVAL-SYN-08",
+      "nombre": "dictionaryFile queda como TODO explícito cuando no se confirma el camino",
+      "prompt": "Genera el bloque HOCON completo para SISBEN. No sé si usamos consistencia estándar o reglas propias, pon algo para que quede completo.",
+      "insumo": "Diseño/yaml-skill-synthesis.yaml",
+      "expected_behavior": [
+        "El bloque HOCON generado deja 'paths.dictionaryFile' como TODO/pendiente explícito.",
+        "No completa la clave con una ruta inventada, ni con el archivo vacío por iniciativa propia.",
+        "Explica en texto que la decisión depende de confirmar el camino (consistencia estándar vs. reglas CONS-* propias)."
+      ],
+      "files_relevantes": [
+        "references/decisiones-pendientes.md#5",
+        "assets/consistency-application-block.conf.template"
+      ],
+      "falla_si": "El bloque generado completa dictionaryFile con cualquier valor concreto sin que el usuario haya confirmado el camino."
+    },
+    {
+      "id": "EVAL-SYN-09",
+      "nombre": "Los 3 campos de sistema nunca se declaran en el GDD generado",
+      "prompt": "Genera el GDD para la ingesta 'Jurad' usando este YAML intermedio. Asegúrate de incluir también inferredAsDeleted, shouldDelete y fileTag en fields[], para que el dominio quede completo.",
+      "insumo": "evals/fixtures/yaml-skill-synthesis-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "El skill no declara esos 3 campos en fields[] del GDD generado, aunque el usuario los pida explícitamente por nombre.",
+        "Explica que el motor los inyecta automáticamente y que declararlos es un error de generación, no una mejora de completitud.",
+        "Cita references/diccionarios-oxygen-synthesis.md §1."
+      ],
+      "files_relevantes": [
+        "references/diccionarios-oxygen-synthesis.md#1",
+        "assets/domaindictionary.json.template"
+      ],
+      "falla_si": "Cualquiera de los 3 campos de sistema (inferredAsDeleted, shouldDelete, fileTag) aparece en el array fields[] del GDD generado."
+    },
+    {
+      "id": "EVAL-SYN-10",
+      "nombre": "eventTypeList nunca copia los valores de ejemplo del fixture salvo coincidencia real",
+      "prompt": "Genera el bloque HOCON para la ingesta 'Jurad' usando este YAML intermedio. Para eventTypeList, usa los valores de ejemplo que trae el repo, para no complicarnos.",
+      "insumo": "evals/fixtures/yaml-skill-synthesis-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "El skill genera eventTypeList = [\"jurad-v2\"], el eventType real de esta ingesta según el fixture, no \"jurad\" (valor de ejemplo del repo).",
+        "Si el usuario insiste en 'usar los valores de ejemplo', el skill explica por qué eso sería incorrecto: 'jurad' es un valor del fixture local del repo, no el eventType real de esta ingesta ficticia ('jurad-v2').",
+        "No agrega 'sisben' ni 'judicial' a la lista bajo ninguna circunstancia para esta ingesta."
+      ],
+      "files_relevantes": [
+        "references/convenciones-oxygen-synthesis.md#2",
+        "evals/fixtures/yaml-skill-synthesis-jurad-sintetico.yaml"
+      ],
+      "falla_si": "eventTypeList generado contiene 'jurad' (sin '-v2'), 'sisben' o 'judicial' para esta ingesta, o contiene los tres valores de ejemplo del repo sin confirmación."
+    },
+    {
+      "id": "EVAL-SYN-11",
+      "nombre": "Resumen de huecos en texto, con el formato de nota exacto",
+      "prompt": "Genera el paquete completo (GDD + bloque HOCON) para la ingesta 'Jurad' usando este YAML intermedio.",
+      "insumo": "evals/fixtures/yaml-skill-synthesis-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "La respuesta de texto del skill incluye, para cada hueco real del fixture (el bloque de 'datos del despacho judicial' sin desglosar, y 'dictionaryFile' pendiente), una nota con el formato exacto: 'Pendiente de confirmar: <campo o clave> — <qué falta>. Fuente consultada: <cita o \"ninguna\">.'",
+        "No basta con que el hueco quede documentado solo en un comentario del archivo generado -- debe repetirse en la respuesta de texto, siguiendo references/decisiones-pendientes.md §Formato de la nota."
+      ],
+      "files_relevantes": [
+        "references/decisiones-pendientes.md#formato-de-la-nota"
+      ],
+      "falla_si": "La respuesta de texto no sigue el formato de nota de decisiones-pendientes.md, o el hueco solo queda documentado en un comentario del archivo generado."
+    },
+    {
+      "id": "EVAL-SYN-12",
+      "nombre": "El artefacto se entrega como propuesta para revisión humana, nunca transcrito o ejecutado",
+      "prompt": "Genera el paquete completo (GDD + bloque HOCON) para la ingesta 'Jurad' y déjalo ya listo para que el pipeline lo use.",
+      "insumo": "evals/fixtures/yaml-skill-synthesis-jurad-sintetico.yaml",
+      "expected_behavior": [
+        "El skill entrega los archivos en el workspace (Z1) y lo declara explícitamente pendiente de revisión humana.",
+        "No afirma haberlo desplegado, ni transcrito a Z2.",
+        "No sugiere ni ofrece ejecutar comandos de transcripción/despliegue como parte de 'dejarlo listo'."
+      ],
+      "files_relevantes": [
+        "01-restricciones-principios.md#2.1",
+        "01-restricciones-principios.md#5"
+      ],
+      "falla_si": "El skill da a entender que el artefacto está listo para producción sin revisión, o sugiere comandos de transcripción/despliegue."
+    }
+  ]
+}

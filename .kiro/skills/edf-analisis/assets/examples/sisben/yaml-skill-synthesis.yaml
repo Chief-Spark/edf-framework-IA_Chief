@@ -1,0 +1,281 @@
+# ─────────────────────────────────────────────────────────────
+# Intermediario Lógica → Configuración — etapa Synthesis / Consistency (SISBEN, piloto)
+# Instancia de Diseño/plantilla-cabecera-yaml-skill.yaml
+# ─────────────────────────────────────────────────────────────
+
+documento:
+  tipo: "intermediario-skill"
+  etapa_pipeline: "Synthesis/Consistency"
+  version: "1.0.0"
+  fecha: "2026-10-01"
+  estado: "PROPUESTO"                                # pasa a APROBADO con firma humana registrada en 09-estado-y-trazabilidad.md
+  aprobador: "PENDIENTE-MANUAL"                      # [A:OQ-06] — sin aprobador designado para el patrón
+
+procedencia:
+  fuente_analisis:
+    ruta: "Diseño/logica-synthesis.md"
+    version_fuente: "1.0.0"
+    fecha_aprobacion_fuente: "PENDIENTE-REGISTRO"     # bitácora 09, no una aprobación verbal registrada solo en chat
+  fuente_negocio_complementaria:
+    ruta: "Docs-General/SISBEN_V4_Synthesis_StateCalculation_Levantamiento.md"
+    naturaleza: "nivel 3 de evidencia (04-reglas-analisis.md §7) — documento de levantamiento funcional, no HU formal ni código"
+    nota: >
+      §7.3 de ese documento ya fue corregido en nombre y mecanismo de LFP/LAP/EUC (ver
+      logica-synthesis.md §5.1.1, Memory.md). Este YAML usa ESA versión corregida como punto
+      de partida (decisión del usuario, opción "c" de las alternativas presentadas), no la
+      versión original con nombres equivocados. La asignación campo→handler ahí propuesta
+      sigue marcada [A:sin-clasificar] en la fuente — no es una confirmación cerrada.
+  repositorio_base:
+    nombre: "oxygen-synthesis"
+    naturaleza: "Z2 — solo lectura"
+  skill_destino: "Skill-ConfigGen-Synthesis"
+    # Reservado a generación de artefactos de configuración. No confundir con un eventual
+    # "Skill-Synthesis" de análisis T2/T4 (04-reglas-analisis.md §2).
+
+decision_nomenclatura_handlers:
+  descripcion: >
+    Se resolvió un conflicto de tres versiones sobre nombre y mecanismo de LFP/LAP/EUC
+    (Versión A: steering + código real; Versión B: EDF_RULES_BY_STAGE.md; Versión C:
+    SISBEN_V4_..._Levantamiento.md). Se adoptó la Versión A como correcta para toda la
+    iniciativa, con corrección documentada (tachado + nota) en los tres documentos que
+    usaban B o C.
+  version_adoptada: "A"
+  definiciones:
+    LFP: "Latest For Period — valor del evento más recientemente procesado, sin caché propia (comportamiento por defecto, sin clase propia en el motor)"
+    LAP: "Latest Across Period — acumula el valor más reciente visto ENTRE PERIODOS, actualiza solo si asOfDate nuevo es >= al cacheado"
+    EUC: "Earliest Until Corrected — conserva el valor más antiguo cacheado, salvo corrección explícita vía campo <campo>_corrected"
+  tipo: "decisión del usuario registrada en sesión"
+  fecha: "2026-10-01"
+  estado: "[C]"
+  fuente: "logica-synthesis.md §5.1.1; Memory.md"
+
+alcance:
+  genera:
+    - "Bloque de fields[] para domaindictionary.json (GDD) — los campos SISBEN con cadena de mapeo confirmada, con su handler (LFP/LAP/EUC) o ausencia de handler según corresponda"
+  no_genera:
+    - "consistency-checks.json (diccionario de reglas de consistencia) — SISBEN_V4_..._Levantamiento.md §7.4 confirma que se usa consistencia ESTÁNDAR del framework, sin reglas CONS-* propias para V1; no hay nada que generar en este archivo para SISBEN"
+    - "custom-rules.json (diccionario de reglas custom de filtrado/visibilidad) — sin evidencia de caso de negocio para SISBEN (logica-synthesis.md §5.3)"
+    - "ConsistencyCheckProcessor / SynthesisProcessor a medida para SISBEN — ningún campo propuesto en este YAML requiere lógica custom más allá de LFP/LAP/EUC estándar (ver mapeo_campos_handler, todos sin synthesizer custom)"
+    - "Asignación de handler para los campos sin cadena de mapeo confirmada (ver mapeo_campos_handler.campos_sin_mapeo_confirmado)"
+  precondiciones_bloqueantes:
+    - id: "A-sin-clasificar-mapeo-campo-handler"
+      descripcion: "Ninguna fuente confirma, campo por campo, cuál de LFP/LAP/EUC corresponde a cada uno de los 25/22 campos reales de SISBEN bajo la definición correcta (Versión A). SISBEN_V4_..._Levantamiento.md §7.3 solo propone 2 campos como EUC y agrupa 'el resto' como LAP sin desglose"
+      efecto: "este YAML marca cada asignación propuesta como [P] (propuesta, no confirmada), nunca [C], y excluye del bloque generado los campos sin ninguna propuesta de origen"
+    - id: "A-sin-clasificar-LFP-revalidacion"
+      descripcion: "La conclusión 'LFP no aplica a SISBEN' se apoyaba en la definición incorrecta de LFP (Versión C: 'historial por períodos'). Bajo la Versión A (valor del evento más reciente, sin caché), esa conclusión no fue revalidada (logica-synthesis.md pendiente #10)"
+      efecto: "este YAML no asigna LFP a ningún campo por decisión propia; tampoco afirma que ningún campo deba ser LFP. Los campos sin handler declarado en el GDD son LFP implícito por default del motor (logica-synthesis.md §5.1) — eso es un hecho del motor, no una decisión de negocio de este YAML"
+    - id: "A-sin-clasificar-25-vs-22-campos"
+      descripcion: "El universo de 25 campos de SISBEN_V4_..._Levantamiento.md (nombres XPM en español) no tiene correspondencia 1:1 confirmada con los nombres de campo curado reales (layout de 22, PRI_NOMBRE/PRI_APELLIDO/etc.) más allá de los 2 de identidad ya mapeados en yaml-skill-pinning.yaml y los 2 de fecha propuestos aquí"
+      efecto: "mismo criterio que yaml-skill-statecalc.yaml: solo se incluyen en el bloque generado los campos con cadena de mapeo verificada; el resto se declara como hueco colectivo, no se inventa el nombre de campo GDD"
+
+marcado_heredado:
+  nota: "Todo valor con marcador distinto de [C] en logica-synthesis.md se transcribe aquí con su marcador original. Ningún [A:*] se resuelve en este YAML (04-reglas-analisis.md §4.4, P8)."
+
+trazabilidad:
+  citas_formato: "archivo §sección | ruta/archivo::símbolo"
+  ultima_verificacion_referencias: "2026-10-01"
+
+# ═════════════════════════════════════════════════════════════
+# CORE — Mapeo de campos SISBEN → handler (LFP/LAP/EUC) en el GDD
+# Punto de partida: SISBEN_V4_Synthesis_StateCalculation_Levantamiento.md §7.3, YA CORREGIDO
+# en nombre/mecanismo (decisión_nomenclatura_handlers), tratado como PROPUESTA [P], no [C].
+# ═════════════════════════════════════════════════════════════
+
+mapeo_campos_handler:
+
+  nota_general: >
+    Todas las asignaciones de este bloque están marcadas [P] (propuesta de negocio corregida
+    en nombre, no confirmada campo por campo por el dueño de dominio) salvo que se indique lo
+    contrario. Ninguna llega a [C] porque ninguna fuente verificada por código confirma la
+    asignación específica para SISBEN — logica-synthesis.md pendiente #9.
+
+  campos_con_mapeo_confirmado:
+
+    - campo_curado_sisben: "standardizedIdNumber"
+      nombre_en_gdd: "[PM] — mismo hueco de nombre que yaml-skill-statecalc.yaml; no se infiere sin confirmación"
+      handler_propuesto: "EUC"
+      justificacion: >
+        Un identificador de documento es, por naturaleza, un campo que debería ser estable
+        (coincide con el criterio general descrito en Docs-General/EDF_RULES_BY_STAGE.md
+        para "identifier", aunque ese documento ya fue corregido en nombre — el CRITERIO
+        de "campo que debe ser estable, con corrección explícita si cambia" sigue siendo
+        razonable independientemente del nombre). No está en la lista explícita de
+        SISBEN_V4_..._Levantamiento.md §7.3 (que solo nombra fechas como EUC).
+      nivel_confianza: "propuesta razonada por el agente, NO citada textualmente de ninguna fuente para este campo específico"
+      estado: "[P]"
+      fuente: "logica-synthesis.md §5.1.1; razonamiento propio, sin cita directa de asignación para este campo"
+
+    - campo_curado_sisben: "standardizedIdType"
+      nombre_en_gdd: "[PM]"
+      handler_propuesto: "EUC"
+      justificacion: "mismo razonamiento que standardizedIdNumber — el tipo de documento de una persona no debería cambiar sin corrección explícita"
+      nivel_confianza: "propuesta razonada por el agente, NO citada textualmente"
+      estado: "[P]"
+      fuente: "logica-synthesis.md §5.1.1; razonamiento propio"
+
+    - campo_curado_sisben: "[A:sin-clasificar] — correspondiente a 'fechaPrimerRegistro' / 'fechaIngresoBD' del documento de negocio, sin nombre de campo curado SISBEN real confirmado"
+      nombre_en_gdd: "[PM]"
+      handler_propuesto: "EUC"
+      justificacion: "única propuesta EXPLÍCITA Y TEXTUAL del documento de negocio corregido (SISBEN_V4_..._Levantamiento.md §7.3): 'fechaPrimerRegistro, fechaIngresoBD (si existe) — fechas de primera ocurrencia'"
+      nivel_confianza: "cita directa de la fuente de negocio, ya corregida en nombre; el documento mismo advierte 'pendiente de confirmar si SISBEN reporta correcciones explícitas'"
+      estado: "[P]"
+      fuente: "Docs-General/SISBEN_V4_Synthesis_StateCalculation_Levantamiento.md §7.3 (tabla vigente, corregida)"
+
+  campos_propuestos_en_bloque_sin_desglose:
+    descripcion: >
+      SISBEN_V4_..._Levantamiento.md §7.3 propone LAP para "los 25 campos restantes: nombres,
+      documento, municipio, nivel SISBEN, estrato, datos socioeconómicos" — SIN desglosar
+      cuál es cuál. Este YAML NO expande esa afirmación en bloque a una lista de 25 campos
+      individuales inventados: eso sería construir una cadena de mapeo que la fuente no
+      proveyó (04-reglas-analisis.md §4.4, P8). Se declara el bloque como propuesta de
+      alto nivel, pendiente de desglose campo por campo antes de generar nada con él.
+    campos_que_la_fuente_menciona_por_categoria:
+      - "nombres (ver mapeo de identidad ya confirmado en yaml-skill-pinning.yaml para PRI_NOMBRE/PRI_APELLIDO/etc., con la salvedad de que ese mapeo es para Pinning, no para el GDD de Synthesis — requiere confirmar si el nombre de campo en el GDD coincide)"
+      - "documento (ver campos_con_mapeo_confirmado — standardizedIdNumber/standardizedIdType ya se proponen como EUC, no LAP, por razonamiento propio distinto al de la fuente)"
+      - "municipio, nivel SISBEN, estrato, datos socioeconómicos — sin nombre de campo curado SISBEN real confirmado en ninguna fuente de esta iniciativa"
+    estado: "[A:sin-clasificar] — bloque completo, no se genera nada de este grupo hasta desglosarlo"
+    fuente: "Docs-General/SISBEN_V4_Synthesis_StateCalculation_Levantamiento.md §7.3 (tabla vigente, corregida)"
+
+  nota_discrepancia_identificadores: >
+    Hay una discrepancia entre este YAML y la fuente de negocio: la fuente agrupa "documento"
+    dentro de LAP ("los 25 campos restantes"); este YAML propone EUC para standardizedIdNumber/
+    standardizedIdType por razonamiento propio (identificador debería ser estable). Ambas
+    propuestas son [P], ninguna es [C]. Se declara la discrepancia explícitamente en vez de
+    elegir una silenciosamente — queda como punto a resolver con el dueño de dominio.
+
+  pendientes_del_mapeo:
+    - id: 1
+      descripcion: "Desglosar 'los 25 campos restantes' de SISBEN_V4_..._Levantamiento.md §7.3 en campos individuales con nombre de campo curado real y handler específico"
+      estado: "[A:sin-clasificar]"
+    - id: 2
+      descripcion: "Resolver la discrepancia entre EUC (propuesto por este YAML) y LAP (propuesto por la fuente de negocio) para standardizedIdNumber/standardizedIdType"
+      estado: "[A:sin-clasificar]"
+    - id: 3
+      descripcion: "Confirmar el nombre de campo curado SISBEN real detrás de 'fechaPrimerRegistro'/'fechaIngresoBD'"
+      estado: "[A:sin-clasificar]"
+    - id: 4
+      descripcion: "Revalidar si LFP realmente no aplica a SISBEN bajo la definición correcta (Versión A) — hereda logica-synthesis.md pendiente #10"
+      estado: "[A:sin-clasificar]"
+
+# ═════════════════════════════════════════════════════════════
+# Instrucción de generación — GDD (domaindictionary.json)
+# ═════════════════════════════════════════════════════════════
+
+instruccion_generacion_gdd:
+
+  archivo: "domaindictionary.json (o equivalente colombia-domain-dictionary.json de ambiente)"
+  seccion: "fields[]"
+
+  contenido_a_escribir:
+    regla: >
+      NO SE GENERA NINGUNA ENTRADA en esta pasada. Los dos únicos campos con nombre de campo
+      curado SISBEN confirmado (standardizedIdNumber, standardizedIdType) no tienen nombre de
+      campo GDD confirmado (nombre_en_gdd = [PM] en mapeo_campos_handler). Generar una entrada
+      de fields[] requiere el nombre EXACTO que el GDD usará, que no se puede inventar sin
+      romper P8. El campo de fecha (EUC) tampoco tiene nombre de campo curado SISBEN confirmado.
+    campos_a_generar: []
+    razon_de_lista_vacia: >
+      A diferencia de Pinning (donde personIdType/personIdNumber ya existían como ejemplo
+      literal en el fixture real del motor) y de State Calculation (mismo caso), Synthesis
+      no tiene en su fixture de ejemplo ningún campo con nombre reconocible como equivalente
+      a los campos de identidad de SISBEN. No existe una analogía directa verificable como
+      la que sí permitió generar contenido en los otros dos YAML.
+    estado: "[A:sin-clasificar] — bloqueado hasta que se resuelvan pendientes_del_mapeo id 1-3"
+
+  advertencia_al_revisor: >
+    Este YAML, a diferencia de yaml-skill-pinning.yaml y yaml-skill-statecalc.yaml, NO produce
+    ninguna instrucción de generación ejecutable todavía. El trabajo de esta sesión fue
+    exclusivamente: (1) corregir el conflicto de nomenclatura de los handlers en toda la
+    iniciativa, (2) estructurar el mapeo de campos como propuesta explícita [P] a partir del
+    documento de negocio ya corregido, y (3) dejar visibles y enumerados los pendientes que
+    bloquean la generación real. El Skill no debe inferir nombres de campo GDD ni asignaciones
+    de handler para completar el bloque vacío de campos_a_generar.
+
+# ═════════════════════════════════════════════════════════════
+# CORE — Claves de configuración de consistency-application.conf relevantes a SISBEN
+# Fuente: logica-synthesis.md §4.1; confirmado por SISBEN_V4_..._Levantamiento.md §7.7
+# ═════════════════════════════════════════════════════════════
+
+claves_configuracion_synthesis:
+
+  claves:
+
+    - clave: "oxygen.stage.consistencyCheck.eventTypeList"
+      valor_a_escribir: '["sisben"]'
+      regla: >
+        Agregar "sisben" a la lista — confirmado explícitamente en
+        SISBEN_V4_..._Levantamiento.md §7.4.1 y §7.7 ("Agregar eventType=sisben a eventTypeList").
+        El valor de ejemplo del fixture local (["sisben","jurad","judicial"]) incluye otros
+        eventTypes que NO aplican a este piloto — no se copian, solo se agrega "sisben".
+      estado: "[C]"
+      fuente: "logica-synthesis.md §4.1; Docs-General/SISBEN_V4_..._Levantamiento.md §7.4.1, §7.7"
+
+    - clave: "oxygen.stage.consistencyCheck.dateType"
+      valor_a_escribir: "receivedDate"
+      regla: "coincide con el default del fixture local Y con el valor explícito de SISBEN_V4_..._Levantamiento.md §7.7 — ambas fuentes coinciden"
+      estado: "[C]"
+      fuente: "logica-synthesis.md §4.1; Docs-General/SISBEN_V4_..._Levantamiento.md §7.7"
+
+    - clave: "oxygen.stage.consistencyCheck.paths.dictionaryFile"
+      valor_a_escribir: "PENDIENTE — depende de pendientes_del_mapeo; no se genera consistency-checks.json propio para SISBEN (alcance.no_genera)"
+      regla: "SISBEN_V4_..._Levantamiento.md §7.4 confirma consistencia ESTÁNDAR, sin bloque de reglas propio — este YAML no decide si eso implica dejar la clave en su valor de framework compartido o apuntar a un archivo vacío; no se decide aquí"
+      estado: "[A:sin-clasificar]"
+      fuente: "Docs-General/SISBEN_V4_..._Levantamiento.md §7.4, §7.8"
+
+    - clave: "oxygen.stage.consistencyCheck.paths.domainDictionaryFile"
+      valor_a_escribir: "PENDIENTE — depende de instruccion_generacion_gdd, que no produjo contenido todavía"
+      estado: "[A:sin-clasificar]"
+      fuente: "logica-synthesis.md §4.1"
+
+    - clave: "oxygen.stage.consistencyCheck.synthesisOutputAsTSV"
+      valor_a_escribir: false
+      regla: "coincide con el default del fixture local y con el valor explícito de SISBEN_V4_..._Levantamiento.md §7.7"
+      estado: "[C]"
+      fuente: "logica-synthesis.md §4.1; Docs-General/SISBEN_V4_..._Levantamiento.md §7.7"
+
+    - clave: "oxygen.stage.consistencyCheck.checkFileTagEnabled"
+      valor_a_escribir: "PENDIENTE — SISBEN es periodType=NA / Full Load mensual (Levantamiento.md §7.5), sin matiz de histórico multi-periodo nativo evaluado contra este flag"
+      estado: "[A:sin-clasificar]"
+      fuente: "logica-synthesis.md §4.1; Docs-General/SISBEN_V4_..._Levantamiento.md §7.5"
+
+  nota_periodType: >
+    SISBEN_V4_..._Levantamiento.md §7.5 confirma periodType=NA / Monthly / entrega día 5 como
+    decisión de negocio. Esto NO corresponde a ninguna clave verificada en el código real de
+    logica-synthesis.md (que no documenta un "periodType" como clave de configuración del
+    motor Oxygen de este repo) — podría ser terminología de otra capa (orquestación, Airflow)
+    no visible en oxygen-synthesis. No se genera esta clave por falta de confirmación de
+    dónde vive en la configuración real del motor.
+  nota_periodType_estado: "[A:sin-clasificar]"
+
+  pendientes_de_configuracion:
+    - id: 1
+      descripcion: "Confirmar si dictionaryFile debe apuntar a un archivo vacío de consistencia estándar o si la clave se omite/hereda del framework compartido"
+      estado: "[A:sin-clasificar]"
+    - id: 2
+      descripcion: "Ubicación real de la clave 'periodType' en la configuración del motor Oxygen (no confirmada en logica-synthesis.md)"
+      estado: "[A:sin-clasificar]"
+    - id: 3
+      descripcion: "checkFileTagEnabled para SISBEN, dado el periodType=NA"
+      estado: "[A:sin-clasificar]"
+
+# ═════════════════════════════════════════════════════════════
+# CIERRE — Resumen de estado de este YAML
+# ═════════════════════════════════════════════════════════════
+
+resumen_de_cierre:
+  descripcion: >
+    A diferencia de yaml-skill-pinning.yaml y yaml-skill-statecalc.yaml, este YAML cierra sin
+    producir ninguna instrucción de generación ejecutable para el GDD. Su valor en esta pasada
+    es: (1) fijar la nomenclatura correcta de los handlers para toda la iniciativa (ya aplicada
+    también fuera de este YAML, en Memory.md y en los documentos de negocio corregidos), y
+    (2) dejar estructurado y enumerado exactamente qué falta para poder generar el GDD de
+    Synthesis en una pasada futura.
+  claves_si_generables: "eventTypeList, dateType, synthesisOutputAsTSV (ver claves_configuracion_synthesis)"
+  bloqueo_principal: "mapeo_campos_handler — ningún campo real de SISBEN tiene handler confirmado por fuente verificable; las dos propuestas EUC son razonamiento propio sin cita directa"
+  estado: "PROPUESTO, con alcance de generación real menor al de los otros dos YAML de esta iniciativa"
+  nota_sin_template_scala: >
+    Por este mismo motivo, no se generó un template Scala de SynthesisProcessor para esta etapa
+    (a diferencia de Pinning, que sí tiene templates-scala/pinning/SisbenIdentityMatcher.scala.template).
+    Explicación completa en Diseño/templates-scala/synthesis/README.md. La propia fuente de negocio
+    (Docs-General/SISBEN_V4_..._Levantamiento.md §7.8-§7.9) confirma "no se necesita nuevo código
+    Scala" bajo el escenario esperado de handlers estándar sin reconciliación custom.

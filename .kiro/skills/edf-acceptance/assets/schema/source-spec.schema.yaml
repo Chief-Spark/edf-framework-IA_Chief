@@ -1,0 +1,270 @@
+# JSON Schema (draft 2020-12, escrito en YAML) de la source-spec del skill edf-acceptance-stage.
+# Define TODOS los huecos {{...}} de assets/templates/*.tpl (lo comprueba render-templates.jar --audit
+# y el test test_todo_hueco_definido_en_schema). Las entradas IN-xx son las del inventario.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: source-spec edf-acceptance-stage
+type: object
+additionalProperties: false
+required: [schema_version, version_skill, etapa, Fuente, fuente, identidad, rutas_destino, archivo, calidad,
+           condiciones, fileActions, registro, rechazo_automatico, intervencion_manual,
+           diagnostico_validation, severidades, contextual_override, expresiones_propuestas_sisben, fixture]
+$defs:
+  estado: {type: string, enum: [cerrado, propuesta_de_frontera, inferido, abierto]}
+  nombre_dsl: {type: string, pattern: "^[A-Za-z_][A-Za-z0-9_]*$"}
+  nullable_bool: {type: [boolean, "null"]}
+  nullable_int: {type: [integer, "null"], minimum: 0}
+  predicados: {type: [array, "null"], items: {type: array, items: {type: string}}}
+  modo_borrado:
+    type: object
+    additionalProperties: false
+    required: [enabled, lookBackPeriod, deletePredicates]
+    properties:
+      enabled: {$ref: "#/$defs/nullable_bool"}
+      lookBackPeriod: {$ref: "#/$defs/nullable_int", description: "ventana en meses"}
+      deletePredicates: {$ref: "#/$defs/predicados"}
+  error_code:
+    type: object
+    additionalProperties: false
+    required: [errorCodeName, errorCodeValue, errorLevel, messageKey, errorType]
+    properties:
+      errorCodeName: {type: string}
+      errorCodeValue: {type: string}
+      errorLevel: {type: string, maxLength: 1}
+      messageKey: {type: string}
+      errorType: {type: string}
+properties:
+  schema_version: {type: string}
+  version_skill: {type: string}
+  etapa: {const: acceptance}
+  Fuente: {type: string, pattern: "^[A-Z][A-Z0-9_]*$", description: "nombre en mayúsculas"}
+  fuente: {type: string, pattern: "^[a-z][a-z0-9_]*$", description: "nombre en minúsculas"}
+  identidad:
+    type: object
+    additionalProperties: false
+    required: [data_source, subscriber]
+    properties:
+      data_source: {type: string}
+      subscriber: {type: string}
+      event_type: {type: integer}
+      zona_horaria: {type: string}
+  rutas_destino:
+    type: object
+    additionalProperties: false
+    required: [hocon, raiz_tests, recursos_tests, paquete_tests]
+    properties:
+      hocon: {type: string, pattern: "inner\\.conf$", description: "solo el archivo inner (regla aditiva)"}
+      raiz_tests: {type: string, pattern: "/$"}
+      recursos_tests: {type: string, pattern: "/$"}
+      paquete_tests: {type: string, pattern: "^[a-z][a-z0-9_.]*$"}
+  archivo:
+    description: IN-01
+    type: object
+    additionalProperties: false
+    required: [convencion, filePattern, estado, claves_de_prueba]
+    properties:
+      convencion: {type: string}
+      filePattern: {type: string, pattern: "^\\.\\*"}
+      estado: {$ref: "#/$defs/estado"}
+      claves_de_prueba:
+        type: array
+        minItems: 2
+        items:
+          type: object
+          additionalProperties: false
+          required: [clave, valor, debe_coincidir]
+          properties:
+            clave: {type: string}
+            valor: {type: string}
+            debe_coincidir: {type: boolean}
+  calidad:
+    description: IN-02
+    type: object
+    additionalProperties: false
+    required: [quality_score, agregacion, umbral, estado]
+    properties:
+      quality_score: {type: string}
+      agregacion: {enum: [average, min, max, sum]}
+      # AC-04 / P-3: en [0, 1]. Antes "^(0|1)\\.\\d+$", que aceptaba "1.50" (CP-ACC-G-05, fila 12).
+      umbral: {type: string, pattern: "^(0\\.\\d+|1\\.0+)$", description: "escala 0..1 como texto, en [0, 1]"}
+      estado: {$ref: "#/$defs/estado"}
+  condiciones:
+    description: IN-03 / ACC-TPL-02 (oxygen.stage.acceptance.fileConditions[])
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required: [nombre, expresion, reasonCode, isLogged]
+      properties:
+        nombre: {$ref: "#/$defs/nombre_dsl"}
+        expresion: {type: string}
+        reasonCode: {type: string, minLength: 1}
+        isLogged: {type: boolean}
+        estado: {$ref: "#/$defs/estado"}
+  fileActions:
+    type: object
+    additionalProperties: false
+    required: [reject, accept]
+    properties:
+      reject: {type: string, minLength: 1}
+      accept: {type: string, minLength: 1}
+  registro:
+    description: IN-04
+    type: object
+    additionalProperties: false
+    required: [niveles_que_rechazan, codigos_que_rechazan, recordAcceptance, estado]
+    properties:
+      niveles_que_rechazan: {type: array, items: {type: string}}
+      codigos_que_rechazan: {type: array, items: {type: string}}
+      recordAcceptance: {type: string, minLength: 1}
+      estado: {$ref: "#/$defs/estado"}
+  rechazo_automatico:
+    description: IN-06
+    type: object
+    additionalProperties: false
+    required: [customReasonForAutomaticRejectionEnabled, aceptar_cuerpo_vacio, estado]
+    properties:
+      customReasonForAutomaticRejectionEnabled: {type: boolean}
+      aceptar_cuerpo_vacio: {type: boolean}
+      estado: {$ref: "#/$defs/estado"}
+  intervencion_manual:
+    description: IN-07
+    type: object
+    additionalProperties: false
+    required: [habilitada, manualReject, manualAccept, estado]
+    properties:
+      habilitada: {type: boolean}
+      manualReject: {type: [string, "null"]}
+      manualAccept: {type: [string, "null"]}
+      estado: {$ref: "#/$defs/estado"}
+  diagnostico_validation:
+    description: IN-05 (contrato de entrada desde Validation)
+    type: object
+    additionalProperties: false
+    required: [quality_scores, niveles, codigos_sev1, codigos_sev3, codigos_motor, marcadores_de_archivo, estado]
+    properties:
+      quality_scores: {type: array, items: {type: string}, minItems: 1}
+      niveles: {type: array, items: {type: string}}
+      codigos_sev1: {type: array, items: {type: string}}
+      codigos_sev3: {type: array, items: {type: string}}
+      codigos_motor: {type: array, items: {type: string}}
+      marcadores_de_archivo: {type: array, items: {type: string}}
+      estado: {$ref: "#/$defs/estado"}
+  severidades:
+    description: ACC-TPL-03 (solo si reject usa hasErrorlevelIn/NotIn)
+    type: object
+    additionalProperties: false
+    required: [habilitado, tableName, archivo, fileFormat, delimiter, mapFromColumn, mapToColumn, filas, estado]
+    properties:
+      habilitado: {type: boolean}
+      tableName: {type: string}
+      archivo: {type: string}
+      fileFormat: {type: string}
+      delimiter: {type: string, minLength: 1, maxLength: 1}
+      mapFromColumn: {type: string}
+      mapToColumn: {type: string}
+      filas:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          required: [reasonCode, severidad]
+          properties:
+            reasonCode: {type: string}
+            severidad: {type: integer, description: "el motor la convierte con toInt"}
+      estado: {$ref: "#/$defs/estado"}
+  contextual_override:
+    description: IN-08 / ACC-TPL-04 (decisión humana obligatoria, D2)
+    type: object
+    additionalProperties: false
+    required: [decision_humana, decision_ref, inferDelete, explicitDelete, estado]
+    properties:
+      decision_humana: {type: boolean}
+      decision_ref: {type: [string, "null"]}
+      inferDelete: {$ref: "#/$defs/modo_borrado"}
+      explicitDelete: {$ref: "#/$defs/modo_borrado"}
+      estado: {$ref: "#/$defs/estado"}
+    if: {properties: {decision_humana: {const: true}}}
+    then:
+      properties:
+        decision_ref: {type: string, minLength: 1}
+        inferDelete: {properties: {enabled: {type: boolean}, lookBackPeriod: {type: integer}, deletePredicates: {type: array}}}
+        explicitDelete: {properties: {enabled: {type: boolean}, lookBackPeriod: {type: integer}, deletePredicates: {type: array}}}
+  expresiones_propuestas_sisben:
+    type: array
+    items:
+      type: object
+      required: [regla, evidencia]
+      properties:
+        regla: {type: string}
+        expresion: {type: string}
+        detalle: {type: string}
+        evidencia: {type: string}
+  # AC-27 / ADR-G2 (2026-10-21). Bloque OPCIONAL: una spec sin él sigue siendo válida (copias negativas de
+  # G-03, G-05 y G-06). No es un hueco de plantilla: lo lee RenderTemplates.run, que lo lista con --audit
+  # (después de los huecos) y en el reporte normal (después de generado/omitido).
+  supuestos:
+    description: Supuestos propios del skill (S-ACC-xx) con su impacto; los mismos de references/decisiones-y-abiertos.md
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [id, supuesto, impacto, donde]
+      properties:
+        id: {type: string, pattern: "^S-ACC-\\d{2}$"}
+        supuesto: {type: string, minLength: 1}
+        impacto: {type: string, minLength: 1}
+        donde: {type: string, minLength: 1}
+  fixture:
+    description: ACC-TPL-06 (SOLO datos sintéticos)
+    type: object
+    additionalProperties: false
+    required: [archivos]
+    properties:
+      archivos:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          additionalProperties: false
+          required: [directorio, nombre_lineage, datasetId, fileTag, marcador, receivedDate, fileAsOfDate,
+                     decision_esperada, reason_code_esperado, descripcion, eventos]
+          properties:
+            directorio: {type: string, pattern: "^[A-Za-z0-9_.+-]+$"}
+            nombre_lineage: {type: string}
+            datasetId: {type: string}
+            fileTag: {type: string}
+            marcador: {enum: ["", errorInFileName, errorInHeader, errorInFooter, errorInEmptyFileBody, errorInHistoricAttribute]}
+            receivedDate: {type: integer, description: "epoch ms"}
+            fileAsOfDate: {type: integer, description: "epoch ms"}
+            decision_esperada: {enum: [aceptado, rechazado, rechazo_automatico, pendiente]}
+            reason_code_esperado: {type: string}
+            descripcion: {type: string}
+            eventos:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                additionalProperties: false
+                required: [eventId, eventType, asOfDate, subscriberRelation, keys, validatedRecordJson,
+                           qualityScores, errorCodes, headerErrors, esperado_registro]
+                properties:
+                  eventId: {type: string, pattern: "^SINT-"}
+                  eventType: {type: integer}
+                  asOfDate: {type: integer}
+                  subscriberRelation: {type: string}
+                  keys: {type: string}
+                  validatedRecordJson: {type: string}
+                  qualityScores:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required: [name, score]
+                      properties:
+                        name: {type: string}
+                        # AC-ACC-05 (plan #2): el QS por registro es binario. En JSON Schema 1.0 == 1 y 0.0 == 0.
+                        score: {type: number, enum: [0, 1], description: "QS por registro binario (0 o 1)"}
+                  errorCodes: {type: array, items: {$ref: "#/$defs/error_code"}}
+                  headerErrors: {type: array, items: {$ref: "#/$defs/error_code"}}
+                  esperado_registro: {type: boolean}

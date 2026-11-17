@@ -1,0 +1,20 @@
+{userHome}
+├── {appName}-app
+│ ├── acceptance
+│ │ ├── accepted
+│ │ ├── backout
+│ │ └── rejected
+│ ├── curation
+│ │ ├── curated
+│ │ │ ├── stock
+│ │ │ └── flow
+│ │ ├── archived
+│ │ └── lambdasync-metadata
+│ ├── diff
+│ ├── generations
+│ ├── processed
+│ ├── relationship
+│ └── validation
+├── oxygen-is-data
+├── oxygen-is-keep-apart
+└── oxygen-is-keep-together

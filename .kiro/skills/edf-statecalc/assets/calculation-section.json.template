@@ -1,0 +1,64 @@
+// NOTA: statecalc-calculation-local.json es un archivo JSON real (sin comentarios).
+// Esta plantilla usa comentarios // solo para guiar la generación; elimínalos en el
+// archivo final.
+//
+// REGLA DE CONTENIDO (ver references/decisiones-pendientes.md §1):
+// "select" (y "aggregates[].field") solo incluyen campos con cadena de mapeo
+// completa y verificada -- el mismo criterio que para Foundation. No agregues un
+// campo aquí si no está primero confirmado y generado en el Foundation
+// correspondiente.
+//
+// REGLA DURA DE groupBy (ver references/esquema-foundation-calculation.md §2.1):
+// SIEMPRE usar la clave plana "groupBy" al nivel de la sección. NUNCA generar
+// "grouping": {"groupBy": [...]} anidado -- el DTO Java real (CalculationSection.java)
+// solo declara el campo plano; la forma anidada es una discrepancia conocida del
+// fixture de ejemplo del repo, no verificada empíricamente, y este skill no la
+// replica bajo ninguna circunstancia.
+//
+// REGLA DE TIPO: este skill solo genera type=MOST_RECENT_VALUE, AGGREGATES,
+// DISTINCT o ALL sin "handler". NUNCA genera CUSTOM_ON_SECTION -- requiere una
+// clase Scala que este skill no produce.
+//
+// REGLA DE FUNCIONES DE AGREGACIÓN: los valores de "function" dentro de
+// "aggregates[]" van siempre en MAYÚSCULAS exactas (SUM, MIN, MAX, COUNT,
+// AVERAGE) -- a diferencia de "type", este campo NO es case-insensitive en el
+// motor real.
+
+{
+  "domain": "{{DOMINIO_NOMBRE}}",
+  "calculations": [
+
+    // --- Opción A: sección MOST_RECENT_VALUE (passthrough, igual criterio que
+    //     el caso de referencia SISBEN -- Diseño/yaml-skill-statecalc.yaml) ---
+    {
+      "name": "{{NOMBRE_SECCION}}",
+      // "description": "...",   // propuesto por el skill si el usuario no da uno; nunca es [C] por fuente, aclarar en la respuesta
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "{{NOMBRE_CAMPO_FOUNDATION_1}}"
+        // -- solo campos con cadena de mapeo confirmada --
+      ],
+      "groupBy": [
+        "{{NOMBRE_CAMPO_FOUNDATION_1}}"
+        // -- el "grain" de agrupación, confirmado por el usuario o por la fuente de negocio --
+      ],
+      "enabled": true,
+      "transient": false
+    }
+
+    // --- Opción B: sección AGGREGATES (solo si el usuario confirma que necesita
+    //     agregación real tipo SUM/AVG/MIN/MAX/COUNT, no solo passthrough) ---
+    // {
+    //   "name": "...",
+    //   "type": "AGGREGATES",
+    //   "select": ["..."],
+    //   "groupBy": ["..."],
+    //   "aggregates": [
+    //     {"function": "SUM", "field": "...", "name": "..."}
+    //   ]
+    // }
+
+    // -- NO agregues "where" sin que el usuario confirme el predicado exacto --
+    // -- NO agregues "contains" sin que la sección referenciada ya exista antes en este array --
+  ]
+}

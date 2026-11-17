@@ -1,0 +1,193 @@
+// ═════════════════════════════════════════════════════════════════════════
+// TEMPLATE config-driven — IdentityMatcher para la etapa Pinning ({{INGESTA_NOMBRE}})
+// ═════════════════════════════════════════════════════════════════════════
+//
+// Generado por el skill skill-configgen-pinning. Este archivo es una PLANTILLA
+// con placeholders {{...}} — reemplázalos todos antes de considerar este código
+// como propuesta final. Ningún placeholder debe quedar sin resolver en el
+// artefacto entregado al usuario; donde falte información confirmada, usa un
+// TODO explícito (ver references/decisiones-pendientes.md) en vez de inventar
+// un valor.
+//
+// ESTADO: PROPUESTO — plantilla, no implementación cerrada. Requiere revisión
+// humana antes de transcribirse a cualquier repositorio protegido (Z2).
+//
+// NATURALEZA DE ESTE ARCHIVO:
+// Este NO es el matcher final de {{INGESTA_NOMBRE}}. Es un esqueleto que
+// replica el contrato real de `IdentityMatcher` verificado en el repo
+// oxygen-pinning (util/IdentityMatcher.scala, extension/ISIdentityMatcher.scala),
+// parametrizado con los atributos de identidad y pesos confirmados para esta
+// ingesta, y con los puntos de decisión de negocio pendientes marcados
+// explícitamente como TODO, cada uno citando la fuente que lo bloquea.
+//
+// POR QUÉ ES SOLO UN TEMPLATE Y NO UNA IMPLEMENTACIÓN CERRADA:
+// 1. La elección entre usar el IdentityMatcher de referencia genérico sin
+//    modificar, una implementación ya existente en otro repositorio no
+//    verificable desde este workspace, o escribir uno nuevo específico para
+//    esta ingesta, es una decisión de arquitectura que corresponde al equipo,
+//    no a este skill (ver references/decisiones-pendientes.md, categoría 1).
+// 2. El matcher de referencia (ISIdentityMatcher) tiene un defecto conocido y
+//    verificado por lectura directa de código: en el término de comparación
+//    de apellido, la variable que debería comparar el apellido en realidad
+//    vuelve a comparar el nombre (defecto de copy-paste). Este template CORRIGE
+//    el defecto por defecto (opción más segura), pero no decide si eso es lo
+//    correcto para esta ingesta — ver TODO en el método doesMatch.
+// 3. Si la ingesta requiere validación cruzada contra una fuente externa
+//    (p. ej. un registro oficial de identidad), esa lógica NO se implementa
+//    aquí sin confirmación explícita del dueño de dominio y evidencia de que
+//    el repo base la soporta (ver references/decisiones-pendientes.md,
+//    categoría 3).
+//
+// CONTRATO BASE VERIFICADO (lectura directa del repo oxygen-pinning, Z1):
+//   oxygen-pinning/src/main/scala/.../pinning/util/IdentityMatcher.scala
+//   oxygen-pinning/src/main/scala/.../pinning/extension/ISIdentityMatcher.scala
+//
+// MAPEO DE CAMPOS PARA ESTA INGESTA (completar con los datos reales,
+// normalmente provenientes del YAML intermedio generado para la etapa Pinning
+// de esta ingesta):
+//   {{ATRIBUTO_MOTOR_1}}  <- {{CAMPO_CURADO_1}}   [{{ESTADO_1}}]
+//   {{ATRIBUTO_MOTOR_2}}  <- {{CAMPO_CURADO_2}}   [{{ESTADO_2}}]
+//   {{ATRIBUTO_MOTOR_3}}  <- {{CAMPO_CURADO_3}}   [{{ESTADO_3}}]
+//   -- agrega una línea por cada atributo identificador confirmado --
+//   -- los atributos en estado distinto de [C] se comentan en el object de
+//      claves más abajo, no se incluyen en el array activo --
+//
+// UBICACIÓN REAL ESPERADA UNA VEZ APROBADO (fuera del alcance de este skill —
+// la transcripción a un repositorio protegido es siempre un acto humano):
+//   …/pinning/source/{{INGESTA_NOMBRE_MINUSCULAS}}/{fields,metrics,processor,validator}/
+//
+// ═════════════════════════════════════════════════════════════════════════
+
+package {{PAQUETE_BASE}}.extension
+
+import com.experian.edf.oxygen.domain.TaggedIdentity
+import {{PAQUETE_BASE}}.util.IdentityMatcher
+
+/**
+ * Claves de atributos identificadores para {{INGESTA_NOMBRE}}.
+ *
+ * DEBEN coincidir exactamente con los nombres declarados en el
+ * identifying-attributes.json generado para esta ingesta.
+ *
+ * Solo se declaran activos los atributos con cadena de mapeo confirmada
+ * (estado [C]). Los demás se dejan comentados a propósito: no se incluyen
+ * "por si acaso" (ver references/decisiones-pendientes.md).
+ */
+object {{INGESTA_NOMBRE}}IdentityAttributesKey {
+  // --- Atributos CONFIRMADOS (estado [C]) — descomentar y completar uno por línea ---
+  // val {{ATRIBUTO_MOTOR_1}} = "{{ATRIBUTO_MOTOR_1}}"   // <- {{CAMPO_CURADO_1}}
+  // val {{ATRIBUTO_MOTOR_2}} = "{{ATRIBUTO_MOTOR_2}}"   // <- {{CAMPO_CURADO_2}}
+
+  // --- Atributos SIN confirmar (estado distinto de [C]) — NO descomentar sin confirmación ---
+  // val {{ATRIBUTO_PENDIENTE}} = "{{ATRIBUTO_PENDIENTE}}"  // <- {{CAMPO_CURADO_PENDIENTE}} — [A:sin-clasificar], excluido hasta confirmar uso real en matching
+}
+
+/**
+ * TEMPLATE — IdentityMatcher config-driven para {{INGESTA_NOMBRE}}.
+ *
+ * ADVERTENCIA: esta clase NO debe transcribirse a producción tal cual sin
+ * revisión humana. Replica el contrato real de `IdentityMatcher` (Z1,
+ * verificado) con los puntos de decisión de negocio marcados explícitamente
+ * como TODO, cada uno citando la fuente que lo bloquea.
+ *
+ * Patrón config-driven aplicado: el umbral de similitud y los pesos por campo
+ * se declaran aquí como constantes nombradas en vez de literales dispersos,
+ * listas para moverse a configuración HOCON si el equipo decide esa extensión
+ * (evitar literales de negocio hardcodeados es un principio general del
+ * framework, no específico de esta ingesta).
+ */
+class {{INGESTA_NOMBRE}}IdentityMatcher extends IdentityMatcher {
+
+  // ───────────────────────────────────────────────────────────────────────
+  // NOTA_CONFIG_DRIVEN: en el motor de referencia verificado (ISIdentityMatcher),
+  // el umbral y los pesos están hardcodeados en el código Scala (no son claves
+  // HOCON reales). Este template preserva esa misma forma por defecto —
+  // constantes nombradas, no literales sueltos — para que el equipo pueda
+  // moverlas a configuración si decide extender el patrón.
+  // ───────────────────────────────────────────────────────────────────────
+
+  // TODO(decisión de negocio pendiente): confirmar estos valores con el dueño
+  // de dominio de {{INGESTA_NOMBRE}}. Los literales de abajo son los valores
+  // de arranque heredados del matcher de REFERENCIA genérico (ISIdentityMatcher),
+  // no una decisión específica confirmada para esta ingesta.
+  private val similarityThreshold: Double = {{SIMILARITY_THRESHOLD}}  // default del motor de referencia: 0.6
+  // --- Pesos por atributo confirmado — un val por cada atributo en estado [C] con peso > 0 ---
+  // private val weight{{ATRIBUTO_MOTOR_1}}: Double = {{PESO_1}}
+  // private val weight{{ATRIBUTO_MOTOR_2}}: Double = {{PESO_2}}
+
+  /**
+   * Compara dos identidades de {{INGESTA_NOMBRE}}.
+   *
+   * Replica el contrato verificado de ISIdentityMatcher.doesMatch. Antes de
+   * completar el cuerpo de este método, verifica aritméticamente (ver
+   * references/contrato-identitymatcher.md §4) si la suma de los pesos de
+   * los atributos confirmados puede alcanzar similarityThreshold sin que el
+   * identificador principal coincida exactamente — y deja esa conclusión
+   * como comentario aquí, visible para el revisor humano.
+   *
+   * TODO(decisión de negocio pendiente): confirmar si se replica o se
+   * corrige el defecto conocido del matcher de referencia (comparación de
+   * apellido que en realidad compara el nombre). Este template asume
+   * CORREGIR por defecto — ver references/decisiones-pendientes.md, categoría 2.
+   */
+  override def doesMatch(taggedIdentity1: TaggedIdentity,
+                          taggedIdentity2: TaggedIdentity): (Boolean, Double) = {
+
+    // MUST CALL SUPER — habilita el match por defecto de subscriber/subscriberRelation.
+    // Contrato heredado de IdentityMatcher.scala, no se modifica aquí.
+    val defaultMatch = super.doesMatch(taggedIdentity1, taggedIdentity2)
+
+    if (defaultMatch._1) (true, 0.0)
+    else {
+      // --- Extraer los atributos confirmados de ambas identidades ---
+      // val thisX = taggedIdentity1.identity.attributes.get({{INGESTA_NOMBRE}}IdentityAttributesKey.X).map(_.toString)
+      // val thatX = taggedIdentity2.identity.attributes.get({{INGESTA_NOMBRE}}IdentityAttributesKey.X).map(_.toString)
+
+      var similarity = 0.0
+
+      // --- Un bloque if por cada atributo o combinación de atributos con peso > 0 ---
+      // if (thisX.isDefined && thisX == thatX) { similarity += weightX }
+
+      // TODO(decisión de negocio pendiente, ver references/decisiones-pendientes.md
+      // categoría 3): si esta ingesta requiere validación cruzada contra una
+      // fuente externa, esa lógica NO se implementa aquí sin confirmación
+      // explícita del dueño de dominio y evidencia de que el repo base la
+      // soporta.
+
+      (similarity >= similarityThreshold, similarity)
+    }
+  }
+
+  /**
+   * Claves de blocking (Near Neighbor) para {{INGESTA_NOMBRE}}.
+   *
+   * Replica el patrón verificado de ISIdentityMatcher.nearNeighborKeys:
+   * cada atributo confirmado con participación en blocking (dimensión 4 de
+   * references/contrato-identitymatcher.md) aporta una clave, directamente
+   * o combinada (p. ej. prefijo de dos campos concatenados).
+   */
+  override def nearNeighborKeys(taggedIdentity: TaggedIdentity): List[String] = {
+    // --- Extraer los atributos con participa_nearNeighborKeys = true ---
+    // val x = taggedIdentity.identity.attributes.get({{INGESTA_NOMBRE}}IdentityAttributesKey.X).map(_.toString).orNull
+
+    List(/* una entrada por clave de blocking confirmada */)
+      .filter(_ != null)
+      .distinct
+  }
+
+  /**
+   * Claves para identidades de alto volumen (celebrity/VLE).
+   *
+   * TODO(decisión de negocio pendiente): confirmar si esta ingesta tiene un
+   * concepto de "celebrity" relevante. Por defecto, este template delega al
+   * comportamiento heredado (clave por subscriber+subscriberRelation) hasta
+   * que se confirme lo contrario.
+   */
+  override def matchingKeysForCelebrity(taggedIdentity: TaggedIdentity): List[String] =
+    super.nearNeighborKeys(taggedIdentity)
+
+  // doesMatchKA (Keep Apart) NO se sobrescribe por defecto: se hereda el
+  // comportamiento por defecto de IdentityMatcher (suma 1.0 por cada atributo
+  // identificador coincidente). Sobrescribir solo si existe caso de negocio
+  // confirmado de Keep Apart para esta ingesta.
+}

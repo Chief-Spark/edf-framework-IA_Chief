@@ -1,0 +1,8 @@
+# Cobertura de los scripts Python vigentes del skill (ADR-04, 2026-10-21).
+# Los scripts deprecados (scripts/DEPRECADOS.md) no se miden. El 80 % de AC-39 se comprueba por script (P-5):
+#   python -m pytest scripts/tests -q --cov=scripts --cov-report=
+#   python -m coverage report --include=scripts/hocon_check.py --fail-under=80
+[run]
+omit =
+    */scripts/render_templates.py
+    */scripts/curation_reference.py

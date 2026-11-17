@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Bloque HOCON parametrizable — oxygen.stage.consistencyCheck para {{INGESTA_NOMBRE}}
+# ─────────────────────────────────────────────────────────────────────────
+#
+# NOTA DE NOMBRE REAL: la clave HOCON usa el prefijo "consistencyCheck", NO
+# "synthesis" -- el nombre de producto y el nombre de la clave de configuración
+# real son distintos (ver references/convenciones-oxygen-synthesis.md §1).
+# No renombres este bloque a oxygen.stage.synthesis.* por "legibilidad": el
+# motor real no lo leería.
+#
+# Esta plantilla NO reemplaza consistency-application.conf completo. Es el
+# bloque de claves con efecto directo verificado en el código real que
+# dependen de la ingesta nueva. Las claves de infraestructura de ejecución
+# (env.conf, spark.conf) están fuera de alcance de este skill.
+
+oxygen.stage.consistencyCheck {
+
+  # [C] si el usuario confirma el eventType real de la ingesta. El valor de
+  # ejemplo del fixture local del repo (["sisben","jurad","judicial"]) NO se
+  # copia -- solo agrega el eventType real de esta ingesta a la lista.
+  eventTypeList = ["{{EVENT_TYPE}}"]
+
+  # Campo de fecha usado para agrupar por periodo. "receivedDate" es el
+  # default del fixture local, úsalo solo si el usuario no confirma otro.
+  dateType = "{{DATE_TYPE}}"
+
+  paths {
+    # TODO(decisión de negocio pendiente, ver references/decisiones-pendientes.md
+    # §4): depende de si la ingesta usa consistencia ESTÁNDAR (sin reglas
+    # propias) o reglas CONS-* específicas. Si es consistencia estándar, no
+    # generar este archivo ni apuntar aquí sin confirmar primero qué espera
+    # el framework cuando no hay reglas propias (archivo vacío vs. heredar
+    # el compartido).
+    dictionaryFile = {{DICTIONARY_FILE_O_PENDIENTE}}
+
+    # Debe coincidir con el nombre de archivo del GDD generado por este
+    # mismo skill (domaindictionary.json), salvo que el usuario indique otro.
+    domainDictionaryFile = ["{{DOMAIN_DICTIONARY_FILENAME}}"]
+
+    # null salvo evidencia de que esta ingesta use el diccionario de reglas
+    # custom de filtrado/visibilidad (ver references/diccionarios-oxygen-synthesis.md §3).
+    customRulesFile = {{CUSTOM_RULES_FILE_O_NULL}}
+  }
+
+  # false es el default del fixture local y coincide con la mayoría de casos
+  # confirmados hasta ahora en este proyecto -- no asumir true sin confirmación.
+  synthesisOutputAsTSV = {{SYNTHESIS_OUTPUT_AS_TSV}}
+
+  # TODO(decisión de negocio pendiente): si esta ingesta usa fileTag para
+  # agrupar eventos en periodos (relevante si hay cargas tipo Full Load sin
+  # histórico multi-periodo nativo). No fijar sin confirmar explícitamente.
+  checkFileTagEnabled = {{CHECK_FILE_TAG_ENABLED_O_PENDIENTE}}
+
+  # null salvo evidencia de que esta ingesta requiera migración de relaciones
+  # suscriptor-cuenta entre generaciones.
+  relationshipMigrationProcessorClassName = {{RELATIONSHIP_MIGRATION_PROCESSOR_FQCN_O_NULL}}
+}

@@ -1,0 +1,47 @@
+# Resumen esperado del fixture SINTÉTICO de SISBEN (entrada: bloque `fixture` de source-spec.sisben.yaml,
+# materializado por ACC-TPL-06 en generated/src/test/resources/sisben/validated/*/part-00000.json).
+# Lo reproduce scripts/simular_decision.py y lo comprueba scripts/tests/test_simulador.py.
+# Destinos según los paths por defecto de oxygen.stage.acceptance.paths (relativos a appHome).
+archivos:
+  - directorio: SISBEN_EXPERIAN_202401.20240131120000-0500.txt.900001
+    etapa_que_decide: E9
+    average_RQS: 0.90
+    decision: aceptado
+    reason_codes: []
+    registros: {aceptados: 8, rechazados: 2}
+    rechazados_por: {SINT-A-09: "OxygenDuplicate (nivel \"\")", SINT-A-10: "SISBEN_ERR_003 (nivel 1)"}
+    destino: "acceptance/accepted/<archivo> (8) y acceptance/rejected/records/<archivo>.900001 (2)"
+    pasa_a_curation: true
+  - directorio: RT_SISBEN_EXPERIAN_202401.20240131130000-0500.txt.900002
+    etapa_que_decide: E8
+    average_RQS: 0.60
+    decision: rechazado
+    reason_codes: [SISBFA00001]
+    destino: acceptance/rejected/files/<archivo>.900002
+    pasa_a_curation: false
+  - directorio: EP_SISBEN_EXPERIAN_202401.20240131140000-0500.txt.errorInHeader.900003
+    etapa_que_decide: E4
+    decision: rechazo_automatico
+    reason_codes: []
+    nota: >-
+      Con customReasonForAutomaticRejectionEnabled = true el motor evalúa además reject sobre el
+      marcador; sin RQS la condición vale false y el rechazo cae al movimiento estándar con el
+      nombre del marcador como mensaje.
+    destino: acceptance/rejected/files/<archivo>.900003
+    pasa_a_curation: false
+  - directorio: SISBEN_EXPERIAN_202402.20240229120000-0500.txt.errorInEmptyFileBody.900004
+    etapa_que_decide: E4
+    decision: rechazo_automatico
+    reason_codes: []
+    nota: accept no contiene isEmptyBodyFile (RF-ACC-02).
+    destino: acceptance/rejected/files/<archivo>.900004
+    pasa_a_curation: false
+  - directorio: SISBEN_EXPERIAN_202403.20240331120000-0500.txt.900005
+    etapa_que_decide: "E8 y E9 fallan"
+    average_RQS: null
+    decision: pendiente
+    reason_codes: []
+    nota: >-
+      Contrato roto con Validation (no emitió RQS). El archivo queda en validated/ y se reevalúa en
+      la siguiente corrida: es una alerta, no un estado normal.
+    pasa_a_curation: false

@@ -1,0 +1,281 @@
+# Source-spec de Curation para SISBEN V4 (caso piloto), prellenado.
+# Se valida contra assets/schema/source-spec.schema.yaml y alimenta el generador Java (scripts/java).
+# Estados: cerrado | propuesta_de_frontera | inferido | supuesto | abierto.
+# Todo valor "supuesto" se emite en el código con la etiqueta ASSUMPTION: y se lista en
+# references/decisiones-y-abiertos.md. Ningún dato de este archivo es un dato real de personas.
+
+schema_version: "1.0"
+
+meta:
+  version_skill: "0.1.0"
+  etapa: curation
+  framework: EDF/Oxygen
+  version_motor_objetivo: "0.100.02.REL.AT.24040573"
+  compilacion: no_certificada   # F-01: sin acceso a Artifactory ni a los JAR del framework
+
+fuente:
+  Fuente: SISBEN
+  fuente: sisben
+  descripcion: Base de potenciales beneficiarios SISBEN IV, entregada por el DNP
+  datasource: DNP
+  subscriber: "999722"
+  output_event_type: 30
+  output_event_type_estado: inferido          # CUR-PA04
+
+paquetes:
+  fuente: com.experian.edf.oxygen.curation.source.sisben
+  compartido: com.experian.edf.oxygen.curation.source.common
+  compartido_estado: supuesto                  # CUR-PT01: ubicación del código compartido sin definir
+
+processor:
+  nombre_clase: SISBENCurationProcessor
+
+archivo:
+  convencion: "[RT_|EP_]SISBEN_EXPERIAN_AAAAMM.AAAAMMDDHHMMSS±ZZZZ.txt"
+  estado: propuesta_de_frontera                # D8, D8-a
+  # filePattern del bloque HOCON (texto regex sin escapar para HOCON; el renderer escapa).
+  # Termina en (\.txt)? porque el motor compara la ruta del dataset SIN extensión
+  # (removeExtension) y cada evento por lineage.fileName (con o sin extensión).
+  file_pattern: '.*(RT_|EP_)?SISBEN_EXPERIAN_\d{6}\.\d{14}[+-]\d{4}(\.txt)?'
+  # Regex para derivar tipo de archivo (grupo 1) y AAAAMM (grupo 2) desde lineage.fileName.
+  regex_derivacion: '(RT_|EP_)?SISBEN_EXPERIAN_(\d{6})\.\d{14}[+-]\d{4}'
+  tipo_por_prefijo:
+    "RT_": RT
+    "EP_": EP
+    "": REGULAR
+  ejemplos_sinteticos:
+    - SISBEN_EXPERIAN_202401.20240205103000-0500.txt
+    - RT_SISBEN_EXPERIAN_202401.20240206080000-0500.txt
+    - EP_SISBEN_EXPERIAN_202402.20240305091500-0500
+  contraejemplos_sinteticos:
+    - SISBEN_EXPERIAN_2024.20240205103000-0500.txt
+    - OTRA_FUENTE_202401.20240205103000-0500.txt
+
+parametros:
+  zona_horaria_fechas: UTC                     # RF-CUR-06 dice "epoch Long UTC" (ver C-CUR-04)
+  zona_horaria_fechas_origen: supuesto         # C-CUR-04: zona sin confirmar (ADR-G4, AC-CUR-10)
+  zona_asofdate_etapa_anterior: America/Bogota # D3: Validation calcula asOfDate en esta zona (ADR-G4)
+  formatos_fecha:
+    - "dd/MM/uuuu"
+    - "uuuu-MM-dd HH:mm:ss"
+  conservar_enie: false                        # SUPUESTO C-CUR-03 (RF-CUR-04: "sin caracteres especiales")
+  niveles_no_almacenar: ["3"]                  # RF-CUR-10
+  niveles_anular: ["0"]                        # RF-CUR-10 (F-10: hoy no se emite severidad 0)
+  campo_advertencias: advertenciasCuracion     # SUPUESTO C-CUR-01 (IN-08 / CUR-PT05 abierto)
+
+campos_entrada:
+  - ID_FICHA_ORIGEN
+  - ID_HOGAR
+  - COD_DPTO
+  - NOM_DPTO
+  - COD_MPIO
+  - NOM_MPIO
+  - ID_CLASE
+  - ID_PERSONA_ORDEN
+  - ID_NACIONAL
+  - PRI_APELLIDO
+  - SEG_APELLIDO
+  - PRI_NOMBRE
+  - SEG_NOMBRE
+  - TIP_DOCUMENTO
+  - NUM_DOCUMENTO
+  - ID_GRUPO
+  - ID_NIVEL
+  - FECHA_DIGITACION
+  - FECHA_ACTUALIZACION_PERSONA
+  - ID_MARCA
+  - ID_ESTADO
+  - FECHA_ACTUALIZACION_CNS
+
+# Código de error de Validation -> campo de entrada (D12, F-10: un código por campo).
+codigos_error:
+  SISBEN_ERR_001: ID_FICHA_ORIGEN
+  SISBEN_ERR_002: ID_HOGAR
+  SISBEN_ERR_003: COD_DPTO
+  SISBEN_ERR_004: NOM_DPTO
+  SISBEN_ERR_005: COD_MPIO
+  SISBEN_ERR_006: NOM_MPIO
+  SISBEN_ERR_007: ID_CLASE
+  SISBEN_ERR_008: ID_PERSONA_ORDEN
+  SISBEN_ERR_009: ID_NACIONAL
+  SISBEN_ERR_010: PRI_APELLIDO
+  SISBEN_INC_011: SEG_APELLIDO
+  SISBEN_ERR_012: PRI_NOMBRE
+  SISBEN_INC_013: SEG_NOMBRE
+  SISBEN_ERR_014: TIP_DOCUMENTO
+  SISBEN_ERR_015: NUM_DOCUMENTO
+  SISBEN_ERR_016: ID_GRUPO
+  SISBEN_ERR_017: ID_NIVEL
+  SISBEN_ERR_018: FECHA_DIGITACION
+  SISBEN_INC_019: FECHA_ACTUALIZACION_PERSONA
+  SISBEN_INC_020: ID_MARCA
+  SISBEN_ERR_021: ID_ESTADO
+  SISBEN_ERR_022: FECHA_ACTUALIZACION_CNS
+  SISBEN_ERR_023: TIP_DOCUMENTO               # F-08: salvoconducto, provisional
+
+homologacion_tipo_documento:
+  campo_origen: TIP_DOCUMENTO
+  estado: cerrado                              # tabla de homologación documental (requirements §4.4)
+  catalogo:
+    tabla: 202_SISBEN_PROCESS_ID_TYPE_HO
+    columna_clave: tipo_sisben                 # SUPUESTO F-12
+    columna_valor: tipo_experian               # SUPUESTO F-12
+  tabla:
+    "1": "10"
+    "2": "7"
+    "3": "1"
+    "4": "4"
+    "5": "8"
+    "6": "5"
+    "8": "9"
+    "PPT": "11"
+  pendientes: ["7"]                            # salvoconducto: pendiente de creación; nunca código arbitrario
+  # 1 y 2 (menores) se filtran en Validation (shouldFilterRow); se homologan por completitud.
+  descripciones:
+    "1": REGISTRO CIVIL
+    "2": TARJETA DE IDENTIDAD
+    "3": CEDULA DE CIUDADANIA Y NUIP
+    "4": CEDULA DE EXTRANJERIA
+    "5": DNI EXTRANJERO
+    "6": PASAPORTE
+    "7": SALVOCONDUCTO DE REFUGIADO
+    "8": PEP
+    "PPT": PERMISO DE PROTECCION TEMPORAL
+
+reglas_documento:
+  campo_tipo: TIP_DOCUMENTO
+  estado: supuesto                             # RF-CUR-08 describe la regla; longitudes estándar sin dato
+  por_defecto:
+    quitar_ceros_izquierda: true
+    solo_digitos: false
+    conservar_original: false
+    padding: null
+  por_tipo:
+    "6":                                       # pasaporte: alfanumérico, se conservan ceros (SUPUESTO)
+      quitar_ceros_izquierda: false
+      solo_digitos: false
+      conservar_original: false
+      padding: null
+    "8":                                       # PEP: eliminar letras (RF-CUR-08)
+      quitar_ceros_izquierda: true
+      solo_digitos: true
+      conservar_original: false
+      padding: null
+    "PPT":                                     # PPT: conservar el original (RF-CUR-08)
+      quitar_ceros_izquierda: false
+      solo_digitos: false
+      conservar_original: true
+      padding: null
+
+# Los 7 lookups SISBEN. Columnas, archivo y delimitador: SUPUESTO (F-12).
+# Curation solo PERSISTE la homologación (202); las otras 6 las consulta Validation. Se listan
+# completas para que el fixture sintético y el checklist cubran las 7 tablas; solo las marcadas
+# registrar_en_curation se emiten en oxygen.lookups[] del repo de Curation.
+catalogos:
+  - tabla: SISBEN_HOME_ID_CLASIFICATION_NH
+    archivo: sisben/SISBEN_HOME_ID_CLASIFICATION_NH.csv
+    delimitador: ","
+    columnas: [codigo, descripcion]
+    claves: [codigo]
+    uso_curation: solo_validation
+    registrar_en_curation: false
+  - tabla: 102_DANE_DIVIPOLA_STATES_CODES_NH
+    archivo: sisben/102_DANE_DIVIPOLA_STATES_CODES_NH.csv
+    delimitador: ","
+    columnas: [cod_dpto, nom_dpto]
+    claves: [cod_dpto]
+    uso_curation: solo_validation
+    registrar_en_curation: false
+  - tabla: 2_DANE_DIVIPOLA_CITIES_CODES_NH
+    archivo: sisben/2_DANE_DIVIPOLA_CITIES_CODES_NH.csv
+    delimitador: ","
+    columnas: [cod_mpio, nom_mpio, cod_dpto]
+    claves: [cod_mpio]
+    uso_curation: solo_validation
+    registrar_en_curation: false
+  - tabla: 201_SISBEN_ZONES_NH
+    archivo: sisben/201_SISBEN_ZONES_NH.csv
+    delimitador: ","
+    columnas: [codigo, descripcion]
+    claves: [codigo]
+    uso_curation: solo_validation
+    registrar_en_curation: false
+  - tabla: 202_SISBEN_PROCESS_ID_TYPE_HO
+    archivo: sisben/202_SISBEN_PROCESS_ID_TYPE_HO.csv
+    delimitador: ","
+    columnas: [tipo_sisben, tipo_experian, descripcion]
+    claves: [tipo_sisben]
+    uso_curation: homologar
+    registrar_en_curation: true
+  - tabla: SISBEN_GROUP_SUBGROUP_NH
+    archivo: sisben/SISBEN_GROUP_SUBGROUP_NH.csv
+    delimitador: ","
+    columnas: [grupo, nivel, descripcion]
+    claves: [grupo, nivel]
+    uso_curation: solo_validation
+    registrar_en_curation: false
+  - tabla: 203_SISBEN_RECORD_STATUS_AND_MARK_NH
+    archivo: sisben/203_SISBEN_RECORD_STATUS_AND_MARK_NH.csv
+    delimitador: ","
+    columnas: [tipo, codigo, descripcion]
+    claves: [codigo]
+    uso_curation: solo_validation
+    registrar_en_curation: false
+
+# Capa B: especificación de mapeo. Una entrada por campo publicado (fuente única de verdad del
+# evento curado y del domain dictionary). Nombres D11 = propuesta; el resto = SUPUESTO C-CUR-02.
+campos_curados:
+  - {destino: idFichaOrigen, origen: ID_FICHA_ORIGEN, transformacion: {tipo: texto}, tipo_salida: texto, estado: supuesto}
+  - {destino: idHogar, origen: ID_HOGAR, transformacion: {tipo: texto}, tipo_salida: entero, catalogo: {tabla: SISBEN_HOME_ID_CLASIFICATION_NH, columna: codigo}, estado: supuesto}
+  - {destino: codDepartamentoSisben, origen: COD_DPTO, transformacion: {tipo: padding_izquierda, longitud: 2}, tipo_salida: texto, catalogo: {tabla: 102_DANE_DIVIPOLA_STATES_CODES_NH, columna: cod_dpto}, estado: propuesta_de_frontera}
+  - {destino: nomDepartamento, origen: NOM_DPTO, transformacion: {tipo: nombre}, tipo_salida: texto, estado: supuesto}
+  - {destino: codMunicipioSisben, origen: COD_MPIO, transformacion: {tipo: padding_izquierda, longitud: 5}, tipo_salida: texto, catalogo: {tabla: 2_DANE_DIVIPOLA_CITIES_CODES_NH, columna: cod_mpio}, estado: propuesta_de_frontera}
+  - {destino: nomMunicipio, origen: NOM_MPIO, transformacion: {tipo: nombre}, tipo_salida: texto, estado: supuesto}
+  - {destino: idClase, origen: ID_CLASE, transformacion: {tipo: texto}, tipo_salida: entero, catalogo: {tabla: 201_SISBEN_ZONES_NH, columna: codigo}, estado: supuesto}
+  - {destino: idPersonaOrden, origen: ID_PERSONA_ORDEN, transformacion: {tipo: texto}, tipo_salida: entero, estado: supuesto}
+  - {destino: idNacional, origen: ID_NACIONAL, transformacion: {tipo: texto}, tipo_salida: largo, estado: supuesto}
+  - {destino: primerApellido, origen: PRI_APELLIDO, transformacion: {tipo: nombre}, tipo_salida: texto, estado: supuesto}
+  - {destino: segundoApellido, origen: SEG_APELLIDO, transformacion: {tipo: nombre}, tipo_salida: texto, estado: supuesto}
+  - {destino: primerNombre, origen: PRI_NOMBRE, transformacion: {tipo: nombre}, tipo_salida: texto, estado: supuesto}
+  - {destino: segundoNombre, origen: SEG_NOMBRE, transformacion: {tipo: nombre}, tipo_salida: texto, estado: supuesto}
+  - {destino: tipoDocumento, origen: TIP_DOCUMENTO, transformacion: {tipo: homologacion}, tipo_salida: entero, estado: cerrado}
+  - {destino: tipoDocumentoSisben, origen: TIP_DOCUMENTO, transformacion: {tipo: original}, tipo_salida: texto, estado: cerrado}
+  - {destino: numeroDocumento, origen: NUM_DOCUMENTO, transformacion: {tipo: documento}, tipo_salida: texto, estado: supuesto}
+  - {destino: grupoSisben, origen: ID_GRUPO, transformacion: {tipo: original}, tipo_salida: texto, catalogo: {tabla: SISBEN_GROUP_SUBGROUP_NH, columna: grupo}, estado: propuesta_de_frontera}
+  - {destino: nivelSisben, origen: ID_NIVEL, transformacion: {tipo: texto}, tipo_salida: entero, catalogo: {tabla: SISBEN_GROUP_SUBGROUP_NH, columna: nivel}, estado: propuesta_de_frontera}
+  - {destino: fechaDigitacion, origen: FECHA_DIGITACION, transformacion: {tipo: fecha_epoch}, tipo_salida: largo, estado: supuesto}
+  - {destino: fechaActualizacionPersona, origen: FECHA_ACTUALIZACION_PERSONA, transformacion: {tipo: fecha_epoch}, tipo_salida: largo, estado: supuesto}
+  - {destino: idMarca, origen: ID_MARCA, transformacion: {tipo: texto}, tipo_salida: entero, catalogo: {tabla: 203_SISBEN_RECORD_STATUS_AND_MARK_NH, columna: codigo}, estado: supuesto}
+  - {destino: idEstado, origen: ID_ESTADO, transformacion: {tipo: texto}, tipo_salida: entero, catalogo: {tabla: 203_SISBEN_RECORD_STATUS_AND_MARK_NH, columna: codigo}, estado: supuesto}
+  - {destino: fechaActualizacionCns, origen: FECHA_ACTUALIZACION_CNS, transformacion: {tipo: fecha_epoch}, tipo_salida: largo, estado: supuesto}
+  # Enriquecimiento (requirements §6.4)
+  - {destino: fechaCorte, origen: "", transformacion: {tipo: desde_archivo, atributo: fecha_corte}, tipo_salida: largo, estado: propuesta_de_frontera}
+  - {destino: tipoArchivo, origen: "", transformacion: {tipo: desde_archivo, atributo: tipo_archivo}, tipo_salida: texto, estado: propuesta_de_frontera}
+  - {destino: currentPartyType, origen: "", transformacion: {tipo: copia_de, campo: tipoDocumento}, tipo_salida: entero, estado: inferido}
+  - {destino: currentPartyIdNumber, origen: "", transformacion: {tipo: copia_de, campo: numeroDocumento}, tipo_salida: texto, estado: inferido}
+  - {destino: subscriberBlockStatus, origen: "", transformacion: {tipo: constante, valor: "NO_BLOQUEADO"}, tipo_salida: texto, estado: supuesto}
+  - {destino: subscriberBlockReason, origen: "", transformacion: {tipo: constante, valor: null}, tipo_salida: texto, estado: inferido}
+
+# Campos que la frontera pide pero que NO se generan hasta cerrar la decisión.
+campos_abiertos:
+  - {destino: puntajeSisben, motivo: "Sin campo de origen en el layout de 22 (D11-a)"}
+  - {destino: fechaEncuesta, motivo: "Sin equivalente documentado (antes FECENCUE) (D11-a)"}
+  - {destino: fechaModificacion, motivo: "Sin equivalente documentado (antes FECMODFI) (D11-a)"}
+  - {destino: nombreCompleto, motivo: "Orden de concatenación sin confirmar (P2 / CUR-PA01)"}
+  - {destino: businessLineCode, motivo: "Catálogo de terceras fuentes sin valores (CUR-PT06)"}
+  - {destino: typeOfData, motivo: "Catálogo 170 sin valores (CUR-PT06)"}
+
+rutas_destino:
+  raiz_fuente: "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/"
+  raiz_tests: "src/test/scala/com/experian/edf/oxygen/curation/source/sisben/"
+  raiz_compartido: "src/main/scala/com/experian/edf/oxygen/curation/source/common/"
+  raiz_tests_compartido: "src/test/scala/com/experian/edf/oxygen/curation/source/common/"
+  hocon: "env/application-conf/innersource/curation-common-application-inner.conf"
+  lookups_conf: "env/application-conf/innersource/oxygen-lookup-inner.conf"
+  domain_dictionary: "colombia-domain-dictionary-inner.json"
+  test_resources: "src/test/resources/sisben/"
+
+fixture:
+  entrada: fixture/accepted-events.input.yaml
+  lookups_dir: lookups
+  sintetico: true

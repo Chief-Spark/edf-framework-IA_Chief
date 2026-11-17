@@ -1,0 +1,3 @@
+{{#cada eventos}}
+{"lineage":{"dataSource":"{{identidad.data_source}}","receivedDate":{{receivedDate}},"fileName":"{{nombre_lineage}}","subscriber":"{{identidad.subscriber}}","fileAsOfDate":{{fileAsOfDate}},"datasetId":"{{datasetId}}","recordHash":"{{eventId}}"},"eventId":"{{eventId}}","validatedRecordJson":{{validatedRecordJson|json}},"qualityScores":{{qualityScores|json}},"errorCodes":{{errorCodes|json}},"eventType":{{eventType}},"asOfDate":{{asOfDate}},"didCreateAsOfDateFromReceivedDate":false,"subscriberRelation":"{{subscriberRelation}}","subscriber":"{{identidad.subscriber}}","headerErrors":{{headerErrors|json}},"footerErrors":[],"keys":"{{keys}}","fileTag":"{{fileTag}}"}
+{{/cada}}

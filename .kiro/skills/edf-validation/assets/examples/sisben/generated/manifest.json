@@ -1,0 +1,115 @@
+{
+  "skill": "edf-validation-stage",
+  "spec_version": "sisben-v4-0.1.0",
+  "fuente": "SISBEN",
+  "estado": "PROPUESTA - requiere aprobación del técnico antes de copiar al fork (Human-in-the-Loop)",
+  "compilacion": "NO CERTIFICADA (F-01: sin acceso al JAR del framework)",
+  "archivos": [
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/common/FieldSpec.scala",
+      "sha256": "64f67b91270669dda71af25ea99f9a9af11a70f24707d93b3c6b719ffe945f90"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/common/FieldValidators.scala",
+      "sha256": "3dfb4a0223c4ce148380619f7ad232a23a8600fa6f41853de315b9f426cdaade"
+    },
+    {
+      "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/common/FieldValidatorsSpec.scala",
+      "sha256": "ba0a6e20f7ee4d019b5c4579bf2f2bb55d27046e7cd85e2a4925e1d8ba182681"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/config/SISBENSpec.scala",
+      "sha256": "13302cc0bfbe9b1514ee125e2b973be14ee3beb2667dcf669225572043c9e247"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/SISBENValidatedEvent.scala",
+      "sha256": "4ff9bc763c6ced435290403dc122275a136ab1d2965ef32d7f93c7a311791647"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/validator/SISBENFileMetadata.scala",
+      "sha256": "45ef276d6fbdf52bc7ce5119063e2ecfa36519ded0254efe24f1c126d4610783"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/processor/SISBENValidationProcessor.scala",
+      "sha256": "7a6c5cbab212731ab424875c0dc3e23d416197f293637ffe597338a1d52643c9"
+    },
+    {
+      "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/sisben/SISBENValidationProcessorSpec.scala",
+      "sha256": "0fa5a15a98e8e0e98c59e22e5c97ad1692e88220d4ddbc204b96518d594604bb"
+    },
+    {
+      "ruta": "src/test/resources/sisben/SISBEN_EXPERIAN_202406.20240630120000-0500.txt",
+      "sha256": "78b87906539cf60c97959ef4d8bba748e385c32d76d2c2da48291a425a34f7c6"
+    },
+    {
+      "ruta": "env/application-conf/innersource/propuesta/validation-configs-sisben.conf",
+      "sha256": "2bad158cd6fc9f7e0c16d56d6dee9a8398b19e14709b914d4360404db1b005b3"
+    },
+    {
+      "ruta": "env/application-conf/innersource/propuesta/lookups-sisben.conf",
+      "sha256": "da069da3b5c789c246a6aa1b3cabb66c0dae9cde1ed7a3ecdc99471f4fa0dcb5"
+    },
+    {
+      "ruta": "env/application-conf/innersource/propuesta/codigos-error-sisben.csv",
+      "sha256": "0e3ba28332b28708820500f5d414080954f24e8b0b39ebbcfbad25d1ca39a653"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/SISBEN_HOME_ID_CLASIFICATION_NH.csv",
+      "sha256": "d251b7f118078a0a28b5c274358fee5e9707d65ea149a0e50135ff38204980ff"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/102_DANE_DIVIPOLA_STATES_CODES_NH.csv",
+      "sha256": "dee60ebcf94a8e947eb190e56965f156c45be4add5f34b9af93cb983f4876929"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/2_DANE_DIVIPOLA_CITIES_CODES_NH.csv",
+      "sha256": "e10dda7bd3e77c50fe76a26d2264b0fd70955bd17d3efb0c62d58019baff4412"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/201_SISBEN_ZONES_NH.csv",
+      "sha256": "33c81e582db91ed258767dadc38c0b8094ef6be741ce20fccb1b06b584a447dd"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/202_SISBEN_PROCESS_ID_TYPE_HO.csv",
+      "sha256": "fbf3c44fe06f5541faf6b7b176700a03cc6b3aa86cde8ca8575443e7c22ba3e8"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/SISBEN_GROUP_SUBGROUP_NH.csv",
+      "sha256": "739b8d84263e265e4c62c3cef11fa4299b1af62bb34c2044b6bfccafad9faa56"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/203_SISBEN_RECORD_STATUS_AND_MARK_NH.csv",
+      "sha256": "1718c00d1ec5b28fbf3d93308603306e44165230607d193743b4d55296140991"
+    }
+  ],
+  "requisitos_de_ambiente": {
+    "oxygen.application.lambda": "batch",
+    "oxygen.application.historicAttributes": false,
+    "oxygen.features.enable.defaultOutputStructure": true,
+    "oxygen.features.enable.emitStockMetrics": "debe existir (se lee con .get)"
+  },
+  "supuestos": [
+    "F-04",
+    "F-07",
+    "F-08",
+    "F-09",
+    "F-11",
+    "F-12",
+    "F-13",
+    "F-14",
+    "VAL-PA04",
+    "VAL-PT01",
+    "VAL-PT03",
+    "VAL-PT04",
+    "VAL-SP01",
+    "VAL-SP02",
+    "VAL-SP03",
+    "VAL-SP04",
+    "VAL-SP05",
+    "VAL-SP06",
+    "VAL-SP07",
+    "VAL-SP08",
+    "VAL-SP09",
+    "VAL-SP10"
+  ]
+}

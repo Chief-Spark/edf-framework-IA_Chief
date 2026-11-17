@@ -1,0 +1,411 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://experian.co/edf/exp-023/estado-ingesta.schema.json",
+  "title": "Estado / expediente de una ingesta EDF",
+  "description": "v1.1.0: 6 etapas + etapa 0 (sin reception), riesgo critico (N4), omision de etapa con aprobacion del PO (tipo omision). Cierra OQ-T-1. Fuente de verdad del expediente que mantiene el Skill Orquestador. estado-ingesta.md es una vista derivada de este documento. Prohibido escribir valores de campos PII en cualquier parte de esta instancia (GR-6 / R4.3 / R6.5).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "ingesta", "etapa_actual", "etapas", "aprobaciones", "bitacora", "generado_por"],
+  "properties": {
+    "schema_version": {
+      "description": "Versión del esquema, no de la instancia. Semver.",
+      "type": "string",
+      "const": "1.1.0"
+    },
+    "generado_por": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skill", "version", "actualizado_en"],
+      "properties": {
+        "skill": { "type": "string", "const": "edf-orquestador" },
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "actualizado_en": { "type": "string", "format": "date-time" },
+        "vista_md_regenerada_en": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+
+    "ingesta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nombre", "creada_en", "fuente_oficial", "reuse_pin", "contrato_archivo"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{1,40}$", "description": "Identificador del expediente, p. ej. sisben." },
+        "nombre": { "type": "string", "minLength": 1 },
+        "descripcion": { "type": ["string", "null"] },
+        "creada_en": { "type": "string", "format": "date-time" },
+        "periodo": { "type": ["string", "null"], "pattern": "^\\d{6}$", "description": "AAAAMM del archivo en curso." },
+        "es_ingesta_nueva": { "type": "boolean", "default": true },
+        "fuente_oficial": {
+          "description": "Decisión de apertura obligatoria. 'indeterminado' es un valor legítimo y genera pregunta abierta bloqueante.",
+          "enum": ["si", "no", "mixto", "indeterminado"]
+        },
+        "jerarquia_fuente": { "type": ["string", "null"], "description": "Posición declarada en la jerarquía de best data para PIN." },
+        "business_light_code": { "type": ["string", "null"], "description": "Indica por dónde llegó el dato: batch / oficial / high_frequency." },
+        "reuse_pin": { "type": "boolean", "description": "false para una ingesta NUEVA. Cambiarlo eleva el riesgo a alto." },
+        "epoca_epoc": { "type": ["string", "null"], "description": "Época EPOC de la carpeta de generación. null mientras sea solo candidato (no activada hasta ejecutar Pinning)." },
+        "epoca_activada": { "type": "boolean", "default": false },
+        "contrato_archivo": { "$ref": "#/$defs/contratoArchivo" },
+        "rutas_pipeline": { "$ref": "#/$defs/rutasPipeline" }
+      }
+    },
+
+    "etapa_actual": {
+      "description": "Etapa en la que está detenido el flujo.",
+      "$ref": "#/$defs/etapaId"
+    },
+
+    "etapas": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/etapa" }
+    },
+
+    "aprobaciones": {
+      "type": "array",
+      "description": "Append-only: nunca se edita ni se borra una aprobación registrada.",
+      "items": { "$ref": "#/$defs/aprobacion" }
+    },
+
+    "preguntas_abiertas": { "type": "array", "items": { "$ref": "#/$defs/preguntaAbierta" } },
+    "riesgos": { "type": "array", "items": { "$ref": "#/$defs/riesgo" } },
+    "backlog_evolutivo": { "type": "array", "items": { "$ref": "#/$defs/itemBacklog" } },
+    "patrones_conocidos": {
+      "type": "array",
+      "description": "Feedback loop del harness (G4-RF-08): patrones ya aprobados que permiten bajar el riesgo a 'bajo'.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "descripcion", "aprobado_en"],
+        "properties": {
+          "id": { "type": "string" },
+          "descripcion": { "type": "string" },
+          "etapa": { "$ref": "#/$defs/etapaId" },
+          "aprobado_en": { "type": "string", "format": "date-time" },
+          "ref_aprobacion": { "type": "string", "pattern": "^APR-\\d{3,}$" }
+        }
+      }
+    },
+
+    "bitacora": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruta", "ultimo_evento", "eventos_totales"],
+      "properties": {
+        "ruta": { "type": "string", "default": "bitacora.md" },
+        "ultimo_evento": { "type": ["string", "null"], "pattern": "^BIT-\\d{4,}$" },
+        "eventos_totales": { "type": "integer", "minimum": 0 },
+        "append_only": { "type": "boolean", "const": true },
+        "retencion_meses": { "type": "integer", "minimum": 24, "default": 24, "description": "OQ-T-3: 24 meses desde el último evento como default del framework; prevalece la política de Experian si existe." }
+      }
+    }
+  },
+
+  "$defs": {
+    "etapaId": {
+      "description": "6 etapas + etapa 0 (decisiones H-3/H-4). Data Reception no es etapa del framework.",
+      "enum": ["analisis", "validation", "acceptance", "curation_flow", "curation_stock", "pinning", "synthesis", "state_calculation"]
+    },
+
+    "nivelRiesgo": {
+      "description": "Correspondencia con steering 06: bajo=N1, medio=N2, alto=N3, critico=N4.",
+      "enum": ["bajo", "medio", "alto", "critico"]
+    },
+
+    "estadoEtapa": {
+      "description": "pendiente_evidencia = el artefacto está aprobado pero falta la evidencia del pipeline en S3.",
+      "enum": ["no_iniciada", "en_progreso", "pendiente_evidencia", "pendiente_aprobacion", "aprobada", "rechazada", "completada_manualmente", "omitida"]
+    },
+
+    "contratoArchivo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patron_nombre", "delimitador", "encoding", "header", "footer", "num_columnas"],
+      "properties": {
+        "patron_nombre": { "type": "string" },
+        "delimitador": { "type": "string", "maxLength": 4 },
+        "encoding": { "type": "string" },
+        "header": { "type": "boolean" },
+        "footer": { "type": "boolean" },
+        "event_type": { "type": ["integer", "string", "null"] },
+        "num_columnas": { "type": "integer", "minimum": 1 },
+        "formato": { "type": ["string", "null"], "description": "JSON / TXT / plano / AVRO." }
+      }
+    },
+
+    "rutasPipeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Rutas de SOLO LECTURA. El Orquestador nunca escribe en ellas.",
+      "properties": {
+        "entrada": { "type": ["string", "null"] },
+        "validated": { "type": ["string", "null"] },
+        "accepted": { "type": ["string", "null"] },
+        "rejects_files": { "type": ["string", "null"] },
+        "rejects_records": { "type": ["string", "null"] },
+        "curated": { "type": ["string", "null"] },
+        "generacion_epoc": { "type": ["string", "null"] },
+        "joblogs": { "type": ["string", "null"] }
+      }
+    },
+
+    "etapa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "orden", "nombre", "en_pipeline_configurado", "clasificacion_compromiso", "riesgo_tipico", "estado", "depende_de", "aprobacion_requerida", "transicion_habilitada"],
+      "properties": {
+        "id": { "$ref": "#/$defs/etapaId" },
+        "orden": { "type": "integer", "minimum": 0 },
+        "nombre": { "type": "string" },
+        "en_pipeline_configurado": { "type": "boolean", "description": "false solo para analisis: el pipeline configurado va de validation a state_calculation (R1.3)." },
+        "dag_airflow": { "type": ["string", "null"], "enum": ["daily-validation", "acceptance-curation-flow", "collection-stock", "state-generation", null] },
+        "clasificacion_compromiso": { "enum": ["habilitador", "aceptacion", "exito"] },
+        "riesgo_tipico": { "$ref": "#/$defs/nivelRiesgo" },
+        "estado": { "$ref": "#/$defs/estadoEtapa" },
+        "depende_de": { "type": "array", "items": { "$ref": "#/$defs/etapaId" } },
+        "iniciada_en": { "type": ["string", "null"], "format": "date-time" },
+        "cerrada_en": { "type": ["string", "null"], "format": "date-time" },
+        "artefactos": { "type": "array", "items": { "$ref": "#/$defs/artefacto" } },
+        "evidencia_pipeline": { "$ref": "#/$defs/evidenciaPipeline" },
+        "aprobacion_requerida": { "type": "boolean", "const": true },
+        "ref_aprobacion": { "type": ["string", "null"], "pattern": "^APR-\\d{3,}$" },
+        "riesgo_evaluado": { "type": ["string", "null"], "enum": ["bajo", "medio", "alto", "critico", null] },
+        "nivel_friccion": { "type": ["string", "null"], "enum": ["ligera", "diff_contexto", "detallada", null] },
+        "preguntas_abiertas": { "type": "array", "items": { "type": "string", "pattern": "^PA-\\d{3,}$" } },
+        "riesgos": { "type": "array", "items": { "type": "string", "pattern": "^RG-\\d{3,}$" } },
+        "transicion_habilitada": {
+          "type": "boolean",
+          "description": "Solo el Orquestador lo pone en true, y SOLO si pasan las 6 condiciones del checklist de bloqueo (references/03-gobierno-riesgo-aprobacion.md §3). Por defecto false. Las skills de etapa lo leen en su Paso 0."
+        },
+        "checklist_bloqueo": { "$ref": "#/$defs/checklistBloqueo" },
+        "nota_regla_de_corte": { "type": ["string", "null"], "description": "Obligatoria si estado = completada_manualmente. Solo permitida en etapas de clasificacion_compromiso = exito." },
+        "nota_omision": { "type": ["string", "null"], "description": "Obligatoria si estado = omitida: por qué la etapa no aplica a esta ingesta y qué decisión lo respalda." }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "estado": { "const": "completada_manualmente" } }, "required": ["estado"] },
+          "then": {
+            "required": ["nota_regla_de_corte", "ref_aprobacion"],
+            "properties": {
+              "clasificacion_compromiso": { "const": "exito" },
+              "nota_regla_de_corte": { "type": "string", "minLength": 10 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "estado": { "const": "omitida" } }, "required": ["estado"] },
+          "then": {
+            "required": ["nota_omision", "ref_aprobacion"],
+            "properties": {
+              "nota_omision": { "type": "string", "minLength": 10 },
+              "ref_aprobacion": { "type": "string", "pattern": "^APR-\\d{3,}$" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "transicion_habilitada": { "const": true } }, "required": ["transicion_habilitada"] },
+          "then": {
+            "required": ["ref_aprobacion"],
+            "properties": {
+              "ref_aprobacion": { "type": "string", "pattern": "^APR-\\d{3,}$" },
+              "estado": { "enum": ["aprobada", "completada_manualmente", "omitida"] }
+            }
+          }
+        }
+      ]
+    },
+
+    "artefacto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "tipo", "nombre", "estado_artefacto", "obligatorio"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^ART-\\d{3,}$" },
+        "tipo": { "enum": ["documento", "codigo", "configuracion", "prueba", "metadata", "esqueleto"] },
+        "nombre": { "type": "string" },
+        "ruta": { "type": ["string", "null"], "description": "Ruta relativa en el workspace. Nunca una ruta de escritura en repos protegidos." },
+        "obligatorio": { "type": "boolean" },
+        "estado_artefacto": { "enum": ["ausente", "propuesto", "prevalidado", "aprobado", "rechazado"] },
+        "riesgo": { "type": ["string", "null"], "enum": ["bajo", "medio", "alto", "critico", null] },
+        "hash": { "type": ["string", "null"], "description": "Hash del contenido al momento de aprobarse, para detectar cambios posteriores." },
+        "prevalidacion": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Evidencia de harness reportada por el Desarrollador o el skill de etapa. El Orquestador no compila.",
+          "properties": {
+            "compila": { "type": ["boolean", "null"] },
+            "linting": { "type": ["boolean", "null"] },
+            "reportada_por": { "type": ["string", "null"] },
+            "reportada_en": { "type": ["string", "null"], "format": "date-time" }
+          }
+        },
+        "contexto_precargado": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "RT-03: lo que acompaña a toda propuesta.",
+          "properties": {
+            "que_cambio": { "type": ["string", "null"] },
+            "por_que": { "type": ["string", "null"] },
+            "regla_aplicable": { "type": ["string", "null"] },
+            "patron_previo": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+
+    "evidenciaPipeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "R2.4. El Orquestador NO lista S3 ni consulta Airflow: transcribe lo que el Desarrollador reporta, con su origen. Sin evidencia, 'observada' queda null.",
+      "properties": {
+        "ruta_s3_esperada": { "type": ["string", "null"] },
+        "observada": { "type": ["string", "null"] },
+        "marcador": { "type": ["string", "null"], "description": "p. ej. ready-curate." },
+        "conteos": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Solo agregados. Prohibido registrar registros individuales (GR-6).",
+          "properties": {
+            "total": { "type": ["integer", "null"], "minimum": 0 },
+            "aceptados": { "type": ["integer", "null"], "minimum": 0 },
+            "rechazados": { "type": ["integer", "null"], "minimum": 0 },
+            "menores_silenciosos": { "type": ["integer", "null"], "minimum": 0 },
+            "quality_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 }
+          }
+        },
+        "joblog": { "type": ["string", "null"], "description": "Referencia a JobLogs/<fecha>." },
+        "cluster_id": { "type": ["string", "null"] },
+        "step_id": { "type": ["string", "null"] },
+        "reportada_por": { "type": ["string", "null"], "description": "Rol + identificador corporativo no-PII." },
+        "verificada_en": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+
+    "checklistBloqueo": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Las 6 condiciones de references/03-gobierno-riesgo-aprobacion.md §3, evaluadas en la última verificación.",
+      "required": ["evaluado_en", "resultado"],
+      "properties": {
+        "evaluado_en": { "type": "string", "format": "date-time" },
+        "c1_etapa_previa_aprobada": { "type": "boolean" },
+        "c2_aprobacion_registrada": { "type": "boolean" },
+        "c3_dependencias_satisfechas": { "type": "boolean" },
+        "c4_sin_preguntas_bloqueantes": { "type": "boolean" },
+        "c5_evidencia_pipeline": { "type": "boolean" },
+        "c6_justificacion_si_riesgo_alto": { "type": "boolean" },
+        "resultado": { "enum": ["habilitada", "bloqueada"] },
+        "condiciones_fallidas": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "aprobacion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "tipo", "decision", "actor", "timestamp", "riesgo", "nivel_friccion", "ref_bitacora", "resultado"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^APR-\\d{3,}$" },
+        "tipo": { "enum": ["contexto", "artefacto", "transicion", "regla_de_corte", "omision"] },
+        "desde_etapa": { "type": ["string", "null"] },
+        "hacia_etapa": { "type": ["string", "null"] },
+        "artefactos": { "type": "array", "items": { "type": "string", "pattern": "^ART-\\d{3,}$" } },
+        "decision": { "enum": ["aprobada", "rechazada", "condicional"] },
+        "actor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rol", "identificador"],
+          "description": "R4.2 'quién', sin PII: rol + identificador corporativo (usuario de red / handle). Prohibido nombre completo o correo.",
+          "properties": {
+            "rol": { "enum": ["Desarrollador", "PO", "Experto de dominio EDF", "Mantenedor KIDAR", "Dueno del patron", "Aprobador designado"] },
+            "identificador": { "type": "string", "minLength": 2, "maxLength": 40 }
+          }
+        },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "riesgo": { "$ref": "#/$defs/nivelRiesgo" },
+        "nivel_friccion": { "enum": ["ligera", "diff_contexto", "detallada"] },
+        "justificacion": { "type": ["string", "null"], "description": "Obligatoria si riesgo = alto o critico, si decision = rechazada o condicional, y si tipo = regla_de_corte." },
+        "condiciones": { "type": "array", "items": { "type": "string" }, "description": "Obligatorias si decision = condicional." },
+        "resultado": { "enum": ["aplicado", "modificado", "descartado", "bloqueado"] },
+        "ref_bitacora": { "type": "string", "pattern": "^BIT-\\d{4,}$" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "riesgo": { "enum": ["alto", "critico"] } }, "required": ["riesgo"] },
+          "then": { "required": ["justificacion"], "properties": { "justificacion": { "type": "string", "minLength": 10 } } }
+        },
+        {
+          "if": { "properties": { "riesgo": { "const": "critico" }, "decision": { "const": "aprobada" } }, "required": ["riesgo", "decision"] },
+          "then": { "properties": { "actor": { "properties": { "rol": { "enum": ["PO", "Aprobador designado"] } } } } }
+        },
+        {
+          "if": { "properties": { "decision": { "enum": ["rechazada", "condicional"] } }, "required": ["decision"] },
+          "then": { "required": ["justificacion"], "properties": { "justificacion": { "type": "string", "minLength": 10 } } }
+        },
+        {
+          "if": { "properties": { "tipo": { "const": "regla_de_corte" } }, "required": ["tipo"] },
+          "then": { "required": ["justificacion"], "properties": { "justificacion": { "type": "string", "minLength": 10 } } }
+        },
+        {
+          "if": { "properties": { "tipo": { "const": "omision" } }, "required": ["tipo"] },
+          "then": {
+            "required": ["justificacion"],
+            "properties": {
+              "justificacion": { "type": "string", "minLength": 10 },
+              "actor": { "properties": { "rol": { "enum": ["PO", "Aprobador designado"] } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "decision": { "const": "condicional" } }, "required": ["decision"] },
+          "then": { "properties": { "condiciones": { "minItems": 1 } }, "required": ["condiciones"] }
+        }
+      ]
+    },
+
+    "preguntaAbierta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "pregunta", "bloqueante", "estado", "abierta_en"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^PA-\\d{3,}$" },
+        "pregunta": { "type": "string", "minLength": 5 },
+        "origen": { "type": ["string", "null"], "description": "Trazabilidad: [fuente | timestamp] de sesión, HU, spec." },
+        "etapa_afectada": { "type": ["string", "null"] },
+        "bloqueante": { "type": "boolean" },
+        "estado": { "enum": ["abierta", "en_consulta", "resuelta", "descartada"] },
+        "abierta_en": { "type": "string", "format": "date-time" },
+        "resuelta_en": { "type": ["string", "null"], "format": "date-time" },
+        "respuesta": { "type": ["string", "null"] },
+        "ref_bitacora": { "type": ["string", "null"], "pattern": "^BIT-\\d{4,}$" }
+      }
+    },
+
+    "riesgo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "descripcion", "nivel", "estado"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^RG-\\d{3,}$" },
+        "descripcion": { "type": "string" },
+        "nivel": { "$ref": "#/$defs/nivelRiesgo" },
+        "etapa_afectada": { "type": ["string", "null"] },
+        "mitigacion": { "type": ["string", "null"] },
+        "estado": { "enum": ["abierto", "mitigado", "aceptado", "cerrado"] }
+      }
+    },
+
+    "itemBacklog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "etapa", "pendiente", "creado_en", "ref_aprobacion"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^BKL-\\d{3,}$" },
+        "etapa": { "$ref": "#/$defs/etapaId" },
+        "pendiente": { "type": "string", "minLength": 10 },
+        "motivo": { "type": ["string", "null"] },
+        "creado_en": { "type": "string", "format": "date-time" },
+        "ref_aprobacion": { "type": "string", "pattern": "^APR-\\d{3,}$" }
+      }
+    }
+  }
+}

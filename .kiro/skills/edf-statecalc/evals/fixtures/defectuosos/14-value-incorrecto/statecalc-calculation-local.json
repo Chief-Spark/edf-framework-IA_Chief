@@ -1,0 +1,14 @@
+{
+  "domain": "FIXTURE-SINTETICO-sisben",
+  "calculations": [
+    {
+      "name": "sisbenMostRecentValue",
+      "description": "Passthrough directo de los campos SISBEN confirmados, valor mas reciente por persona",
+      "type": "MOST_RECENT_VALUE",
+      "select": ["personIdType", "personIdNumber"],
+      "groupBy": ["personIdType", "personIdNumber"],
+      "enabled": true,
+      "transient": false
+    }
+  ]
+}

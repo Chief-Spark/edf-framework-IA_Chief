@@ -1,0 +1,479 @@
+{
+  "domain": "credit",
+  "calculations": [
+    {
+      "name": "AggregationOnBalanceGroupBySubSR",
+      "description": "Check Information",
+      "type": "AGGREGATES",
+      "select": [
+        "subscriber",
+        "subscriberRelation"
+      ],
+
+      "groupBy": ["subscriber", "subscriberRelation"],
+
+      "aggregates": [
+        {
+          "function": "SUM",
+          "field": "balance",
+          "name": "sum"
+        },
+        {
+          "function": "AVERAGE",
+          "field": "balance",
+          "name": "avg"
+        },
+        {
+          "function": "MIN",
+          "field": "balance",
+          "name": "min"
+        }
+      ]
+    },
+    {
+      "name": "names",
+      "description": "Names of an individual",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "counterpartyIdType",
+        "counterpartyIdNumber",
+        "personIdType",
+        "personIdNumber",
+        "businessLineCode",
+        "dataSource",
+        "accountType",
+        "accountNumber",
+        "cutoffDate",
+        "asReported",
+        "firstName",
+        "secondName",
+        "suffix",
+        "firstLastName",
+        "secondLastName",
+        "aka"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdType",
+          "counterpartyIdNumber",
+          "businessLineCode",
+          "accountNumber",
+          "personIdType",
+          "personIdNumber",
+          "source"
+        ]
+      }
+    },
+    {
+      "name": "identifications",
+      "description": "identification details of an individual",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "counterpartyIdType",
+        "counterpartyIdNumber",
+        "personIdType",
+        "personIdNumber",
+        "businessLineCode",
+        "dataSource",
+        "cutoffDate",
+        "issueDate",
+        "expiryDate",
+        "issuingCityName",
+        "issuingCityCode",
+        "issuingStateName",
+        "issuingStateCode",
+        "issuingCountryName",
+        "issuingCountryCode",
+        "idStatus",
+        "tradeHolderIndicator"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdType",
+          "counterpartyIdNumber",
+          "businessLineCode",
+          "personIdType",
+          "personIdNumber",
+          "source"
+        ]
+      }
+    },
+    {
+      "name": "personalInformation",
+      "description": "personal Information details of an individual",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "counterpartyIdType",
+        "counterpartyIdNumber",
+        "personIdType",
+        "personIdNumber",
+        "businessLineCode",
+        "dataSource",
+        "cutoffDate",
+        "gender",
+        "nationalities",
+        "birthDate",
+        "maritalStatus",
+        "maritalStatusLastUpdated",
+        "educationLevel",
+        "educationLevelLastUpdated",
+        "numberOfDependants",
+        "numberOfDependantsLastUpdated",
+        "employerIdNumber",
+        "employerName",
+        "employerNameLastUpdated",
+        "contractType",
+        "contractStartDate",
+        "contractTypeLastUpdated",
+        "activityType",
+        "mainIsicCode",
+        "secondaryIsicCode1",
+        "secondaryIsicCode2",
+        "secondaryIsicCode3",
+        "secondaryIsicCode4",
+        "liabilities",
+        "assets",
+        "income",
+        "incomeLastUpdated",
+        "balanceLastUpdated",
+        "internationalOperationsIndicator",
+        "internationalOperationsLastUpdated"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdType",
+          "counterpartyIdNumber",
+          "businessLineCode"
+        ]
+      },
+      "where": "return field.isRegistraduria == true || field.isMigrationColombia == true || field.isMigrated == true || field.isCustomersMaster == true || field.isCOC == true || field.isSuperIntendencia == true"
+    },
+    {
+      "name": "contactInformations",
+      "description": "location details of an individual",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "contactType",
+        "contactAsReported",
+        "countryCode",
+        "stateCode",
+        "addressCityName",
+        "addressCityCode",
+        "contactFirstEventDate",
+        "contactEventLastUpdated",
+        "webSite"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdType",
+          "counterpartyIdNumber",
+          "businessLineCode"
+        ]
+      }
+    },
+    {
+      "name": "location",
+      "description": "location details of an individual",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "counterpartyIdType",
+        "counterpartyIdNumber",
+        "personIdType",
+        "personIdNumber",
+        "businessLineCode",
+        "dataSource",
+        "accountType",
+        "accountNumber",
+        "cutoffDate",
+        "stratum"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdType",
+          "counterpartyIdNumber",
+          "businessLineCode"
+        ]
+      },
+      "contains": [
+        {
+          "name": "contactInformations",
+          "section": "contactInformations"
+        }
+      ]
+    },
+    {
+      "name": "dataSources",
+      "description": "All sources per counter party",
+      "type": "DISTINCT",
+      "transient": true,
+      "select": [
+        "dataSource"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdNumber"
+        ]
+      },
+      "return": "VALUE",
+      "where": "return ( field.isCredit == true || field.isCheckingAndSaving == true ) && field.counterpartyIdNumber != null"
+    },
+    {
+      "name": "businessLines",
+      "description": "All businessLines",
+      "type": "DISTINCT",
+      "transient": true,
+      "select": [
+        "businessLineName",
+        "businessLineStatus",
+        "businessLineCode",
+        "economicSector"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdNumber"
+        ]
+      },
+      "where": "return (field.isCredit == true || field.isCheckingAndSaving == true || field.isCustomersMaster == true) && field.businessLineCode!=\"\" && field.counterpartyIdNumber != null"
+    },
+    {
+      "name": "counterparties",
+      "description": "All counterparties",
+      "type": "DISTINCT",
+      "select": [
+        "counterpartyIdType",
+        "counterpartyIdNumber",
+        "businessName"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdNumber"
+        ]
+      },
+      "where": "return (field.isCredit == true || field.isCheckingAndSaving == true || field.isCustomersMaster == true) && field.businessLineCode!=\"\" && field.counterpartyIdNumber != null",
+      "contains": [
+        {
+          "name": "businessLines",
+          "section": "businessLines"
+        },
+        {
+          "name": "dataSources",
+          "section": "dataSources"
+        }
+      ]
+    },
+    {
+      "name": "bestNameForPriority",
+      "description": "best person Name",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "fullName",
+        "firstName",
+        "secondName",
+        "suffix",
+        "firstLastName",
+        "secondLastName",
+        "source"
+      ],
+      "grouping": {
+        "groupBy": [
+          "source"
+        ]
+      },
+      "transient": true
+    },
+    {
+      "name": "bestIdentifications",
+      "description": "best match for identity information",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "personIdType",
+        "personIdNumber",
+        "issueDate",
+        "expiryDate",
+        "issuingCityName",
+        "issuingCityCode",
+        "issuingStateName",
+        "issuingStateCode",
+        "issuingCountryName",
+        "issuingCountryCode",
+        "idStatus",
+        "officialSourceValidationIndicator"
+      ],
+      "grouping": {
+        "groupBy": [
+          "personIdType",
+          "personIdNumber"
+        ]
+      }
+    },
+    {
+      "name": "bestPersonalInformation",
+      "description": "best match for personal information",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "citizenTaxRegistrationIndicator",
+        "gender",
+        "nationality",
+        "birthDate",
+        "age",
+        "maritalStatus"
+      ]
+    },
+    {
+      "name": "frequentBehaviour",
+      "description": "Behavior Vector",
+      "numberOfPeriods": 51,
+      "type": "ALL",
+      "select": [
+        "behaviourDate",
+        "minimumLegalWageValue",
+        "rating",
+        "accountStatus",
+        "accountStatusDate",
+        "cardStatus",
+        "cardStatusDate",
+        "event",
+        "bureauEvent",
+        "delinquencyMaturation",
+        "debtBalance",
+        "availableBalance",
+        "valueMonthlyPayment",
+        "valueBalanceOverdue",
+        "paidInstallments",
+        "installmentsOverdue",
+        "paymentDate",
+        "paymentDeadline",
+        "initialValue",
+        "eventReportDate",
+        "totalCashDebits",
+        "totalCashCredits",
+        "totalDebitTransfer",
+        "totalCreditTransfer",
+        "numberOfChecksReturned",
+        "numberOfChecksPaid",
+        "totalValueOfChecksReturned",
+        "totalValueOfChecksPaid"
+      ],
+      "where": "return field.isCredit == true || field.isCheckingAndSaving == true || field.isExpress == true",
+      "transient": true
+    },
+    {
+      "name": "bestAccounts",
+      "description": "Accounts for an individual",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "counterpartyIdType",
+        "counterpartyIdNumber",
+        "personIdType",
+        "personIdNumber",
+        "businessLineCode",
+        "dataSource",
+        "accountType",
+        "accountNumber",
+        "cutoffDate",
+        "firstEventDate",
+        "blockSeverity",
+        "expiredAccountDate",
+        "qualityProcessBlockDate",
+        "qualityProcessBlockReason",
+        "historicalBlockDate",
+        "deletionByCounterpartyDate",
+        "deletionByCounterpartyReason",
+        "prescriptionAccountDate",
+        "outdatedAccountDate",
+        "expiredDisputedDate",
+        "numberOfSeizedAccounts",
+        "seizedAccountsLastUpdated",
+        "modificationStatus",
+        "disputeIndicator",
+        "eventLockIndicator",
+        "accountClosedDate",
+        "accountInactiveDate",
+        "doubtfulCollectionDate",
+        "writeOffDate",
+        "accountCategory",
+        "typeOfCredit",
+        "cardNumber",
+        "binNumber",
+        "currencyType",
+        "cardClass",
+        "franchise",
+        "privateBrandName",
+        "guaranteeType",
+        "guaranteeDetail",
+        "typeOfDebtor",
+        "accountOpeningDate",
+        "expiryDate",
+        "originStatusOfAccount",
+        "dateOfOriginStatus",
+        "termClause",
+        "termClauseDate",
+        "mortgageSubsidy",
+        "mortgageSubsidyDate",
+        "filingOffice",
+        "filingCityName",
+        "filingCityCode",
+        "debtorNotFoundDate",
+        "accountAtCollectionDate",
+        "lineDisconnectedDate",
+        "prelegalCollectionDate",
+        "deceasedDate",
+        "permanentDisabilityDate",
+        "legalCollectionDate",
+        "probabilityOfDefault",
+        "totalNumberOfInstallments",
+        "contractTerm",
+        "paymentType",
+        "periodicityOfPayments",
+        "overdraftIndicator",
+        "authorizedOverdraftCreditLimit",
+        "authorizedOverdraftDays",
+        "overdraftReportDate",
+        "behaviourVector",
+        "businessBehaviourVector",
+        "behaviourVectorNormalized",
+        "businessBehaviourVectorNormalized"
+      ],
+      "grouping": {
+        "groupBy": [
+          "subscriber",
+          "subscriberRelation"
+        ]
+      },
+      "where": "return field.isCredit == true || field.isCheckingAndSaving == true || field.isExpress == true",
+      "contains": [
+        {
+          "name": "frequentBehaviour",
+          "description": "The frequent behavior vector",
+          "section": "frequentBehaviour"
+        }
+      ]
+    },
+    {
+      "name": "legal",
+      "description": "Only applies to natural persons",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "counterpartyIdType",
+        "counterpartyIdNumber",
+        "personIdType",
+        "personIdNumber",
+        "businessLineCode",
+        "dataSource",
+        "accountType",
+        "accountNumber",
+        "cutoffDate",
+        "forceMajeureIndicator",
+        "forceMajeureCodeLastUpdated",
+        "stateOfAccountHolder"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdType",
+          "counterpartyIdNumber",
+          "businessLineCode"
+        ]
+      }
+    }
+  ]
+}

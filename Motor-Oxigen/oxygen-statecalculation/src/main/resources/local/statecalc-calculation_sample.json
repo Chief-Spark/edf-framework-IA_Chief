@@ -1,0 +1,68 @@
+{
+  "domain": "credit",
+  "calculations": [
+    {
+      "name": "AggregationOnBalanceGroupBySubSR",
+      "description": "Check Information",
+      "type": "AGGREGATES",
+      "select": [
+        "subscriber",
+        "subscriberRelation"
+      ],
+
+      "groupBy": ["subscriber", "subscriberRelation"],
+
+      "aggregates": [
+        {
+          "function": "SUM",
+          "field": "balance",
+          "name": "sum"
+        },
+        {
+          "function": "AVERAGE",
+          "field": "balance",
+          "name": "avg"
+        },
+        {
+          "function": "MIN",
+          "field": "balance",
+          "name": "min"
+        }
+      ]
+    },
+    {
+      "name": "names",
+      "description": "Names of an individual",
+      "type": "MOST_RECENT_VALUE",
+      "select": [
+        "counterpartyIdType",
+        "counterpartyIdNumber",
+        "personIdType",
+        "personIdNumber",
+        "businessLineCode",
+        "dataSource",
+        "accountType",
+        "accountNumber",
+        "cutoffDate",
+        "asReported",
+        "firstName",
+        "secondName",
+        "suffix",
+        "firstLastName",
+        "secondLastName",
+        "aka"
+      ],
+      "grouping": {
+        "groupBy": [
+          "counterpartyIdType",
+          "counterpartyIdNumber",
+          "businessLineCode",
+          "accountNumber",
+          "personIdType",
+          "personIdNumber",
+          "source"
+        ]
+      }
+    }
+  ]
+}

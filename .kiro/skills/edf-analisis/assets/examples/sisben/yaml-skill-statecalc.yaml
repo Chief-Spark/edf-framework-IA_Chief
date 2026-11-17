@@ -1,0 +1,315 @@
+# ─────────────────────────────────────────────────────────────
+# Intermediario Lógica → Configuración — etapa State Calculation (SISBEN, piloto)
+# Instancia de Diseño/plantilla-cabecera-yaml-skill.yaml
+# ─────────────────────────────────────────────────────────────
+
+documento:
+  tipo: "intermediario-skill"
+  etapa_pipeline: "State Calculation"
+  version: "1.0.0"
+  fecha: "2026-10-01"
+  estado: "PROPUESTO"                                # pasa a APROBADO con firma humana registrada en 09-estado-y-trazabilidad.md
+  aprobador: "PENDIENTE-MANUAL"                      # [A:OQ-06] — sin aprobador designado para el patrón
+
+procedencia:
+  fuente_analisis:
+    ruta: "Diseño/logica-statecalc.md"
+    version_fuente: "1.0.0"
+    fecha_aprobacion_fuente: "PENDIENTE-REGISTRO"     # bitácora 09, no una aprobación verbal registrada solo en chat
+  fuente_negocio_complementaria:
+    ruta: "Docs-General/SISBEN_V4_Synthesis_StateCalculation_Levantamiento.md"
+    naturaleza: "nivel 3 de evidencia (04-reglas-analisis.md §7) — documento de levantamiento funcional, no HU formal ni código"
+    nota: >
+      Describe la intención de negocio (passthrough directo, 25 campos, grain personIdType+personIdNumber)
+      en un formato (statecalc-aggregate-sisben.json, con "strategy" por campo) que NO coincide con el
+      esquema real del motor (CalculationSection: type de sección completa, no estrategia por campo).
+      Este YAML traduce la intención al esquema real por decisión explícita del usuario (ver decision_formato).
+  repositorio_base:
+    nombre: "oxygen-statecalculation"
+    naturaleza: "Z2 — solo lectura"
+  skill_destino: "Skill-ConfigGen-StateCalculation"
+    # Reservado a generación de artefactos de configuración. No confundir con un eventual
+    # "Skill-StateCalculation" de análisis (04-reglas-analisis.md §2) si llegara a definirse.
+
+decision_formato:
+  descripcion: >
+    El documento de negocio (Docs-General/.../Levantamiento.md §8.3) describe el requerimiento
+    SISBEN para State Calculation como "passthrough directo, 25 campos, sin lógica derivada,
+    estrategia MOST_RECENT_VALUE por campo". El Skill NO genera el formato literal de ese documento
+    (statecalc-aggregate-sisben.json con array fields[{fieldName,strategy}]) porque ese formato no
+    corresponde al DTO real que el motor Oxygen deserializa (CalculationSection.java, confirmado por
+    lectura directa en logica-statecalc.md §5.2-5.3). En su lugar, se traduce la misma intención de
+    negocio a UNA sección CalculationSection de type MOST_RECENT_VALUE, con los 25 campos en "select"
+    y groupBy=[personIdType, personIdNumber] (equivalente al "grain" del documento de negocio).
+  tipo: "decisión del usuario registrada en sesión"
+  fecha: "2026-10-01"
+  estado: "[C]"
+  fuente: "logica-statecalc.md §5.2-5.3; Docs-General/SISBEN_V4_Synthesis_StateCalculation_Levantamiento.md §8.3"
+
+alcance:
+  genera:
+    - "Bloque de fields[] para statecalc-foundation-local.json (los 25 campos SISBEN, tipo DERIVED/CALCULATED según corresponda)"
+    - "Una sección CalculationSection (type=MOST_RECENT_VALUE) para statecalc-calculation-local.json, con los 25 campos en select y groupBy=[personIdType, personIdNumber]"
+  no_genera:
+    - "statecalc-aggregate-sisben.json en el formato literal del documento de negocio (decision_formato) — ese formato no es consumido por el motor real"
+    - "Lógica derivada en ColombiaFoundationStateEnricher.scala / FoundationStateEnrichmentProcessor custom — el documento de negocio confirma passthrough directo, sin enriquecimiento adicional en V1 (Levantamiento.md §8.3)"
+    - "Prioridad de SISBEN en secciones compartidas del XPM (bestName, bestIdentifications, location) — eso es configuración de ColombiaCustomOnSectionProcessorAlpha.scala, fuera del alcance de este YAML (etapa de frontera con Hydration/XPM, no de State Calculation per se)"
+    - "Resolución del punto abierto bestName (Levantamiento.md §8.6) — pendiente de decisión de producto, no se decide aquí"
+    - "Mapeo de los campos SISBEN que no tienen correspondencia confirmada con un campo curado real (ver pendientes_del_mapeo)"
+  precondiciones_bloqueantes:
+    - id: "A-sin-clasificar-groupBy-vs-grouping"
+      descripcion: "logica-statecalc.md §5.4: discrepancia real entre groupBy plano (DTO real) y grouping.groupBy anidado (mayoría del fixture de ejemplo), sin verificación empírica posible"
+      efecto: "este YAML usa SIEMPRE groupBy plano en las secciones que genera, nunca grouping.groupBy, siguiendo la regla dura ya fijada en logica-statecalc.md §5.4"
+    - id: "A-sin-clasificar-25-campos-no-confirmados"
+      descripcion: "no todos los 25 campos de SISBEN tienen un nombre de campo curado real confirmado (solo los 6 de identidad de Pinning); el resto proviene de nombres XPM en español del documento de negocio, no necesariamente el nombre que Foundation debería declarar"
+      efecto: "el mapeo_campos de este YAML distingue explícitamente los campos con nombre curado confirmado de los que solo tienen nombre XPM de destino propuesto"
+
+marcado_heredado:
+  nota: "Todo valor con marcador distinto de [C] en logica-statecalc.md se transcribe aquí con su marcador original. Ningún [A:*] se resuelve en este YAML (04-reglas-analisis.md §4.4, P8)."
+
+trazabilidad:
+  citas_formato: "archivo §sección | ruta/archivo::símbolo"
+  ultima_verificacion_referencias: "2026-10-01"
+
+# ═════════════════════════════════════════════════════════════
+# CORE — Mapeo de campos: SISBEN → Foundation (fields[]) → Calculation (sección MOST_RECENT_VALUE)
+# ═════════════════════════════════════════════════════════════
+
+mapeo_campos:
+
+  nota_general: >
+    Dos niveles de confianza distintos coexisten en esta tabla. Nivel A: campos con nombre de
+    campo curado SISBEN real confirmado (los 6 de identidad, ya mapeados en yaml-skill-pinning.yaml).
+    Nivel B: campos que solo tienen un nombre XPM de destino propuesto por el documento de negocio
+    (Levantamiento.md §8.3), sin confirmación de cuál es el campo curado real de origen. No se
+    inventa esa correspondencia — se declara el hueco explícitamente por campo.
+
+  campos:
+
+    - campo_xpm_destino: "tipoDocumento"
+      campo_curado_sisben_origen: "standardizedIdType"
+      nombre_en_foundation: "personIdType"
+      tipo_foundation: "CALCULATED"
+      valor_calculated: "return field.standardizedIdType"
+      dataType: "INTEGER"
+      nivel_confianza: "A"
+      estado: "[C]"
+      fuente: "logica-statecalc.md §5.1 (ejemplo real personIdType ya existe en el fixture con esta exacta construcción); yaml-skill-pinning.yaml mapeo_identidad (standardizedIdType)"
+
+    - campo_xpm_destino: "numeroDocumento"
+      campo_curado_sisben_origen: "standardizedIdNumber"
+      nombre_en_foundation: "personIdNumber"
+      tipo_foundation: "CALCULATED"
+      valor_calculated: "return field.standardizedIdNumber"
+      dataType: "STRING"
+      nivel_confianza: "A"
+      estado: "[C]"
+      nota: "nombre 'personIdNumber' consistente con el que SÍ aparece en el fixture real (sección officialSourceValidationIndicator usa groupBy=[personIdType, personIdNumber]), aunque el campo Foundation en sí no estaba en el ejemplo transcrito — construcción por analogía directa con personIdType, no una cita textual de este campo específico"
+      fuente: "logica-statecalc.md §5.1, §5.2 (groupBy de officialSourceValidationIndicator)"
+
+    - campo_xpm_destino: "primerNombre"
+      campo_curado_sisben_origen: "PRI_NOMBRE"
+      nombre_en_foundation: "[PM] — sin nombre de campo Foundation confirmado para SISBEN"
+      tipo_foundation: "DERIVED (propuesto, no confirmado)"
+      nivel_confianza: "B"
+      estado: "[PM]"
+      fuente: "Docs-General/.../Levantamiento.md §8.3 (nombre XPM); yaml-skill-pinning.yaml (PRI_NOMBRE como campo curado)"
+
+    - campo_xpm_destino: "segundoNombre"
+      campo_curado_sisben_origen: "SEG_NOMBRE"
+      nombre_en_foundation: "[PM]"
+      tipo_foundation: "DERIVED (propuesto, no confirmado)"
+      nivel_confianza: "B"
+      estado: "[PM]"
+      fuente: "Docs-General/.../Levantamiento.md §8.3; yaml-skill-pinning.yaml"
+
+    - campo_xpm_destino: "primerApellido"
+      campo_curado_sisben_origen: "PRI_APELLIDO"
+      nombre_en_foundation: "[PM]"
+      tipo_foundation: "DERIVED (propuesto, no confirmado)"
+      nivel_confianza: "B"
+      estado: "[PM]"
+      fuente: "Docs-General/.../Levantamiento.md §8.3; yaml-skill-pinning.yaml"
+
+    - campo_xpm_destino: "segundoApellido"
+      campo_curado_sisben_origen: "SEG_APELLIDO"
+      nombre_en_foundation: "[PM]"
+      tipo_foundation: "DERIVED (propuesto, no confirmado)"
+      nivel_confianza: "B"
+      estado: "[PM]"
+      fuente: "Docs-General/.../Levantamiento.md §8.3; yaml-skill-pinning.yaml"
+
+    - campo_xpm_destino: "fechaNacimiento"
+      campo_curado_sisben_origen: "[A:sin-clasificar] — no identificado en ningún documento de esta iniciativa con nombre de campo curado SISBEN exacto"
+      nombre_en_foundation: "[PM]"
+      tipo_foundation: "DERIVED (propuesto) + conversión EPOCH (P5, 01-restricciones-principios.md)"
+      nivel_confianza: "B"
+      estado: "[A:sin-clasificar]"
+      fuente: "Docs-General/.../Levantamiento.md §8.3 (solo nombre XPM)"
+
+    - campo_xpm_destino: "genero"
+      campo_curado_sisben_origen: "[A:sin-clasificar]"
+      nombre_en_foundation: "[PM]"
+      tipo_foundation: "DERIVED (propuesto)"
+      nivel_confianza: "B"
+      estado: "[A:sin-clasificar]"
+      fuente: "Docs-General/.../Levantamiento.md §8.3"
+
+    - campo_xpm_destino: "nivelSisben"
+      campo_curado_sisben_origen: "[A:sin-clasificar]"
+      nombre_en_foundation: "[PM]"
+      tipo_foundation: "DERIVED (propuesto)"
+      nivel_confianza: "B"
+      estado: "[A:sin-clasificar]"
+      nota: "Levantamiento.md §7.4.1 recomienda tratarlo como catálogo cerrado (A1-D2) para una futura consistencia específica, no estándar — fuera de alcance de este YAML, que solo cubre State Calculation"
+      fuente: "Docs-General/.../Levantamiento.md §8.3, §7.4.1"
+
+    - campo_xpm_destino: "estrato"
+      campo_curado_sisben_origen: "[A:sin-clasificar]"
+      nombre_en_foundation: "[PM]"
+      tipo_foundation: "DERIVED (propuesto)"
+      nivel_confianza: "B"
+      estado: "[A:sin-clasificar]"
+      fuente: "Docs-General/.../Levantamiento.md §8.3"
+
+    - campo_xpm_destino: "codMunicipio"
+      campo_curado_sisben_origen: "[A:sin-clasificar] — posible COD_MPIO del layout de 22 campos, no confirmado"
+      nombre_en_foundation: "[PM]"
+      tipo_foundation: "DERIVED (propuesto)"
+      nivel_confianza: "B"
+      estado: "[A:sin-clasificar]"
+      nota: "Docs-General/contratos_frontera.md §2 propone ID_GRUPO→grupoSisben, ID_NIVEL→nivelSisben, COD_MPIO→codMunicipioSisben, COD_DPTO→codDepartamentoSisben — nombres de destino distintos a los del Levantamiento.md (codMunicipio vs codMunicipioSisben). Dos fuentes de negocio con nombres de destino XPM ligeramente distintos para el mismo campo, sin resolver cuál es el correcto"
+      fuente: "Docs-General/contratos_frontera.md §2; Docs-General/.../Levantamiento.md §8.3"
+
+    - campo_xpm_destino: "..."
+      nota_resto_de_campos: >
+        Los campos restantes del listado de 25 (nombreMunicipio, codDepartamento, nombreDepartamento,
+        direccion, telefono, estatus, fechaEncuesta, fechaVigencia, puntajeSisben, grupoEtnico,
+        discapacidad, jefHogar, numPersonasHogar, fechaCargue — Levantamiento.md §8.3) tienen el
+        mismo nivel de confianza B o inferior: solo nombre XPM de destino propuesto, sin campo
+        curado SISBEN de origen confirmado en ninguna fuente de esta iniciativa. No se listan uno
+        por uno en esta tabla para no simular una completitud de mapeo que no existe — se declara
+        aquí como hueco colectivo, no se omiten silenciosamente (04-reglas-analisis.md §4.4, P8).
+      estado: "[A:sin-clasificar]"
+      fuente: "Docs-General/.../Levantamiento.md §8.3"
+
+  pendientes_del_mapeo:
+    - id: 1
+      descripcion: "Confirmar el nombre de campo curado SISBEN real de origen para los 23 campos restantes de los 25 totales (solo tipoDocumento/numeroDocumento tienen cadena de mapeo completa y verificada)"
+      estado: "[A:sin-clasificar]"
+    - id: 2
+      descripcion: "Resolver la discrepancia de nombre de destino XPM entre Docs-General/contratos_frontera.md (codMunicipioSisben) y Docs-General/Levantamiento.md (codMunicipio) para los campos de ubicación"
+      estado: "[A:sin-clasificar]"
+    - id: 3
+      descripcion: "Confirmar si personIdNumber (construido por analogía con personIdType) es el nombre real que el motor espera, o si existe un nombre distinto en una convención no vista en el fixture"
+      estado: "[A:sin-clasificar]"
+
+# ═════════════════════════════════════════════════════════════
+# Instrucción de generación — Foundation
+# ═════════════════════════════════════════════════════════════
+
+instruccion_generacion_foundation:
+
+  archivo: "statecalc-foundation-local.json (o equivalente de ambiente)"
+  seccion: "fields[]"
+
+  contenido_a_escribir:
+    regla: >
+      Solo se generan entradas de fields[] para campos con nivel_confianza=A (cadena de mapeo
+      completa: campo curado SISBEN -> nombre Foundation -> tipo). Los campos con nivel_confianza=B
+      o [A:sin-clasificar] NO se generan — no se inventa el nombre de campo Foundation ni el
+      tipo DERIVED/CALCULATED sin confirmar el origen real.
+    campos_a_generar:
+      - name: "personIdType"
+        type: "CALCULATED"
+        value: "return field.standardizedIdType"
+        dataType: "INTEGER"
+      - name: "personIdNumber"
+        type: "CALCULATED"
+        value: "return field.standardizedIdNumber"
+        dataType: "STRING"
+    campos_excluidos_hasta_resolver:
+      - "los 23 campos restantes de mapeo_campos.campos y mapeo_campos.nota_resto_de_campos — ver pendientes_del_mapeo id 1"
+    advertencia: >
+      Esta instrucción genera SOLO 2 de los 25 campos que el negocio espera para la sección
+      sisben del XPM (Levantamiento.md §8.3). No es un error de alcance: es la consecuencia
+      directa de que solo 2 campos tienen cadena de mapeo verificada de principio a fin.
+      El Skill no debe completar los 23 restantes con nombres inferidos del nombre XPM en
+      español (ej. asumir que "primerNombre" en Foundation se llamaría literalmente "primerNombre"
+      o "firstName") sin que una fuente lo confirme.
+    estado: "[C] para los 2 campos generados; el resto permanece [A:sin-clasificar]/[PM] según mapeo_campos"
+
+# ═════════════════════════════════════════════════════════════
+# Instrucción de generación — Calculation
+# ═════════════════════════════════════════════════════════════
+
+instruccion_generacion_calculation:
+
+  archivo: "statecalc-calculation-local.json (o equivalente de ambiente)"
+  seccion: "calculations[]"
+
+  contenido_a_escribir:
+    regla: >
+      UNA sección CalculationSection, type=MOST_RECENT_VALUE, con groupBy PLANO (nunca
+      grouping.groupBy anidado — ver alcance.precondiciones_bloqueantes id
+      A-sin-clasificar-groupBy-vs-grouping), select limitado a los campos con cadena de
+      mapeo verificada (nivel_confianza=A, igual criterio que Foundation).
+    valor_resultante:
+      name: "sisbenMostRecentValue"
+      description: "Passthrough directo de los campos SISBEN confirmados, valor más reciente por persona (Levantamiento.md §8.3)"
+      type: "MOST_RECENT_VALUE"
+      select:
+        - "personIdType"
+        - "personIdNumber"
+      groupBy:
+        - "personIdType"
+        - "personIdNumber"
+      enabled: true
+      transient: false
+    campos_select_pendientes_de_agregar:
+      - "los 23 campos restantes, cuando se confirme su cadena de mapeo (pendientes_del_mapeo id 1)"
+    advertencia_nombre_de_sección: >
+      "sisbenMostRecentValue" es un nombre propuesto por este YAML, no una cita de ninguna fuente —
+      se declara como tal. El equipo puede renombrarlo; no es un valor [C] en el sentido de
+      "confirmado por fuente", es una convención de nomenclatura razonable para la sección.
+    estado: "[C] para la estructura y los 2 campos incluidos; [P] para el nombre de la sección en sí"
+
+  nota_sobre_passthrough_directo:
+    descripcion: >
+      El documento de negocio (Levantamiento.md §8.3) confirma "passthrough directo... no se
+      requiere lógica derivada en ColombiaFoundationStateEnricher.scala para V1". Esto es
+      consistente con no generar ningún FoundationStateEnrichmentProcessor custom para SISBEN
+      en este YAML (ver alcance.no_genera) — el passthrough se logra con type=MOST_RECENT_VALUE
+      sin processor adicional, no con un enricher personalizado.
+    estado: "[C]"
+    fuente: "Docs-General/.../Levantamiento.md §8.3; logica-statecalc.md §9.1 (DefaultFoundationStateEnrichmentProcessor es no-op)"
+
+# ═════════════════════════════════════════════════════════════
+# CIERRE — Fuera de alcance explícito de este YAML (frontera con Hydration/XPM)
+# ═════════════════════════════════════════════════════════════
+
+fuera_de_alcance_frontera_xpm:
+  descripcion: >
+    El documento de negocio describe decisiones que pertenecen a la capa de prioridad entre
+    fuentes del XPM (ColombiaCustomOnSectionProcessorAlpha.scala) y a la habilitación de la
+    sección #sisben en producción — ambas fuera del perímetro de "generar configuración para
+    ejecutar la etapa State Calculation" que es el propósito de este YAML.
+  temas_excluidos:
+    - tema: "Prioridad SISBEN por debajo de RNEC/Migración Colombia/DAS en bestIdentifications y bestPersonalInformation"
+      fuente: "Levantamiento.md §8.4"
+      estado: "[C] como decisión de negocio citada; fuera de alcance de este YAML"
+    - tema: "SISBEN como fuente prioritaria en location"
+      fuente: "Levantamiento.md §8.4"
+      estado: "[C] como decisión de negocio citada; fuera de alcance de este YAML"
+    - tema: "bestName — SISBEN incluido o excluido"
+      fuente: "Levantamiento.md §8.6"
+      estado: "[A:sin-clasificar] — explícitamente abierto en la fuente, pendiente de decisión de producto"
+    - tema: "Monitor de falla silenciosa (Caso 7, count(pins) vs count(SEs))"
+      fuente: "Levantamiento.md §7.6, §7.6.1"
+      estado: "[PM] — pendiente de desarrollo de infraestructura (Lambda/CloudWatch), no es configuración de la etapa"
+  nota: "Se listan aquí para que el revisor humano sepa que existen y no asuma que este YAML los resolvió."
+  nota_sin_template_scala: >
+    Por este mismo motivo, no se generó ningún template Scala para esta etapa (ni de
+    CustomOnSectionProcessor del motor genérico, sin caso de uso confirmado dado el passthrough
+    de SISBEN, ni de ColombiaCustomOnSectionProcessorAlpha, fuera de alcance y Z2 no verificable).
+    Explicación completa en Diseño/templates-scala/statecalc/README.md.

@@ -1,0 +1,7 @@
+{
+  "domain": "FIXTURE-SINTETICO-cuentas",
+  "fields": [
+    { "name": "accountId" },
+    { "name": "balance", "dataType": "DOUBLE" }
+  ]
+}

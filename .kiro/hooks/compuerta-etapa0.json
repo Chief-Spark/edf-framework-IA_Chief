@@ -1,0 +1,26 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "EDF: compuerta etapa 0 al pedir iniciar o continuar una ingesta",
+      "description": "La HU y la spec de Confluence son obligatorias. Si falta alguna, el analisis no arranca: se dice cual falta y se detiene. Al enviar un prompt que pide iniciar o continuar una ingesta, verifica expedientes/<id>/fuentes/ (archivo HU* y archivo spec*, o rutas en rutas-fuentes.json). Si falta alguno, bloquea el prompt y dice cual. Bloquea solo en el IDE. En macOS/Linux usa python3.",
+      "trigger": "PromptSubmit",
+      "action": {
+        "type": "command",
+        "command": "python tools/verificar-insumos-etapa0.py --evento prompt"
+      },
+      "timeout": 30
+    },
+    {
+      "name": "EDF: compuerta etapa 0 antes de escribir en un expediente",
+      "description": "Respaldo duro de la compuerta de la etapa 0. Antes de que el agente escriba en expedientes/<id>/ (salvo expedientes/<id>/fuentes/), exige la HU y la spec de Confluence. Si falta alguna, bloquea la herramienta y dice cual. No cubre escrituras hechas por comandos de shell. En macOS/Linux usa python3.",
+      "trigger": "PreToolUse",
+      "matcher": "fs_write|str_replace|fs_append",
+      "action": {
+        "type": "command",
+        "command": "python tools/verificar-insumos-etapa0.py --evento pretool"
+      },
+      "timeout": 30
+    }
+  ]
+}

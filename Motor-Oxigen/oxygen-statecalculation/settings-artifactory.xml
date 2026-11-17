@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd" xmlns="http://maven.apache.org/SETTINGS/1.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <servers>
+        <server>
+            <username>devsecops-sa-jenkins</username>
+            <password>AP7u8GCjT5tsDqGdFsBT79F4hF</password>
+            <id>central</id>
+        </server>
+        <server>
+            <username>devsecops-sa-jenkins</username>
+            <password>AP7u8GCjT5tsDqGdFsBT79F4hF</password>
+            <id>snapshots</id>
+        </server>
+    </servers>
+    <profiles>
+        <profile>
+            <repositories>
+                <repository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>central</id>
+                    <name>Experian public repositories</name>
+                    <url>https://artifacts.experian.local/artifactory/public-repositories</url>
+                </repository>
+                <repository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>thirdparty</id>
+                    <name>Experian thirdparty</name>
+                    <url>https://artifacts.experian.local/artifactory/thirdparty</url>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>central</id>
+                    <name>Experian public repositories</name>
+                    <url>https://artifacts.experian.local/artifactory/public-repositories</url>
+                </pluginRepository>
+            </pluginRepositories>
+            <id>artifactory</id>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>artifactory</activeProfile>
+    </activeProfiles>
+    <proxies>
+        <proxy>
+            <id>mcafee-proxy</id>
+            <active>true</active>
+            <protocol>http</protocol>
+            <host>usaeast-proxy.us.experian.eeca</host>
+            <port>9595</port>
+            <nonProxyHosts>.mck.experian.com|.aln.experian.com|.experian.eeca|.experian.local</nonProxyHosts>
+        </proxy>
+    </proxies>
+</settings>

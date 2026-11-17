@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Bloque HOCON parametrizable — oxygen.stage.pinning para {{INGESTA_NOMBRE}}
+# ─────────────────────────────────────────────────────────────────────────
+#
+# Esta plantilla NO reemplaza pinning-application.conf completo. Es el bloque
+# de claves con efecto directo verificado en el código real de oxygen-pinning
+# que dependen del mapeo de identidad de esta ingesta. Las claves de
+# infraestructura de ejecución (env.conf, spark.conf) están fuera de alcance
+# de este skill.
+#
+# Cada clave trae su propio comentario con la regla y el estado de
+# confirmación — no borres estos comentarios al generar el archivo final,
+# son la trazabilidad que el revisor humano necesita.
+
+oxygen.stage.pinning {
+
+  paths {
+    # Lista de un solo elemento — el motor ignora silenciosamente cualquier
+    # elemento adicional. [C] si identifying-attributes.json ya fue generado.
+    identifyingAttributesFile = ["identifying-attributes.json"]
+  }
+
+  # TODO(decisión de negocio pendiente, ver references/decisiones-pendientes.md
+  # categoría 1): FQCN del IdentityMatcher a usar. Si no hay decisión de
+  # diseño sobre un matcher propio para {{INGESTA_NOMBRE}}, este valor es un
+  # ARRANQUE heredado del matcher de referencia, NO una decisión técnica
+  # cerrada — ajústalo según lo que el equipo decida.
+  identityMatcher = "{{IDENTITY_MATCHER_FQCN}}"
+
+  # Sin FQCN por defecto — solo completar si existe evidencia de que esta
+  # ingesta requiere partir clusters que el grafo unió pero que reglas de
+  # dominio dictan mantener separados.
+  clusterSplitter = {{CLUSTER_SPLITTER_FQCN_O_NULL}}
+
+  # true = pinning estático (reusa pines de la generación de referencia).
+  # false = pinning dinámico (ingesta nueva, todos los pines se regeneran).
+  # [C] si existe confirmación explícita de que esta es la primera carga.
+  reusePin = {{REUSE_PIN}}
+
+  # Umbral de tamaño de bloque near-neighbor. Bloques >= este valor se
+  # DESCARTAN SILENCIOSAMENTE del matching pairwise (fail-silent, ver
+  # Diseño/logica-pinning.md §9 para el detalle verificado). Evaluar contra
+  # el volumen real esperado de esta ingesta antes de aceptar el default.
+  nearNeighborBlockSize = {{NEAR_NEIGHBOR_BLOCK_SIZE}}  # default de plataforma: 700
+
+  # Rango [0, N) reservado para pines VLE/celebrity.
+  pinningVleRange = {{PINNING_VLE_RANGE}}  # default de plataforma: 2000
+
+  # groupSSR tiene un conflicto conocido entre el default de plataforma (true)
+  # y el valor del .conf de ejemplo del repo (false) — ninguno de los dos es
+  # evidencia de negocio. NO fijar este valor sin una decisión explícita;
+  # ver references/decisiones-pendientes.md antes de completar.
+  groupSSR = {{GROUP_SSR_O_PENDIENTE}}
+}
+
+# Vive conceptualmente en Synthesis/Consistency, pero su clave HOCON real
+# está anidada bajo oxygen.stage.consistencyCheck en el .conf del repo.
+oxygen.stage.consistencyCheck {
+  # null salvo evidencia de que esta ingesta requiere migración de relaciones
+  # suscriptor-cuenta entre generaciones.
+  relationshipMigrationProcessorClassName = {{RELATIONSHIP_MIGRATION_PROCESSOR_FQCN_O_NULL}}
+}

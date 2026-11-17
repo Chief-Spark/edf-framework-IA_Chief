@@ -1,0 +1,116 @@
+{
+  "skill": "edf-curation-stage",
+  "version": "0.1.0",
+  "compilacion": "no_certificada",
+  "sintetico": true,
+  "archivos": [
+    {
+      "plantilla": "CUR-TPL-01",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/common/FieldMapping.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-02",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/common/Transformaciones.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-10",
+      "archivo": "src/test/scala/com/experian/edf/oxygen/curation/source/common/TransformacionesSpec.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-03",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/config/SISBENCurationSpec.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-04",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCuratedEvent.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-05",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENAcceptedRecord.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-08",
+      "archivo": "fragmentos/colombia-domain-dictionary-inner.sisben.json",
+      "fusionar": true
+    },
+    {
+      "plantilla": "CUR-TPL-12",
+      "archivo": "src/test/resources/sisben/accepted-events.json",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-06",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/processor/SISBENCurationProcessor.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-11",
+      "archivo": "src/test/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCurationProcessorSpec.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-07",
+      "archivo": "fragmentos/curation-common-application-inner.sisben.conf",
+      "fusionar": true
+    },
+    {
+      "plantilla": "CUR-TPL-09",
+      "archivo": "fragmentos/oxygen-lookup-inner.sisben.conf",
+      "fusionar": true
+    }
+  ],
+  "marcas_sintetico": [
+    "src/test/resources/sisben/lookups/LEEME.md"
+  ],
+  "otros_archivos": [
+    {
+      "ruta": "src/test/resources/sisben/lookups/SISBEN_HOME_ID_CLASIFICATION_NH.csv",
+      "sha256": "c69a895b944648eb78d62dca270cf45c1467f602dab45c80762572e8b24f0def"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookups/102_DANE_DIVIPOLA_STATES_CODES_NH.csv",
+      "sha256": "e96030cb54be6ed9227aa42c35fcb0847256ee1e40b7a3b3eb503e991dec3169"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookups/2_DANE_DIVIPOLA_CITIES_CODES_NH.csv",
+      "sha256": "78f10ea5621d7dca58e383f97d4bd3a2ac30222f8941f2fc4640c5c004f9b51a"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookups/201_SISBEN_ZONES_NH.csv",
+      "sha256": "f24c6368f655849730c2c48b0a6a3f5728b173022b30be6ab5e338c7ba5e7d78"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookups/202_SISBEN_PROCESS_ID_TYPE_HO.csv",
+      "sha256": "aef8ca64f5ad25af28e3c23e8069722afc0300d650e8d40cc0ea4ea2b170ad03"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookups/SISBEN_GROUP_SUBGROUP_NH.csv",
+      "sha256": "d4a2124d5abf9602385071a3085d11915904bb4ccefcd3186c8ca9c61c23db30"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookups/203_SISBEN_RECORD_STATUS_AND_MARK_NH.csv",
+      "sha256": "53c8cfc531db00aa11d6685c1b27c463daaafa24572c506525a4b30659d3191a"
+    },
+    {
+      "ruta": "expected/curated-events.json",
+      "sha256": "e4888794ca7adbc43a00649b85cb21c32a1bb8a71b1dc5b477baaa8a29e0c891"
+    },
+    {
+      "ruta": "expected/resumen.json",
+      "sha256": "f93b4bff7dc7b3f85444639c723f1fb6880241e638d8663fe88347b99ed32c61"
+    }
+  ],
+  "zona_horaria_fechas": {
+    "valor": "UTC",
+    "origen": "supuesto"
+  },
+  "advertencias": [
+    "ADVERTENCIA: zona_horaria_fechas (UTC) difiere de la zona de asOfDate de la etapa anterior (America/Bogota) (C-CUR-04)"
+  ]
+}

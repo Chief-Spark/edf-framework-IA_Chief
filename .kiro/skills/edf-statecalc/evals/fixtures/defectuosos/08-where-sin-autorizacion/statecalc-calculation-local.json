@@ -1,0 +1,12 @@
+{
+  "domain": "FIXTURE-SINTETICO-cuentas",
+  "calculations": [
+    {
+      "name": "saldosNegativos",
+      "type": "ALL",
+      "select": ["accountId", "balance"],
+      "groupBy": ["accountId"],
+      "where": "return field.balance < 0"
+    }
+  ]
+}

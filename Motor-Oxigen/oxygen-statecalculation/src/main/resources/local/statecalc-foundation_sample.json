@@ -1,0 +1,34 @@
+{
+  "domain": "creaditbureau",
+  "fields": [
+    {
+      "name": "subscriber",
+      "description": "Subscriber code",
+      "aliases": [
+        "subscriberCode",
+        "counterpartyCode"
+      ]
+    },
+    {
+      "name": "cutoffDateDouble",
+      "description": "The cutoff date Schema",
+      "dataType": "DOUBLE",
+      "type": "CALCULATED",
+      "value": "return field.cutoffDate"
+    },
+    {
+      "name": "isMasterFile",
+      "description": "Check for Master files",
+      "type": "CALCULATED",
+      "defaultValue": "false",
+      "value": "return (field.isCredit || field.isExpress || field.isCheckingAndSaving || field.isCustomersMaster || field.isContactMaster)",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "balance",
+      "description": "balance",
+      "defaultValue": "1000.00",
+      "dataType": "DOUBLE"
+    }
+  ]
+}

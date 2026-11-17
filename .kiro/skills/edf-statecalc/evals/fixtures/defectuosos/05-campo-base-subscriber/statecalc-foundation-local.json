@@ -1,0 +1,8 @@
+{
+  "domain": "FIXTURE-SINTETICO-sisben",
+  "fields": [
+    { "name": "personIdType", "dataType": "INTEGER", "type": "CALCULATED", "value": "return field.standardizedIdType" },
+    { "name": "subscriber" },
+    { "name": "pin" }
+  ]
+}

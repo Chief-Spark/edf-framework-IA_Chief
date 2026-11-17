@@ -1,0 +1,79 @@
+# FIXTURE SINTÉTICO. Ningún dato corresponde a una persona real: nombres inventados
+# ("PRUEBA", "FICTICIO", "SINTETICO"), documentos con prefijo 9990/0999 y códigos DANE de muestra.
+# Representa eventos TaggedValidatedEvent ya ACEPTADOS (entrada de Curation, salida de Acceptance).
+# El generador Java lo convierte en accepted-events.json (CUR-TPL-12) y calcula el resumen esperado.
+# Valores comunes: se combinan "base" + "registro" de cada evento.
+
+base_registro:
+  ID_FICHA_ORIGEN: "0999000001"
+  ID_HOGAR: "1"
+  COD_DPTO: "5"
+  NOM_DPTO: "Antioquia"
+  COD_MPIO: "5001"
+  NOM_MPIO: "Medellín"
+  ID_CLASE: "1"
+  ID_PERSONA_ORDEN: "1"
+  ID_NACIONAL: "999000001"
+  PRI_APELLIDO: "Pruebañez"
+  SEG_APELLIDO: "Ficticio"
+  PRI_NOMBRE: "Sintético"
+  SEG_NOMBRE: "José-María"
+  TIP_DOCUMENTO: "3"
+  NUM_DOCUMENTO: " 0009990001 "
+  ID_GRUPO: "A"
+  ID_NIVEL: "1"
+  FECHA_DIGITACION: "15/01/2024"
+  FECHA_ACTUALIZACION_PERSONA: "15/01/2024"
+  ID_MARCA: "0"
+  ID_ESTADO: "10"
+  FECHA_ACTUALIZACION_CNS: "2024-01-15 10:30:00"
+
+eventos:
+  - id: evt-0001
+    caso: Regular, todo válido; CC (3 -> 1), ceros y espacios del documento, padding DANE, tildes y ñ
+    archivo: SISBEN_EXPERIAN_202401.20240205103000-0500.txt
+    registro: {}
+    errores: []
+
+  - id: evt-0002
+    caso: PPT -> 11; el número de documento se conserva tal cual
+    archivo: SISBEN_EXPERIAN_202401.20240205103000-0500.txt
+    registro: {TIP_DOCUMENTO: "PPT", NUM_DOCUMENTO: "0099900002", ID_NACIONAL: "999000002", ID_PERSONA_ORDEN: "2"}
+    errores: []
+
+  - id: evt-0003
+    caso: PEP (8 -> 9); se eliminan letras y ceros a la izquierda
+    archivo: SISBEN_EXPERIAN_202401.20240205103000-0500.txt
+    registro: {TIP_DOCUMENTO: "8", NUM_DOCUMENTO: "PE0999A0003", ID_NACIONAL: "999000003"}
+    errores: []
+
+  - id: evt-0004
+    caso: SEG_APELLIDO con SISBEN_INC_011 (severidad 3) -> la clave segundoApellido no se almacena (RF-CUR-10); CE (4 -> 4)
+    archivo: SISBEN_EXPERIAN_202401.20240205103000-0500.txt
+    registro: {SEG_APELLIDO: "", TIP_DOCUMENTO: "4", NUM_DOCUMENTO: "9990004", ID_NACIONAL: "999000004"}
+    errores:
+      - {codigo: SISBEN_INC_011, nivel: "3"}
+
+  - id: evt-0005
+    caso: RT; fecha con formato largo; FECHA_ACTUALIZACION_PERSONA imposible -> nula + advertencia
+    archivo: RT_SISBEN_EXPERIAN_202401.20240206080000-0500.txt
+    registro: {FECHA_DIGITACION: "2024-01-20 08:15:00", FECHA_ACTUALIZACION_PERSONA: "31/02/2024", TIP_DOCUMENTO: "5", NUM_DOCUMENTO: "9990005", ID_NACIONAL: "999000005"}
+    errores: []
+
+  - id: evt-0006
+    caso: EP (sin extensión en lineage.fileName); ID_HOGAR no numérico -> nulo + advertencia
+    archivo: EP_SISBEN_EXPERIAN_202402.20240305091500-0500
+    registro: {ID_HOGAR: "X1", TIP_DOCUMENTO: "6", NUM_DOCUMENTO: "AB0999006", ID_NACIONAL: "999000006"}
+    errores: []
+
+  - id: evt-0007
+    caso: Defensivo; salvoconducto (7) no debería llegar aceptado (SISBEN_ERR_023 sev 1); si llega -> nulo + advertencia, sin código arbitrario
+    archivo: SISBEN_EXPERIAN_202401.20240205103000-0500.txt
+    registro: {TIP_DOCUMENTO: "7", NUM_DOCUMENTO: "9990007", ID_NACIONAL: "999000007"}
+    errores: []
+
+  - id: evt-0008
+    caso: Archivo fuera del filePattern -> el motor no encuentra processor y lo descarta sin log (CUR-AP02)
+    archivo: OTRA_FUENTE_202401.20240205103000-0500.txt
+    registro: {NUM_DOCUMENTO: "9990008", ID_NACIONAL: "999000008"}
+    errores: []

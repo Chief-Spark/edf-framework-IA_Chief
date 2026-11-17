@@ -1,0 +1,728 @@
+# ─────────────────────────────────────────────────────────────
+# Intermediario Lógica → Configuración — etapa Pinning (SISBEN, piloto)
+# Instancia de Diseño/plantilla-cabecera-yaml-skill.yaml
+# ─────────────────────────────────────────────────────────────
+
+documento:
+  tipo: "intermediario-skill"
+  etapa_pipeline: "Pinning"
+  version: "1.0.0"
+  fecha: "2026-10-01"
+  estado: "PROPUESTO"                                # pasa a APROBADO con firma humana registrada en 09-estado-y-trazabilidad.md
+  aprobador: "PENDIENTE-MANUAL"                      # [A:OQ-06] — sin aprobador designado para el patrón
+
+procedencia:
+  fuente_analisis:
+    ruta: "Diseño/logica-pinning.md"
+    version_fuente: "1.0.0"
+    fecha_aprobacion_fuente: "PENDIENTE-REGISTRO"     # aprobación verbal recibida en sesión 2026-10-01; falta registro formal en bitácora 09
+  repositorio_base:
+    nombre: "oxygen-pinning"
+    naturaleza: "Z2 — solo lectura"
+  skill_destino: "Skill-ConfigGen-Pinning"
+    # Reservado a generación de artefactos de configuración. No confundir con "Skill-Pinning",
+    # nombre del tipo de análisis T3 en 04-reglas-analisis.md §2 (análisis de fijación de supuestos).
+
+alcance:
+  genera:
+    - "identifying-attributes.json (array de atributos identificadores que el IdentityMatcher consume)"
+    - "pinning-application.conf (bloque oxygen.stage.pinning y oxygen.stage.heterogeneousCollection — claves cubiertas en claves_configuracion_pinning; NO incluye identityMatcher a medida ni relationshipMigrationProcessorClassName, ver no_genera)"
+  no_genera:
+    - "identityMatcher con FQCN de una implementación a medida para SISBEN — queda apuntando al matcher de referencia (ISIdentityMatcher) por defecto, con el hueco declarado explícitamente (pendientes_del_mapeo id 2)"
+    - "estructura interna de TaggedIdentity/Identity (vive en Z2, no confirmada — logica-pinning.md §2)"
+    - "implementación Scala de un IdentityMatcher a medida para SISBEN (decisión de diseño fuera de este YAML)"
+    - "relationshipMigrationProcessorClassName (sin evidencia de que SISBEN lo requiera; logica-pinning.md §7.6 lo documenta como opcional, sin confirmar su necesidad para este piloto)"
+    - "env.conf / spark.conf completos (claves de infraestructura de ejecución local, fuera del alcance de mapeo de negocio de este YAML)"
+    - "keep-together.json / keep-apart.json — sin caso de negocio confirmado para SISBEN en ninguna fuente revisada (ver keep_together_keep_apart.advertencia_general); el Skill no debe generar estos archivos con identidades de ejemplo"
+  precondiciones_bloqueantes:
+    - id: "D11-resuelto-localmente"
+      descripcion: "Nomenclatura de apellidos/nombres curados que Pinning espera estaba abierta en Docs-General/contratos_frontera.md; resuelta por decisión del usuario (ver mapeo_identidad.decision_origen)"
+      efecto: "Esta resolución aplica solo al alcance de esta iniciativa; no cierra D11 en el workspace de origen (logica-pinning.md pendiente #8)"
+    - id: "A-sin-clasificar-firstLastName-bug"
+      descripcion: "ISIdentityMatcher/RIIdentityMatcher de referencia leen firstName en vez de firstLastName en el término de apellido del scoring (logica-pinning.md §7.3, verificado por grep directo)"
+      efecto: "Si el Skill genera un IdentityMatcher a medida para SISBEN basado en el de referencia, debe decidir explícitamente si replica o corrige este defecto; no se decide en este YAML"
+
+marcado_heredado:
+  nota: "Todo valor con marcador distinto de [C] en logica-pinning.md se transcribe aquí con su marcador original. Ningún [A:*] se resuelve en este YAML (04-reglas-analisis.md §4.4, P8)."
+
+trazabilidad:
+  citas_formato: "archivo §sección | ruta/archivo::símbolo"
+  ultima_verificacion_referencias: "2026-10-01"
+
+# ═════════════════════════════════════════════════════════════
+# CORE — Mapeo de campos: origen SISBEN (curado) → atributo del motor de Pinning
+# Alcance acotado: solo los atributos que IdentityMatcher consume para identidad y blocking.
+# No es el mapeo completo de 22→25 campos de la ingesta (eso es 07-contratos-frontera.md §3,
+# resuelto en la etapa de análisis de requerimiento / Curation, no aquí).
+# ═════════════════════════════════════════════════════════════
+
+mapeo_identidad:
+
+  decision_origen:
+    descripcion: >
+      Los nombres de campo curado del lado SISBEN siguen el layout de 22 campos (vigente,
+      07-contratos-frontera.md §2), no el layout de 17 campos (obsoleto, [S]).
+    fuente: "logica-pinning.md §12.1"
+    tipo: "decisión del usuario registrada en sesión"
+    fecha: "2026-10-01"
+    estado: "[C]"
+
+  atributos:
+
+    - atributo_motor: "nationalId"
+      campo_curado_sisben: "standardizedIdNumber"
+      rol_en_matching:
+        - "doesMatch: +0.5 de similitud si coincide exacto (ISIdentityMatcher)"
+        - "nearNeighborKeys: primer componente de blocking"
+      obligatorio: true
+      pertenece_llave_identidad: true
+      pii: true
+      estado: "[C]"
+      fuente: "logica-pinning.md §7.3, §12.1; 07-contratos-frontera.md §5.5 (identitySufficiency)"
+
+    - atributo_motor: "firstName"
+      campo_curado_sisben: "PRI_NOMBRE"
+      rol_en_matching:
+        - "doesMatch: componente del término +0.3 (junto con firstLastName)"
+        - "nearNeighborKeys: prefijo de 5 caracteres, combinado con firstLastName"
+      obligatorio: true
+      pertenece_llave_identidad: true
+      pii: true
+      estado: "[C]"
+      fuente: "logica-pinning.md §7.3, §12.1 (decisión del usuario, layout de 22)"
+
+    - atributo_motor: "middleName"
+      campo_curado_sisben: "SEG_NOMBRE"
+      rol_en_matching:
+        - "sin uso confirmado en ISIdentityMatcher.doesMatch ni en nearNeighborKeys — no aparece en el scoring leído"
+      obligatorio: false
+      pertenece_llave_identidad: false
+      pii: true
+      estado: "[A:sin-clasificar]"
+      nota: "El motor de referencia declara el slot middleName en identifying-attributes.json de ejemplo, pero no se confirmó su consumo real dentro de ISIdentityMatcher/RIIdentityMatcher. Incluido por completitud del mapeo de identidad, no como uso verificado en el algoritmo de matching."
+      fuente: "logica-pinning.md §5 (identifying-attributes.json), §7.3"
+
+    - atributo_motor: "firstLastName"
+      campo_curado_sisben: "PRI_APELLIDO"
+      rol_en_matching:
+        - "doesMatch: componente del término +0.3 (junto con firstName) — ver defecto conocido abajo"
+        - "nearNeighborKeys: sufijo de 5 caracteres, combinado con firstName"
+      obligatorio: true
+      pertenece_llave_identidad: true
+      pii: true
+      estado: "[C]"
+      defecto_conocido:
+        id: "A-sin-clasificar-firstLastName-bug"
+        descripcion: "En el código de referencia (ISIdentityMatcher/RIIdentityMatcher), la variable que debería leer este campo en realidad vuelve a leer firstName. No se corrige en este YAML; ver alcance.precondiciones_bloqueantes."
+      fuente: "logica-pinning.md §7.3, §12.1 (decisión del usuario, layout de 22)"
+
+    - atributo_motor: "secondLastName"
+      campo_curado_sisben: "SEG_APELLIDO"
+      rol_en_matching:
+        - "sin uso confirmado en ISIdentityMatcher.doesMatch ni en nearNeighborKeys — no aparece en el scoring leído"
+      obligatorio: false
+      pertenece_llave_identidad: false
+      pii: true
+      estado: "[A:sin-clasificar]"
+      nota: "Mismo caso que middleName: declarado en el contrato de identifying-attributes.json pero sin consumo confirmado en el algoritmo de matching leído."
+      fuente: "logica-pinning.md §5, §7.3, §12.1"
+
+    - atributo_motor: "cellPhone"
+      campo_curado_sisben: null
+      rol_en_matching:
+        - "doesMatch: +0.3 de similitud si coincide exacto (ISIdentityMatcher)"
+        - "nearNeighborKeys: tercer componente de blocking"
+      obligatorio: false
+      pertenece_llave_identidad: false
+      pii: true
+      estado: "[C] para la ausencia; no es un hueco de análisis"
+      nota: >
+        No aplica a SISBEN: el dataset del DNP no incluye teléfono
+        (Docs-General/Entendimiento_funcional.md §5.2, confirmado explícitamente).
+        Efecto operable: el término de +0.3 del scoring de ISIdentityMatcher nunca puede
+        sumar para SISBEN. El umbral máximo alcanzable sin nationalId exacto queda en 0.3
+        (solo por nombre+apellido), por debajo de similarityThreshold = 0.6. En la práctica,
+        para SISBEN con este matcher de referencia sin modificar, solo coincidencia exacta
+        de nationalId o de nombre+apellido garantiza match; no hay tercera señal de refuerzo.
+      fuente: "logica-pinning.md §7.3, §9; Docs-General/Entendimiento_funcional.md §5.2"
+
+  identitySufficiency_sisben:
+    nota: "Confirmado en 07-contratos-frontera.md §5.5 como lista separada de identitySufficiency; se referencia aquí, no se duplica su definición completa."
+    campos:
+      - "standardizedIdNumber"
+      - "standardizedIdType"
+      - "standardizedIdName"
+    estado: "[C]"
+    fuente: "07-contratos-frontera.md §5.5"
+
+  pendientes_del_mapeo:
+    - id: 1
+      descripcion: "Confirmar si middleName/secondLastName participan en algún IdentityMatcher a medida de SISBEN, dado que no se confirmó su uso en el matcher de referencia genérico"
+      estado: "[A:sin-clasificar]"
+    - id: 2
+      descripcion: "Decidir si el Skill replica o corrige el defecto firstLastName/firstName al generar un IdentityMatcher a medida para SISBEN"
+      estado: "[A:sin-clasificar]"
+    - id: 3
+      descripcion: "D11 (nomenclatura de campos curados) resuelto solo para esta iniciativa; no comunicado al workspace de origen"
+      estado: "[PM]"
+
+# ═════════════════════════════════════════════════════════════
+# Reglas de matching por campo — algoritmo real de ISIdentityMatcher (implementación de referencia)
+# Una regla por campo mapeado en mapeo_identidad.atributos. Fuente: logica-pinning.md §7.2-7.4,
+# verificado por lectura directa de util/IdentityMatcher.scala y extension/ISIdentityMatcher.scala.
+# Esto describe el comportamiento del matcher de REFERENCIA tal cual existe en el repo InnerSource;
+# no es una regla de negocio definida para SISBEN — SISBEN hoy no tiene IdentityMatcher propio
+# confirmado (ver alcance.no_genera).
+# ═════════════════════════════════════════════════════════════
+
+reglas_matching_por_campo:
+
+  motor_referencia: "com.experian.edf.oxygen.pinning.extension.ISIdentityMatcher"
+  umbral_global:
+    similarityThreshold: 0.6
+    regla: "match si la suma de los pesos de los campos coincidentes es >= 0.6"
+    excepcion: "si super.doesMatch ya es true (mismo subscriber + subscriberRelation), el match es inmediato con distancia 0.0, sin evaluar los pesos por campo"
+    estado: "[C]"
+    fuente: "logica-pinning.md §7.3"
+
+  reglas:
+
+    - campo: "nationalId"
+      campo_curado_sisben: "standardizedIdNumber"
+      condicion_comparacion: "igualdad exacta de string"
+      peso_doesMatch: 0.5
+      participa_nearNeighborKeys: true
+      detalle_blocking: "clave de blocking propia: el valor de nationalId tal cual, sin transformar"
+      participa_doesMatchKA: true
+      detalle_doesMatchKA: "suma 1.0 (peso uniforme) si coincide exacto, igual que cualquier otro atributo identificador en la regla por defecto de doesMatchKA"
+      estado: "[C]"
+      fuente: "logica-pinning.md §7.3"
+
+    - campo: "firstName"
+      campo_curado_sisben: "PRI_NOMBRE"
+      condicion_comparacion: "igualdad exacta de string, evaluada EN CONJUNTO con firstLastName (no aporta peso por separado)"
+      peso_doesMatch: 0.3
+      peso_doesMatch_nota: "el +0.3 solo se otorga si firstName Y firstLastName coinciden ambos; no hay peso parcial por coincidencia de un solo componente"
+      participa_nearNeighborKeys: true
+      detalle_blocking: "prefijo de 5 caracteres de firstName concatenado con prefijo de 5 caracteres de firstLastName (función firstNamePrefixLastNamePrefixKey)"
+      participa_doesMatchKA: true
+      detalle_doesMatchKA: "suma 1.0 si coincide exacto, por la regla por defecto de doesMatchKA (evaluación independiente campo a campo, a diferencia de doesMatch)"
+      estado: "[C]"
+      fuente: "logica-pinning.md §7.3"
+
+    - campo: "middleName"
+      campo_curado_sisben: "SEG_NOMBRE"
+      condicion_comparacion: "no aplica — sin consumo confirmado en doesMatch ni en nearNeighborKeys"
+      peso_doesMatch: 0
+      participa_nearNeighborKeys: false
+      participa_doesMatchKA: true
+      detalle_doesMatchKA: "doesMatchKA por defecto compara TODOS los atributos declarados en identifying-attributes.json, incluido este, sumando 1.0 por cada coincidencia exacta — a diferencia de doesMatch, que es selectivo por campo"
+      estado: "[A:sin-clasificar]"
+      nota: "Confirmado sin peso en doesMatch/nearNeighborKeys; su participación en doesMatchKA se infiere del comportamiento por defecto descrito en IdentityMatcher.scala (itera todos los atributos identificadores), no de una línea de código específica para este campo"
+      fuente: "logica-pinning.md §7.2 (doesMatchKA, default), §7.3"
+
+    - campo: "firstLastName"
+      campo_curado_sisben: "PRI_APELLIDO"
+      condicion_comparacion: "igualdad exacta de string, evaluada EN CONJUNTO con firstName (ver regla de firstName)"
+      peso_doesMatch: 0.3
+      peso_doesMatch_nota: "mismo término compartido con firstName; no es un peso adicional independiente"
+      participa_nearNeighborKeys: true
+      detalle_blocking: "sufijo de la misma clave combinada que firstName (firstNamePrefixLastNamePrefixKey)"
+      participa_doesMatchKA: true
+      detalle_doesMatchKA: "suma 1.0 si coincide exacto, por la regla por defecto"
+      defecto_conocido:
+        id: "A-sin-clasificar-firstLastName-bug"
+        descripcion: "El código real de ISIdentityMatcher/RIIdentityMatcher NO lee firstLastName para este término — vuelve a leer firstName por un defecto de copy-paste verificado por grep directo. La regla aquí descrita es la DOCUMENTADA/INTENCIONADA, no la que el código ejecuta hoy. Ver alcance.precondiciones_bloqueantes."
+      estado: "[C] para la regla intencionada; [A:sin-clasificar] para si el código la cumple"
+      fuente: "logica-pinning.md §7.3"
+
+    - campo: "secondLastName"
+      campo_curado_sisben: "SEG_APELLIDO"
+      condicion_comparacion: "no aplica — sin consumo confirmado en doesMatch ni en nearNeighborKeys"
+      peso_doesMatch: 0
+      participa_nearNeighborKeys: false
+      participa_doesMatchKA: true
+      detalle_doesMatchKA: "mismo caso que middleName: incluido por el comportamiento por defecto de doesMatchKA, no por una línea de código específica"
+      estado: "[A:sin-clasificar]"
+      fuente: "logica-pinning.md §7.2, §7.3"
+
+    - campo: "cellPhone"
+      campo_curado_sisben: null
+      condicion_comparacion: "igualdad exacta de string (cuando el campo existe)"
+      peso_doesMatch: 0.3
+      participa_nearNeighborKeys: true
+      detalle_blocking: "tercera clave de blocking, el valor de cellPhone tal cual"
+      participa_doesMatchKA: true
+      detalle_doesMatchKA: "suma 1.0 si coincide exacto, por la regla por defecto — inaplicable en la práctica para SISBEN al no existir el campo"
+      estado: "[C] para la regla general del motor; inaplicable a SISBEN (ver mapeo_identidad.atributos.cellPhone)"
+      fuente: "logica-pinning.md §7.3, §9"
+
+  nota_doesMatchKA_vs_doesMatch:
+    descripcion: >
+      doesMatch (usado para el match principal / clustering) y doesMatchKA (usado solo para
+      decidir separación forzada vía Keep Apart) NO comparten la misma lógica de pesos.
+      doesMatch es selectivo: solo nationalId, el par firstName+firstLastName, y cellPhone
+      tienen peso definido; el resto no participa. doesMatchKA, en su implementación por
+      defecto, recorre TODOS los atributos de identifying-attributes.json y suma peso
+      uniforme (1.0) por cada coincidencia exacta, sin distinción de importancia relativa.
+      Un IdentityMatcher a medida para SISBEN puede sobrescribir doesMatchKA si ese
+      comportamiento uniforme no es el deseado; no se decide aquí.
+    estado: "[C]"
+    fuente: "logica-pinning.md §7.2"
+
+# ═════════════════════════════════════════════════════════════
+# Instrucción de generación — traduce lo anterior en el artefacto concreto
+# Esto es lo que el Skill ejecuta. Las secciones previas son la justificación y la cita;
+# esta sección es la acción. Ningún valor aquí se aparta de lo ya mapeado arriba.
+# ═════════════════════════════════════════════════════════════
+
+instruccion_generacion:
+
+  archivo: "identifying-attributes.json"
+  ubicacion: "recurso de classpath (ver logica-pinning.md §5 — NO ruta de filesystem arbitraria)"
+  formato: "array JSON plano de strings, en inglés, nombres del slot del motor (no del campo curado SISBEN)"
+
+  contenido_a_escribir:
+    regla: >
+      Incluir en el array SOLO los atributos con estado [C] confirmado en mapeo_identidad.atributos.
+      Los atributos en [A:sin-clasificar] (middleName, secondLastName) se EXCLUYEN del array hasta
+      que se resuelva el pendiente correspondiente — no se incluyen "por si acaso" ni se omiten
+      silenciosamente sin dejar constancia (04-reglas-analisis.md §4.4, P8: no rellenar con el valor
+      más probable).
+    valor_resultante:
+      - "nationalId"
+      - "firstName"
+      - "firstLastName"
+    excluidos_hasta_resolver:
+      - atributo: "middleName"
+        razon: "pendientes_del_mapeo id 1"
+      - atributo: "secondLastName"
+        razon: "pendientes_del_mapeo id 1"
+      - atributo: "cellPhone"
+        razon: "no aplica a SISBEN — dataset DNP sin teléfono (mapeo_identidad.atributos.cellPhone)"
+    advertencia_consecuencia: >
+      Con solo 3 slots activos (nationalId, firstName, firstLastName) y los pesos de
+      reglas_matching_por_campo, el único camino para alcanzar similarityThreshold = 0.6
+      es la coincidencia exacta de nationalId (0.5, insuficiente solo) combinada con cualquier
+      otra señal, o nationalId + nombre completo coincidente (0.5 + 0.3 = 0.8), o nombre+apellido
+      solos (0.3, insuficiente solo). En la práctica, sin nationalId exacto, el matcher de
+      referencia SIN MODIFICAR nunca alcanza el umbral para SISBEN con los campos hoy
+      confirmados. Esto es una consecuencia aritmética directa de los pesos ya verificados,
+      no una afirmación nueva — se declara aquí para que quede visible en el punto de generación.
+    estado: "[C] para la aritmética; la decisión de si esto es aceptable para SISBEN no corresponde a este YAML"
+
+  claves_hocon_relacionadas:
+    nota: "No se genera pinning-application.conf completo (ver alcance.no_genera). Estas son las claves que SÍ dependen directamente de este mapeo, para que el Skill las deje consistentes si llega a tocar ese archivo en una tarea posterior."
+    claves:
+      - clave: "oxygen.stage.pinning.paths.identifyingAttributesFile"
+        valor_esperado: '["identifying-attributes.json"]'
+        regla: "un único elemento en la lista — el motor solo lee el primero (logica-pinning.md §5)"
+        estado: "[C]"
+      - clave: "oxygen.stage.pinning.identityMatcher"
+        valor_esperado: "PENDIENTE — no se decide en este YAML si SISBEN usa ISIdentityMatcher sin modificar o un matcher a medida"
+        estado: "[A:sin-clasificar]"
+        ver: "pendientes_del_mapeo id 2; alcance.no_genera"
+
+  orden_de_ejecucion_sugerido:
+    - "1. Generar identifying-attributes.json con contenido_a_escribir.valor_resultante"
+    - "2. Dejar constancia explícita (comentario o log del Skill) de los excluidos_hasta_resolver — no generar en silencio"
+    - "3. Continuar con pinning-application.conf (ver claves_configuracion_pinning) usando el mismo criterio de no rellenar huecos"
+    - "4. Señalar advertencia_consecuencia al humano revisor antes de solicitar aprobación del artefacto"
+
+# ═════════════════════════════════════════════════════════════
+# CORE — Claves de configuración para pinning-application.conf (bloque de negocio, SISBEN)
+# Fuente: logica-pinning.md §4. Solo las claves con efecto directo verificado en el código real
+# (engines/SparkPinner.scala, domain/Pinner.scala). No incluye env.conf/spark.conf (infraestructura
+# de ejecución local, fuera de alcance) ni claves sin consumidor confirmado (identitySufficiency).
+# ═════════════════════════════════════════════════════════════
+
+claves_configuracion_pinning:
+
+  bloque_oxygen_stage_pinning:
+
+    - clave: "oxygen.stage.pinning.paths.identifyingAttributesFile"
+      valor_a_escribir: '["identifying-attributes.json"]'
+      regla: "lista de un solo elemento — el motor ignora silenciosamente cualquier elemento adicional"
+      estado: "[C]"
+      fuente: "logica-pinning.md §4.1, §5"
+
+    - clave: "oxygen.stage.pinning.identityMatcher"
+      valor_a_escribir: "com.experian.edf.oxygen.pinning.extension.ISIdentityMatcher"
+      regla: >
+        Se instruye usar el matcher de REFERENCIA sin modificar, no un matcher a medida para
+        SISBEN, porque no existe decisión de diseño sobre un matcher propio (alcance.no_genera).
+        Esta instrucción es un valor de arranque explícito, no una recomendación técnica: hereda
+        el defecto conocido (firstLastName/firstName) y la limitación aritmética ya declarada en
+        instruccion_generacion.advertencia_consecuencia. Si el equipo decide un matcher a medida,
+        este valor cambia y pendientes_del_mapeo id 2 se cierra.
+      estado: "[A:sin-clasificar] — valor de arranque, no una decisión técnica cerrada"
+      fuente: "logica-pinning.md §4.1; reglas_matching_por_campo"
+
+    - clave: "oxygen.stage.pinning.clusterSplitter"
+      valor_a_escribir: null
+      regla: "sin FQCN — el repo no trae ninguna implementación de referencia de ClusterSplitter y no hay evidencia de que SISBEN la requiera"
+      estado: "[C] para la ausencia de evidencia; no es un hueco de análisis"
+      fuente: "logica-pinning.md §7.5"
+
+    - clave: "oxygen.stage.pinning.reusePin"
+      valor_a_escribir: false
+      regla: >
+        false para una ingesta NUEVA (primera corrida de SISBEN) — confirmado en
+        07-contratos-frontera.md §5.5 ("reusePIN = false para una ingesta nueva").
+        Corridas posteriores (incremental) requerirán true; esta instrucción cubre
+        solo el arranque del piloto, no el estado estable.
+      estado: "[C]"
+      fuente: "logica-pinning.md §4.1, §8; 07-contratos-frontera.md §5.5"
+
+    - clave: "oxygen.stage.pinning.saveNearNeighborState"
+      valor_a_escribir: true
+      regla: "true, siguiendo el .conf de ejemplo del repo — habilita el artefacto -nearNeighbor, útil para auditoría del piloto"
+      estado: "[P] — propuesto por el patrón de ejemplo del repo, no por una decisión de negocio específica de SISBEN"
+      fuente: "logica-pinning.md §4.1"
+
+    - clave: "oxygen.stage.pinning.saveStampedIdentityState"
+      valor_a_escribir: true
+      regla: "true, mismo criterio que saveNearNeighborState — habilita el identity-pin-map, necesario además para reusePin en corridas futuras"
+      estado: "[P]"
+      fuente: "logica-pinning.md §4.1"
+
+    - clave: "oxygen.stage.pinning.groupSSR"
+      valor_a_escribir: "CONFLICTO SIN RESOLVER — ver nota_colision_groupSSR"
+      estado: "[A:sin-clasificar]"
+      fuente: "logica-pinning.md §4.1"
+
+    - clave: "oxygen.stage.pinning.nearNeighborBlockSize"
+      valor_a_escribir: 700
+      regla: "default de plataforma, sin override de negocio conocido para SISBEN. Recordar efecto fail-silent: bloques >= 700 identidades se descartan sin aviso formal (logica-pinning.md §9)"
+      estado: "[C] para el default; [PM] si 700 es adecuado para el volumen real de SISBEN (~28M registros históricos, 07-contratos-frontera.md §2) no está evaluado"
+      fuente: "logica-pinning.md §4.1, §9"
+
+    - clave: "oxygen.stage.pinning.pinningVleRange"
+      valor_a_escribir: 2000
+      regla: "default de plataforma, sin override de negocio conocido para SISBEN"
+      estado: "[C]"
+      fuente: "logica-pinning.md §4.1"
+
+    - clave: "oxygen.stage.pinning.staticPinningFormat"
+      valor_a_escribir: "PENDIENTE — depende de oxygen.application.storage, no fijado en este YAML"
+      regla: "hereda ${oxygen.application.storage}; este YAML no fija el formato de almacenamiento global de la plataforma"
+      estado: "[PM]"
+      fuente: "logica-pinning.md §4.1"
+
+  bloque_oxygen_stage_consistencyCheck:
+    nota: "Vive junto a relationshipMigrationProcessorClassName en el .conf, aunque pertenece conceptualmente a Synthesis/Consistency, no a Pinning"
+    claves:
+      - clave: "oxygen.stage.consistencyCheck.relationshipMigrationProcessorClassName"
+        valor_a_escribir: null
+        regla: "sin evidencia de que SISBEN requiera migración de relaciones (alcance.no_genera)"
+        estado: "[C] para la ausencia de evidencia"
+        fuente: "logica-pinning.md §4.1, §7.6"
+
+  nota_colision_groupSSR:
+    descripcion: >
+      Hay dos valores en conflicto directo para la misma clave: el default de plataforma en
+      oxygen-config-default.conf es true; el .conf de ejemplo del repo (pinning-application.conf)
+      lo pone en false. Ambos son del repo InnerSource genérico, ninguno es una decisión de
+      negocio para SISBEN. No hay fuente que diga qué espera SISBEN específicamente respecto a
+      agrupar por subscriber:subscriberRelation.
+    efecto_de_cada_valor: >
+      true: une clusters adicionales por SSR, lo que puede fusionar identidades que el matching
+      principal no habría unido. false: ningún agrupado adicional, el clustering depende solo de
+      Near Neighbor + doesMatch + Connected Components.
+    accion: "escalar antes de generar — no se elige un valor por default de plataforma ni por el ejemplo del repo, ya que ambos son InnerSource genérico, no evidencia de negocio SISBEN (01-restricciones-principios.md §6.2)"
+    estado: "[A:sin-clasificar]"
+    fuente: "logica-pinning.md §4.1"
+
+  pendientes_de_configuracion:
+    - id: 1
+      descripcion: "Resolver colisión groupSSR (true de plataforma vs false del ejemplo) con una decisión de negocio para SISBEN, no con un default"
+      estado: "[A:sin-clasificar]"
+    - id: 2
+      descripcion: "Confirmar si nearNeighborBlockSize = 700 es adecuado para el volumen real de SISBEN, dado el efecto fail-silent de descarte de bloques grandes"
+      estado: "[PM]"
+    - id: 3
+      descripcion: "identityMatcher queda en el valor de referencia (ISIdentityMatcher) como arranque; pendiente decisión de si SISBEN necesita un matcher a medida (hereda pendientes_del_mapeo id 2)"
+      estado: "[A:sin-clasificar]"
+
+# ═════════════════════════════════════════════════════════════
+# CORE — Keep Together (KT) / Keep Apart (KA)
+# Fuente: logica-pinning.md §6, §9; ejemplos reales oxygen-pinning/example/keep-together/,
+# oxygen-pinning/example/keep-apart/. Mecanismo de FORZADO manual: KT fuerza unión de pin,
+# KA fuerza separación de pin, por encima del resultado del algoritmo de matching.
+#
+# ADVERTENCIA DE ALCANCE: no existe, en ninguna fuente leída (logica-pinning.md,
+# 07-contratos-frontera.md, Docs-General/*), evidencia de un caso de negocio real de SISBEN
+# que requiera KT o KA. Esta sección define ESTRUCTURA y REGLAS DE GENERACIÓN CONDICIONAL,
+# no contenido. El Skill NO debe inventar identidades de ejemplo ni generar estos archivos
+# con datos ficticios "razonables" — eso sería rellenar un hueco con el valor más probable,
+# prohibido por 04-reglas-analisis.md §4.4 / P8 (01-restricciones-principios.md).
+# ═════════════════════════════════════════════════════════════
+
+keep_together_keep_apart:
+
+  advertencia_general:
+    descripcion: >
+      Sin caso de negocio confirmado para SISBEN, la instrucción correcta es NO GENERAR estos
+      archivos en esta pasada, y dejar las claves de ruta correspondientes sin definir o
+      explícitamente vacías, en vez de producir un archivo con un array de identidades vacío
+      o de ejemplo. Un array vacío real (`{"identities": []}`) y una ausencia de archivo no son
+      intercambiables para el código: ver comportamiento_si_ausente.
+    estado: "[C] para la ausencia de evidencia de caso de negocio; no es un hueco de análisis sin resolver, es un hueco de REQUERIMIENTO"
+    fuente: "búsqueda exhaustiva sin resultados en logica-pinning.md, 07-contratos-frontera.md, Docs-General/*"
+
+  esquema_comun:
+    nota: "Confirmado por lectura directa de los dos archivos de ejemplo del repo. Ambos usan el vocabulario de ATRIBUTO DEL MOTOR (igual que identifying-attributes.json), no el vocabulario de campo curado SISBEN — el mapeo de mapeo_identidad.atributos aplica igual aquí."
+    estructura_raiz: '{"identities": [ {...}, {...} ]}'
+    campos_por_identidad_keep_apart:
+      - "nationalId"
+      - "firstName"
+      - "middleName"
+      - "firstLastName"
+      - "secondLastName"
+      - "cellPhone"
+    campos_por_identidad_keep_together:
+      - "nationalId"
+      - "firstName"
+      - "middleName"
+      - "firstLastName"
+      - "secondLastName"
+      - "cellPhone"
+      - "subscriber"
+      - "subscriberRelation"
+    diferencia_clave: "keep-together incluye subscriber/subscriberRelation; keep-apart no. Confirmado por diferencia real entre los dos archivos de ejemplo del repo, no por documentación aparte."
+    estado: "[C]"
+    fuente: "logica-pinning.md §6; oxygen-pinning/example/keep-apart/keep-apart.json; oxygen-pinning/example/keep-together/keep-together.json (lectura directa)"
+
+  nota_consistencia_con_mapeo_sisben:
+    descripcion: >
+      Si en algún momento se confirma un caso de negocio real de KT/KA para SISBEN, los valores
+      de nationalId/firstName/firstLastName dentro de estos archivos deben construirse con el
+      mismo mapeo de mapeo_identidad.atributos (ej. nationalId <- standardizedIdNumber,
+      firstName <- PRI_NOMBRE, firstLastName <- PRI_APELLIDO). middleName/secondLastName/
+      cellPhone heredan el mismo estado [A:sin-clasificar] / inaplicable ya declarado ahí —
+      no se resuelven de forma distinta solo porque aparecen en KT/KA.
+    estado: "[C]"
+    fuente: "mapeo_identidad.atributos (este mismo YAML)"
+
+  semantica:
+    keep_together:
+      efecto: "fuerza que todas las identidades listadas en un mismo grupo compartan el mismo pin, independientemente del resultado de doesMatch/Near Neighbor"
+      mecanismo: "getKeepTogetherComponents — se unen como componente adicional antes de Connected Components"
+      estado: "[C]"
+      fuente: "logica-pinning.md §7.1 (fase 4, Keep Together), §9"
+    keep_apart:
+      efecto: "fuerza que las identidades listadas nunca compartan pin, incluso si doesMatch o Connected Components las habría unido"
+      mecanismo: "kaSplitComponents, usando doesMatchKA como score de separación — aplicado DESPUÉS de Connected Components y de clusterSplitter"
+      estado: "[C]"
+      fuente: "logica-pinning.md §7.1 (fase 9, Keep Apart)"
+
+  comportamiento_si_ausente:
+    descripcion: >
+      readKeepTogetherRecords devuelve null si la lista de archivos está vacía (sin lanzar
+      excepción); el llamador debe tratar null como "no hay registros KT". No se confirmó el
+      comportamiento equivalente exacto para KA en el código leído, pero el patrón de
+      degradación con gracia es consistente con el resto del motor (ver logica-pinning.md §9,
+      "identity-pin-map de la generación de referencia no legible").
+      CONSECUENCIA PARA EL SKILL: no generar un archivo KT/KA vacío como sustituto de "no aplica".
+      La ausencia de archivo (o de ruta configurada) ya es el estado correcto para "sin caso de
+      negocio confirmado"; generar un archivo vacío sería un artefacto sin propósito que además
+      podría interpretarse erróneamente como "caso de negocio confirmado: ninguno", en vez de
+      "caso de negocio: no evaluado".
+    estado: "[C] para el comportamiento de KT confirmado por lectura; [A:sin-clasificar] para el comportamiento exacto de ausencia de KA"
+    fuente: "logica-pinning.md §7.3 (readKeepTogetherRecords), §9"
+
+  instruccion_generacion:
+    accion: "NO GENERAR keep-together.json ni keep-apart.json en esta pasada"
+    razon: "sin caso de negocio confirmado para SISBEN (advertencia_general)"
+    claves_hocon_relacionadas:
+      nota: "Rutas KEEP_TOGETHER_DIRECTORY / KEEP_APART_DIRECTORY no tienen clave HOCON de texto directo confirmada en pinning-application.conf (son resueltas por constantes de plataforma, logica-pinning.md §4.2); no se fijan aquí sin evidencia adicional"
+      estado: "[PM]"
+    si_se_confirma_caso_de_negocio_futuro:
+      - "1. Construir cada identidad con el esquema de esquema_comun, usando el mapeo de mapeo_identidad.atributos para los campos confirmados"
+      - "2. Declarar explícitamente, por grupo, la justificación de negocio (qué personas y por qué deben unirse/separarse) — no generar el agrupamiento sin esa justificación registrada"
+      - "3. Revalidar nota_consistencia_con_mapeo_sisben antes de instanciar valores reales"
+
+  pendientes_de_esta_seccion:
+    - id: 1
+      descripcion: "No existe caso de negocio confirmado de KT o KA para SISBEN en ninguna fuente revisada"
+      estado: "[PM]"
+    - id: 2
+      descripcion: "Comportamiento exacto si el archivo KA está ausente o vacío (readKeepApartFiles) no se verificó con el mismo detalle que KT"
+      estado: "[A:sin-clasificar]"
+    - id: 3
+      descripcion: "Clave HOCON exacta de KEEP_TOGETHER_DIRECTORY / KEEP_APART_DIRECTORY en texto, no solo como constante de plataforma"
+      estado: "[PM]"
+
+# ═════════════════════════════════════════════════════════════
+# CORE — Artefactos de salida que Pinning entrega a Synthesis
+# Dos niveles de fuente, DELIBERADAMENTE NO FUSIONADOS:
+#   nivel_contrato  — 07-contratos-frontera.md §4 (steering vinculante, nivel 1 de autoridad,
+#                      04-reglas-analisis.md §7). Describe la costura a nivel de contrato de etapa.
+#   nivel_artefacto — logica-pinning.md §6 (análisis de código real de este repo). Describe los
+#                      archivos físicos que SparkPinner/SparkHeterogeneousCollector escriben hoy.
+# Son dos niveles de detalle distintos sobre la MISMA costura, no dos afirmaciones redundantes
+# que se puedan promediar o elegir entre sí.
+# ═════════════════════════════════════════════════════════════
+
+artefactos_salida_hacia_synthesis:
+
+  nivel_contrato:
+    fuente: "07-contratos-frontera.md §4 (steering, vinculante)"
+    descripcion: "Eventos con PIN; fase HC aparte"
+    ruta_pinned: "pinning/pinned/"
+    ruta_hc: "pinning/pinned/{id}-pin-hc/"
+    marcador_finalizacion: "_SUCCESS"
+    estado: "[C]"
+
+  nivel_artefacto:
+    fuente: "logica-pinning.md §6 (verificado por lectura directa de engines/SparkPinner.scala, engines/SparkHeterogeneousCollector.scala, domain/Pinner.scala)"
+    nota: >
+      Los nombres de archivo reales que el código produce son más granulares que la descripción
+      de nivel_contrato. "Eventos con PIN" (nivel_contrato) se materializa como varios archivos
+      distintos, no uno solo; "fase HC aparte" corresponde exactamente a {timestamp}-pin-hc.
+    artefactos:
+      - nombre: "{timestamp}-pin-EID"
+        contenido: "mapa eventId -> pin, JSON-lines (ejemplo real: {\"eventId\":\"-705\",\"pin\":2005})"
+        es_el_que_synthesis_consume: "[A:sin-clasificar] — ver consumo_confirmado_por_synthesis"
+        estado: "[C]"
+      - nombre: "{pinFilename}-identity-pin-map"
+        contenido: "mapa identidad -> pin; también es el ESTADO que la generación siguiente relee si reusePin=true"
+        es_el_que_synthesis_consume: "[A:sin-clasificar]"
+        estado: "[C]"
+      - nombre: "{pinFilename}-nearNeighbor"
+        contenido: "estado de blocking; condicional a saveNearNeighborState=true"
+        es_el_que_synthesis_consume: false
+        nota: "artefacto de auditoría/diagnóstico del algoritmo, no de negocio — sin indicio de que Synthesis lo necesite"
+        estado: "[C]"
+      - nombre: "{pinFilename}-stampedIdentity"
+        contenido: "identidad con pin asignado; condicional a saveStampedIdentityState=true"
+        es_el_que_synthesis_consume: "[A:sin-clasificar]"
+        estado: "[C]"
+      - nombre: "{pinFilename}-merged-pin"
+        contenido: "registro de fusiones de pin (MergedPin), texto plano"
+        es_el_que_synthesis_consume: "[A:sin-clasificar]"
+        nota: "relevante si Synthesis necesita reconciliar eventos que antes tenían pines distintos y ahora comparten uno — no confirmado"
+        estado: "[C]"
+      - nombre: "{pinFilename}-split-pin"
+        contenido: "se calcula pero NO SE ESCRIBE (saveSplitPin comentado en el código activo)"
+        es_el_que_synthesis_consume: false
+        nota: "no puede ser un artefacto de entrada de Synthesis porque no se genera en la ejecución real actual (logica-pinning.md §10)"
+        estado: "[C]"
+      - nombre: "{pinFilename}-unpinned-celebrity-events"
+        contenido: "eventos de pines VLE/celebrity, procesados aparte"
+        es_el_que_synthesis_consume: "[A:sin-clasificar]"
+        nota: "si Synthesis no tiene un tratamiento especial para celebrity pins, este artefacto podría quedar sin consumidor — no confirmado en ninguna fuente"
+        estado: "[C]"
+      - nombre: "{timestamp}-pin-hc"
+        contenido: "Heterogeneous Collection: por cada pin, lista completa de eventos asociados (groupBy(pin).agg(collect_list(...)))"
+        es_el_que_synthesis_consume: "[C] — este es el artefacto que nivel_contrato llama 'fase HC aparte', con ruta pinning/pinned/{id}-pin-hc/"
+        estado: "[C]"
+      - nombre: "{pinFilename}-context-pin-map"
+        contenido: "texto plano, líneas de ContextPinMapEvent(context, pin)"
+        es_el_que_synthesis_consume: "[A:sin-clasificar]"
+        estado: "[C]"
+
+  consumo_confirmado_por_synthesis:
+    descripcion: >
+      Ninguna fuente leída (logica-pinning.md, 07-contratos-frontera.md, Docs-General/*)
+      especifica, artefacto por artefacto, cuáles de los ocho archivos de nivel_artefacto
+      consume realmente Synthesis más allá de "fase HC aparte" (que mapea con certeza a
+      {timestamp}-pin-hc). El contrato de 07 §4 describe el QUÉ a nivel de negocio
+      ("eventos con PIN"), no CUÁL de los artefactos físicos listados arriba es ese evento.
+      Lectura más probable (NO confirmada): {timestamp}-pin-EID + {timestamp}-pin-hc juntos
+      cubren "eventos con PIN" + "fase HC aparte" — pero esta lectura no tiene cita directa
+      y no se trata aquí como [C].
+    estado: "[A:sin-clasificar]"
+    efecto: "el Skill no debe asumir que todos los ocho artefactos son relevantes para la frontera con Synthesis, ni descartar ninguno sin confirmación — se listan todos con su estado de consumo marcado honestamente"
+    fuente: "ausencia de evidencia, verificada por revisión cruzada de las tres fuentes citadas en esta sección"
+
+  pendientes_de_esta_seccion:
+    - id: 1
+      descripcion: "Confirmar artefacto por artefacto cuáles de los ocho archivos de nivel_artefacto consume Synthesis realmente, más allá de pin-hc"
+      estado: "[A:sin-clasificar]"
+    - id: 2
+      descripcion: "Confirmar si el nombre de ruta de nivel_contrato (pinning/pinned/) y los nombres de archivo de nivel_artefacto (ej. {timestamp}-pin-EID) coexisten en la misma carpeta o si nivel_contrato describe una estructura de salida distinta (ej. defaultOutputStructure=true) a la que el .conf de ejemplo de este repo usa"
+      estado: "[A:sin-clasificar]"
+    - id: 3
+      descripcion: "El marcador _SUCCESS de nivel_contrato no se verificó en el código de oxygen-pinning leído en esta sesión (no estaba entre los artefactos citados en logica-pinning.md §6)"
+      estado: "[A:sin-clasificar]"
+
+# ═════════════════════════════════════════════════════════════
+# CIERRE — Comportamiento del motor a tener en cuenta
+# No genera ningún archivo nuevo. Consolida advertencias operativas de logica-pinning.md §8
+# (generaciones/reuso de PIN) y §9 (fail-fast / fail-silent) que condicionan la interpretación
+# de TODO lo ya configurado arriba (reusePin, nearNeighborBlockSize, etc.) — ocurren sí o sí,
+# independientemente de qué configure el Skill. processPinIndex (logica-pinning.md §11) queda
+# fuera de este YAML por falta de evidencia de uso en SISBEN, mismo criterio que keep_together_keep_apart.
+# ═════════════════════════════════════════════════════════════
+
+comportamiento_del_motor_a_tener_en_cuenta:
+
+  reuso_de_pin_entre_generaciones:
+    aplica_si: "oxygen.stage.pinning.reusePin = true (ver claves_configuracion_pinning — fijado en false para el arranque del piloto)"
+    mecanismo:
+      centinela: "-1L marca identidad sin pin de la generación anterior; se fusiona con aggregateByKey"
+      casos:
+        - "0 pines previos -> pin nuevo vía PinGenerator.createPin"
+        - "1 pin previo -> se reutiliza"
+        - ">1 pin previo -> sobrevive uno, el resto se registra como MergedPin"
+      validacion_fail_fast: "un pin reusado menor que pinningVleRange lanza Exception explícita (mensaje sugiere reusePin=false como mitigación)"
+    advertencia_para_corridas_futuras: >
+      Esta instrucción de generación fija reusePin=false solo para el arranque (primera carga de
+      SISBEN). Si en el futuro se activa reusePin=true para cargas incrementales, este mecanismo
+      entra en juego sin que el Skill necesite generar configuración adicional — pero el revisor
+      humano debe saber que a partir de ese momento el pin-merge puede ocurrir silenciosamente
+      dentro de los límites ya descritos aquí.
+    estado: "[C]"
+    fuente: "logica-pinning.md §8, §8.1, §8.2, §8.3"
+
+  comportamientos_fail_fast:
+    descripcion: "Condiciones que abortan el job con excepción explícita — el Skill no necesita configurar nada para que existan, ya están en el motor"
+    lista:
+      - "pin reusado fuera de rango (< pinningVleRange)"
+      - "formato de salida inválido para Stamped Identity"
+      - "formato de salida inválido para Near Neighbors"
+      - "HC_CELEBRITY_PIN_THRESHOLD inválido (vacío o <= 0) — solo relevante si se configura ese umbral"
+      - "conflicto de unicidad en pin-index — solo relevante si se usa processPinIndex (fuera de alcance, ver nota_processPinIndex)"
+      - "oxygen.application.lambda distinto de 'batch'"
+    estado: "[C]"
+    fuente: "logica-pinning.md §9"
+
+  comportamientos_fail_silent:
+    descripcion: >
+      Condiciones que NO abortan el job y no dejan registro formal de error — el revisor humano
+      debe conocerlas antes de aprobar la ejecución, porque "sin excepción" no implica "sin pérdida
+      de identidades sin comparar".
+    lista:
+      - condicion: "timeout de Connected Components"
+        detalle: "el mecanismo de detección (ccFailed) está roto en el código real: runWithTimeout nunca devuelve None por la vía esperada, así que un timeout real probablemente se manifiesta como TimeoutException sin control, no como el fallback silencioso que el código parece intentar implementar"
+        relevancia_para_sisben: "con ~28M registros históricos (07-contratos-frontera.md §2), el riesgo de timeout en connectedComponents no es hipotético — connectedComponentsTimeout no tiene override de negocio confirmado para SISBEN en este YAML"
+      - condicion: "bloques near-neighbor con tamaño >= nearNeighborBlockSize (default 700)"
+        detalle: "se descartan con println, sin excepción, sin logger formal; las identidades de ese bloque no se comparan entre sí en absoluto dentro de ese vecindario"
+        relevancia_para_sisben: "pendientes_de_configuracion id 2 (claves_configuracion_pinning) ya señala que 700 no fue evaluado contra el volumen real de SISBEN — este es el efecto concreto de no evaluarlo"
+    estado: "[C]"
+    fuente: "logica-pinning.md §9"
+
+  nota_processPinIndex:
+    descripcion: >
+      logica-pinning.md §11 documenta processPinIndex (índices auxiliares pin<->atributo, con
+      validación de unicidad fail-fast). Requiere un archivo de definición de índices que ninguna
+      fuente revisada en esta sesión confirma que SISBEN use. Mismo criterio que
+      keep_together_keep_apart: no se genera configuración para esto sin evidencia de caso de
+      negocio, no se asume que "no se menciona" equivale a "no aplica".
+    estado: "[PM]"
+    fuente: "logica-pinning.md §11"
+
+  pendientes_de_esta_seccion:
+    - id: 1
+      descripcion: "connectedComponentsTimeout sin valor de negocio confirmado para el volumen real de SISBEN (~28M registros históricos); el mecanismo de detección de fallo del timeout está roto en el código real"
+      estado: "[A:sin-clasificar]"
+    - id: 2
+      descripcion: "Confirmar si SISBEN requiere processPinIndex antes de dejarlo fuera de forma permanente"
+      estado: "[PM]"
+
+# ═════════════════════════════════════════════════════════════
+# FIN DEL ARTEFACTO — yaml-skill-pinning.yaml
+# Estado global: PROPUESTO. No se aprueba por sí solo este archivo: requiere la misma
+# aprobación humana registrada que logica-pinning.md (documento.aprobador, procedencia).
+# ═════════════════════════════════════════════════════════════

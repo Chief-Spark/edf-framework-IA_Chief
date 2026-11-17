@@ -1,0 +1,7 @@
+{
+  // comentario residual de la plantilla: el JSON real no lo admite
+  "domain": "FIXTURE-SINTETICO-sisben",
+  "fields": [
+    { "name": "personIdType", "dataType": "INTEGER", "type": "CALCULATED", "value": "return field.standardizedIdType" }
+  ]
+}

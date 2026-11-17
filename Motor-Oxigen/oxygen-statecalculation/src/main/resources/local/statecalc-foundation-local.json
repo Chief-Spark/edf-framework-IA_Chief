@@ -1,0 +1,4797 @@
+{
+  "domain": "creaditbureau",
+  "fields": [
+    {
+      "name": "subscriber",
+      "description": "Subscriber code",
+      "aliases": [
+        "subscriberCode",
+        "counterpartyCode"
+      ]
+    },
+    {
+      "name": "subscriberRelation",
+      "description": "Subscriber relationship number / account number"
+    },
+    {
+      "name": "accountNumber",
+      "description": "account number"
+    },
+    {
+      "name": "standardizedIdName",
+      "description": "Use standardized name as idName"
+    },
+    {
+      "name": "idName",
+      "description": "Use standardized name as idName"
+    },
+    {
+      "name": "numberOfChecksReturned",
+      "description": "Number of checks returned",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "numberOfChequesPaid",
+      "description": "Number of checks paid",
+      "dataType": "INTEGER",
+      "aliases": [
+        "numberOfChecksPaid"
+      ]
+    },
+    {
+      "name": "counterpartyIdNumber",
+      "description": "The Idtype of the counter party / subscriber"
+    },
+    {
+      "name": "commercialName",
+      "description": "Commercial Name from Subscribers"
+    },
+    {
+      "name": "gender",
+      "description": "The gender schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "businessLineName",
+      "description": "Subscriber Code name"
+    },
+    {
+      "name": "businessLineStatus",
+      "description": "The Idtype of the counter party / subscriber"
+    },
+    {
+      "name": "economicSector",
+      "description": "economic Sector"
+    },
+    {
+      "name": "commentType",
+      "description": "comment Type"
+    },
+    {
+      "name": "messageId",
+      "description": "message Id"
+    },
+    {
+      "name": "subscribersNIT",
+      "description": "subscribers NIT"
+    },
+    {
+      "name": "inputDateMonthYear",
+      "description": "input DateMonthYear"
+    },
+    {
+      "name": "inputDate",
+      "description": "input Date"
+    },
+    {
+      "name": "inquiryDayDate",
+      "description": "input DateMonthYear"
+    },
+    {
+      "name": "inquiryMonthDate",
+      "description": "input Date"
+    },
+    {
+      "name": "subscribersCode",
+      "description": "subscribers Code"
+    },
+    {
+      "name": "isNovedat",
+      "description": "is Novedat",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "ciiuCodeForMainIndustrialClassification",
+      "description": "ciiuCodeForMainIndustrialClassification"
+    },
+    {
+      "name": "isQP",
+      "description": "is QP",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isInquiryDateQP",
+      "description": "is InquiryDateQP",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isInquiryMonthQP",
+      "description": "is InquiryMonthQP",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isDeleteComment",
+      "description": "is Novedat",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "novedatEventType",
+      "description": "The novedat EventType Schema"
+    },
+    {
+      "name": "commentStatus",
+      "description": "The comment Status Schema"
+    },
+    {
+      "name": "isNotExpiredEvent",
+      "description": "event not Expired yet",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "commentLastUpdate",
+      "description": "comment LastUpdate"
+    },
+    {
+      "name": "sendTimestamp",
+      "description": "Novedat sendTimestamp"
+    },
+    {
+      "name": "homeAddressOrCommercialEstablishment",
+      "description": "homeAddress or CommercialEstablishment"
+    },
+    {
+      "name": "daneCodeForCityOfResidenceOrCommercialEstablishment",
+      "description": "daneCode for CityOfResidence or CommercialEstablishment"
+    },
+    {
+      "name": "daneCodeCityOfWork",
+      "description": "daneCode CityOfWork"
+    },
+    {
+      "name": "daneCodeForMailingCity",
+      "description": "daneCode for MailingCity"
+    },
+    {
+      "name": "departmentOfResidenceOrCommercialEstablishment",
+      "description": "department of Residence or CommercialEstablishment"
+    },
+    {
+      "name": "cityOfResidenceOrCommercialEstablishment",
+      "description": "city of Residence or CommercialEstablishment"
+    },
+    {
+      "name": "contactBurroughs",
+      "description": "contact Burroughs"
+    },
+    {
+      "name": "neighborhood",
+      "description": "neighborhood"
+    },
+    {
+      "name": "zipCode",
+      "description": "zip Code"
+    },
+    {
+      "name": "locationStatecode1",
+      "description": "location Statecode1"
+    },
+    {
+      "name": "websiteURLAddress",
+      "description": "website URLAddress"
+    },
+    {
+      "name": "locationStatecode2",
+      "description": "location Statecode2"
+    },
+    {
+      "name": "locationStatecode3",
+      "description": "location Statecode3"
+    },
+    {
+      "name": "location",
+      "description": "location coc"
+    },
+    {
+      "name": "officeAddress",
+      "description": "office Address"
+    },
+    {
+      "name": "departmentOfWork",
+      "description": "department of Work"
+    },
+    {
+      "name": "cityOfWork",
+      "description": "city of work"
+    },
+    {
+      "name": "mailingAddress",
+      "description": "mailing Address"
+    },
+    {
+      "name": "mailingDepartment",
+      "description": "mailing Department"
+    },
+    {
+      "name": "mailingCity",
+      "description": "mailing city"
+    },
+    {
+      "name": "homePhoneOrOfficePhone",
+      "description": "homePhone or OfficePhone"
+    },
+    {
+      "name": "importerAddress",
+      "description": "homePhone or OfficePhone"
+    },
+    {
+      "name": "exporterAddress",
+      "description": "homePhone or OfficePhone"
+    },
+    {
+      "name": "officePhone",
+      "description": "office Phone"
+    },
+    {
+      "name": "asReportedNameForMigrationColombia",
+      "description": "Migration Colombia asReported Information"
+    },
+    {
+      "name": "phoneOfEstablishment",
+      "description": "phone of Establishment"
+    },
+    {
+      "name": "commercialFax",
+      "description": "commercial Fax"
+    },
+    {
+      "name": "commercialEmail",
+      "description": "commercial email"
+    },
+    {
+      "name": "commercialPhoneLine",
+      "description": "commercial phone line"
+    },
+    {
+      "name": "phoneOfImporter",
+      "description": "phone of Importer"
+    },
+    {
+      "name": "addressForLegalNotifications",
+      "description": "address for LegalNotifications"
+    },
+    {
+      "name": "commercialAddress",
+      "description": "commercial Address"
+    },
+    {
+      "name": "establishmentAddress",
+      "description": "establishment Address"
+    },
+    {
+      "name": "establishmentCommercialAddress",
+      "description": "establishment Commercial Address"
+    },
+    {
+      "name": "inquiryBusinessName",
+      "description": "inquiry BusinessName",
+      "type": "CALCULATED",
+      "value": "if (field.isINFP) {return field.businessName }"
+    },
+    {
+      "name": "inquiryFirstLastName",
+      "description": "inquiry FirstLastName",
+      "type": "CALCULATED",
+      "value": "if (field.isINFP) {return field.firstLastName }"
+    },
+    {
+      "name": "productCode",
+      "description": "product Code"
+    },
+    {
+      "name": "processingType",
+      "description": "processing Type",
+      "type": "CALCULATED",
+      "value": "if (field.isINFP) {return 002 }"
+    },
+    {
+      "name": "userProfile",
+      "description": "user Profile"
+    },
+    {
+      "name": "userIdNumber",
+      "description": "user IdNumber"
+    },
+    {
+      "name": "userIdType",
+      "description": "user IdType"
+    },
+    {
+      "name": "inquiryFootprintType",
+      "description": "inquiry FootprintType"
+    },
+    {
+      "name": "inquiryBusinessLineCode",
+      "description": "inquiry BusinessLineCode"
+    },
+    {
+      "name": "member",
+      "description": "JuradWS"
+    },
+    {
+      "name": "mobilePhone",
+      "description": "mobile Phone"
+    },
+
+    {
+      "name": "exporterEmail",
+      "description": "exporter Email"
+    },
+
+    {
+      "name": "email",
+      "description": "email"
+    },
+    {
+      "name": "faxNumber",
+      "description": "establishment Address"
+    },
+    {
+      "name": "nameOfTheOwner",
+      "description": "nameOfTheOwner"
+    },
+    {
+      "name": "isEquitySettlementQP",
+      "description": "EquitySettlementQP",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isTECMarking",
+      "description": "TECMarking"
+    },
+    {
+      "name": "standardizedIdType",
+      "description": "The Idtype Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "personIdType",
+      "description": "The Idtype Schema",
+      "dataType": "INTEGER",
+      "type": "CALCULATED",
+      "value": "return  field.standardizedIdType"
+    },
+    {
+      "name": "idNumber",
+      "description": "The Idtype Schema",
+      "type": "CALCULATED",
+      "value": "return  field.standardizedIdNumber"
+    },
+    {
+      "name": "personIdNumber",
+      "description": "The Idtype Schema",
+      "type": "CALCULATED",
+      "value": "return  field.standardizedIdNumber"
+    },
+    {
+      "name": "typeOfData",
+      "description": "The typeOfData Schema",
+      "dataType": "INTEGER",
+      "type": "CALCULATED",
+      "value": "if (field.isCredit || field.isExpress) { return 1 } else if (field.isCheckingAndSaving) { return 2 } else if (field.isCustomersMaster) { return 3 } else if (field.isSuperIntendencia) { return 4 } else if (field.isNovedat && (field.isCreateAlert || field.isDeleteAlert)) { return 5 } else if(field.isCOC || field.isBogota || (field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ALT' || field.sheetInfo == 'ESAL')) || field.isJuradWS) { return 6 } else if (field.isMigrationColombia || field.isDas) { return 7 } else if (field.isDianImports) { return 8 }  else if (field.isDianExports) { return 9 } else if (field.isRegistraduria) { return 10 } else if (field.isNovedat && (field.isRegisterDispute || field.isSubmitDispute)) { return 13 } else if (field.isINFP) { return 14 } else if (field.isNovedat && (field.isCreateComment || field.isDeleteComment)) { return 15 } else if (field.isNovedat && field.isEquitySettlementQP) { return 16 } else if (field.isContactMaster) { return 17 } else if (field.isTECMarking) { return 18 } else if (field.isJurad && field.sheetInfo=='RUP') { return 19 } else if (field.sheetInfo=='RNT') { return 20 } else if (field.isDian) { return 21 }"
+    },
+    {
+      "name": "rNT",
+      "description": "Jurad - National Tourism Records"
+    },
+    {
+      "name": "iDTypeOfPartner1",
+      "description": "Populating LE and NP with EC TEC"
+    },
+    {
+      "name": "iDNumberOfPartner1",
+      "description": "Populating LE and NP with EC TEC"
+    },
+    {
+      "name": "nameOfPartner1",
+      "description": "Populating LE and NP with EC TEC"
+    },
+    {
+      "name": "nameOfInterimLegalRepresentative",
+      "description": "Esal National Records & Populating LE and NP with EC TEC"
+    },
+    {
+      "name": "positionOfConnectedPerson",
+      "description": "Chamber of Commerce - Direct Batch Ingestion"
+    },
+    {
+      "name": "valueOfLegalContributions",
+      "description": "Chamber of Commerce - Direct Batch Ingestion",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "numberIOfInstallmentsOfContributions",
+      "description": "Chamber of Commerce - Direct Batch Ingestion"
+    },
+    {
+      "name": "codeOfConnection",
+      "description": "Chamber of Commerce - Direct Batch Ingestion"
+    },
+    {
+      "name": "idType",
+      "description": "Chamber of Commerce - Direct Batch Ingestion & Bogota"
+    },
+    {
+      "name": "chamberCode",
+      "description": "Jurad & JuradWS"
+    },
+    {
+      "name": "chamber",
+      "description": "Jurad & JuradWS"
+    },
+    {
+      "name": "legalEntity",
+      "description": "COC"
+    },
+    {
+      "name": "typeOfOrganization",
+      "description": "Jurad"
+    },
+    {
+      "name": "businessLegalEntityCode",
+      "description": "JuradWS"
+    },
+    {
+      "name": "businessLegalEntity",
+      "description": "Bogota"
+    },
+    {
+      "name": "businessLegalEntityName",
+      "description": "JuradWS"
+    },
+    {
+      "name": "typeOfSociety",
+      "description": "Jurad"
+    },
+    {
+      "name": "categoryOfMercantileRegistration",
+      "description": "COC"
+    },
+    {
+      "name": "businessCategory",
+      "description": "categoryOfRegister",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "categoryOfRegister",
+      "description": "JuradWS"
+    },
+    {
+      "name": "categoryOfRegistration",
+      "description": "Jurad"
+    },
+    {
+      "name": "categoryOfRegisteration",
+      "description": "JuradWS"
+    },
+    {
+      "name": "categoryOfEstablishment",
+      "description": "Jurad"
+    },
+    {
+      "name": "numberOfMercantileRegistration",
+      "description": "COC"
+    },
+    {
+      "name": "dateOfMercantileRegistration",
+      "description": "COC, Jurad, Bogota & juradWS"
+    },
+    {
+      "name": "statusOfMercantileRegistration",
+      "description": "COC, Jurad, Bogota & juradWS"
+    },
+    {
+      "name": "mercantileRegistrationValidThroughDate",
+      "description": "COC & Jurad"
+    },
+    {
+      "name": "dateOfRenewalOfMercantileRegistration",
+      "description": "COC"
+    },
+    {
+      "name": "dateOfRenewal",
+      "description": "Jurad & JuradWS"
+    },
+    {
+      "name": "dateOfLatestRenewalUpdate",
+      "description": "Bogota"
+    },
+    {
+      "name": "regulated",
+      "description": "Bogota"
+    },
+    {
+      "name": "hasInabilitiesRegistered",
+      "description": "Bogota"
+    },
+    {
+      "name": "indicatorOfLegalAction",
+      "description": "COC"
+    },
+    {
+      "name": "indicatorOfLiquidationProcess",
+      "description": "COC"
+    },
+    {
+      "name": "statusOfLiquidations",
+      "description": "Bogota"
+    },
+    {
+      "name": "statusOfEmbargo",
+      "description": "Bogota"
+    },
+    {
+      "name": "abbreviation",
+      "description": "COC, Jurad & JuradWS"
+    },
+    {
+      "name": "statusOfRegistration",
+      "description": "Jurad"
+    },
+    {
+      "name": "statusOfRegister",
+      "description": "JuradWS"
+    },
+    {
+      "name": "statusOfRegisteration",
+      "description": "JuradWS"
+    },
+    {
+      "name": "dateOfDataUpdate",
+      "description": "JuradWS"
+    },
+    {
+      "name": "dateOfCancellationOfMercantileRegistration",
+      "description": "COC & Jurad"
+    },
+    {
+      "name": "dateOfCancelation",
+      "description": "JuradWS"
+    },
+    {
+      "name": "miPymeLawClassification",
+      "description": "COC"
+    },
+    {
+      "name": "certificateCode",
+      "description": "COC"
+    },
+    {
+      "name": "lineSequence",
+      "description": "COC"
+    },
+    {
+      "name": "status",
+      "description": "Jurad - National Tourism Records"
+    },
+    {
+      "name": "typeOfAlert",
+      "description": "Jurad - Alerts"
+    },
+    {
+      "name": "numberOfRegistration",
+      "description": "Jurad - Alerts"
+    },
+    {
+      "name": "proponentRegistration",
+      "description": "Jurad PPC, TEC & ESAL"
+    },
+    {
+      "name": "dateOfFiling",
+      "description": "Jurad - Alerts"
+    },
+    {
+      "name": "amount",
+      "description": "Jurad - Alerts",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "numberOfEmployees",
+      "description": "Jurad, JuradWS & Bogota"
+    },
+    {
+      "name": "contracts",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "Fines",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "Sanctions",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "dateOfRenewalOfProponent",
+      "description": "Jurad - PPC"
+    },
+    {
+      "name": "statusOfProponent",
+      "description": "Jurad - PPC, TEC & ESAL"
+    },
+    {
+      "name": "proponentDateOfRegistration",
+      "description": "Jurad - PPC, TEC & ESAL"
+    },
+    {
+      "name": "dateOfRegistration",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "dateOfAct1",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "act1",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "notice1",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "dateOfAct2",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "act2",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "notice2",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "dateOfAct3",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "act3",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "notice3",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "dateOfAct4",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "act4",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "notice4",
+      "description": "Jurad - RUP"
+    },
+    {
+      "name": "phoneNumber1",
+      "description": "COC"
+    },
+    {
+      "name": "phoneNumber2",
+      "description": "COC"
+    },
+    {
+      "name": "textOfCertificate",
+      "description": "COC & Bogota"
+    },
+    {
+      "name": "connectedIndividualNumberOfIdentification",
+      "description": "COC"
+    },
+    {
+      "name": "connectedIndividualTypeOfIdentification",
+      "description": "COC"
+    },
+    {
+      "name": "brandName",
+      "description": "Subscriber brandName"
+    },
+    {
+      "name": "adjectiveDate",
+      "description": "Credit Master"
+    },
+    {
+      "name": "messageType",
+      "description": "Novedat"
+    },
+    {
+      "name": "justificationID",
+      "description": "Novedat"
+    },
+    {
+      "name": "disputeId",
+      "description": "Novedat"
+    },
+    {
+      "name": "iDTypeOfPartner2",
+      "description": "Jurad"
+    },
+    {
+      "name": "iDNumerOfPartner2",
+      "description": "Jurad"
+    },
+    {
+      "name": "legalRepresentative",
+      "description": "Jurad - RNT"
+    },
+    {
+      "name": "mainLegalRepresentativeName",
+      "description": "Jurad"
+    },
+    {
+      "name": "productType",
+      "description": "The Producttype Schema"
+    },
+    {
+      "name": "subCategoryOfEstablishment",
+      "description": "Jurad - RNT"
+    },
+    {
+      "name": "indicatorOfExporterOrImporter",
+      "description": "COC"
+    },
+    {
+      "name": "importExportIndicator",
+      "description": "Bogota"
+    },
+    {
+      "name": "productNumber",
+      "description": "The Productnumber Schema"
+    },
+    {
+      "name": "modificationState",
+      "description": "Novedat"
+    },
+    {
+      "name": "disputeState",
+      "description": "Novedat"
+    },
+    {
+      "name": "disputeExpiryDate",
+      "description": "Novedat"
+    },
+    {
+      "name": "asOfPeriod",
+      "description": "The Updatedate Schema which is also asOfDate",
+      "aliases": [
+        "updateDate"
+      ]
+    },
+    {
+      "name": "asOfPeriodDouble",
+      "description": "The Updatedate Schema which is also asOfDate",
+      "dataType": "DOUBLE",
+      "type": "CALCULATED",
+      "value": "return field.asOfPeriod"
+    },
+    {
+      "name": "asOfDate",
+      "description": "The asOfDate Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "standardizedIdNumber",
+      "description": "The Idnumber Schema"
+    },
+    {
+      "name": "seizedAccountsLastUpdated",
+      "description": "The seized accounts last updated",
+      "dataType": "LONG"
+    },
+    {
+      "name": "deceasedDate",
+      "description": "The Deceaseddate Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "totalOrPermanentDisabilityDate",
+      "description": "The Permanentdisabilitydate Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "permanentDisabilityDate"
+      ]
+    },
+    {
+      "name": "flatNumber",
+      "description": "The Flatnumber Schema"
+    },
+    {
+      "name": "houseNumber",
+      "description": "The Housenumber Schema"
+    },
+    {
+      "name": "cityCode",
+      "description": "The Citycode Schema"
+    },
+    {
+      "name": "buildingNumber",
+      "description": "The Buildingnumber Schema"
+    },
+    {
+      "name": "stateCode",
+      "description": "The Statecode Schema"
+    },
+    {
+      "name": "streetType",
+      "description": "The Streettype Schema"
+    },
+    {
+      "name": "streetName",
+      "description": "The Streetname Schema"
+    },
+    {
+      "name": "addressParameter",
+      "description": "The Addressparameter Schema"
+    },
+    {
+      "name": "postalCode",
+      "description": "The Postalcode Schema"
+    },
+    {
+      "name": "countryCode",
+      "description": "The Countrycode Schema"
+    },
+    {
+      "name": "addressType",
+      "description": "The Addresstype Schema"
+    },
+    {
+      "name": "stratum",
+      "description": "The Stratum Schema"
+    },
+    {
+      "name": "streetNumber",
+      "description": "The Streetnumber Schema"
+    },
+    {
+      "name": "numberSuplement",
+      "description": "The Numbersuplement Schema"
+    },
+    {
+      "name": "telephoneType",
+      "description": "The Telephonetype Schema"
+    },
+    {
+      "name": "telephoneNumber",
+      "description": "The Telephonenumber Schema"
+    },
+    {
+      "name": "zoneCode",
+      "description": "The Zonecode Schema"
+    },
+    {
+      "name": "areaCode",
+      "description": "The Areacode Schema"
+    },
+    {
+      "name": "emailAddress",
+      "description": "The Emailaddress Schema"
+    },
+    {
+      "name": "socialMediaType",
+      "description": "The Socialmediatype Schema"
+    },
+    {
+      "name": "userAccount",
+      "description": "The Useraccount Schema"
+    },
+    {
+      "name": "subscriberStatus",
+      "description": "The Subscriberstatus Schema"
+    },
+    {
+      "name": "dataSources",
+      "description": "The Items Schema"
+    },
+    {
+      "name": "attributeValue",
+      "description": "The Attributevalue Schema"
+    },
+    {
+      "name": "attributeName",
+      "description": "The Attributename Schema"
+    },
+    {
+      "name": "date",
+      "description": "The Date Schema"
+    },
+    {
+      "name": "time",
+      "description": "The Time Schema"
+    },
+    {
+      "name": "exceptionalCircumstanceIndicator",
+      "description": "The Exceptionalcircumstanceindicator Schema"
+    },
+    {
+      "name": "stateOfAccountHolder",
+      "description": "The Stateofaccountholder Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "deceased",
+      "description": "The Deceased Schema"
+    },
+    {
+      "name": "permanentDisability",
+      "description": "The Permanentdisability Schema"
+    },
+    {
+      "name": "prefix",
+      "description": "The Prefix Schema"
+    },
+    {
+      "name": "fullName",
+      "description": "The fullName Schema"
+    },
+    {
+      "name": "stateFirstLastName",
+      "description": "The fullName Schema"
+    },
+    {
+      "name": "secondLastName",
+      "description": "second LastName"
+    },
+    {
+      "name": "firstName",
+      "description": "first Name"
+    },
+    {
+      "name": "secondName",
+      "description": "second Name"
+    },
+    {
+      "name": "firstLastName",
+      "description": "firstLastName"
+    },
+    {
+      "name": "particle",
+      "description": "particle"
+    },
+    {
+      "name": "aka",
+      "description": "The Items Schema"
+    },
+    {
+      "name": "ranking",
+      "description": "The Ranking Schema"
+    },
+    {
+      "name": "fullAddress",
+      "description": "The Fulladdress Schema"
+    },
+    {
+      "name": "verificationDigit",
+      "description": "The verification Digit"
+    },
+    {
+      "name": "importerVerificationDigit",
+      "description": "Dian Imports Importer verification Digit"
+    },
+    {
+      "name": "typeOfWorkingContract",
+      "description": "The Contracttype Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "startDateAtTheCompany",
+      "description": "The Contractstartdate Schema"
+    },
+    {
+      "name": "nationalityCode",
+      "description": "The nationalities Schema"
+    },
+    {
+      "name": "nationality",
+      "description": "The nationalities Schema"
+    },
+    {
+      "name": "taxRegistrationIndicator",
+      "description": "The Taxregistrationindicator Schema"
+    },
+    {
+      "name": "liabilities",
+      "description": "The Liabilities Schema",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "assets",
+      "description": "The Assets Schema",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "income",
+      "description": "The Income Schema",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "maritalStatus",
+      "description": "The martial status",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "acitivityType",
+      "description": "The Acitivitytype Schema"
+    },
+    {
+      "name": "cIIu",
+      "description": "The Isiccode Schema",
+      "dataType": "INTEGER",
+      "aliases": [
+        "isicCode"
+      ]
+    },
+    {
+      "name": "issuingCountryCode",
+      "description": "The Issuecountrycode Schema"
+    },
+    {
+      "name": "idStatus",
+      "description": "The Idstatus Schema"
+    },
+    {
+      "name": "expiryDateId",
+      "description": "The Expirydate Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "proponentRegistrationNumber",
+      "description": "Bogota",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "dateOfExpiry",
+      "description": "The Expirydate Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "expiryDate"
+      ]
+    },
+    {
+      "name": "issuingStateName",
+      "description": "The Issuestatename Schema"
+    },
+    {
+      "name": "issuingStateCode",
+      "description": "The Issuestatecode Schema"
+    },
+    {
+      "name": "issuingCountryName",
+      "description": "The Issuecountryname Schema"
+    },
+    {
+      "name": "placeOfIssuanceOfDocument",
+      "description": "The Issuecitycode Schema"
+    },
+    {
+      "name": "idIssueDate",
+      "description": "idIssueDate",
+      "dataType": "LONG"
+    },
+    {
+      "name": "issueDate",
+      "description": "The Issuedate Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "issuingCityName",
+      "description": "The Issuecityname Schema"
+    },
+    {
+      "name": "typeOfDebtor",
+      "description": "The Typeofdebtor Schema"
+    },
+    {
+      "name": "totalCashCredits",
+      "description": "The Totalcashcredits Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "bureauEvent",
+      "description": "The Bureauevent Schema"
+    },
+    {
+      "name": "balanceOverdue",
+      "description": "The Valuebalanceoverdue Schema",
+      "aliases": [
+        "valueBalanceOverdue"
+      ],
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfMonthlyPayment",
+      "description": "The Valuemonthlypayment Schema",
+      "dataType": "DOUBLE",
+      "aliases": [
+        "valueMonthlyPayment"
+      ]
+    },
+    {
+      "name": "totalValueOfChequesPaid",
+      "description": "The Totalvalueofcheckspaid Schema",
+      "dataType": "DOUBLE",
+      "aliases": [
+        "totalValueOfChecksPaid"
+      ]
+    },
+    {
+      "name": "delinquencyMaturation",
+      "description": "The Delinquencymaturation Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "blockSeverity",
+      "description": "block severity"
+    },
+    {
+      "name": "event",
+      "description": "The Event Schema"
+    },
+    {
+      "name": "dateOfStatusOfAccount",
+      "description": "The Accountstatusdate Schema"
+    },
+    {
+      "name": "cardStatus",
+      "description": "The Cardstatus Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "nameOfClient",
+      "description": "Name of client"
+    },
+    {
+      "name": "statusOfCard",
+      "description": "The Cardstatus Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "cardStatus"
+      ]
+    },
+    {
+      "name": "debtBalance",
+      "description": "The Debtbalance Schema",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "availableBalance",
+      "description": "The Availablebalance Schema",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalValueOfChequesReturned",
+      "description": "The Totalvalueofchecksreturned Schema",
+      "dataType": "DOUBLE",
+      "aliases": [
+        "totalValueOfChecksReturned"
+      ]
+    },
+    {
+      "name": "dateOfReportOfEvent",
+      "description": "The Eventreportdate Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "eventReportDate"
+      ]
+    },
+    {
+      "name": "totalDebitTransfer",
+      "description": "The Totaldebittransfer Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "cardStatusDate",
+      "description": "The Cardstatusdate Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "dateOfStatusOfPlastic",
+      "description": "The Cardstatusdate Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "cardStatusDate"
+      ]
+    },
+    {
+      "name": "accountStatus",
+      "description": "The Accountstatus Schema"
+    },
+    {
+      "name": "minimumLegalWageValue",
+      "description": "The Minimumlegalwagevalue Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "rating",
+      "description": "The Rating Schema"
+    },
+    {
+      "name": "paidInstallments",
+      "description": "The Paidinstallments Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "installmentOverdue",
+      "description": "installmentsOverdue",
+      "dataType": "INTEGER",
+      "aliases": [
+        "installmentsOverdue"
+      ]
+    },
+    {
+      "name": "totalCreditTransfer",
+      "description": "The Totalcredittransfer Schema",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfCashDebit",
+      "description": "The Totalcashdebits Schema",
+      "dataType": "DOUBLE",
+      "aliases": [
+        "totalCashDebits"
+      ]
+    },
+    {
+      "name": "totalOfCashCredit",
+      "description": "The Total credit tarnsfer Schema",
+      "dataType": "DOUBLE",
+      "aliases": [
+        "totalCashCredits"
+      ]
+    },
+    {
+      "name": "totalOfTransferCredit",
+      "description": "The Total credit transfer Schema",
+      "dataType": "DOUBLE",
+      "aliases": [
+        "totalCreditTransfer"
+      ]
+    },
+    {
+      "name": "totalOfTransferDebit",
+      "description": "The Total debit transfer Schema",
+      "dataType": "DOUBLE",
+      "aliases": [
+        "totalDebitTransfer"
+      ]
+    },
+    {
+      "name": "behaviourDate",
+      "description": "The Behaviourdate Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "cutoffDate",
+      "description": "The cutoff date Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "eventReceivedDate",
+      "description": "The cutoff date Schema",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "cutoffDateDouble",
+      "description": "The cutoff date Schema",
+      "dataType": "DOUBLE",
+      "type": "CALCULATED",
+      "value": "return field.cutoffDate"
+    },
+    {
+      "name": "paymentDate",
+      "description": "date of payment",
+      "dataType": "LONG"
+    },
+    {
+      "name": "scoreName",
+      "description": "The Scorename Schema"
+    },
+    {
+      "name": "scoreType",
+      "description": "The Scoretype Schema"
+    },
+    {
+      "name": "population",
+      "description": "The Population Schema"
+    },
+    {
+      "name": "reasonCodes",
+      "description": "The Items Schema"
+    },
+    {
+      "name": "classification",
+      "description": "The Classification Schema"
+    },
+    {
+      "name": "value",
+      "description": "The Value Schema"
+    },
+    {
+      "name": "appraisalGuaranteeDate",
+      "description": "The Appraisalguaranteedate Schema"
+    },
+    {
+      "name": "typeOfGuarantee",
+      "description": "The Guaranteetype Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "guaranteeType"
+      ]
+    },
+    {
+      "name": "guaranteeValue",
+      "description": "The Guaranteevalue Schema"
+    },
+    {
+      "name": "quarter",
+      "description": "The Items Schema"
+    },
+    {
+      "name": "outstandingBalance",
+      "description": "The Outstandingbalance Schema"
+    },
+    {
+      "name": "creditType",
+      "description": "The Credittype Schema"
+    },
+    {
+      "name": "reportSource",
+      "description": "The Reportsource Schema"
+    },
+    {
+      "name": "numberOfCreditAccounts",
+      "description": "The Numberofcreditaccounts Schema"
+    },
+    {
+      "name": "reportDate",
+      "description": "The Reportdate Schema"
+    },
+    {
+      "name": "incomeDate",
+      "description": "The Incomedate Schema"
+    },
+    {
+      "name": "maritalStatusLastUpdated",
+      "description": "The Educationlevel Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "dependents",
+      "description": "The Numberofdependants Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "inquiryOffice",
+      "description": "The Inquiryoffice Schema"
+    },
+    {
+      "name": "inquiryReasonCode",
+      "description": "The Inquiryreasoncode Schema"
+    },
+    {
+      "name": "inquiryCity",
+      "description": "The Inquirycity Schema"
+    },
+    {
+      "name": "inquiryEntityId",
+      "description": "The Inquiryentityid Schema"
+    },
+    {
+      "name": "inquiryEconomicSector",
+      "description": "The Inquiryeconomicsector Schema"
+    },
+    {
+      "name": "inquiryEntityName",
+      "description": "The Inquiryentityname Schema"
+    },
+    {
+      "name": "inquiryAccountType",
+      "description": "The Inquiryaccounttype Schema"
+    },
+    {
+      "name": "inquiryDate",
+      "description": "The Inquirydate Schema"
+    },
+    {
+      "name": "disputeNumber",
+      "description": "The Disputenumber Schema"
+    },
+    {
+      "name": "disputeStatus",
+      "description": "The Disputestatus Schema"
+    },
+    {
+      "name": "disputeText",
+      "description": "The Disputetext Schema"
+    },
+    {
+      "name": "disputeDate",
+      "description": "The Disputedate Schema"
+    },
+    {
+      "name": "disputeSubtypeCode",
+      "description": "The dispute subtypecode Schema"
+    },
+    {
+      "name": "disputeSubtype",
+      "description": "The dispute subtype Schema"
+    },
+    {
+      "name": "disputeSubtypeName",
+      "description": "The dispute subtypename Schema"
+    },
+    {
+      "name": "disputeType",
+      "description": "The Disputetype Schema"
+    },
+    {
+      "name": "disputeEntity",
+      "description": "The Disputeentity Schema"
+    },
+    {
+      "name": "accountType",
+      "description": "The Account type Schema"
+    },
+    {
+      "name": "disputeCloseDate",
+      "description": "The Disputeclosedate Schema"
+    },
+    {
+      "name": "legendType",
+      "description": "The Legendtype Schema"
+    },
+    {
+      "name": "disputeRatified",
+      "description": "The Disputeratified Schema"
+    },
+    {
+      "name": "alertCode",
+      "description": "The Alertcode Schema"
+    },
+    {
+      "name": "alertCountryCode",
+      "description": "The Alertcountrycode Schema"
+    },
+    {
+      "name": "alertInputDate",
+      "description": "The Alertinputdate Schema"
+    },
+    {
+      "name": "sourceCode",
+      "description": "The Sourcecode Schema"
+    },
+    {
+      "name": "sourceName",
+      "description": "The Sourcename Schema"
+    },
+    {
+      "name": "alertText",
+      "description": "The Alerttext Schema"
+    },
+    {
+      "name": "alertExpiryDate",
+      "description": "The Alertexpirydate Schema"
+    },
+    {
+      "name": "alertRecordType",
+      "description": "The Alertrecordtype Schema"
+    },
+    {
+      "name": "alertType",
+      "description": "The Alerttype Schema"
+    },
+    {
+      "name": "alertListCode",
+      "description": "The Alertlistcode Schema"
+    },
+    {
+      "name": "alertListDate",
+      "description": "The Alertlistdate Schema"
+    },
+    {
+      "name": "alertRecordLength",
+      "description": "The Alertrecordlength Schema"
+    },
+    {
+      "name": "alertModificationDate",
+      "description": "The Alertmodificationdate Schema"
+    },
+    {
+      "name": "tradeHolderIndicator",
+      "description": "The Tradeholderindicator Schema",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "privateBrandName",
+      "description": "The Privatebrandname Schema"
+    },
+    {
+      "name": "cardClass",
+      "description": "The Cardclass Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "lineDisconnectedDate",
+      "description": "The Linedisconnecteddate Schema"
+    },
+    {
+      "name": "probabilityOfDefault",
+      "description": "The Probabilityofdefault Schema"
+    },
+    {
+      "name": "dateOfMortgageSubsidy",
+      "description": "The Mortgagesubsidydate Schema"
+    },
+    {
+      "name": "detailOfGuarantee",
+      "description": "The Guaranteedetail Schema",
+      "aliases": [
+        "guaranteeDetail"
+      ]
+    },
+    {
+      "name": "typeOfCredit",
+      "description": "The Typeofcredit Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "originStatusOfAccounts",
+      "description": "The Originstatusofaccount Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "originStatusOfAccount"
+      ]
+    },
+    {
+      "name": "franchise",
+      "description": "The Franchise Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "prelegalActionCollectionDate",
+      "description": "The Prelegalcollectiondate Schema",
+      "aliases": [
+        "prelegalCollectionDate"
+      ]
+    },
+    {
+      "name": "legalActionCollectionDate",
+      "description": "The legal collection date Schema",
+      "aliases": [
+        "legalCollectionDate"
+      ]
+    },
+    {
+      "name": "accountCategory",
+      "description": "The Accountcategory Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "paymentType",
+      "description": "The Payment type Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "debtorNotFoundDate",
+      "description": "The Debtor not founddate Schema"
+    },
+    {
+      "name": "daneCodeForCityOfFiling",
+      "description": "filing City Code schema",
+      "aliases": [
+        "filingCityCode"
+      ]
+    },
+    {
+      "name": "typeOfRepaymentPeriod",
+      "description": "The Contract term  Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "contractTerm"
+      ]
+    },
+    {
+      "name": "accountInCollectionDate",
+      "description": "The Accountincollectiondate Schema",
+      "aliases": [
+        "accountAtCollectionDate"
+      ]
+    },
+    {
+      "name": "filingOffice",
+      "description": "The Filingoffice Schema"
+    },
+    {
+      "name": "accOpeningDateInEpoch",
+      "description": "account opening date",
+      "dataType": "LONG",
+      "aliases": [
+        "accountOpeningDate"
+      ]
+    },
+    {
+      "name": "initialValueOfCreditLimit",
+      "description": "The Initial value Schema",
+      "dataType": "DOUBLE",
+      "aliases": [
+        "initialValue"
+      ]
+    },
+    {
+      "name": "totalOfPayments",
+      "description": "The total Number Of Installments  Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "totalNumberOfInstallments"
+      ]
+    },
+    {
+      "name": "dateOfOriginStatus",
+      "description": "The Dateoforiginstatus Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "paymentDeadline",
+      "description": "The Paymentdeadline Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "currencyType",
+      "description": "The Currencytype Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "cityOfFiling",
+      "description": "The Filingcityname Schema",
+      "aliases": [
+        "filingCityName"
+      ]
+    },
+    {
+      "name": "authorizedOverdraftCreditLimit",
+      "description": "The Authorizedoverdraftcreditlimit Schema",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "authorizedOverdraftDays",
+      "description": "The authorizedOverdraftDays Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "authorizedOverdraftDateOfReportForCreditLimit",
+      "description": "The Authorizedoverdraft days Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "overdraftReportDate"
+      ]
+    },
+    {
+      "name": "totalInstallments",
+      "description": "The Totalinstallments Schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "contractLength",
+      "description": "The Contractlength Schema"
+    },
+    {
+      "name": "periodicityOfPayments",
+      "description": "periodicity Of Payments schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "expiredAccountDate",
+      "description": "This field value is calculated in Foundation state enricher",
+      "dataType": "LONG"
+    },
+    {
+      "name": "eventYear",
+      "description": "event year",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "eventMonth",
+      "description": "event month",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "numberOfSeizedAccounts",
+      "description": "This field is calculated in foundation enricher",
+      "dataType": "LONG"
+    },
+    {
+      "name": "seizedAccountsLastUpdated",
+      "description": "This field is calculated in foundation enricher",
+      "dataType": "LONG"
+    },
+    {
+      "name": "normalizedBehaviourVectorDA",
+      "description": "normalizedBehaviourVectorDA is calculated in foundation enrichment processor"
+    },
+    {
+      "name": "behaviourVector",
+      "description": "Behaviour vector is calculated in foundation enrichment processor"
+    },
+    {
+      "name": "homeAddressFirstDate",
+      "description": "Behaviour vector is calculated in foundation enrichment processor"
+    },
+    {
+      "name": "importerAddressFirstDate",
+      "description": "Behaviour vector is calculated in foundation enrichment processor"
+    },
+    {
+      "name": "exporterAddressFirstDate",
+      "description": "Behaviour vector is calculated in foundation enrichment processor"
+    },
+    {
+      "name": "officeAddressFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "mailingAddressFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "homePhoneOrOfficePhoneFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "officePhoneFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "commercialPhoneLineFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "phoneNumber1FirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "phoneOfEstablishmentFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "commercialFaxFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "telephoneNumberFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "phoneOfImporterFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "addressForLegalNotificationsFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "commercialAddressFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "establishmentAddressFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "establishmentCommercialAddressFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "mobilePhoneFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "exporterEmailFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "emailFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "commercialEmailFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "faxNumberFirstDate",
+      "description": "Behaviour vector is calculated in foundation enrichment processor"
+    },
+    {
+      "name": "commercialFaxFirstDate",
+      "description": "Calculated in foundation enrichment processor"
+    },
+
+    {
+      "name": "behaviourVectorProduct",
+      "description": "Calculated in foundation enrichment processor"
+    },
+    {
+      "name": "behaviourVectorNormalized",
+      "description": "TO-DO"
+    },
+    {
+      "name": "businessBehaviourVectorNormalized",
+      "description": "TO-DO"
+    },
+    {
+      "name": "permanenceClause",
+      "description": "The Permanenceclause Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "termClause"
+      ]
+    },
+    {
+      "name": "cardNumber",
+      "description": "The Cardnumber Schema"
+    },
+    {
+      "name": "permanenceClauseDate",
+      "description": "The Permanenceclausedate Schema",
+      "dataType": "LONG",
+      "aliases": [
+        "termClauseDate"
+      ]
+    },
+    {
+      "name": "commentType",
+      "description": "The Commenttype Schema"
+    },
+    {
+      "name": "commentText",
+      "description": "The Commenttext Schema"
+    },
+    {
+      "name": "commentExpiryDate",
+      "description": "The Commentexpirydate Schema"
+    },
+    {
+      "name": "minimumAge",
+      "description": "The minumun Age"
+    },
+    {
+      "name": "maximumAge",
+      "description": "The maximum Age"
+    },
+    {
+      "name": "nameOfEmployer",
+      "description": "The nameOfEmployer"
+    },
+    {
+      "name": "nitNumberOfEmployer",
+      "description": "The id number of Employer",
+      "dataType": "LONG"
+    },
+    {
+      "name": "contractType",
+      "description": "employer Name Last Updated date",
+      "dataType": "LONG"
+    },
+    {
+      "name": "economicActivity",
+      "description": "economicActivity",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "updateOfDependents",
+      "description": "date of dependents update",
+      "dataType": "LONG"
+    },
+    {
+      "name": "updateOfMaritalStatus",
+      "description": "date of marital status update",
+      "dataType": "LONG"
+    },
+    {
+      "name": "updateOfLevelOfEducation",
+      "description": "date of dependents update",
+      "dataType": "LONG"
+    },
+    {
+      "name": "updateOfIncome",
+      "description": "date of Income last updated",
+      "dataType": "LONG"
+    },
+    {
+      "name": "updateOfForceMajeure",
+      "description": "date of code last updated",
+      "dataType": "LONG",
+      "aliases": [
+        "forceMajeureCodeLastUpdated"
+      ]
+    },
+    {
+      "name": "forceMajeureIndicator",
+      "description": "forceMajeure value ",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "balanceCutOffDate",
+      "description": "date of balance last updated",
+      "dataType": "LONG"
+    },
+    {
+      "name": "isRegistraduria",
+      "description": "isRegistraduria",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isDas",
+      "description": "isDas event",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isCustomersMaster",
+      "description": "Customer Master",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "updateOfInternationalOperations",
+      "description": "Update Of International Operations",
+      "dataType": "LONG"
+    },
+    {
+      "name": "officialSourceValidationIndicator",
+      "description": "The Officialsourcevalidationindicator Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "dob",
+      "description": "dateOfBirth",
+      "partitionBy": [
+        "pin"
+      ],
+      "defaultValue": "0",
+      "dataType": "LONG",
+      "value": "##last(dateOfBirth, true)##"
+    },
+    {
+      "name": "event",
+      "description": "event"
+    },
+    {
+      "name": "isAccountExpired",
+      "description": "isAccountExpired",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isAccountExpiration",
+      "description": "isAccountExpiration",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "binNumber",
+      "description": "Bin Number for the subscriber",
+      "dataType": "LONG"
+    },
+    {
+      "name": "blockType",
+      "description": "The Typeofblock Schema",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "isCOC",
+      "description": "The Typeofblock Schema",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "sheetInfo",
+      "description": "Jurad sheet information"
+    },
+    {
+      "name": "isMigrated",
+      "description": "Migrated events",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isBlockingDueToQuality",
+      "description": "blocked due to quality flag",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "blockDate",
+      "description": "block date"
+    },
+    {
+      "name": "isPrescription",
+      "description": "Prescription block flag",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isOverdraftAccount",
+      "description": "Overdraft Account indicator",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isDian",
+      "description": "Dian",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isCheckingAndSaving",
+      "description": " CheckingAndSaving",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "holderStatus",
+      "description": "holder Status Schema"
+    },
+    {
+      "name": "action",
+      "description": "action Schema"
+    },
+    {
+      "name": "fileExtension",
+      "description": "file Extension"
+    },
+    {
+      "name": "isJurad",
+      "description": "Jurad",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isDianExports",
+      "description": "Dian Exports",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isDianImports",
+      "description": "Dian Imports",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isCredit",
+      "description": "Credit Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isAccountRenumbered",
+      "description": "Renumbered Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isAccountJoined",
+      "description": "joined Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isCreateAction",
+      "description": "Create Action",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isEliminated",
+      "description": "Eliminated Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isModification",
+      "description": "Modified Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isReversal",
+      "description": "Reversed Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isAccountMigrated",
+      "description": "Migrated Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isDeceased",
+      "description": "is Deceased Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isRegisterModification",
+      "description": "is RegisterModification",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isExpress",
+      "description": "Express Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isContactMaster",
+      "description": "Contact Account",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isSuperIntendencia",
+      "description": "SuperIntendencia",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isSupersociedades",
+      "description": "SuperIntendencia",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isMigrationColombia",
+      "description": "Migration Colombia",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isTECMarking",
+      "description": "TEC Marking",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "comment",
+      "description": "inquiry footprints",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isInquiryFootprintsQP",
+      "description": "inquiry footprints QP",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "businessCorporateName",
+      "description": "Migration Colombia"
+    },
+    {
+      "name": "corporateName",
+      "description": "Migration Colombia"
+    },
+    {
+      "name": "nameOfClient",
+      "description": "Bogota"
+    },
+    {
+      "name": "naming",
+      "description": "Migration Colombia"
+    },
+    {
+      "name": "name",
+      "description": "The Name Schema"
+    },
+    {
+      "name": "exporterCorporateName",
+      "description": "The Name Schema"
+    },
+    {
+      "name": "CorporateNameOfImporter",
+      "description": "The Name Schema"
+    },
+    {
+      "name": "indicatorOfOverdraft",
+      "description": "indicator Of Overdraft",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "lastUpdatedDate",
+      "description": "date of payment",
+      "dataType": "LONG"
+    },
+    {
+      "name": "novedatDeletionByCounterPartyReason",
+      "description": "This field is present for credit, checkingNSaving and express"
+    },
+    {
+      "name": "deletionByCounterPartyReason",
+      "description": "deletionByCounterpartyReason",
+      "type": "CALCULATED",
+      "value": "if ((field.messageType == \"DELETEACCOUNTMODIFICATION\" && field.justificationID == \"2\") || (field.messageType == \"DELETEACCOUNTDISPUTE\" && field.justificationID == \"12\")) { return field.novedatDeletionByCounterPartyReason }"
+    },
+    {
+      "name": "accountClosedDate",
+      "description": "This field is computed in foundation enrichment"
+    },
+    {
+      "name": "accountInactiveDate",
+      "description": "TODO: FIX ME. Only apply for Checking and Saving Accounts.Take the date of the first event received with inactive event (event value = 6) of the last inactive period, only if it was not received after this a different value other than an inactive (event value = 6) or before this a closure event (event value = 2 or 3)."
+    },
+    {
+      "name": "doubtfulCollectionDate",
+      "description": "TODO: FIX ME. Only apply for Credit Accounts.Take the date of the first event received with Doubtful collection event (event value = 12) of the last Doubtful collection period, only if it was not received after this a different value other than a Doubtful collection (event value = 12)"
+    },
+    {
+      "name": "writeOffDate",
+      "description" :"Only apply for Credit Accounts. Take the date of the first event received with Writeoff event (event value = 13) of the last Writeoff period, only if it was not received after this a different value other than an Writeoff (event value = 13)"
+    },
+    {
+      "name": "activityType",
+      "description": "Take Contract Type last updated",
+      "dataType": "LONG"
+    },
+    {
+      "name": "contactType",
+      "description": "TODO: FIX ME. REQUIREMENT TBD"
+    },
+    {
+      "name": "contactAsReported",
+      "description": "TODO: FIX ME. REQUIREMENT TBD"
+    },
+    {
+      "name": "addressCityName",
+      "description": "TODO: FIX ME. REQUIREMENT TBD"
+    },
+    {
+      "name": "addressCityCode",
+      "description": "TODO: FIX ME. REQUIREMENT TBD"
+    },
+    {
+      "name": "contactFirstEventDate",
+      "description": "TODO: FIX ME. REQUIREMENT TBD"
+    },
+    {
+      "name": "contactZipcode",
+      "description": "contact Zipcode"
+    },
+    {
+      "name": "contactNeighborhood",
+      "description": "contact Neighborhood"
+    },
+    {
+      "name": "contactBurroughs",
+      "description": "contact Burroughs"
+    },
+    {
+      "name": "contactMunicipality",
+      "description": "contact Municipality"
+    },
+    {
+      "name": "cityName",
+      "description": "city Name"
+    },
+    {
+      "name": "stateName",
+      "description": "state Name"
+    },
+    {
+      "name": "age",
+      "description": "TODO: FIX ME."
+    },
+    {
+      "name": "isAccountExpiredField",
+      "description": "This config sets the account expiry flag for credit, express and checing events.",
+      "numberOfHistoricPeriods": 0,
+      "handler": {
+        "name": "com.experian.edf.bureau.colombia.statecalculation.ExpiredAccountCheck",
+        "method": "enrichEvent"
+      }
+    },
+    {
+      "name": "isAccountExpiredField",
+      "description": "TO BE REMOVED!!! THIS IS JUST A SAMPLE FOR CUSTOM WITH HISTORY",
+      "numberOfHistoricPeriods": 0,
+      "handler": {
+        "name": "com.experian.edf.oxygen.stage.statecalculation.defaults.TestFieldCreator",
+        "method": "enrichEvent"
+      }
+    },
+    {
+      "name": "firstEventDate",
+      "description": "date of firstEvent",
+      "dataType": "LONG"
+    },
+    {
+      "name": "deletionByCounterpartyReason",
+      "description": "deletion by counter party reason"
+    },
+    {
+      "name": "eventLockIndicator",
+      "description": "event Lock indicator"
+    },
+    {
+      "name": "ciiuCode1ForIndustrialClassification",
+      "description": "ciiuCode1ForIndustrialClassification"
+    },
+    {
+      "name": "ciiuCode2ForIndustrialClassification",
+      "description": "ciiuCode2ForIndustrialClassification"
+    },
+    {
+      "name": "ciiuCode3ForIndustrialClassification",
+      "description": "ciiuCode3ForIndustrialClassification"
+    },
+    {
+      "name": "ciiuCode4ForIndustrialClassification",
+      "description": "ciiuCode4ForIndustrialClassification"
+    },
+    {
+      "name": "ciiuCode5ForIndustrialClassification",
+      "description": "ciiuCode5ForIndustrialClassification"
+    },
+    {
+      "name": "cIIUCode1",
+      "description": "cIIUCode1"
+    },
+    {
+      "name": "cIIUCode2",
+      "description": "cIIUCode2"
+    },
+    {
+      "name": "cIIUCode3",
+      "description": "cIIUCode3"
+    },
+    {
+      "name": "cIIUCode4",
+      "description": "cIIUCode4"
+    },
+    {
+      "name": "ciiuCode",
+      "description": "ciiuCode"
+    },
+    {
+      "name": "updateOfWorkingContract",
+      "description": "contractType Last Updated",
+      "dataType": "LONG",
+      "aliases": [
+        "contractTypeLastUpdated"
+      ]
+    },
+    {
+      "name": "isMasterFile",
+      "description": "Check for Master files",
+      "type": "CALCULATED",
+      "defaultValue": "false",
+      "value": "return (field.isCredit || field.isExpress || field.isCheckingAndSaving || field.isCustomersMaster || field.isContactMaster)",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "eventLastUpdated",
+      "description": "event Last Updated",
+      "type": "CALCULATED",
+      "value": "return field.cutoffDate",
+      "dataType": "LONG",
+      "aliases": [
+        "eventDateLastUpdated"
+      ]
+    },
+    {
+      "name": "contactEventLastUpdated",
+      "description": "event Last Updated",
+      "type": "CALCULATED",
+      "value": "return field.cutoffDate",
+      "dataType": "LONG"
+    },
+    {
+      "name": "contactFirstEventDate",
+      "description": "event Last Updated"
+    },
+    {
+      "name": "colombianCitizensNaltionality",
+      "description": "This field is calculated in foundation enrichment processor"
+    },
+    {
+      "name": "veneuzulaCitizensNationality",
+      "description": "This field is calculated in foundation enrichment processor"
+    },
+    {
+      "name": "officialSourceValidationStatus",
+      "description": "BestIdentifications",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "idVerificationDigit",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC || field.isJurad || field.isJuradWS || field.isBogota || field.isSuperIntendencia || field.isTECMarking || field.isDian) { return field.verificationDigit} else if (field.isDianImports) {return field.importerVerificationDigit}",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "businessLineCode",
+      "description": "Subscriber code"
+    },
+    {
+      "name": "commentId",
+      "description": "comment Id",
+      "type": "CALCULATED",
+      "value": "if (field.isNovedat == true ) {return field.messageId}"
+    },
+    {
+      "name": "dateOfBirth",
+      "description": "Age",
+      "dataType": "LONG",
+      "aliases": [
+        "birthDate"
+      ]
+    },
+    {
+      "name": "dateOfEstablishment",
+      "description": "Date Of Establishment schema",
+      "dataType": "LONG"
+    },
+    {
+      "name": "internationalOperations",
+      "description": "international Operations",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "counterpartyIdType",
+      "description": "The Idtype of the counter party / subscriber",
+      "defaultValue": "2",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "webSite",
+      "description": "The Website Schema",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) {return field.websiteURLAddress}"
+    },
+    {
+      "name": "commercialWebsite",
+      "description": "The commercial website"
+    },
+    {
+      "name": "locationFirstEventDate",
+      "description": "The location date Schema",
+      "type": "CALCULATED",
+      "value": "return field.firstEventDate",
+      "dataType": "LONG"
+    },
+    {
+      "name": "locationEventLastUpdated",
+      "description": "The location date Schema",
+      "type": "CALCULATED",
+      "value": "return field.cutoffDate",
+      "dataType": "LONG"
+    },
+    {
+      "name": "businessName",
+      "description": "The business name of counter party",
+      "type": "CALCULATED",
+      "value": "if (field.isINFP) {return field.inquiryBusinessName} else if (field.isJuradWS || field.isDian ) { return field.fullName } else if (field.isBogota ) { return field.nameOfClient } else if (field.isCOC ) { return field.businessCorporateName } else if (field.isJurad ) { return field.corporateName } else if (field.isCredit  || field.isExpress  || field.isCheckingAndSaving  || field.isCustomersMaster ) { return field.commercialName } else if (field.isDianExports ) { return field.exporterCorporateName } else if (field.isDianImports ) { return field.CorporateNameOfImporter }"
+    },
+    {
+      "name": "businessSubCategoryDescription",
+      "description": "Jurad - National Tourism Records",
+      "type": "CALCULATED",
+      "value": "if (field.sheetInfo=='RNT') { return field.subCategoryOfEstablishment }"
+    },
+    {
+      "name": "numberRNT",
+      "description": "Jurad - National Tourism Records",
+      "type": "CALCULATED",
+      "value": "if (field.sheetInfo=='RNT') { return field.rNT }"
+    },
+    {
+      "name": "idTypeOfMainLegalRepresentative",
+      "description": "Populating LE and NP with EC TEC",
+      "type": "CALCULATED",
+      "value": "if(field.sheetInfo == \"TEC\") { return field.iDTypeOfPartner1 }"
+    },
+    {
+      "name": "idNumberOfMainLegalRepresentative",
+      "description": "Populating LE and NP with EC TEC",
+      "type": "CALCULATED",
+      "value": "if(field.sheetInfo == \"TEC\") { return field.iDNumberOfPartner1 }",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "nameOfMainLegalRepresentative",
+      "description": "Jurad",
+      "type": "CALCULATED",
+      "value": "if(field.sheetInfo == 'RNT') { return field.legalRepresentative } else { return field.mainLegalRepresentativeName }"
+    },
+    {
+      "name": "idTypeOfInterimLegalRepresentative",
+      "description": "Populating LE and NP with EC TEC",
+      "type": "CALCULATED",
+      "value": "if(field.sheetInfo == \"TEC\") { return field.iDTypeOfPartner2 }"
+    },
+    {
+      "name": "idNumberOfInterimLegalRepresentative",
+      "description": "Populating LE and NP with EC TEC",
+      "type": "CALCULATED",
+      "value": "if(field.sheetInfo == \"TEC\") { return field.iDNumerOfPartner2 }"
+    },
+    {
+      "name": "numberOfinstallmentsOfContributions",
+      "description": "Chamber of Commerce - Direct Batch Ingestion",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.numberIOfInstallmentsOfContributions }",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "personIdTypeDescription",
+      "description": "Chamber of Commerce - Direct, Jurad, JuradWS & Bogota",
+      "type": "CALCULATED",
+      "value": "if(field.sheetInfo=='RNT') { return field.iDTypeOfLegalRepresentative } else { return field.standardizedIdType }"
+    },
+    {
+      "name": "personIdTypeDescriptionOfAssociated",
+      "description": "COC",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.connectedIndividualTypeOfIdentification }"
+    },
+    {
+      "name": "ChamberOfCommerceCode",
+      "description": "Chamber of Commerce - Jurad & JuradWS",
+      "type": "CALCULATED",
+      "value": "if((field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'RUP' || field.sheetInfo == 'ESAL' || field.sheetInfo == 'ALT')) || field.isJuradWS) { return field.chamberCode }"
+    },
+    {
+      "name": "descriptionOfChamberOfCommerce",
+      "description": "Chamber of Commerce - Jurad & JuradWS",
+      "type": "CALCULATED",
+      "value": "if((field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'RUP' || field.sheetInfo == 'ESAL')) || field.isJuradWS) { return field.chamber }"
+    },
+    {
+      "name": "legalEntityCode",
+      "description": "Chamber of Commerce - Direct, Jurad & JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.legalEntity } else if(field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'RUP' || field.sheetInfo == 'ESAL')) { return field.typeOfOrganization } else if(field.isJuradWS) { return field.businessLegalEntityCode }"
+    },
+    {
+      "name": "legalEntityDescription",
+      "description": "Chamber of Commerce - Direct, Jurad & JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ESAL')) { return field.typeOfSociety } else if(field.isBogota) { return field.businessLegalEntity } else if(field.isJuradWS) { return field.businessLegalEntityName }"
+    },
+    {
+      "name": "businessCategoryCode",
+      "description": "Chamber of Commerce - Direct, Bogota & JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.categoryOfMercantileRegistration } else if(field.isBogota) { return field.businessCategory } else if(field.isJuradWS) { return field.categoryOfRegister }",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "businessCategoryDescription",
+      "description": "Jurad & JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad) { if(field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ESAL') { return field.categoryOfRegistration } } else if(field.sheetInfo=='RNT') { return field.categoryOfEstablishment } else if(field.isJuradWS) { return field.categoryOfRegisteration }"
+    },
+    {
+      "name": "mercantileRegistrationNumber",
+      "description": "COC, Jurad, Bogota & JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.numberOfMercantileRegistration } else if((field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ALT' || field.sheetInfo == 'ESAL')) || field.isBogota || field.isJuradWS) { return field.mercantileRegistration }",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "latestDateOfRenewal",
+      "description": "COC, Jurad, Bogota & JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.dateOfRenewalOfMercantileRegistration } else if((field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ESAL')) || field.isJuradWS) { return field.dateOfRenewal } else if(field.isBogota) { return field.dateOfLatestRenewalUpdate }"
+    },
+    {
+      "name": "dateOfAffiliation",
+      "description": "Bogota",
+      "type": "CALCULATED",
+      "value": "if(field.isBogota) { return field.dateOfMercantileRegistration }",
+      "dataType": "LONG"
+    },
+    {
+      "name": "statusOfRegistrationCode",
+      "description": "HFJurad",
+      "type": "CALCULATED",
+      "value": "if(field.isJuradWS) { return field.statusOfRegisteration }"
+    },
+    {
+      "name": "affiliationIndicator",
+      "description": "Bogota, JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isBogota) { return field.statusOfMercantileRegistration } else if(field.isJuradWS) { return field.member }"
+    },
+    {
+      "name": "regulatedBusiness",
+      "description": "Bogota",
+      "type": "CALCULATED",
+      "value": "if(field.isBogota) { return field.regulated }",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "inabilities",
+      "description": "Bogota",
+      "type": "CALCULATED",
+      "value": "if(field.isBogota) { if(field.hasInabilitiesRegistered) { return 1 } else { return 0 } }",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "underLiquidationProcess",
+      "description": "COC & Bogota",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.indicatorOfLiquidationProcess } else if(field.isBogota) { return field.statusOfLiquidations }",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "seizure",
+      "description": "Bogota",
+      "type": "CALCULATED",
+      "value": "if(field.isBogota) { return field.statusOfEmbargo }",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "internationalTradeIndicator",
+      "description": "COC & Bogota",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.indicatorOfExporterOrImporter } else if(field.isBogota) { field.importExportIndicator }"
+    },
+    {
+      "name": "CodeOfMercantileRegistrationStatus",
+      "description": "Jurad & JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ESAL')) { return field.statusOfRegistration } else if(field.isJuradWS) { return field.statusOfRegisteration }"
+    },
+    {
+      "name": "descriptionOfMercantileRegistrationStatus",
+      "description": "COC, Bogota, Jurad & JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC || (field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ESAL')) || field.isJuradWS || field.isBogota) { return field.statusOfMercantileRegistration }"
+    },
+    {
+      "name": "dataLastUpdated",
+      "description": "JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isJuradWS) { return field.dateOfDataUpdate }"
+    },
+    {
+      "name": "dateOfCancellation",
+      "description": "COC, Jurad & JuradWS",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC || (field.isJurad && (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ESAL'))) { return field.dateOfCancellationOfMercantileRegistration } else if(field.isJuradWS) {return field.dateOfCancelation}"
+    },
+    {
+      "name": "codeForTypeOfCertificate",
+      "description": "COC",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.certificateCode }"
+    },
+    {
+      "name": "typeOfAlertChamber",
+      "description": "Jurad - ALERTS",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo == \"ALT\") { return field.typeOfAlert }"
+    },
+    {
+      "name": "descriptionAlert",
+      "description": "Jurad - ALERTS",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo == \"ALT\") { return field.description }"
+    },
+    {
+      "name": "numberOfRegistrationAlert",
+      "description": "Jurad - ALERTS",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo == \"ALT\") { return field.numberOfRegistration }"
+    },
+    {
+      "name": "dateOfFilingAlert",
+      "description": "Jurad - ALERTS",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo == \"ALT\") { return field.dateOfFiling }"
+    },
+    {
+      "name": "amountRenewal",
+      "description": "Jurad - ALERTS",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo == \"ALT\") { return field.amount }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "beneficiaryOfLaw1429",
+      "description": "Jurad - PPC",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo == \"PPC\") { return field.dateOfRenewalOfProponent }"
+    },
+    {
+      "name": "nationalRecordsOfProponents",
+      "description": "Jurad - RUP, PPC, TEC & ESAL",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.numberOfMercantileRegistration } else if(field.isJurad) { if (field.sheetInfo==\"RUP\") { return field.numberOfRegistration } else if (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ESAL') { return field.proponentRegistration } } else if (field.isJuradWS) {return field.mercantileRegistration}"
+    },
+    {
+      "name": "proponentDateOfRenewal",
+      "description": "Jurad - RUP, PPC, TEC & ESAL",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad) { if (field.sheetInfo==\"RUP\") { return field.dateOfRenewal } else if (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ESAL') { return field.dateOfRenewalOfProponent } } else if(field.isJuradWS) {return field.dateOfRenewal}"
+
+    },
+    {
+      "name": "dateOfRegistrationOfProponent",
+      "description": "Jurad - RUP, PPC, TEC & ESAL",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad) { if (field.sheetInfo==\"RUP\") { return field.dateOfRegistration } else if (field.sheetInfo == 'PPC' || field.sheetInfo == 'TEC' || field.sheetInfo == 'ESAL') { return field.proponentDateOfRegistration } }"
+    },
+    {
+      "name": "dateOfAct1Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.dateOfAct1 }"
+    },
+    {
+      "name": "act1Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.act1 }"
+    },
+    {
+      "name": "notice1Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.notice1 }"
+    },
+    {
+      "name": "dateOfAct2Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.dateOfAct2 }"
+    },
+    {
+      "name": "act2Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.act2 }"
+    },
+    {
+      "name": "notice2Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.notice2 }"
+    },
+    {
+      "name": "dateOfAct3Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.dateOfAct3 }"
+    },
+    {
+      "name": "act3Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.act3 }"
+    },
+    {
+      "name": "notice3Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.notice3 }"
+    },
+    {
+      "name": "dateOfAct4Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.dateOfAct4 }"
+    },
+    {
+      "name": "act4Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.act4 }"
+    },
+    {
+      "name": "alternativePhone1",
+      "description": "COC",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.phoneNumber1 }"
+    },
+    {
+      "name": "alternativePhone2",
+      "description": "COC",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.phoneNumber2 }"
+    },
+    {
+      "name": "notice4Proponent",
+      "description": "JJJurad - RUP",
+      "type": "CALCULATED",
+      "value": "if(field.isJurad && field.sheetInfo==\"RUP\") { return field.notice4 }"
+    },
+    {
+      "name": "dataOnBusinessEstablishment",
+      "description": "COC & Bogota",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC || field.isBogota) { return field.textOfCertificate }"
+    },
+    {
+      "name": "personIdNumberOfAssociated",
+      "description": "COC",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC) { return field.connectedIndividualNumberOfIdentification }"
+    },
+    {
+      "name": "statusRNT",
+      "description": "Jurad - National Tourism Records",
+      "type": "CALCULATED",
+      "value": "if(field.sheetInfo=='RNT') { return field.status }"
+    },
+    {
+      "name": "isExpiredDispute",
+      "description": "Novedat",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "expiredDisputedDate",
+      "description": "Novedat",
+      "type": "CALCULATED",
+      "value": "if(!field.isExpiredDispute && field.disputeState == 'R' && (field.disputeExpiryDate < new Date().getTime())) { return field.disputeExpiryDate } else if(field.isExpiredDispute && field.messageType == 'BLOCKACCOUNTDISPUTE') { return field.sendTimestamp }"
+    },
+    {
+      "name": "businessDebtorNotFoundDate",
+      "description": "This field is added in foundation enrichment",
+      "dataType": "LONG"
+    },
+    {
+      "name": "businessAccountAtCollectionDate",
+      "description": "This field is added in foundation enrichment",
+      "dataType": "LONG"
+    },
+    {
+      "name": "businessLineDisconnectedDate",
+      "description": "This field is added in foundation enrichment",
+      "dataType": "LONG"
+    },
+    {
+      "name": "businessPrelegalCollectionDate",
+      "description": "Credit Master TO-DO",
+      "dataType": "LONG"
+    },
+    {
+      "name": "businessLegalCollectionDate",
+      "description": "Credit Master TO-DO",
+      "dataType": "LONG"
+    },
+    {
+      "name": "deletionByCounterPartyDate",
+      "description": "Deletion By Counterparty Date",
+      "type": "CALCULATED",
+      "value": "if ((field.messageType == \"DELETEACCOUNTMODIFICATION\" && field.justificationID == \"2\") || (field.messageType == \"DELETEACCOUNTDISPUTE\" && field.justificationID == \"12\")) { return field.sendTimestamp }"
+    },
+    {
+      "name": "minimumGenderRecordCount",
+      "description": "The business name of counter party",
+      "dataType": "INTEGER",
+      "type": "CALCULATED",
+      "value": "return 50"
+    },
+    {
+      "name": "genderThreshold",
+      "description": "Gender threshold",
+      "dataType": "INTEGER",
+      "type": "CALCULATED",
+      "value": "return 92"
+    },
+    {
+      "name": "suffix",
+      "description": "The Suffix Schema",
+      "type": "CALCULATED",
+      "value": "if(field.isRegistraduria ) {return field.particle}"
+    },
+    {
+      "name": "issuingCityCode",
+      "description": "The Issuecitycode Schema"
+    },
+    {
+      "name": "accountStatusDate",
+      "description": "The account Status Date Schema",
+      "type": "CALCULATED",
+      "value": "if (field.isCredit ) { return field.dateOfStatusOfAccount} else { if (field.isExpress ) { return field.eventCutOffDate}}  ",
+      "dataType": "LONG"
+    },
+    {
+      "name": "mortgageSubsidyDate",
+      "description": "date of Mortgage Subsidy",
+      "type": "CALCULATED",
+      "dataType": "LONG",
+      "value": "if (field.isCredit ) {return field.dateOfMortgageSubsidy}"
+    },
+    {
+      "name": "overdraftIndicator",
+      "description": "The Overdraftindicator Schema",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN",
+      "type": "CALCULATED",
+      "value": "if (field.isCheckingAndSaving ) { if(field.indicatorOfOverdraft == 1) {return true }else { return false}} "
+    },
+    {
+      "name": "mortgageSubsidy",
+      "description": "The Mortgagesubsidy Schema",
+      "defaultValue": "false",
+      "type": "CALCULATED",
+      "dataType": "BOOLEAN",
+      "value": "return (field.isCredit && field.mortgageSubsidy == 1)"
+    },
+    {
+      "name": "historicalBlockIndicator",
+      "description": "Historical block indicator when blocktype is 1",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN",
+      "type": "CALCULATED",
+      "value": "return (field.isMigrated && field.blockType == 1)"
+    },
+    {
+      "name": "qualityProcessBlockDate",
+      "description": "Date for Blocking due to Quality",
+      "dataType": "LONG",
+      "type": "CALCULATED",
+      "value": "if(field.isBlockingDueToQuality) return field.QPBlockDate"
+    },
+    {
+      "name": "qualityProcessBlockReason",
+      "description": "reason for blocking",
+      "type": "CALCULATED",
+      "value": "if(field.isBlockingDueToQuality) return field.QPBlockReason"
+    },
+    {
+      "name": "prescriptionAccountReason",
+      "description": "reason for blocking",
+      "type": "CALCULATED",
+      "value": "if(field.isPrescription) return field.blockReasonCode"
+    },
+    {
+      "name": "historicalBlockDate",
+      "description": "date of  historicalBlock, this can only come from migrated events",
+      "dataType": "LONG",
+      "type": "CALCULATED",
+      "value": "if (field.isHistoricBlock) return field.historicBlockDate"
+    },
+    {
+      "name": "prescriptionAccountDate",
+      "description": "Date for prescription account block",
+      "dataType": "LONG",
+      "type": "CALCULATED",
+      "value": "if(field.isPrescription) return field.prescriptionBlockDate"
+    },
+    {
+      "name": "outdatedAccountDate",
+      "description": "date of outdated account",
+      "dataType": "LONG",
+      "type": "CALCULATED",
+      "value": "if((field.asOfPeriodDouble + (4*30*24*60*60*1000)) < new Date().getTime()) return field.asOfPeriod + (4*30*24*60*60*1000)"
+    },
+    {
+      "name": "outdatedAccountIndicator",
+      "description": "outdated Account Indicator schema",
+      "type": "CALCULATED",
+      "value": "if(((new Date().getTime()-field.cutoffDateDouble)/86400000) > 120) {return true} else {return false } "
+    },
+    {
+      "name": "accountClosedIndicator",
+      "description": "TO-DO",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN",
+      "type": "CALCULATED",
+      "value": "return ((field.isCheckingAndSaving && [\"02\", \"03\"].indexOf(field.event) > -1) || (field.isCredit && [\"02\", \"03\", \"04\", \"05\", \"14\", \"18\", \"19\", \"20\", \"21\"].indexOf(field.event) > -1))"
+    },
+    {
+      "name": "idNumberLong",
+      "description": "idNumberLong",
+      "dataType": "LONG",
+      "type": "CALCULATED",
+      "value": "return field.idNumber"
+    },
+    {
+      "name": "genderCalculated",
+      "description": "The Gender Schema",
+      "type": "CALCULATED",
+      "value": "if(field.particle == \"DE\" || field.particle == \"VIUDA DE\" || (field.idNumber >= 20000001 && field.idNumber <= 69999999)) {return \"2\"} else {if ((field.idNumber >= 1 && field.idNumber < 19999999) || (field.idNumber >= 70000001 && field.idNumber <= 99999999)) {return \"1\"} else {return \"9\"}  }",
+      "whereClause": [
+        "isRegistraduria == true"
+      ]
+    },
+    {
+      "name": "genderCalculatedFromFirstName",
+      "description": "This field is calculated in foundation enrichment processor"
+    },
+    {
+      "name": "source",
+      "description": "The source Schema",
+      "type": "CALCULATED",
+      "value": "if (field.isRegistraduria) { return \"Registraduria\"}   else if(field.isCOC || field.isBogota) { return \"ChamberOfCommerceDirectBatch\"}  else if(field.isJurad) {return \"Juard\"}  else if(field.isDian) {return \"Dian\"}  else if(field.isSupersociedades) {return \"Supersociedades\"}  else if(field.isDianExports) {return \"DianExports\"}  else if(field.isDianImports) {return \"DianImports\"}  else if (field.isCredit ) { return\"Credit\"}  else  if(field.isExpress) {return \"Express\"} else if(field.isCheckingAndSaving) {return \"CheckingAndSaving\"}  else if(field.isCustomersMaster) {return \"CustomerMaster\"}  else if(field.isSuperIntendencia) {return \"SuperIntendencia\"}  else  if (field.isMigrationColombia) {return \"MigrationColombia\"} else if(field.sheetInfo==\"RNT\") {return \"RNT\"} else if(field.isContactMaster) {return \"ContactMaster\"} else if(field.isEquitySettlementQP) {return \"EquitySettlementQP\" } else if(field.isTECMarking) {return \"TECMarking\"} else if(field.isMigrated) {return \"Migrated\"} else if(field.isJuradWS) {return \"JuradWS\"}  else if(field.isBogota) {return \"Bogota\"}"
+    },
+    {
+      "name": "locationSource",
+      "description": "The source Schema",
+      "type": "CALCULATED",
+      "value": "if (field.isRegistraduria) { return \"Registraduria\"} else if(field.isJuradWS ) { return \"JuradWebservice\"} else if(field.isCOC ) { return \"ChamberOfCommerceDirectBatch\"} else if(field.isBogota) { return \"Bogota\"}  else if(field.isJurad) {return \"Juard\"}  else if(field.isDian) {return \"Dian\"}  else if(field.isSupersociedades) {return \"Supersociedades\"}  else if(field.isDianExports) {return \"DianExports\"}  else if(field.isDianImports) {return \"DianImports\"}  else if (field.isCredit ) { return\"Credit\"}  else  if(field.isExpress) {return \"Express\"} else if(field.isCheckingAndSaving) {return \"CheckingAndSaving\"}  else if(field.isCustomersMaster) {return \"CustomerMaster\"}  else if(field.isSuperIntendencia) {return \"SuperIntendencia\"}  else  if (field.isMigrationColombia) {return \"MigrationColombia\"} else if(field.sheetInfo==\"RNT\") {return \"RNT\"} else if(field.isContactMaster) {return \"ContactMaster\"}"
+    },
+    {
+      "name": "bureau_bestPerson_health_disability_permanentDisabilityIndicator",
+      "description": "date of payment",
+      "defaultValue": "false",
+      "dataType":"BOOLEAN",
+      "type": "CALCULATED",
+      "value": "if (field.isCredit  || field.isCheckingAndSaving )  {if  (field.adjective == 5) {return true} else { return false }  }"
+    },
+    {
+      "name": "bureau_bestPerson_health_disability_deceasedIndicator",
+      "description": "date of payment",
+      "type": "CALCULATED",
+      "value": "if(field.isRegistraduria ) { if (field.idStatus ==\"21\" || field.idStatus ==\"51\")  {return true} else {return false} } else  { if (field.isCredit  || field.isCheckingAndSaving  ) { if (field.adjective == \"1\") {return true} else {return false} }  }   "
+    },
+    {
+      "name": "accountClosedDate",
+      "description": "account closed date",
+      "dataType": "LONG"
+    },
+    {
+      "name": "accountInactiveDate",
+      "description": "account inactive date",
+      "dataType": "LONG"
+    },
+    {
+      "name": "doubtfulCollectionDate",
+      "description": "doubtful collection date",
+      "dataType": "LONG"
+    },
+    {
+      "name": "cityForCommercialAddress",
+      "description": "city for CommercialAddress"
+    },
+    {
+      "name": "commercialCity",
+      "description": "commercial city"
+    },
+    {
+      "name": "dateAccountOpeningDate",
+      "description": "equity settlement date",
+      "dataType": "LONG",
+      "type": "CALCULATED",
+      "value": "return field.accOpeningDateInEpoch"
+    },
+    {
+      "name": "writeOffDate",
+      "description": "writeoff date",
+      "dataType": "LONG"
+    },
+    {
+      "name": "mainIsicCode",
+      "description": "secondary Isic Code3",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota) {return field.ciiuCodeForMainIndustrialClassification} else if(field.isJuradWS) {return field.ciiuCode} else if(field.isCOC ){return field.ciiuCode1ForIndustrialClassification} else if(field.sheetInfo == \"TEC\") {return field.cIIUCode1} else if(field.sheetInfo == \"PPC\") { return field.cIIUCode1 } else if(field.sheetInfo == \"ESAL\") {return field.cIIUCode2} else if(field.isCustomersMaster==true) {return field.cIIu} else if(field.isSuperIntendencia ) {return  field.ciiuCode} else if (field.isMigrated  && field.isDian ) {return field.cIIu} else if(field.isDianImports ) {return  field.economicActivity} "
+    },
+    {
+      "name": "secondaryIsicCode1",
+      "description": "secondary Isic Code3",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC  ){return field.ciiuCode2ForIndustrialClassification} else if(field.sheetInfo == \"TEC\") {return field.cIIUCode2} else if(field.sheetInfo == \"ESAL\") {return field.cIIUCode2}"
+    },
+    {
+      "name": "secondaryIsicCode2",
+      "description": "secondary Isic Code2",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC  ){return field.ciiuCode3ForIndustrialClassification} else if(field.sheetInfo == \"TEC\") {return field.cIIUCode3} else if(field.sheetInfo == \"ESAL\") {return field.cIIUCode3}"
+    },
+    {
+      "name": "secondaryIsicCode3",
+      "description": "secondary Isic Code3",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC  ){return field.ciiuCode4ForIndustrialClassification} else  if(field.sheetInfo == \"TEC\") {return field.cIIUCode4}  else if(field.sheetInfo == \"ESAL\") {return field.cIIUCode1} "
+    },
+    {
+      "name": "secondaryIsicCode4",
+      "description": "secondary Isic Code4",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC  ){return field.ciiuCode5ForIndustrialClassification} "
+    },
+    {
+      "name": "internationalOperationsIndicator",
+      "description": "The Internationaloperationsindicator Schema",
+      "type": "CALCULATED",
+      "dataType": "BOOLEAN",
+      "value": "if(field.internationalOperations == 0) {return true} else if(field.internationalOperations == 1) {return false}"
+    },
+    {
+      "name":"isBogota",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name":"isHistoricBlock",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name":"isExpiration",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name":"isBlockingDueToQuality",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name":"isDeletionByNovedat",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name":"isNoSolutionDispute",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "historicBlockDate",
+      "description": "The historic block date",
+      "dataType": "LONG"
+    },
+    {
+      "name": "adjective"
+    },
+    {
+      "name": "eventCutOffDate",
+      "dataType": "LONG"
+    },
+    {
+      "name": "prescriptionBlockDate",
+      "dataType": "LONG"
+    },
+    {
+      "name": "QPBlockDate",
+      "dataType": "LONG"
+    },
+    {
+      "name": "QPBlockReason"
+    },
+    {
+      "name": "blockReasonCode",
+      "description": "AccountBlock 6"
+    },
+    {
+      "name": "asReported",
+      "description": "Reported name",
+      "type": "CALCULATED",
+      "value": "if (field.isCredit  || field.isCheckingAndSaving  || field.isExpress  || field.isSuperIntendencia || field.isTECMarking) { return field.standardizedIdName } else if(field.isMigrationColombia ) { return field.asReportedNameForMigrationColombia } else if(field.isJuradWS  || field.sheetInfo == \"PPC\" || field.sheetInfo == \"TEC\" || field.sheetInfo == \"RUP\" || field.sheetInfo == \"ESAL\") { return field.corporateName } else if(field.sheetInfo == \"RNT\" || field.sheetInfo == \"ALT\") { return field.naming } else if(field.isDian  && field.isMigrated ) { return field.fullName } else if(field.isCustomersMaster || field.isContactMaster) { return field.fullName } else if(field.isBogota ) { return field.nameOfClient } else if(field.isCOC ) { return field.businessCorporateName } else if(field.isDianExports ) { return field.exporterCorporateName } else if(field.isDianImports ) { return field.corporateNameOfImporter } else if(field.isEquitySettlementQP) { return field.nameOfTheOwner } "
+    },
+    {
+      "name": "latestRenewalUpdate",
+      "description": "JuradWS, Bogota & COC"
+    },
+    {
+      "name": "nameOfCommercialEntityOfReference",
+      "description": "Name Of Commercial Entity Of Reference"
+    },
+    {
+      "name": "nameOfReference",
+      "description": "Name Of Reference",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.nameOfCommercialEntityOfReference }"
+    },
+    {
+      "name": "addressOfCommercialEntityOfReference",
+      "description": "Address Of Commercial Entity Of Reference"
+    },
+    {
+      "name": "addressReference",
+      "description": "Address Of Reference",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.addressOfCommercialEntityOfReference }"
+    },
+    {
+      "name": "phoneOfCommercialEntityOfReference",
+      "description": "Phone Of Commercial Entity Of Reference"
+    },
+    {
+      "name": "phoneOfReferences",
+      "description": "Phone Of Reference",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.phoneOfCommercialEntityOfReference }"
+    },
+    {
+      "name": "mercantileRegistration",
+      "description": "Mercantile Registration"
+    },
+    {
+      "name": "mercantileRegistrationBranch",
+      "description": "Mercantile Registration Branch",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota || field.isJuradWS) { return field.mercantileRegistration }"
+    },
+    {
+      "name": "nameOfCommercialEstablishment",
+      "description": "Name Of Commercial Establishment"
+    },
+    {
+      "name": "nameOfEstablishment",
+      "description": "Mercantile Registration Branch",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.nameOfCommercialEstablishment }"
+    },
+    {
+      "name": "yearOfFinancialData",
+      "description": "Year Of Financial Data"
+    },
+    {
+      "name": "leverageIndicator",
+      "description": "Leverage Indicator",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "indicatorOfNetWorkCapital",
+      "description": "Indicator Of NetWork Capital",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "workCapital",
+      "description": "Mercantile Registration Branch",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.indicatorOfNetWorkCapital }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "indicatorOfEarningsMargin",
+      "description": "Indicator Of Earnings Margin",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "profitMargin",
+      "description": "Profit Margin",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.indicatorOfEarningsMargin }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "levelOfIndebtedness",
+      "description": "Level Of Indebtedness",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "indicatorOfProductivity",
+      "description": "Indicator Of Productivity",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "productivity",
+      "description": "Productivity",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.indicatorOfProductivity }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "currentReason",
+      "description": "CurrentReason",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.indicatorOfProductivity }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "indicatorForTotalAssetsTurnover",
+      "description": "Indicator For Total Assets Turnover"
+    },
+    {
+      "name": "assetTurnover",
+      "description": "Asset Turnover",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.indicatorForTotalAssetsTurnover }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "capitalAuthorized",
+      "description": "Capital Authorized"
+    },
+    {
+      "name": "authorizedCapital",
+      "description": "Authorized Capital",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC== true) { return field.capitalAuthorized }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "subscribedCapital",
+      "description": "Subscribed Capital",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "paidCapital",
+      "description": "Paid Capital",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "socialOrSocietyCapital",
+      "description": "Social Or Society Capital"
+    },
+    {
+      "name": "societyCapital",
+      "description": "Society Capital",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC== true) { return field.socialOrSocietyCapital }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "foreignSubsidiaryCapital",
+      "description": "Foreign Subsidiary Capital",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "assetsWithoutInflationAdjustment",
+      "description": "Assets Without Inflation Adjustment",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalAssetsWithoutAdjustments",
+      "description": "Total Assets Without Adjustments",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC== true) { return field.assetsWithoutInflationAdjustment }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "codeOfBank",
+      "description": "codeOfBank"
+    },
+    {
+      "name": "customsSubmitDeclaration",
+      "description": "customsSubmitDeclaration"
+    },
+    {
+      "name": "bankSubsidiary",
+      "description": "bankSubsidiary"
+    },
+    {
+      "name": "ATMCode",
+      "description": "ATMCode"
+    },
+    {
+      "name": "ATMSequenceNumber",
+      "description": "ATMSequenceNumber"
+    },
+    {
+      "name": "impo_expo",
+      "description": "impo_expo"
+    },
+    {
+      "name": "typeOfDeclaration",
+      "description": "typeOfDeclaration"
+    },
+    {
+      "name": "previousNumberOfDeclaration",
+      "description": "previousNumberOfDeclaration"
+    },
+    {
+      "name": "dateOfPreviousDeclaration",
+      "description": "dateOfPreviousDeclaration"
+    },
+    {
+      "name": "numberOfManifest",
+      "description": "numberOfManifest"
+    },
+    {
+      "name": "dateOfManifest",
+      "description": "dateOfManifest"
+    },
+    {
+      "name": "freightDocument",
+      "description": "freightDocument"
+    },
+    {
+      "name": "customs",
+      "description": "customs"
+    },
+    {
+      "name": "codeOfDeposit",
+      "description": "codeOfDeposit"
+    },
+    {
+      "name": "authorizedDeclarer",
+      "description": "authorizedDeclarer"
+    },
+    {
+      "name": "declarerIDType",
+      "description": "declarerIDType"
+    },
+    {
+      "name": "nItOfAuthorizedDeclarer",
+      "description": "nItOfAuthorizedDeclarer"
+    },
+    {
+      "name": "corporateNameOfImporter",
+      "description": "corporateNameOfImporter"
+    },
+    {
+      "name": "importerCity",
+      "description": "importerCity"
+    },
+    {
+      "name": "exporterName",
+      "description": "exporterName"
+    },
+    {
+      "name": "exporterIdType",
+      "description": "exporterIdType"
+    },
+    {
+      "name": "nitOfExporterNumber",
+      "description": "nitOfExporterNumber"
+    },
+    {
+      "name": "exporterCity",
+      "description": "exporterCity"
+    },
+    {
+      "name": "meansOfTransportation",
+      "description": "meansOfTransportation"
+    },
+    {
+      "name": "codeOfFlag",
+      "description": "codeOfFlag"
+    },
+    {
+      "name": "transporter",
+      "description": "transporter"
+    },
+    {
+      "name": "intermediaryBank",
+      "description": "intermediaryBank"
+    },
+    {
+      "name": "exchangeRate",
+      "description": "exchangeRate",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "departmentOfDestination",
+      "description": "departmentOfDestination"
+    },
+    {
+      "name": "codeOfEconomicRegime",
+      "description": "codeOfEconomicRegime"
+    },
+    {
+      "name": "numberOfInstallments",
+      "description": "numberOfInstallments"
+    },
+    {
+      "name": "dutyLineItem",
+      "description": "dutyLineItem"
+    },
+    {
+      "name": "netWeight",
+      "description": "netWeight",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "fobValueUSD",
+      "description": "fobValueUSD",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "codeOfAgreement",
+      "description": "codeOfAgreement"
+    },
+    {
+      "name": "GrossWeight",
+      "description": "GrossWeight",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "freightValue",
+      "description": "freightValue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "adjustmentsValue",
+      "description": "adjustmentsValue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "customsValue",
+      "description": "customsValue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "codeOfShipment",
+      "description": "codeOfShipment"
+    },
+    {
+      "name": "numberOfParcels",
+      "description": "numberOfParcels"
+    },
+    {
+      "name": "subLineItems",
+      "description": "subLineItems"
+    },
+    {
+      "name": "quantity",
+      "description": "quantity",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "commercialUnit",
+      "description": "commercialUnit"
+    },
+    {
+      "name": "licenseNumber",
+      "description": "licenseNumber"
+    },
+    {
+      "name": "incomexOffice",
+      "description": "incomexOffice"
+    },
+    {
+      "name": "licenseYear",
+      "description": "licenseYear"
+    },
+    {
+      "name": "descriptionOfGoods",
+      "description": "descriptionOfGoods"
+    },
+    {
+      "name": "description",
+      "description": "Jurad - Alerts"
+    },
+    {
+      "name": "dutyPercentage",
+      "description": "dutyPercentage",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "dutyBase",
+      "description": "dutyBase"
+    },
+    {
+      "name": "dutySubtotal",
+      "description": "dutySubtotal"
+    },
+    {
+      "name": "VATPercentage",
+      "description": "VATPercentage",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "VATBase",
+      "description": "VATBase"
+    },
+    {
+      "name": "VATSubtotal",
+      "description": "VATSubtotal"
+    },
+    {
+      "name": "othersPercentages",
+      "description": "othersPercentages",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "othersBase",
+      "description": "othersBase",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "othersSubtotal",
+      "description": "othersSubtotal",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "total",
+      "description": "total",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "dutytotalValue",
+      "description": "dutytotalValue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "VATTotalValue",
+      "description": "VATTotalValue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "othersTotalValue",
+      "description": "othersTotalValue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfSanctions",
+      "description": "valueOfSanctions",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueToPay",
+      "description": "valueToPay",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalPaid",
+      "description": "totalPaid",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "dateOfSubmittal",
+      "description": "dateOfSubmittal"
+    },
+    {
+      "name": "preprintNumber",
+      "description": "preprintNumber"
+    },
+    {
+      "name": "previousPayments",
+      "description": "previousPayments"
+    },
+    {
+      "name": "customsDeclarationOfPreviousImport",
+      "description": "customsDeclarationOfPreviousImport"
+    },
+    {
+      "name": "declarationOfExport",
+      "description": "declarationOfExport"
+    },
+    {
+      "name": "dateOfDeclarationOfExports",
+      "description": "dateOfDeclarationOfExports"
+    },
+    {
+      "name": "exportCustoms",
+      "description": "exportCustoms"
+    },
+    {
+      "name": "classOfImporter",
+      "description": "classOfImporter"
+    },
+    {
+      "name": "departamentOfImporter",
+      "description": "departamentOfImporter"
+    },
+    {
+      "name": "exporterCountryCode",
+      "description": "exporterCountryCode"
+    },
+    {
+      "name": "declarationOfChange",
+      "description": "declarationOfChange"
+    },
+    {
+      "name": "dateOfDeclarationOfChange",
+      "description": "dateOfDeclarationOfChange"
+    },
+    {
+      "name": "formOfPayment",
+      "description": "formOfPayment"
+    },
+    {
+      "name": "typeOfImports",
+      "description": "typeOfImports"
+    },
+    {
+      "name": "countryOfPurchase",
+      "description": "countryOfPurchase"
+    },
+    {
+      "name": "formType",
+      "description": "formType"
+    },
+    {
+      "name": "descriptionUserImport",
+      "description": "descriptionUserImport"
+    },
+    {
+      "name": "codeOfUser",
+      "description": "codeOfUser"
+    },
+    {
+      "name": "officialPaymentReceipt",
+      "description": "officialPaymentReceipt"
+    },
+    {
+      "name": "dateOfReceipt",
+      "description": "dateOfReceipt"
+    },
+    {
+      "name": "certificateOfOrigin",
+      "description": "certificateOfOrigin"
+    },
+    {
+      "name": "dateOfInstallment",
+      "description": "dateOfInstallment"
+    },
+    {
+      "name": "dutyPaid",
+      "description": "dutyPaid"
+    },
+    {
+      "name": "VATPaid",
+      "description": "VATPaid",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "othersPaid",
+      "description": "othersPaid",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "sanctionsPaid",
+      "description": "sanctionsPaid",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "numberOfAcceptance",
+      "description": "numberOfAcceptance"
+    },
+    {
+      "name": "dateOfAcceptance",
+      "description": "dateOfAcceptance"
+    },
+    {
+      "name": "valueOfInstallment",
+      "description": "valueOfInstallment",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "periodicityOfInstallments",
+      "description": "periodicityOfInstallments",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "insurance",
+      "description": "insurance",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "freight",
+      "description": "freight",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "otherexpenses",
+      "description": "otherexpenses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "portNameOfEntry",
+      "description": "portNameOfEntry"
+    },
+    {
+      "name": "codePortOfEntry",
+      "description": "codePortOfEntry"
+    },
+    {
+      "name": "identifierDocument",
+      "description": "identifierDocument"
+    },
+    {
+      "name": "identifierForm",
+      "description": "identifierForm"
+    },
+    {
+      "name": "municipality",
+      "description": "municipality"
+    },
+    {
+      "name": "legalRepresentativeID",
+      "description": "legalRepresentativeID"
+    },
+    {
+      "name": "nameOfLegalRepresentative",
+      "description": "nameOfLegalRepresentative"
+    },
+    {
+      "name": "invoiceNumber",
+      "description": "invoiceNumber"
+    },
+    {
+      "name": "dateOfInvoice",
+      "description": "dateOfInvoice"
+    },
+    {
+      "name": "vallejoPlanContract",
+      "description": "vallejoPlanContract"
+    },
+    {
+      "name": "percentageOfSanction",
+      "description": "percentageOfSanction",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "baseOfSanction",
+      "description": "baseOfSanction"
+    },
+    {
+      "name": "cifValueinUSD",
+      "description": "cifValueinUSD",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "complementaryCode",
+      "description": "complementaryCode"
+    },
+    {
+      "name": "additionalCode",
+      "description": "additionalCode"
+    },
+    {
+      "name": "dutyInUSD",
+      "description": "dutyInUSD",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "VATInUSD",
+      "description": "VATInUSD",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "safeguardPercentage",
+      "description": "safeguardPercentage",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "safeguardBase",
+      "description": "safeguardBase",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalValueOfSafeguard",
+      "description": "totalValueOfSafeguard",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "safeguardPaid",
+      "description": "safeguardPaid",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "safeguardInUSD",
+      "description": "safeguardInUSD",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "percentageOfCompensatoryRights",
+      "description": "percentageOfCompensatoryRights",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "baseOfCompensatoryRights",
+      "description": "baseOfCompensatoryRights",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalValueOfCompensatoryRights",
+      "description": "totalValueOfCompensatoryRights",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "compensatoryRightsPaid",
+      "description": "compensatoryRightsPaid",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "compensatoryRightsInUSD",
+      "description": "compensatoryRightsInUSD",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "dumpingPercentage",
+      "description": "dumpingPercentage",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "dumpingBase",
+      "description": "dumpingBase",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "dumpingTotalValue",
+      "description": "dumpingTotalValue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "dumpingPaid",
+      "description": "dumpingPaid",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "dumpingInUSD",
+      "description": "dumpingInUSD",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "percentageOfRescue",
+      "description": "percentageOfRescue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "rescueBase",
+      "description": "rescueBase",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "rescueTotalValue",
+      "description": "rescueTotalValue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "rescuePaid",
+      "description": "rescuePaid",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "personIdTypeDeclarer",
+      "description": "personIdTypeDeclarer"
+    },
+    {
+      "name": "personIdNumberDeclarer",
+      "description": "personIdNumberDeclarer"
+    },
+    {
+      "name": "totalInUSD",
+      "description": "totalInUSD",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfGrossAssets",
+      "description": "Value Of Gross Assets",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfNetAssets",
+      "description": "Total Of Net Assets",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.valueOfGrossAssets } else if(field.isBogota == true) { return field.valueOfGrossAssets }"
+    },
+    {
+      "name": "valueOfCurrentAssets",
+      "description": "Value Of Current Assets",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfCurrentAssets",
+      "description": "Total Of Net Assets",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.valueOfCurrentAssets } else if(field.isBogota == true) { return field.valueOfCurrentAssets }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfFixedAssets",
+      "description": "Value Of Current Assets",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfFixedAssets",
+      "description": "Total Of Net Assets",
+      "type": "CALCULATED",
+      "value": "if(field.isCOC || field.isBogota) { return field.valueOfFixedAssets }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalAssets",
+      "description": "Total Of Assets",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfSalesCostsOrOfOperationalExpenses",
+      "description": "Value Of Sales Costs Or Of Operational Expenses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "salesCost",
+      "description": "Sales Cost",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalofSalesCost",
+      "description": "Total Of Sales Cost",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.salesCost } else if(field.isBogota == true) { return field.valueOfSalesCostsOrOfOperationalExpenses }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "salesOperationalExpenses",
+      "description": "Sales Operational Expenses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "administrationExpenses",
+      "description": "Administration Expenses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfAdministrationExpenses",
+      "description": "Total Of Sales Cost",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.administrationExpenses } else if(field.isBogota == true) { return field.salesOperationalExpenses }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfOtherAssets",
+      "description": "Value Of Other Assets",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfOtherAssets",
+      "description": "Total Of Sales Cost",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.valueOfOtherAssets } else if(field.isBogota == true) { return field.valueOfOtherAssets }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalLiabilities",
+      "description": "Total Liabilities",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfLiabilities",
+      "description": "Total Of Liabilities",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.totalLiabilities } else if(field.isBogota == true) { return field.totalLiabilities }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfEquityPlusLiabilities",
+      "description": "Total Of Equity Plus Liabilities",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalLiabilitiesAndEquity",
+      "description": "Total Liabilities And Equity",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfEquityLiabilities",
+      "description": "Total Of Equity Liabilities",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.totalLiabilitiesAndEquity } else if(field.isBogota == true) { return field.totalOfEquityPlusLiabilities }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "currentLiabilities",
+      "description": "Current Liabilities",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfCurrentLiabilitiesAdjustments",
+      "description": "Total Of Current Liabilities Adjustments",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfCurrentLiabilities",
+      "description": "Total Of Current Liabilities",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.currentLiabilities } else if(field.isBogota == true) { return field.totalOfCurrentLiabilitiesAdjustments }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "longTermLiabilities",
+      "description": "Long Term Liabilities",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfLongTermLiabilitiesAdjustments",
+      "description": "Total Of Long Term Liabilities Adjustments",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfLongTermLiabilities",
+      "description": "Total Of Long Term Liabilities",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.longTermLiabilities } else if(field.isBogota == true) { return field.totalOfLongTermLiabilitiesAdjustments }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfEquity",
+      "description": "Total Of fEquity",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalEquity",
+      "description": "Total Equity",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.totalOfEquity } else if(field.isBogota == true) { return field.totalOfEquity }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueProfitOrNetLosses",
+      "description": "Value Profit Or Net Losses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfEarningsNetLosses",
+      "description": "Total Of Earnings Net Losses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfNetEarnings",
+      "description": "Total Of Net Earnings",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.valueProfitOrNetLosses } else if(field.isBogota == true) { return field.totalOfEarningsNetLosses }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfOperationalProfit",
+      "description": "Value Of Operational Profit",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfEarningsCommercialLosses",
+      "description": "Total Of Earnings Commercial Losses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfOperationalEarnings",
+      "description": "Total Of Operational Earnings",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.valueOfOperationalProfit } else if(field.isBogota == true) { return field.totalOfEarningsCommercialLosses }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "dateOfProcess",
+      "description": "dateOfProcess"
+    },
+    {
+      "name": "countOfArticles",
+      "description": "countOfArticles"
+    },
+    {
+      "name":"officeCode",
+      "description": "officeCode"
+    },
+    {
+      "name":"customsCode",
+      "description": "customsCode"
+    },
+    {
+      "name":"typeOfIdentification",
+      "description": "typeOfIdentification"
+    },
+    {
+      "name":"typeOfExporterUser",
+      "description": "typeOfExporterUser"
+    },
+    {
+      "name":"codeOfExporterUser",
+      "description": "codeOfExporterUser"
+    },
+    {
+      "name":"classOfExporter",
+      "description": "classOfExporter"
+    },
+    {
+      "name":"departmentCode",
+      "description": "departmentCode"
+    },
+    {
+      "name":"destinationCountryCode",
+      "description": "destinationCountryCode"
+    },
+    {
+      "name":"destinationCountryName",
+      "description": "destinationCountryName"
+    },
+    {
+      "name":"destinationCityName",
+      "description": "destinationCityName"
+    },
+    {
+      "name":"shippingClearanceNumber",
+      "description": "shippingClearanceNumber"
+    },
+    {
+      "name":"shippingPortCode",
+      "description": "shippingPortCode"
+    },
+    {
+      "name":"shippingPortName",
+      "description": "shippingPortName"
+    },
+    {
+      "name":"stateOfOrigin",
+      "description": "stateOfOrigin"
+    },
+    {
+      "name":"previousDeclaration",
+      "description": "previousDeclaration"
+    },
+    {
+      "name":"previousDateOfDeclaration",
+      "description": "previousDateOfDeclaration"
+    },
+    {
+      "name":"previousDeclarationStickerNumber",
+      "description": "previousDeclarationStickerNumber"
+    },
+    {
+      "name":"previousImportsDateOfDeclaration",
+      "description": "previousImportsDateOfDeclaration"
+    },
+    {
+      "name":"importsModalityCode",
+      "description": "importsModalityCode"
+    },
+    {
+      "name":"tradeCurrencyCode",
+      "description": "tradeCurrencyCode"
+    },
+    {
+      "name":"transportationRouteCode",
+      "description": "transportationRouteCode"
+    },
+    {
+      "name":"transportationNationality",
+      "description": "transportationNationality"
+    },
+    {
+      "name":"codeOfRegime",
+      "description": "codeOfRegime"
+    },
+    {
+      "name":"exportsModalityCode",
+      "description": "exportsModalityCode"
+    },
+    {
+      "name":"embarkingCode",
+      "description": "embarkingCode"
+    },
+    {
+      "name":"dateCodeOfEmbarking",
+      "description": "dateCodeOfEmbarking"
+    },
+    {
+      "name":"typeOfCertificateOfOrigin",
+      "description": "typeOfCertificateOfOrigin"
+    },
+    {
+      "name":"specialSystems",
+      "description": "specialSystems"
+    },
+    {
+      "name":"exportsInTransitCode",
+      "description": "exportsInTransitCode"
+    },
+    {
+      "name":"dutyPosition",
+      "description": "dutyPosition"
+    },
+    {
+      "name":"departmentOfOrigine",
+      "description": "departmentOfOrigine"
+    },
+    {
+      "name":"codeOfUnitMeasure",
+      "description": "codeOfUnitMeasure"
+    },
+    {
+      "name":"nameOfUnitMeasure",
+      "description": "nameOfUnitMeasure"
+    },
+    {
+      "name":"numberOfUnits",
+      "description": "numberOfUnits"
+    },
+    {
+      "name":"insuranceValue",
+      "description": "insuranceValue",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name":"valueOfOtherExpensesForPosition",
+      "description": "valueOfOtherExpensesForPosition",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name":"codeOfCustomsOfficeEmbarking",
+      "description": "codeOfCustomsOfficeEmbarking"
+    },
+    {
+      "name":"dateOfEmbarking",
+      "description": "dateOfEmbarking"
+    },
+    {
+      "name":"declarationNumberOfExporter",
+      "description": "declarationNumberOfExporter"
+    },
+    {
+      "name":"dateOfExportsDeclaration",
+      "description": "dateOfExportsDeclaration"
+    },
+    {
+      "name":"exporterCorporateName",
+      "description": "exporterCorporateName"
+    },
+    {
+      "name":"declarerNIT",
+      "description": "declarerNIT"
+    },
+    {
+      "name":"declarerCorporateName",
+      "description": "declarerCorporateName"
+    },
+    {
+      "name":"importerCorporateName",
+      "description": "importerCorporateName"
+    },
+    {
+      "name":"addressOfDestination",
+      "description": "addressOfDestination"
+    },
+    {
+      "name":"totalFOBValueCOP",
+      "description": "totalFOBValueCOP",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "assetsAppraisal",
+      "description": "Assets Appraisal",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfAppraisals",
+      "description": "Total Of Appraisals",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC== true) { return field.assetsAppraisal } else if(field.isBogota == true) { return field.assetsAppraisal }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "totalOfAnnualSales",
+      "description": "Total Of Annual Sales",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name":"nonCurrentAsset",
+      "description": "Non Current Asset",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "activeNonCurrentAssets",
+      "description": "Active Non Current Assets",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfNonCurrentAssets",
+      "description": "Value Of Non Current Assets",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.nonCurrentAsset } else if(field.isBogota == true) { return field.activeNonCurrentAssets }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "socialBalance",
+      "description": "Social Balance",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfSocialBalance",
+      "description": "Value Of Social Balance",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.socialBalance } else if(field.isBogota == true) { return field.socialBalance }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name":"valueOfTaxesOnExpenses",
+      "description": "Value Of Taxes On Expenses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "taxExpenses",
+      "description": "Tax Expenses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfTributaryExpenses",
+      "description": "Value Of Tributary Expenses",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.valueOfTaxesOnExpenses } else if(field.isBogota == true) { return field.taxExpenses }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfOperationalExpenses",
+      "description": "Value Of Operational Expenses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "nonOperationalIncome",
+      "description": "Non Operational Income",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name":"valueOfIncomeFromOrdinaryActivity",
+      "description": "Value Of Income From Ordinary Activity",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "ordinaryActivityIncome",
+      "description": "Ordinary Activity Income",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfOrdinaryActivityEarnings",
+      "description": "Value Of Tributary Expenses",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.valueOfIncomeFromOrdinaryActivity } else if(field.isBogota == true) { return field.ordinaryActivityIncome }"
+    },
+    {
+      "name":"valueOtherExpenses",
+      "description": "Value Other Expenses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "otherExpenses",
+      "description": "Other Expenses",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfOtherExpenses",
+      "description": "Value Of Other Expenses",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.valueOtherExpenses } else if(field.isBogota == true) { return field.otherExpenses }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name":"valueOtherIncome",
+      "description": "Value Other Income",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "otherIncome",
+      "description": "Other Income",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfOtherIncome",
+      "description": "Value Of Other Expenses",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.valueOtherIncome } else if(field.isBogota == true) { return field.otherIncome }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name":"nonCurrentLiability",
+      "description": "Non Current Liability",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "passiveNonCurrentAssets",
+      "description": "Passive Non Current Assets",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "valueOfNonCurrentLiabilities",
+      "description": "Value Of Non Current Liabilities",
+      "type": "CALCULATED",
+      "value": "if (field.isCOC == true) { return field.nonCurrentLiability } else if(field.isBogota == true) { return field.passiveNonCurrentAssets }",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "indicatorOfProductivity",
+      "description": "Indicator Of Productivity",
+      "dataType": "DOUBLE"
+    },
+    {
+      "name": "codeOfFinancialIndicator",
+      "description": "Code Of Financial Indicator",
+      "type": "CALCULATED",
+      "value": "if (field.isBogota == true) { return field.indicatorOfProductivity }"
+    },
+    {
+      "name": "validPEPSTypeOfList"
+    },
+    {
+      "name": "validRestrictiveTypeOfList"
+    },
+    {
+      "name": "isicCodeLastUpdated",
+      "description": "Calculated in foundation enricher",
+      "tyep": "LONG"
+    },
+    {
+      "name": "isicCodesHistorical",
+      "description": "Calculated in foundation enricher"
+    },
+    {
+      "name": "entityType",
+      "description": "The Entity Type"
+    },
+    {
+      "name": "entityCode",
+      "description": "The Entity Code",
+      "dataType" : "LONG"
+    },
+    {
+      "name": "informationType",
+      "description": "The Type of Information",
+      "dataType" : "LONG"
+    },
+    {
+      "name": "accountInformation",
+      "description": "Account Information",
+      "dataType" : "COMPLEX"
+    },
+    {
+      "name": "idVerificationDigitDeclarer",
+      "description": "Id Verification Digit Declarer"
+    },
+    {
+      "name": "idVerificationDigitExporter",
+      "description": "Id Verification Digit for exporter"
+    },
+    {
+      "name": "phoneOfImporter",
+      "description": "phoneOfImporter"
+    },
+    {
+      "name": "isCreateAlert",
+      "description": "isCreateAlert",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isDeleteAlert",
+      "description": "isDeleteAlert"
+    },
+    {
+      "name": "isRegisterDispute",
+      "description": "isRegisterDispute",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isSubmitDispute",
+      "description": "isSubmitDispute",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "isCreateComment",
+      "description": "isCreateComment",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "alertStatus",
+      "description": "Alert Status",
+      "type": "CALCULATED",
+      "value": "if (field.isCreateAlert || field.isDeleteAlert) { return field.messageType }"
+    },
+    {
+      "name": "cityOfTheCourt",
+      "description": "cityOfTheCourt"
+    },
+    {
+      "name": "courtCity",
+      "description": "Alert Status",
+      "type": "CALCULATED",
+      "value": "if (field.isEquitySettlementQP) { return field.cityOfTheCourt }"
+    },
+    {
+      "name": "courtData",
+      "description": "courtData"
+    },
+    {
+      "name": "court",
+      "description": "court",
+      "type": "CALCULATED",
+      "value": "if (field.isEquitySettlementQP) { return field.courtData }"
+    },
+    {
+      "name": "alertId",
+      "description": "alertId",
+      "type": "CALCULATED",
+      "value": "if (field.isCreateAlert || field.isDeleteAlert) { return field.messageId }"
+    },
+    {
+      "name": "courtOrderDate",
+      "description": "courtOrderDate"
+    },
+    {
+      "name": "alertDate",
+      "description": "court",
+      "type": "CALCULATED",
+      "value": "if (field.isCreateAlert || field.isDeleteAlert) { return field.sendTimestamp } else if(field.isEquitySettlementQP) { return field.courtOrderDate}",
+      "dataType": "LONG"
+    },
+    {
+      "name": "alertLastUpdated",
+      "description": "alertLastUpdated"
+    },
+    {
+      "name": "isJuradWS",
+      "description": "isJuradWS",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "countryOfOriginImport",
+      "description": "countryOfOriginImport"
+    },
+    {
+      "name": "isValidEquity",
+      "description": "isValidEquity",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "typeOfDataForPEPS"
+    },
+    {
+      "name": "typeOfDataForRestrictiveList"
+    },
+    {
+      "name": "birthDate",
+      "dataType": "LONG"
+    },
+    {
+      "name": "educationLevel"
+    },
+    {
+      "name": "educationLevelLastUpdated",
+      "dataType": "LONG"
+    },
+    {
+      "name": "numberOfDependants",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "numberOfDependantsLastUpdated",
+      "dataType": "LONG"
+    },
+    {
+      "name": "employerIdNumber"
+    },
+    {
+      "name": "employerName"
+    },
+    {
+      "name": "employerNameLastUpdated",
+      "dataType": "LONG"
+    },
+    {
+      "name": "contractStartDate",
+      "dataType": "LONG"
+    },
+    {
+      "name": "contractTypeLastUpdated",
+      "dataType": "LONG"
+    },
+    {
+      "name": "activityType"
+    },
+    {
+      "name" :"incomeLastUpdated",
+      "dataType": "LONG"
+    },
+    {
+      "name" :"balanceLastUpdated",
+      "dataType": "LONG"
+    },
+    {
+      "name" :"internationalOperationsLastUpdated",
+      "dataType": "LONG"
+    },
+    {
+      "name" :"stateFirstName"
+    },
+    {
+      "name" :"stateSecondName"
+    },
+    {
+      "name" :"stateSecondLastName"
+    },
+    {
+      "name": "codeOfDeposit"
+    },
+    {
+      "name": "eventLockCode",
+      "description": "eventLockCode",
+      "type": "CALCULATED",
+      "value": "if(field.messageType == \"DELETEACCOUNT\" || ((field.messageType == \"SUBMITMODIFICATION\" || field.messageType == \"SUBMITDISPUTE\") && field.justificationID == \"2\") || ((field.messageType == \"SUBMITMODIFICATION\" || field.messageType == \"SUBMITDISPUTE\") && field.justificationID == \"3\")) { return 1 } else {return 2}",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "closedByStateLiquidation",
+      "description": "TO_DO"
+    },
+    {
+      "name": "inactiveAccountDate",
+      "description": "TO_DO"
+    },
+    {
+      "name": "businessBureauEvent",
+      "description": "The Bureauevent Schema"
+    },
+    {
+      "name": "modificationIndicator",
+      "type": "CALCULATED",
+      "value": "if(field.modificationState == \"V\" ) { return true } else { return false }",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "disputeIndicator",
+      "type": "CALCULATED",
+      "value": "if(field.disputeState == \"R\" ) { return true } else { return false }",
+      "defaultValue": "false",
+      "dataType": "BOOLEAN"
+    },
+    {
+      "name": "estateLiquidationStatus"
+    },
+    {
+      "name": "estateLiquidationCode"
+    },
+    {
+      "name": "grainCounterPartyIdType",
+      "description": "grain for groupby section",
+      "type": "CALCULATED",
+      "value": "if(field.isMasterFile) { return field.counterpartyIdType } "
+    },
+    {
+      "name": "grainCounterPartyIdNumber",
+      "description": "grain for groupby section",
+      "type": "CALCULATED",
+      "value": "if(field.isMasterFile) { return field.counterpartyIdNumber }"
+    },
+    {
+      "name": "grainAccountNumber",
+      "description": "grain for groupby section",
+      "type": "CALCULATED",
+      "value": "if(field.isMasterFile) { return field.accountNumber }"
+    },
+    {
+      "name": "businessMaximumDelinquencyDate",
+      "description": "This field is added in foundation enrichment",
+      "dataType": "LONG"
+    },
+    {
+      "name": "businessBehaviourVectorProduct",
+      "description": "This field is added in foundation enrichment"
+    },
+    {
+      "name": "normalizedBusinessBehaviourVectorDA",
+      "description": "This field is added in foundation enrichment"
+    },
+    {
+      "name":  "businessValueBalanceOverdue",
+      "description": "DOUBLE"
+    },
+    {
+      "name": "displayPeriod",
+      "description": "This field is added in foundation enrichment",
+      "dataType": "INTEGER",
+      "type": "CALCULATED",
+      "value": "return 51"
+    },
+    {
+      "name": "businessDelinquencyMaturation",
+      "description": "This field is added in foundation enrichment",
+      "dataType": "LONG"
+    },
+    {
+      "name": "balance",
+      "description": "balance",
+      "defaultValue": "1000.00",
+      "dataType": "DOUBLE"
+    }
+  ]
+}
