@@ -157,7 +157,7 @@ Estos cuatro términos tienen más de un significado vigente en las fuentes. **U
 | **Salvoconducto refugiado (código 7)** | Tipo documental de SISBEN que **aún no existe en el catálogo de Experian**. Debe crearse antes de producción | `[A:OQ-TR-2b]` | HU-008, 13/vision |
 | **"no cross subscriber validation special"** | Regla de Pinning mencionada verbalmente y **retirada en vivo** por su autor por no estar seguro de su funcionamiento. No aparece en ninguna HU formal. **Prohibido codificarla** | `[A:OQ-TR-1]` | 13/vision |
 | **Business Light Code** | Decisión inicial de la ingesta mencionada junto a la jerarquía de fuente oficial. **Sin definición en las fuentes** | `[PM]` | 12/vision |
-| **Fuente oficial** | Clasificación de la fuente que determina su jerarquía frente a otras. Si SISBEN lo es, sin resolver | `[A:12/vision]` | 12/vision |
+| **Fuente oficial** | Clasificación de la fuente que determina su jerarquía frente a otras. Dato informativo y opcional de cada ingesta: no bloquea ni eleva el riesgo | `[C]` | Decisión del Desarrollador, 2026-11-17 |
 | **PII** | Información personalmente identificable. SISBEN lleva identificadores directos de ~28M personas | `[C]` | PD/vision |
 | **Ley 1581/2012** | Régimen colombiano de protección de datos personales aplicable. No hay marco SOC2/ISO/HIPAA/PCI en alcance | `[C]` | PD/tech |
 | **Fixture sintético** | Dato de prueba fabricado, sin correspondencia con persona real. **Es el default obligatorio** | `[C]` | PD/vision C-06 |

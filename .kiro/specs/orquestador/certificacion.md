@@ -22,19 +22,19 @@ Datos: **sintéticos** (GR-5). Nunca el archivo real de SISBEN.
 
 ## C-1 · Crear el expediente
 
-**Acción:** prompt `00-iniciar-ingesta.md` sobre SISBEN.
+**Acción:** prompt `00-iniciar-ingesta.md` sobre una ingesta de prueba cuyas fuentes sintéticas (HU y spec) dejan **al menos 1 pregunta abierta bloqueante**; por ejemplo, una spec que no declara el delimitador.
 
 **Esperado:**
 - `estado-ingesta.json` creado y **válido contra `estado-ingesta.schema.json`**.
 - 8 entradas de etapa (sin `reception`), todas `estado: no_iniciada`, todas `transicion_habilitada: false`.
 - `etapa_actual: analisis`.
-- `preguntas_abiertas[]` con PA-001..PA-004; **3 de ellas `bloqueante: true`**.
+- `preguntas_abiertas[]` con las preguntas que dejan abiertas las fuentes de prueba (al menos 1 `bloqueante: true`), y ninguna predefinida.
 - `riesgos[]` con al menos RG-001.
-- `contrato_archivo` completo: `SISBEN_EXPERIAN_AAAAMM`, `|`, UTF-8, header sí, footer no, event type 30, 22 columnas.
+- `contrato_archivo` con los valores de la spec de prueba, ninguno tomado de otra ingesta ni de un valor por defecto.
 - `reuse_pin: false` (ingesta nueva).
 - `estado-ingesta.md` generado; `bitacora.md` con `BIT-0001` tipo `inicio_expediente`.
 
-**Falla si:** el JSON no valida, alguna etapa arranca habilitada, o falta alguna de las 4 preguntas abiertas.
+**Falla si:** el JSON no valida, alguna etapa arranca habilitada, falta una pregunta que las fuentes dejan abierta, o aparece una pregunta que las fuentes no plantean.
 
 ---
 
@@ -44,7 +44,7 @@ Datos: **sintéticos** (GR-5). Nunca el archivo real de SISBEN.
 
 **Esperado:**
 - `⛔ BLOQUEADA`.
-- Condiciones fallidas reportadas: **1** (etapa previa no aprobada), **2** (sin aprobación registrada), **4** (3 preguntas bloqueantes abiertas).
+- Condiciones fallidas reportadas: **1** (etapa previa no aprobada), **2** (sin aprobación registrada), **4** (preguntas bloqueantes abiertas).
 - `transicion_habilitada` sigue `false`; `validation` sigue `no_iniciada`.
 - `BIT` tipo `bloqueo` con las condiciones fallidas.
 - **No se ofrece ninguna forma de saltarse el bloqueo.**
@@ -55,7 +55,7 @@ Datos: **sintéticos** (GR-5). Nunca el archivo real de SISBEN.
 
 ## C-3 · Aprobar `analisis` con preguntas bloqueantes abiertas · **debe BLOQUEAR**
 
-**Acción:** prompt `03`, aprobar la transición sin resolver PA-001/PA-002/PA-003.
+**Acción:** prompt `03`, aprobar la transición sin resolver las preguntas bloqueantes.
 
 **Esperado:**
 - La aprobación **no habilita** la transición: la condición 4 sigue fallando.
@@ -68,7 +68,7 @@ Datos: **sintéticos** (GR-5). Nunca el archivo real de SISBEN.
 
 ## C-4 · Resolver preguntas y aprobar `analisis` · **debe HABILITAR**
 
-**Acción:** resolver PA-001, PA-002, PA-003 (respuestas sintéticas); completar ART-001..ART-004; prompt `03` con actor `Desarrollador · <id>` y riesgo bajo (N1, clasificación fija de la etapa 0).
+**Acción:** resolver las preguntas bloqueantes (respuestas sintéticas); completar ART-001..ART-004; prompt `03` con actor `Desarrollador · <id>` y riesgo bajo (N1, clasificación fija de la etapa 0).
 
 **Esperado:**
 - `APR-001` registrada: `tipo: transicion`, `decision: aprobada`, `riesgo: bajo`, `nivel_friccion: ligera`, `resultado: aplicado`, `ref_bitacora: BIT-nnnn`.

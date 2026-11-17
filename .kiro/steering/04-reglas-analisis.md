@@ -209,7 +209,7 @@ Evidencia de prueba de la ingesta: **Zephyr**, práctica vigente de Experian y e
 
 - **Fixtures sintéticos por defecto, siempre.** Ningún registro real entra a desarrollo.
 - Todo fixture declara en su cabecera que es sintético.
-- Los fixtures de SISBEN deben ejercitar: 22 campos de entrada, delimitador `;`, casos de menores de edad, encoding, duplicados por llave, códigos DIVIPOLA inexistentes, y las inconsistencias temporales de las reglas de consistencia.
+- Los fixtures de SISBEN deben ejercitar: los campos de entrada y el delimitador que declare su spec, casos de menores de edad, encoding, duplicados por llave, códigos DIVIPOLA inexistentes, y las inconsistencias temporales de las reglas de consistencia.
 - Los fixtures realistas **dependen de las listas de valores de los catálogos**, que son pre-condición pendiente `[A:DR-03]`.
 - Prohibido derivar un fixture de un archivo real, ni siquiera anonimizándolo.
 

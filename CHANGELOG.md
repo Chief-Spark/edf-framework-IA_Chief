@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.3.0 — 2026-11-17
+
+Flexibiliza el framework: cada ingesta se configura solo con su HU y su spec. Se quitan los valores y las preguntas pegados al piloto SISBEN. Decisión del Desarrollador.
+
+### Cambios
+- **Contrato del archivo genérico.** El framework no fija delimitador ni ningún otro valor del contrato: los declara la spec de cada ingesta (cualquier carácter). Si la spec no declara una dimensión, es pregunta abierta bloqueante. Archivos: `steering/07` §2 y §4, `steering/04` §9, `edf-orquestador/prompts/00` paso 2, `edf-analisis/SKILL.md`.
+- **Fuente oficial informativa.** Deja de ser pregunta de apertura obligatoria y bloqueante; si las fuentes no la declaran se registra `indeterminado` sin abrir pregunta. Declararla o cambiarla ya no eleva el riesgo a alto. Archivos: `edf-orquestador/prompts/00` y `02`, `references/03` §1, `SKILL.md`, `templates/estado-ingesta.schema.json` (descripción), `steering/02`, `edf-analisis/references/deteccion-ambiguedades.md`, `assets/templates/contexto-ingesta.md.tpl`.
+- **Sin preguntas predefinidas.** El Orquestador ya no siembra PA-001..PA-004 en SISBEN: registra solo las preguntas que dejan abiertas la HU y la spec. Archivos: `prompts/00` paso 4, `steering/10`, `specs/orquestador/certificacion.md` (C-1 a C-4), `specs/orquestador/tasks.md`.
+- **Datos de apertura desde las fuentes.** El Orquestador toma de la HU y la spec los datos de apertura y pregunta solo los que falten. Business Light Code y rutas desconocidas quedan `null`.
+- **Plantilla del expediente genérica.** `templates/estado-ingesta.seed.json` ya no trae valores de SISBEN (contrato, rutas, jerarquía, preguntas); los artefactos usan `<Fuente>`. Sigue validando contra el esquema 1.1.0.
+- **`steering/10-piloto-sisben.md`** pasa a ser contexto histórico: no fija valores; remite a `expedientes/sisben/fuentes/`.
+- **`steering/07` §5.6 y §5.7:** las reglas de consistencia y la llave de unicidad las declara la spec de cada ingesta (se quitan `CONS-SISBEN-001/002` y los nombres legados `NUMERO_IDENTIFICACION`/`TIPO_IDENTIFICACION`).
+
+### Sin cambios
+- Gobierno: aprobaciones, bitácora, checklist de bloqueo, riesgo de State Calculation (N4) y compuerta de la etapa 0.
+- Esquema del expediente (sigue en 1.1.0) y skills de etapa.
+
 ## 1.2.0 — 2026-11-13
 
 Hace cumplir la compuerta de entrada de la etapa 0: la HU y la spec de Confluence son obligatorias. Hasta ahora solo existía como texto (`docs/Compuertas-Entrada-Insumos.md` §2, A1 a A12) y en `sisben-e2e` el análisis arrancó sin la spec (SUP-T-010).

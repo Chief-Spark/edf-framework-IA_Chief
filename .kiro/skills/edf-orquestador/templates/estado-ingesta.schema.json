@@ -36,7 +36,7 @@
         "periodo": { "type": ["string", "null"], "pattern": "^\\d{6}$", "description": "AAAAMM del archivo en curso." },
         "es_ingesta_nueva": { "type": "boolean", "default": true },
         "fuente_oficial": {
-          "description": "Decisión de apertura obligatoria. 'indeterminado' es un valor legítimo y genera pregunta abierta bloqueante.",
+          "description": "Dato informativo y opcional. Si las fuentes no lo declaran se registra 'indeterminado', sin abrir pregunta. No bloquea ni eleva el riesgo.",
           "enum": ["si", "no", "mixto", "indeterminado"]
         },
         "jerarquia_fuente": { "type": ["string", "null"], "description": "Posición declarada en la jerarquía de best data para PIN." },

@@ -90,7 +90,7 @@ Persiste entre sesiones (R2.3): al arrancar, **lo primero que hago es leer `esta
 
 Esquema y plantillas en `templates/`:
 - `estado-ingesta.schema.json` — JSON Schema 2020-12 del estado (cierra OQ-T-1).
-- `estado-ingesta.seed.json` — instancia inicial sembrada con el piloto SISBEN.
+- `estado-ingesta.seed.json` — plantilla genérica del expediente: estructura de etapas y artefactos, sin valores de ninguna ingesta.
 - `estado-ingesta.template.md` — plantilla de la vista legible.
 - `bitacora.template.md` — plantilla y formato de evento de la bitácora.
 
@@ -98,7 +98,7 @@ Esquema y plantillas en `templates/`:
 
 | Operación | Prompt | Qué hace |
 |-----------|--------|----------|
-| **Iniciar ingesta** | `00-iniciar-ingesta.md` | Crea el expediente, siembra las 8 entradas de etapa (etapa 0 + 6 etapas, Curation en Flow y Stock), hace las preguntas de apertura (fuente oficial, Business Light Code, `reusePIN`), registra `BIT-0001` |
+| **Iniciar ingesta** | `00-iniciar-ingesta.md` | Crea el expediente, siembra las 8 entradas de etapa (etapa 0 + 6 etapas, Curation en Flow y Stock), toma los datos de apertura de la HU y la spec (contrato del archivo, `reusePIN`, rutas; fuente oficial y Business Light Code son opcionales) y pregunta solo los que falten, registra `BIT-0001` |
 | **Estado actual** | `01-estado-actual.md` | Lee el JSON y reporta etapa actual, artefactos, aprobaciones, riesgos, preguntas abiertas y qué bloquea el avance |
 | **Omitir una etapa** | `09-omitir-etapa.md` | Registra que una etapa no aplica a la ingesta, solo con aprobación `tipo: omision` del PO o del Aprobador designado (`references/03` §4b) |
 | **Registrar entrega de una skill** | `08-registrar-artefactos.md` | Registra en el expediente el insumo de `edf-analisis` o los artefactos de una skill de etapa (sin aprobarlos), con riesgo, verificaciones reportadas y preguntas nuevas |

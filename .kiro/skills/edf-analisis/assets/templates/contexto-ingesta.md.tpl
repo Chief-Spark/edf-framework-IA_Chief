@@ -16,8 +16,8 @@
 | Atributo | Valor | Estado | Fuente |
 |---|---|---|---|
 | Entidad que entrega | | | |
-| ¿Fuente oficial? (`si` / `no` / `mixto` / `indeterminado`) | | | |
-| Posición en la jerarquía de best data para PIN | | | |
+| ¿Fuente oficial? (`si` / `no` / `mixto` / `indeterminado`) — opcional, informativo | | | |
+| Posición en la jerarquía de best data para PIN — opcional, informativo | | | |
 | Business Light Code (batch / oficial / high frequency) | | | |
 | ¿Ingesta nueva? → `reusePIN` | | | |
 | Periodicidad y volumen | | | |

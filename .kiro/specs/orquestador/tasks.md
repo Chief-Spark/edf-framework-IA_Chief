@@ -26,11 +26,11 @@ Notación de estado AI-DLC: `[ ]` no iniciado · `[-]` en progreso · `[?]` espe
 - [ ] B3. Confirmar **OQ-D-2**: política de retención de la bitácora (reemplaza los 24 meses por default si existe).
 - [ ] B4. Confirmar **OQ-D-3**: dónde se versiona el expediente (repo propio; GR-3 impide escribir en `bureau.colombia_innersource`).
 - [ ] B5. Decidir **OQ-D-4**: la validación del JSON la corre el Desarrollador o un hook de Kiro.
-- [ ] B6. Validar que las 4 preguntas abiertas del piloto (PA-001..PA-004) siguen vigentes.
+- [x] B6. ~~Validar que las 4 preguntas abiertas del piloto (PA-001..PA-004) siguen vigentes.~~ Ya no se siembran preguntas predefinidas (v1.3.0).
 
 ## Fase C — Certificación (pendiente)
 
-- [ ] C1. Preparar el fixture sintético de SISBEN (22 columnas, patrón de nombre, delimitador `|`).
+- [ ] C1. Preparar el fixture sintético de SISBEN (columnas, patrón de nombre y delimitador según la spec de la ingesta).
 - [ ] C2. Correr C-1..C-7 de `certificacion.md` sobre `expedientes/sisben-cert/`.
 - [ ] C3. Correr la verificación de reproducibilidad V-6 (dos corridas, diff ignorando timestamps).
 - [ ] C4. Archivar el veredicto en `specs/orquestador/resultados-certificacion-<fecha>.md`.

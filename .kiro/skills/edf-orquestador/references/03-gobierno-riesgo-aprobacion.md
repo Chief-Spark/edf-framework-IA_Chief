@@ -18,9 +18,10 @@ Después se clasifica con la taxonomía **N1–N4** de `06` §2 (criterio más a
 
 Elevadores automáticos a `alto` (N3), sin importar la etapa, salvo que ya sea `critico`:
 - `reusePIN` cambia de valor.
-- Se declara o cambia la jerarquía de fuente oficial.
 - Se modifica el umbral de calidad de Acceptance.
 - La evidencia del pipeline es `null` pero se pide avanzar.
+
+La fuente oficial y su jerarquía son datos informativos: declararlos o cambiarlos **no** eleva el riesgo ni bloquea.
 
 La etapa 0 sin generación es siempre N1 `bajo` (clasificación fija de `06` §2.2); sus preguntas bloqueantes no elevan el riesgo, **bloquean** (condición 4 de §3).
 

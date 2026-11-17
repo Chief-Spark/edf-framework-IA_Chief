@@ -14,7 +14,7 @@ Variantes: `habilita <etapa>`, `ya terminé <etapa>`, `pasemos a <etapa>`.
 0. **Verificar el insumo** de la etapa N (`references/04`): el `source-spec-*.yaml` o `yaml-skill-*.yaml` producido por `edf-analisis` debe existir en `insumos/` y estar `aprobado`. Si no → bloquear e indicar al Desarrollador que lo pida a `edf-analisis`.
 1. **Verificar el contrato** de la etapa N (`references/04`): ¿están todos los artefactos obligatorios con `estado_artefacto` en `prevalidado` o `aprobado`? Si falta alguno → la etapa no puede pasar a `pendiente_aprobacion`.
 2. **Correr el checklist de bloqueo** completo (`references/03` §3), evaluando las 6 condiciones y escribiéndolas en `checklist_bloqueo` con `evaluado_en`.
-3. **Clasificar el riesgo** (`references/03` §1) con la taxonomía N1–N4 del steering `06`, aplicando los elevadores automáticos a alto: cambio de `reusePIN`, declaración/cambio de jerarquía de fuente oficial, cambio del umbral de Acceptance, o evidencia de pipeline `null` con petición de avanzar. `state_calculation` es siempre `critico` (N4).
+3. **Clasificar el riesgo** (`references/03` §1) con la taxonomía N1–N4 del steering `06`, aplicando los elevadores automáticos a alto: cambio de `reusePIN`, cambio del umbral de Acceptance, o evidencia de pipeline `null` con petición de avanzar. `state_calculation` es siempre `critico` (N4).
 4. **Fijar el nivel de fricción** correspondiente (ligera / diff+contexto / detallada). En `critico`: no se propone como acción; se documenta y se escala al PO o al Aprobador designado.
 5. **Presentar la propuesta** con el formato estándar del `SKILL.md` §6, incluyendo el contexto precargado de cada artefacto (RT-03: qué cambió, por qué, regla aplicable, patrón previo).
 6. **Si el checklist falla:**

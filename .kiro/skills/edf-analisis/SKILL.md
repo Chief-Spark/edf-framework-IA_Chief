@@ -60,7 +60,7 @@ Reglas duras:
 Flujo:
 0. **La HU y la spec de Confluence son obligatorias. Si falta alguna, el análisis no arranca: se dice cuál falta y se detiene.** (`04` §3, paso 1). El layout y la muestra son opcionales.
 1. Lee todas las fuentes y extrae identidad, contrato del archivo, campos y reglas. Cita cada afirmación.
-2. Haz las preguntas de apertura que falten **en un solo bloque** (fuente oficial, Business Light Code, ingesta nueva / `reusePIN`, contrato del archivo).
+2. Haz las preguntas de apertura que falten **en un solo bloque** (contrato del archivo, ingesta nueva / `reusePIN`). El contrato del archivo, incluido el delimitador, sale de la spec de la ingesta; el framework no tiene valores por defecto. Fuente oficial y Business Light Code son datos opcionales: si las fuentes no los dicen, no se preguntan ni abren pregunta.
 3. Llena las cuatro plantillas. Lo que no se sabe va como pregunta abierta con ID `PA-nnn` y `bloqueante` sí/no.
    Para detectar las ambigüedades y decidir si una pregunta es bloqueante, sigue `references/deteccion-ambiguedades.md` (en la duda, bloqueante).
 4. Recorre el checklist de cierre de `04` §4.3 y muéstralo marcado. Si queda una casilla vacía, la etapa 0 **no** está lista para aprobar: dilo.

@@ -43,7 +43,7 @@ Una sesión de transferencia sirve para detectar que falta una regla, no para fi
 | 2 | **Contradicción entre fuentes** | HU, spec y layout no dicen lo mismo sobre el mismo atributo | `04` §5.1: delimitador y número de campos |
 | 3 | **Regla en vuelo** | Una regla o un catálogo va a cambiar y no está claro cuándo | `04` §5.1: catálogos que cambian "a mitad de camino" |
 | 4 | **Colisión de códigos** | Dos fuentes comparten un identificador que debería discriminar | `04` §5.1: tipo de evento 30 |
-| 5 | **Jerarquía indeterminada** | No se sabe la precedencia o la clasificación de la fuente | `04` §5.1: "¿SISBEN es fuente oficial?" |
+| 5 | **Jerarquía indeterminada** | No se sabe la precedencia o la clasificación de la fuente. **Nunca es bloqueante:** la fuente oficial es un dato informativo (`edf-orquestador/prompts/00`) | `04` §5.1: "¿SISBEN es fuente oficial?" |
 | 6 | **Dimensión ausente** | A un campo le falta alguna de las **nueve dimensiones** de `07` §3, o al contrato del archivo alguna de sus seis dimensiones (`04` §4.2) | Sin caso registrado en `04` §5.1 |
 
 Los patrones 1, 4 y 5 ya ocurrieron en el proyecto. La lección registrada en `04` §5.1 es que detectar temprano es la función del análisis, no una cortesía del proceso.
@@ -59,7 +59,6 @@ Determina si la etapa 0 puede cerrarse. El gate de la etapa 0 no habilita `valid
 - El contrato del archivo, en cualquiera de sus seis dimensiones (`04` §4.2).
 - La clasificación público / PII de un campo (`07` §3, dimensión 2; `08-seguridad-y-pii.md`).
 - El tipo de dato de un campo (`07` §3, dimensión 3).
-- La jerarquía o la clasificación de fuente oficial.
 - El umbral de calidad `qualityThreshold` o la fórmula del FQS (`02-lexico-edf.md`).
 - El número de campos a mapear (`04` §4.1).
 
@@ -109,7 +108,7 @@ Reglas de forma:
 3. Contrastar HU, spec y layout atributo por atributo. Buscar activamente la contradicción, no solo la confirmación (`04` §3, paso 4) → patrón 2.
 4. Buscar marcas de pendiente en las fuentes y en las transcripciones («me lo llevo», «lo valido», «por confirmar», «queda pendiente») → patrón 1.
 5. Verificar códigos e identificadores contra otras fuentes que consten en lo leído o en `expedientes/` → patrón 4.
-6. Verificar la clasificación de fuente oficial y su posición en la jerarquía → patrón 5.
+6. Si las fuentes declaran la clasificación de fuente oficial, registrarla; si no, `indeterminado` sin pregunta (patrón 5, no bloqueante).
 7. Revisar si alguna regla o catálogo se anuncia como futuro o modificable → patrón 3.
 8. Clasificar cada pregunta como bloqueante o no según §4.
 9. Registrar:

@@ -16,14 +16,14 @@ La HU y la spec de Confluence son obligatorias. Si falta alguna, el análisis no
 
 0. **Compuerta de entrada.** La HU y la spec de Confluence son obligatorias. Si falta alguna, el análisis no arranca: se dice cuál falta y se detiene. Busca un archivo `HU*` y otro `spec*` en `expedientes/<id>/fuentes/`. Si no están, pide al Desarrollador la ruta y regístrala en `expedientes/<id>/fuentes/rutas-fuentes.json` (`{"hu": "<ruta>", "spec": "<ruta>"}`). El hook `.kiro/hooks/compuerta-etapa0.json` bloquea la creación del expediente mientras falte alguna; la carpeta `fuentes/` está exenta del bloqueo.
 1. **Verificar que no exista** ya `expedientes/<id>/estado-ingesta.json`. Si existe, **no sobrescribir**: reportar el estado actual (prompt 01) y preguntar si se quiere continuar ese expediente.
-2. **Hacer las 5 preguntas de apertura** y no sembrar el expediente hasta tenerlas (o marcarlas `indeterminado`, que genera pregunta abierta bloqueante):
-   - ¿Es **fuente oficial**? (`si` / `no` / `mixto` / `indeterminado`) y su posición en la jerarquía de best data para PIN.
-   - **Business Light Code**: ¿por dónde llega el dato (batch / oficial / high frequency)?
+2. **Tomar los datos de apertura de las fuentes** (HU y spec) o del prompt. Preguntar al Desarrollador **solo los que falten**, en un solo bloque. Ningún valor del framework los sustituye: cada ingesta declara los suyos.
+   - **Contrato del archivo**: patrón de nombre, delimitador, encoding, header/footer, event type, nº de columnas, formato. **El delimitador es el carácter que declare la spec de la ingesta** (`;`, `|`, `,`, tabulador u otro); el framework no tiene uno por defecto. Si la spec no declara alguna dimensión del contrato, es pregunta abierta bloqueante.
    - ¿Es **ingesta nueva**? → si sí, `reusePIN = false`.
-   - **Contrato del archivo**: patrón de nombre, delimitador, encoding, header/footer, event type, nº de columnas, formato.
-   - **Rutas del pipeline** (solo lectura): entrada, validated, accepted, rejects, curated, joblogs.
-3. **Sembrar `estado-ingesta.json`** a partir de `templates/estado-ingesta.seed.json`, con las 8 entradas de etapa (orden 0–7: etapa 0 + 6 etapas, Curation en Flow y Stock), sus dependencias, `clasificacion_compromiso`, `riesgo_tipico`, `dag_airflow` y los artefactos obligatorios de cada contrato (`references/04-contratos-por-skill.md`). **Todas** las etapas arrancan en `no_iniciada` con `transicion_habilitada: false`.
-4. **Registrar las preguntas abiertas** conocidas de la fuente. Para el piloto SISBEN: PA-001..PA-004 de steering `10-piloto-sisben`.
+   - **Rutas del pipeline** (solo lectura): entrada, validated, accepted, rejects, curated, joblogs. Lo que no se conozca queda `null`.
+   - **Business Light Code**: ¿por dónde llega el dato (batch / oficial / high frequency)? Si no se conoce, `null`.
+   - **Fuente oficial** (`si` / `no` / `mixto` / `indeterminado`) y su posición en la jerarquía: **dato informativo y opcional**. Si las fuentes no lo dicen, se registra `indeterminado` **sin abrir pregunta** y sin preguntar. No bloquea ni eleva el riesgo.
+3. **Sembrar `estado-ingesta.json`** a partir de `templates/estado-ingesta.seed.json` (plantilla genérica: se reemplazan **todos** los valores de `ingesta` con los de la HU, la spec y el paso 2), con las 8 entradas de etapa (orden 0–7: etapa 0 + 6 etapas, Curation en Flow y Stock), sus dependencias, `clasificacion_compromiso`, `riesgo_tipico`, `dag_airflow` y los artefactos obligatorios de cada contrato (`references/04-contratos-por-skill.md`). En los nombres de artefacto, `<Fuente>` se reemplaza por el nombre de la fuente. **Todas** las etapas arrancan en `no_iniciada` con `transicion_habilitada: false`.
+4. **Registrar las preguntas abiertas que declaren las fuentes de la ingesta** (las que la HU o la spec dejen abiertas) y las que surjan del paso 2. **No se siembran preguntas predefinidas**: si la HU y la spec declaran que no tienen preguntas abiertas, `preguntas_abiertas[]` arranca vacío.
 5. **Registrar los riesgos** heredados del Inception (mínimo RG-001: mapeo incompleto por specs ambiguas).
 6. **Crear `bitacora.md`** desde `templates/bitacora.template.md` y apendizar `BIT-0001` tipo `inicio_expediente`.
 7. **Generar `estado-ingesta.md`** desde el JSON.

@@ -23,29 +23,27 @@ El contrato exacto de cada costura: qué entra, qué sale, en qué formato, con 
 
 Regla de uso: **un artefacto de etapa no se genera sin leer la fila correspondiente de §4.** Si la fila está marcada `[A:<ID>]`, el artefacto no se genera (`01` §6).
 
-## 2. Contrato del archivo de entrada — caso SISBEN `[C]`
+## 2. Contrato del archivo de entrada — genérico `[C]`
 
-SISBEN es el piloto. Este contrato es específico de la fuente, no genérico: para otra fuente se levanta su propio contrato con las mismas dimensiones.
+El framework **no fija ningún valor** del contrato del archivo. Cada ingesta lo declara en su spec (`expedientes/<id>/fuentes/spec*`), y el Orquestador y `edf-analisis` lo toman de ahí. (Decisión del Desarrollador, 2026-11-17.)
 
-| Dimensión | Valor | Estado | Fuente |
-|---|---|---|---|
-| Patrón de nombre | `SISBEN_EXPERIAN_AAAAMM` | `[C]` | 12/vision |
-| **Delimitador** | **`;`** | `[C]` | decisión H-5 (2026-09-23) |
-| Encoding | UTF-8 | `[C]` | 12/vision |
-| Encabezado | Sí | `[C]` | 12/vision |
-| Pie de archivo | No | `[C]` | 12/vision |
-| Tipo de evento | 30 — compartido con la fuente judicial, ambigüedad registrada | `[A:12/vision]` | 12/vision |
-| **Campos de entrada** | **22** | `[C]` | decisión H-5 |
-| **Campos de salida** | **25** = 22 de entrada + 3 campos internos agregados por el proceso | `[C]` | decisión H-5 |
-| Archivos por periodo | 1, con 3 nomenclaturas: REGULAR / RT / EP | `[C]` | PD/open-questions OQ-10 |
-| Frecuencia | Mensual incremental, semestral full | `[C]` | PD/open-questions GAP-01 |
-| Volumen | ~28M registros históricos; volumen medido por carga sin instrumentar | `[A:GAP-01]` | PD/vision |
+| Dimensión | Valor | Regla |
+|---|---|---|
+| Patrón de nombre | El de la spec | — |
+| **Delimitador** | **El carácter que declare la spec** (`;`, `\|`, `,`, tabulador u otro) | No hay delimitador por defecto. Validation lo recibe como parámetro (`archivo.delimitador` del `source-spec`) |
+| Encoding | El de la spec | — |
+| Encabezado / pie | Los de la spec | — |
+| Tipo de evento | El de la spec | — |
+| Número de campos | El de la spec | — |
+| Formato | El de la spec | — |
 
-**Nota de conciliación.** La cifra de 22 campos y el delimitador `;` **superan** las variantes previas del corpus (17 / 18 / 22 campos; `\|` / `;`). Toda fuente que afirme lo contrario queda `[S]`. El registro global `PT-08` permanece abierto hasta que esta decisión se comunique formalmente. `[C]`
+Si la spec de una ingesta no declara alguna de estas dimensiones, es pregunta abierta bloqueante de la etapa 0. Ningún agente la completa con el valor de otra ingesta ni con un valor "típico".
 
-### 2.1 Los 3 campos internos `[PM]`
+Ejemplo de contrato completo: `expedientes/sisben/fuentes/spec-sisben.md` §2.
 
-Los 3 campos que el proceso agrega para llegar a 25 **no están nombrados en ninguna fuente**. Pendiente manual del equipo.
+### 2.1 SISBEN: los 3 campos internos `[PM]`
+
+En SISBEN, los 3 campos que el proceso agrega para llegar a 25 (22 de entrada + 3) **no están nombrados en ninguna fuente**. Pendiente manual del equipo.
 
 | # | Nombre | Etapa que lo agrega | Tipo | Propósito |
 |---|---|---|---|---|
@@ -77,7 +75,7 @@ Formato de salida por ambiente: `text` en QA/STG, `avro` en Producción. `[C]`
 
 | Costura | Produce | Consume | Artefacto de salida | Ruta S3 | Marcador | Estado |
 |---|---|---|---|---|---|---|
-| Preparation → **Validation** | Externo al framework | Validation | Archivo preparado, delimitado por `;` | (entrada externa) | — | `[C]` frontera · `[PM]` verificación del delimitador real entregado |
+| Preparation → **Validation** | Externo al framework | Validation | Archivo preparado, con el delimitador que declara la spec de la ingesta | (entrada externa) | — | `[C]` frontera · `[PM]` verificación del delimitador real entregado |
 | **Validation** → Acceptance | Validation | Acceptance | Registros validados + Quality Score por campo + reporte de inconsistencias | `validated/`, `reports/validation/` | `_SUCCESS` | `[C]` |
 | **Acceptance** → Curation | Acceptance | Curation | Eventos aceptados; rechazados aparte; FQS del archivo; notificaciones sin PII | `accepted/` (permanece), `rejects/`, `reports/acceptance/` | `_SUCCESS` | `[C]` |
 | **Curation** → Pinning | Curation | Pinning | Eventos curados en `flow` y `stock`; registro en el domain dictionary | `curated/` | `ready-curate` | `[A:OQ-IL-3]` parcial — contrato en `11-contrato-curation-pinning.md`; pendientes en su §6 |
@@ -138,7 +136,7 @@ Las reglas se expresan **por su efecto**, no por su código de severidad (el voc
 ### 5.6 Synthesis / Consistency `[C]`
 
 - Field Handler por campo según el domain dictionary: LFP (Latest For Period), LAP (Latest Across Period), EUC (Earliest Until Correct). **Semántica sin confirmar por el equipo de dominio** `[A:OQ-TR-3]`.
-- Reglas de consistencia declarativas en diccionario JSON, con ID `CONS-<INGESTA>-<NNN>`. Para SISBEN: `CONS-SISBEN-001` (`FECMODFI >= FECENCUE`) y `CONS-SISBEN-002` (`FECENCUE <= AsOfDate`).
+- Reglas de consistencia declarativas en diccionario JSON, con ID `CONS-<INGESTA>-<NNN>`. **Las declara la spec de cada ingesta**; si la spec no declara ninguna, no se generan.
 - Las reglas de consistencia son de advertencia: **registran la inconsistencia y no bloquean el procesamiento**.
 
 ### 5.7 State Calculation `[C]`
@@ -147,7 +145,7 @@ Las reglas se expresan **por su efecto**, no por su código de severidad (el voc
 
 - Agregación al XPM por sección, vía la familia `foundation-stage.json` (`statecalcAlpha-js-foundation-stage.json`) y un flag aditivo por ingesta (patrón `isSisben`).
 - Para SISBEN el caso es **passthrough**: sin cálculos ni sumatorias propias. `[A:CQ-006]` — si requiere lógica propia en el enricher no está resuelto.
-- **Certificación obligatoria de 4 dimensiones antes de producción:** completitud de mandatorios ≥90%, validez de tipo de dato 100%, unicidad 0% de duplicados por llave (`NUMERO_IDENTIFICACION` + `TIPO_IDENTIFICACION`), consistencia ≥90%.
+- **Certificación obligatoria de 4 dimensiones antes de producción:** completitud de mandatorios ≥90%, validez de tipo de dato 100%, unicidad 0% de duplicados por la llave de identidad que declare la spec de la ingesta, consistencia ≥90%.
 - Sin PII en logs WARN/ERROR: enmascaramiento `***` obligatorio (`08`).
 - Uso de JavaScript/Nashorn para campos calculados y predicados `where`: no confirmado en este sub-alcance. **No generar configuración que dependa de Nashorn sin resolverlo** `[A:OQ-TR-2]`.
 - Tipo documental "Salvoconducto refugiado" (código 7): **no existe en el catálogo de Experian**; debe crearse antes del despliegue `[A:OQ-TR-2b]`.
