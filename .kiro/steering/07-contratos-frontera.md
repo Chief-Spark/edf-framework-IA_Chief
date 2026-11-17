@@ -41,17 +41,9 @@ Si la spec de una ingesta no declara alguna de estas dimensiones, es pregunta ab
 
 Ejemplo de contrato completo: `expedientes/sisben/fuentes/spec-sisben.md` §2.
 
-### 2.1 SISBEN: los 3 campos internos `[PM]`
+### 2.1 Campos que agrega el proceso
 
-En SISBEN, los 3 campos que el proceso agrega para llegar a 25 (22 de entrada + 3) **no están nombrados en ninguna fuente**. Pendiente manual del equipo.
-
-| # | Nombre | Etapa que lo agrega | Tipo | Propósito |
-|---|---|---|---|---|
-| 23 | `[PM]` | `[PM]` | `[PM]` | `[PM]` |
-| 24 | `[PM]` | `[PM]` | `[PM]` | `[PM]` |
-| 25 | `[PM]` | `[PM]` | `[PM]` | `[PM]` |
-
-Hasta que se completen: **prohibido generar el `CuratedEvent` ni el mapeo al XPM asumiendo la identidad de estos campos.**
+Los campos que el proceso agrega al evento curado (además de los de entrada) los declara la spec de cada ingesta en su lista de campos curados. Para SISBEN: `expedientes/sisben/fuentes/spec-sisben.md` §10.1, que es la lista completa.
 
 ## 3. Contrato de campo — dimensiones obligatorias `[C]`
 

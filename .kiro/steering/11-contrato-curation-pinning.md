@@ -84,12 +84,12 @@ Registro curado de referencia, 100 % sintético:
   "payload": {"fixture": "SINTETICO"},
   "asOfDate": 1705332600000,
   "subscriber": "999722",
-  "subscriberRelation": "9990101",
+  "subscriberRelation": "1_9990101",
   "curatedRecordJson": {
-    "idFichaOrigen": "0999000101", "idHogar": 1,
+    "idFichaOrigen": "0999000101", "idHogar": "1",
     "codDepartamentoSisben": "05", "nomDepartamento": "ANTIOQUIA",
     "codMunicipioSisben": "05001", "nomMunicipio": "MEDELLIN",
-    "idClase": 1, "idPersonaOrden": 1, "idNacional": 999000101,
+    "idClase": 1, "idPersonaOrden": "1", "idNacional": "999000101",
     "primerApellido": "PRUEBANEZ", "segundoApellido": "FICTICIO",
     "primerNombre": "SINTETICO", "segundoNombre": "JOSE MARIA",
     "tipoDocumento": 1, "tipoDocumentoSisben": "3", "numeroDocumento": "9990101",
@@ -98,6 +98,8 @@ Registro curado de referencia, 100 % sintético:
     "idMarca": 0, "idEstado": 10, "fechaActualizacionCns": 1705332600000,
     "fechaCorte": 1706677200000, "tipoArchivo": "REGULAR",
     "currentPartyType": 1, "currentPartyIdNumber": "9990101",
+    "standardizedIdType": 1, "standardizedIdNumber": "9990101", "standardizedIdName": "SINTETICO JOSE MARIA PRUEBANEZ FICTICIO",
+    "numeroDocumentoOriginal": "9990101",
     "subscriberBlockStatus": "NO_BLOQUEADO", "subscriberBlockReason": null,
     "advertenciasCuracion": []
   }
@@ -105,6 +107,8 @@ Registro curado de referencia, 100 % sintético:
 ```
 
 ## 6. Pendientes de este contrato
+
+Pendientes del framework para una ingesta cualquiera. **Para SISBEN quedan resueltos por su spec** (`expedientes/sisben/fuentes/spec-sisben.md` §10 y §11, regla de `00` §6): #4 no aplica (no hay archivos `EP`); #5, nombres y lista completa de campos curados en §10.1; #6, sin bandera de fuente (regla 2 con `standardizedIdName`); #7, `ColombiaIdentityMatcher`; #8, `subscriberRelation` = `<standardizedIdType>_<standardizedIdNumber>`.
 
 | # | Pendiente | Estado |
 |---|---|---|

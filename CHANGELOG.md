@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.1 — 2026-11-17
+
+Cierra los huecos que la etapa 0 de SISBEN encontró con la versión 1.3.0.
+
+### Cambios
+- **Precedencia de los datos de la ingesta** (`steering/00` §6): cuando el steering o una `reference` dejan abierto un dato de la ingesta (`[A:*]`, `[PM]`, `OQ-*`) y la HU o la spec lo responden, la respuesta es `[C]` para esa ingesta. Ya no se registra como supuesto. `edf-analisis/references/deteccion-ambiguedades.md` §7 agrega ese caso y el de los ejemplos del framework a "qué no es una ambigüedad".
+- **Registro global de preguntas** (`steering/01` §0.4): no viaja con el framework; si no está en el workspace, los IDs `OQ-*`, `PT-*`, `CQ-*` se citan como constan, sin reportarlo como hallazgo.
+- `steering/07` §2.1: los campos que agrega el proceso los declara la spec de cada ingesta (se quitan los "3 campos internos sin nombre" de SISBEN).
+- `steering/11` §5 y §6: el ejemplo curado se alinea con la spec de SISBEN (identificadores como texto, `standardizedId*`, `subscriberRelation`); los pendientes #4 a #8 quedan resueltos para SISBEN por su spec.
+- `steering/03` §9 #11 (`OQ-TR-4`): resuelto para SISBEN por su spec (sí pasa por Synthesis).
+
 ## 1.3.0 — 2026-11-17
 
 Flexibiliza el framework: cada ingesta se configura solo con su HU y su spec. Se quitan los valores y las preguntas pegados al piloto SISBEN. Decisión del Desarrollador.

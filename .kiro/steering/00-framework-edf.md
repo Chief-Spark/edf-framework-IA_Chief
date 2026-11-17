@@ -93,3 +93,5 @@ La clasificación se hace con los criterios de `06` §2 y se registra con el val
 5. Recomendación del agente.
 
 Si una `reference` de skill contradice el steering, **manda el steering** y la contradicción se registra como pregunta abierta.
+
+**Datos de una ingesta.** El steering fija las reglas del framework (gobierno, etapas, formatos, convenciones). Los datos de cada ingesta (contrato del archivo, campos, catálogos, nombres curados, atributos de identidad, bandera de fuente, si pasa por cada etapa, rutas) los declaran su HU y su spec en `expedientes/<id>/fuentes/`. Cuando el steering o una `reference` dejan abierto un punto de ese tipo (`[A:*]`, `[PM]`, `OQ-*`) y la HU o la spec de la ingesta lo responden, **la respuesta de la HU o la spec es `[C]` para esa ingesta**: se cita la fuente y no se registra como supuesto ni como pregunta. Solo es pregunta abierta si la HU y la spec tampoco lo responden, o si se contradicen entre sí.

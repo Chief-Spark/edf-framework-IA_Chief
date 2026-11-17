@@ -125,6 +125,8 @@ Para no inflar la lista y volverla inútil:
 - Una regla que los steerings ya fijan: la regla EPOCH (`07` §3, dimensión 4), los efectos de violación (`07` §5.1) o el valor de `qualityThreshold`.
 - Una decisión de implementación de una etapa posterior. No es del análisis.
 - Un supuesto ya declarado con dueño y consecuencia (`04` §6). Si falta información de la fuente para confirmarlo, esa falta sí se registra como pregunta.
+- Un punto que el steering o una `reference` dejan abierto (`[A:*]`, `[PM]`, `OQ-*`) y que la HU o la spec de la ingesta responden. La respuesta de la ingesta manda para esa ingesta (`00-framework-edf.md` §6): se cita como `[C]`, no como supuesto.
+- Una diferencia entre la spec de la ingesta y un ejemplo del framework (`assets/examples/`, ejemplos de los steerings). Los ejemplos ilustran; la spec manda.
 
 ## 8. Uso desde `SKILL.md`
 

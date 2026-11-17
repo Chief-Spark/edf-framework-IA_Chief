@@ -46,6 +46,8 @@ Si el conflicto es entre este pack y un pack de steering global de la casa (`kd-
 
 `Product-Definition/open-questions.md` es **el único registro vigente**. 27 preguntas abiertas al 2026-09-18 (11 de negocio, 16 técnicas). `[C]`
 
+Este registro no viaja con el framework. Si no está en el workspace, los IDs `OQ-*`, `PT-*`, `CQ-*`, `GAP-*` se citan tal como constan en el steering, sin verificarlos, y eso no se reporta como hallazgo.
+
 Prohibido crear un registro paralelo de preguntas abiertas. Prohibido responder una pregunta abierta por inferencia. Una pregunta abierta se cierra solo con decisión humana registrada.
 
 ## 1. Principios de diseño
