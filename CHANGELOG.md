@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.7.2 — 2026-11-18
+
+### Corregido (`edf-curation`)
+- **Comentarios del código generado que contradecían la spec.** El cierre del processor y de su prueba ya no es texto fijo: depende de la spec (`parte_manual_comentario`, `pruebas_pendientes_comentario`). Con una spec sin campos abiertos y con el nombre completo concatenado, no aparece ningún `TODO(manual)` y el comentario dice cómo se genera el nombre. Con la spec de ejemplo (que deja `nombreCompleto` y el enriquecimiento abiertos) salen los mismos `TODO(manual)` de antes.
+- Comentario de `ConservarEnie` neutro (true conserva la Ñ, false la translitera), comentario del bloque HOCON sin tipos de archivo fijos (`REGULAR, RT y EP`) y nombre de la prueba de la Ñ.
+- Lo anterior y `lookups_dir` (relativo a la carpeta de `fixture.entrada`) documentados en el esquema; el error de lookup faltante muestra la ruta buscada.
+- Pruebas: 88 en verde, 2 omitidas sin `pyhocon`.
+
+### Fuentes de SISBEN 1.0.2 (fuera de git)
+- Formato de las advertencias de curación: `<campo curado>:<MOTIVO>`, sin el valor del dato (spec §10.1, §10.2 y §10.4; HU §5.3). Era un ejemplo de redacción distinto al que genera la skill (PA-005). Sin cambios de reglas.
+
 ## 1.7.1 — 2026-11-18
 
 ### Corregido (`edf-curation`)

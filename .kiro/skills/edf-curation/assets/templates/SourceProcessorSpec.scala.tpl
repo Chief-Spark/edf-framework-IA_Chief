@@ -44,7 +44,5 @@ class {{processor_clase}}Spec extends AnyFunSuite {
     assert(record.toJavaMap.keySet.asScala.toSeq == {{Fuente}}CurationSpec.ClavesPublicadas)
   }
 
-  // TODO(manual): casos de enriquecimiento (IN-06) y de la derivación del tipo de archivo cuando
-  // se cierren CUR-PT06 y CUR-PA03. El payload se conserva: probarlo con un TaggedValidatedEvent
-  // real del framework (enrichEventWithPayload devuelve event.payload).
+{{pruebas_pendientes_comentario}}
 }

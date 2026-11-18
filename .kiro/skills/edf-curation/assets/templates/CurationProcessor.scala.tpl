@@ -54,9 +54,7 @@ class {{processor_clase}}(context: CurationProcessorContext) extends CurationPro
     {{Fuente}}CuratedEvent({{processor_clase}}.curar(event.validatedRecordJson, fileName, errores, homologacion))
   }
 
-  // TODO(manual) IN-06 / CUR-PT06: Business Line Code (catálogo de terceras fuentes) y Type of Data
-  //   (catálogo 170) sin valores. Agregarlos en source-spec cuando se cierren; no inventarlos aquí.
-  // TODO(manual) CUR-PA01 / P2: nombre completo bloqueado hasta confirmar el orden de concatenación.
+{{parte_manual_comentario}}
 }
 
 /** Núcleo puro (sin Spark ni framework salvo los tipos del evento): se prueba sin motor. */

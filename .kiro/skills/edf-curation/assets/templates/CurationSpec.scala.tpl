@@ -60,7 +60,7 @@ object {{Fuente}}CurationSpec {
   lazy val Formateadores: Seq[DateTimeFormatter] = Transformaciones.formateadores(FormatosFecha)
   val ZonaFechas: ZoneId = ZoneId.of("{{zona_fechas}}")
 
-  /** RF-CUR-04. ASSUMPTION: C-CUR-03 (la Ñ se translitera salvo decisión contraria). */
+  /** RF-CUR-04: true conserva la Ñ; false la translitera a N. ASSUMPTION: C-CUR-03 si la spec de la ingesta no lo fija. */
   val ConservarEnie: Boolean = {{conservar_enie}}
 
   // --- Archivo (IN-02, RF-CUR-03): tipo por prefijo y fecha de corte desde lineage.fileName.

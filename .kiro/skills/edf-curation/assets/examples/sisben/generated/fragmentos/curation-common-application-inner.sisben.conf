@@ -11,7 +11,7 @@
 #   oxygen.features.enable.emitStockMetrics, oxygen.stage.consistencyCheck.paths.domainDictionaryFile.
 #
 # filePattern: empieza con .* y termina en (\.txt)? porque el motor compara la ruta del dataset sin
-# extensión y cada evento por lineage.fileName. Un solo patrón cubre REGULAR, RT y EP (RF-CUR-03).
+# extensión y cada evento por lineage.fileName. Un solo patrón cubre todos los tipos de archivo de la spec (RF-CUR-03).
 # ASSUMPTION: F-07 / D8 — convención de nombre en propuesta de frontera.
 oxygen {
   stage {

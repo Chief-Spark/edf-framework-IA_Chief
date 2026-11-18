@@ -395,6 +395,39 @@ def abiertos(spec: dict[str, Any]) -> str:
     return "\n".join([cab] + [f"  //   - {a['destino']}: {a['motivo']}" for a in items])
 
 
+ENRIQUECIMIENTO_SIN_VALORES = {"businessLineCode", "typeOfData"}  # IN-06 / CUR-PT06
+
+
+def parte_manual_comentario(spec: dict[str, Any]) -> str:
+    """Comentario final del processor: lo que queda manual según la spec (no un texto fijo)."""
+    abiertos = {a["destino"] for a in spec.get("campos_abiertos") or []}
+    lineas = []
+    if abiertos & ENRIQUECIMIENTO_SIN_VALORES:
+        lineas += ["  // TODO(manual) IN-06 / CUR-PT06: Business Line Code (catálogo de terceras fuentes) y Type of Data",
+                   "  //   (catálogo 170) sin valores. Agregarlos en source-spec cuando se cierren; no inventarlos aquí."]
+    for m in spec["campos_curados"]:
+        t = m["transformacion"]
+        if t["tipo"] == "concatenacion":
+            lineas.append(f"  // {m['destino']}: concatenacion de {', '.join(t['campos'])} con separador "
+                          f"{q(t.get('separador', ' '))}; se genera desde el source-spec (no es parte manual).")
+    if "nombreCompleto" in abiertos:
+        lineas.append("  // TODO(manual) CUR-PA01 / P2: nombre completo bloqueado hasta confirmar el orden de concatenación.")
+    return "\n".join(lineas) if lineas else "  // Sin parte manual: todos los campos de la spec se generan."
+
+
+def pruebas_pendientes_comentario(spec: dict[str, Any]) -> str:
+    """Pruebas que el generador no puede escribir, según la spec."""
+    abiertos = {a["destino"] for a in spec.get("campos_abiertos") or []}
+    if abiertos & ENRIQUECIMIENTO_SIN_VALORES:
+        return "\n".join([
+            "  // TODO(manual): casos de enriquecimiento (IN-06) y de la derivación del tipo de archivo cuando",
+            "  // se cierren CUR-PT06 y CUR-PA03. El payload se conserva: probarlo con un TaggedValidatedEvent",
+            "  // real del framework (enrichEventWithPayload devuelve event.payload)."])
+    return "\n".join([
+        "  // En el fork: probar que el payload se conserva con un TaggedValidatedEvent real del framework",
+        "  // (enrichEventWithPayload devuelve event.payload); el núcleo ya está cubierto por los casos de arriba."])
+
+
 def lookups_hocon(spec: dict[str, Any]) -> str:
     bloques = []
     for c in spec["catalogos"]:
@@ -563,6 +596,8 @@ def huecos(spec: dict[str, Any], fixture: dict[str, Any], eventos: list[dict],
         "subscriber_relation_override_scala": lambda: relacion_override_scala(spec),
         "subscriber_relation_helper_scala": lambda: relacion_helper_scala(spec),
         "casos_relacion_scala": lambda: casos_relacion_scala(spec, eventos, curados),
+        "parte_manual_comentario": lambda: parte_manual_comentario(spec),
+        "pruebas_pendientes_comentario": lambda: pruebas_pendientes_comentario(spec),
         "ruta_hocon": lambda: rutas["hocon"],
         "ruta_lookups_conf": lambda: rutas["lookups_conf"],
         "ruta_domain_dictionary": lambda: rutas["domain_dictionary"],

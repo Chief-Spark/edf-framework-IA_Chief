@@ -368,6 +368,30 @@ def test_concatenacion_genera_scala_y_salida_esperada(tmp_path, spec, schema):
     assert "standardizedIdName" in spec_test
 
 
+def test_comentarios_de_parte_manual_siguen_la_spec(tmp_path, spec, rendered):
+    """Los comentarios finales del processor y de su prueba dependen de la spec, no son texto fijo."""
+    out, _ = rendered
+    base = leer(out / SCALA_FUENTE / "processor/SISBENCurationProcessor.scala")
+    assert "TODO(manual) CUR-PA01 / P2: nombre completo bloqueado" in base  # el ejemplo deja nombreCompleto abierto
+    assert "TODO(manual) IN-06 / CUR-PT06" in base
+
+    def cambio(s):  # como SISBEN 1.0.1: sin campos abiertos y con el nombre completo concatenado
+        s["campos_abiertos"] = []
+        s["campos_curados"].append({
+            "destino": "standardizedIdName", "origen": "", "tipo_salida": "texto", "estado": "cerrado",
+            "transformacion": {"tipo": "concatenacion", "separador": " ",
+                               "campos": ["primerNombre", "segundoNombre", "primerApellido", "segundoApellido"]}})
+    rt.render(spec_con_cambios(tmp_path, spec, cambio), tmp_path / "out", TEMPLATES, SCHEMA)
+    p = leer(tmp_path / "out" / SCALA_FUENTE / "processor/SISBENCurationProcessor.scala")
+    assert "TODO(manual)" not in p
+    assert ('// standardizedIdName: concatenacion de primerNombre, segundoNombre, primerApellido, segundoApellido '
+            'con separador " "; se genera desde el source-spec (no es parte manual).') in p
+    t = leer(tmp_path / "out/src/test/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCurationProcessorSpec.scala")
+    assert "TODO(manual)" not in t and "enrichEventWithPayload devuelve event.payload" in t
+    assert rt.parte_manual_comentario({"campos_abiertos": [], "campos_curados": []}) == (
+        "  // Sin parte manual: todos los campos de la spec se generan.")
+
+
 def test_documento_en_mayusculas_no_cambia_la_salida_del_ejemplo():
     for c in json.loads(leer(EXPECTED / "curated-events.json")):
         n = c["curatedRecordJson"].get("numeroDocumento")

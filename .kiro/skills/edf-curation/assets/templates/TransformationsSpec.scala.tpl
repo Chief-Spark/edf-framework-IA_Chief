@@ -16,7 +16,7 @@ class TransformacionesSpec extends AnyFunSuite {
   private val fmts = Transformaciones.formateadores(Seq("dd/MM/uuuu", "uuuu-MM-dd HH:mm:ss"))
   private val fmtsIso = Transformaciones.formateadores(Seq("uuuu-MM-dd"))
 
-  test("nombre: mayúsculas, sin tildes, sin especiales, Ñ transliterada") {
+  test("nombre: mayúsculas, sin tildes, sin especiales; Ñ según conservarEnie") {
     assert(Transformaciones.nombre(Some(" José-María "), conservarEnie = false) == Resultado.ok("JOSE MARIA"))
     assert(Transformaciones.nombre(Some("Pruebañez"), conservarEnie = false) == Resultado.ok("PRUEBANEZ"))
     assert(Transformaciones.nombre(Some("Pruebañez"), conservarEnie = true) == Resultado.ok("PRUEBAÑEZ"))

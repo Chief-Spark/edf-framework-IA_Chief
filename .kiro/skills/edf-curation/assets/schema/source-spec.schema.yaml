@@ -255,6 +255,8 @@ x-placeholders:
   subscriber_relation_override_scala: {origen: "derivado: extension_subscriber_relation (comentario si no se declara)"}
   subscriber_relation_helper_scala: {origen: "derivado: extension_subscriber_relation (comentario si no se declara)"}
   casos_relacion_scala: {origen: "derivado: extension_subscriber_relation + fixture.entrada (comentario si no se declara)"}
+  parte_manual_comentario: {origen: "derivado: campos_abiertos + campos_curados con concatenacion"}
+  pruebas_pendientes_comentario: {origen: "derivado: campos_abiertos"}
   ruta_hocon: {origen: rutas_destino.hocon}
   ruta_lookups_conf: {origen: rutas_destino.lookups_conf}
   ruta_domain_dictionary: {origen: rutas_destino.domain_dictionary}
