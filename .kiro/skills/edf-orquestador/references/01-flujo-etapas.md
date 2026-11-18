@@ -91,4 +91,4 @@ El Orquestador **no lista S3 ni consulta Airflow por sí mismo**. La evidencia l
 evidencia_pipeline: { ruta_s3_esperada, observada: <lo reportado|null>, reportada_por: "Desarrollador", verificada_en: <ISO8601>, marcador, joblog, cluster_id, step_id }
 ```
 
-Si no hay evidencia, el campo queda `null` y la etapa **no** puede marcarse aprobada por avance de pipeline, salvo que el Desarrollador apruebe la transición con **evidencia diferida** (`references/03` §3b). Si el expediente y S3 discrepan, gana S3 y la discrepancia se registra como incidente (`09` §5.3).
+Si no hay evidencia, el campo queda `null` y la etapa **no** puede marcarse aprobada por avance de pipeline, salvo que el Desarrollador la apruebe con **evidencia diferida** (`references/03` §3b). Si el expediente y S3 discrepan, gana S3 y la discrepancia se registra como incidente (`09` §5.3).

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.1 — 2026-11-18
+
+Corrige el orden de la evidencia diferida de la 1.5.0, que dejaba un bloqueo circular.
+
+### Corregido
+- En la 1.5.0 la evidencia diferida se declaraba al aprobar la transición N → N+1. Pero esa transición exige el insumo de N+1 aprobado (condición 3), y el insumo de N+1 no se puede aprobar mientras la etapa N no esté `aprobada` (prompt `08`, paso 1). Ninguno de los tres pasos podía ir primero.
+- Ahora (`edf-orquestador/references/03` §3b) la evidencia diferida se declara al **aprobar la etapa N** (`tipo: contexto`, riesgo `alto`, justificación del Desarrollador). La etapa pasa a `aprobada` con la evidencia en `null`; luego se aprueba el insumo de N+1 y luego la transición. Es el mismo orden de la etapa 0. Ajustados también `prompts/02`, `prompts/03` y `references/01` §6.
+
 ## 1.5.0 — 2026-11-18
 
 El riesgo alto (N3) lo aprueba el Desarrollador con justificación escrita, y se puede avanzar de etapa con la evidencia del pipeline diferida. Decisión del Desarrollador.

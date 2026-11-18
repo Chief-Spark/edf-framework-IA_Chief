@@ -49,19 +49,20 @@ Antes de habilitar la etapa `N+1`, el Orquestador verifica **todas** estas condi
        incluido su insumo aprobado de `edf-analisis` (ver `04-contratos-por-skill.md`).
 [ ] 4. No quedan preguntas abiertas con `bloqueante: true` en la etapa N.
 [ ] 5. Si la transición exige evidencia de pipeline, `evidencia_pipeline.observada != null`,
-       o la aprobación de la transición la declara **diferida** (§3b).
+       o la etapa N fue aprobada con evidencia **diferida** (§3b).
 [ ] 6. Si el riesgo es `alto` o `critico`, la aprobación trae `justificacion` no vacía
        (y en `critico`, el actor es `PO` o `Aprobador designado`).
 ```
 
 ### 3b. Evidencia diferida
 
-El Desarrollador puede avanzar a la etapa N+1 sin haber ejecutado aún la etapa N en el pipeline:
+El Desarrollador puede cerrar la etapa N y avanzar a N+1 sin haber ejecutado aún la etapa N en el pipeline. Se hace en este orden, que es el mismo de la etapa 0 (aprobar la etapa, luego el insumo de N+1, luego la transición):
 
-- La transición se clasifica `alto` (elevador "evidencia `null` y se pide avanzar", §1) y la aprueba el **Desarrollador** con justificación escrita que diga "evidencia diferida" y por qué.
-- La etapa N pasa a `aprobada` con `evidencia_pipeline.observada: null`. El Orquestador abre un riesgo `RG-nnn` "evidencia diferida de <etapa>" (`alto`, `abierto`) que se cierra cuando el Desarrollador reporte la evidencia (prompt `05`).
-- La bitácora lo registra como `aprobacion` con la palabra "diferida" en **Por qué**.
-- No aplica a `state_calculation` (N4): su aprobación sigue siendo del `PO` o del `Aprobador designado`.
+1. **Aprobar la etapa N con evidencia diferida** (prompt `03`, `tipo: contexto`, `riesgo: alto`). La aprueba el **Desarrollador** con justificación escrita que diga "evidencia diferida" y por qué. Requisito: todos los artefactos obligatorios de N aprobados. Efecto: la etapa N pasa de `pendiente_evidencia` a `aprobada` con `evidencia_pipeline.observada: null`, y se abre el riesgo `RG-nnn` "evidencia diferida de <etapa>" (`alto`, `abierto`).
+2. **Aprobar el insumo de N+1** (prompt `03`, `tipo: artefacto`). Ya es posible porque su dependencia, N, está `aprobada` (prompt `08`, paso 1).
+3. **Aprobar la transición N → N+1** (prompts `02` y `03`, `tipo: transicion`, `riesgo: alto`, justificación del Desarrollador). La condición 5 se da por cumplida porque la etapa N tiene la evidencia diferida registrada en el paso 1.
+
+El riesgo "evidencia diferida" se cierra cuando el Desarrollador reporta la evidencia (prompt `05`). La bitácora registra los pasos 1 y 3 como `aprobacion`, con la palabra "diferida" en **Por qué**. No aplica a `state_calculation` (N4): su aprobación sigue siendo del `PO` o del `Aprobador designado`.
 
 Además aplican las condiciones de bloqueo de `09` §5.1 (artefacto que depende de `[A:<ID>]`, checklist de seguridad de `08` §8 incompleto, supuesto irreversible sin confirmar, hallazgo de seguridad sin escalar).
 
