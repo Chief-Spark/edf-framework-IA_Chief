@@ -201,6 +201,9 @@ properties:
     additionalProperties: {type: string}
   fixture:
     type: object
+    # entrada: archivo de eventos, relativo a la carpeta del source-spec.
+    # lookups_dir: carpeta de los CSV sintéticos y su LEEME.md, relativa a la carpeta de ENTRADA (no a la del
+    # source-spec). Ej.: entrada fixture/accepted-events.input.yaml + lookups_dir lookups = fixture/lookups/.
     required: [entrada, lookups_dir, sintetico]
     properties:
       sintetico: {const: true}

@@ -646,11 +646,11 @@ def preparar(spec_path: Path, templates: Path, schema_path: Path) -> dict[str, A
     for c in spec["catalogos"]:
         nombre = nombre_archivo(c["archivo"])
         if c["tabla"] != tabla_hom and not (lk_in / nombre).exists():
-            raise RenderError(f"falta el lookup sintético {nombre}")
+            raise RenderError(f"falta el lookup sintético {nombre} en {lk_in} (lookups_dir es relativo a la carpeta de fixture.entrada)")
     # AC-30 (plan #9, 2026-10-21): marca de sintético de los lookups entregados al fork. Va en un archivo
     # aparte: un comentario dentro del CSV podría romper la carga de OxygenLookup (lee con cabecera).
     if not (lk_in / MARCA_LOOKUPS).exists():
-        raise RenderError(f"falta la marca de sintético de los lookups: {fixture_spec['lookups_dir']}/{MARCA_LOOKUPS}")
+        raise RenderError(f"falta la marca de sintético de los lookups: {lk_in / MARCA_LOOKUPS}")
     return {"spec": spec, "curados": curados, "resumen": resumen, "contenidos": contenidos,
             "lk_in": lk_in, "tabla_hom": tabla_hom}
 
