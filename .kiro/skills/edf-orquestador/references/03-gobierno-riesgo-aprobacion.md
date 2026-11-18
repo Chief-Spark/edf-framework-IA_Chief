@@ -31,7 +31,7 @@ La etapa 0 sin generación es siempre N1 `bajo` (clasificación fija de `06` §2
 |:------:|---------------------------|-----------------------------|---|
 | `bajo` | `ligera` | Resumen de 1 línea + artefacto + "¿apruebo?" | Desarrollador |
 | `medio` | `diff_contexto` | Qué cambió, por qué, regla aplicable, alternativas consideradas, qué se rompe si está mal, prueba asociada | Desarrollador |
-| `alto` | `detallada` | Todo lo anterior + impacto en otras ingestas + plan de reversión + preguntas abiertas. **Justificación escrita obligatoria** | Desarrollador **y** dueño del patrón (Ingesta 3) |
+| `alto` | `detallada` | Todo lo anterior + impacto en otras ingestas + plan de reversión + preguntas abiertas. **Justificación escrita obligatoria** | Desarrollador, con la justificación. Visado del dueño del patrón solo si el Desarrollador lo pide |
 | `critico` | `detallada` | **No se propone como acción.** Se documenta como hallazgo y se escala. Solo se registra una aprobación si la da el `PO` o el `Aprobador designado`, con justificación | PO / Aprobador designado `[A:OQ-06]` |
 
 En `alto` y `critico` el campo `justificacion` es **obligatorio**: sin él, la aprobación no se registra y la transición sigue bloqueada. El esquema y `validar-expediente.py` lo verifican.
@@ -48,10 +48,20 @@ Antes de habilitar la etapa `N+1`, el Orquestador verifica **todas** estas condi
 [ ] 3. Todas las dependencias declaradas de N+1 están satisfechas (ver `01-flujo-etapas.md` §2),
        incluido su insumo aprobado de `edf-analisis` (ver `04-contratos-por-skill.md`).
 [ ] 4. No quedan preguntas abiertas con `bloqueante: true` en la etapa N.
-[ ] 5. Si la transición exige evidencia de pipeline, `evidencia_pipeline.observada != null`.
+[ ] 5. Si la transición exige evidencia de pipeline, `evidencia_pipeline.observada != null`,
+       o la aprobación de la transición la declara **diferida** (§3b).
 [ ] 6. Si el riesgo es `alto` o `critico`, la aprobación trae `justificacion` no vacía
        (y en `critico`, el actor es `PO` o `Aprobador designado`).
 ```
+
+### 3b. Evidencia diferida
+
+El Desarrollador puede avanzar a la etapa N+1 sin haber ejecutado aún la etapa N en el pipeline:
+
+- La transición se clasifica `alto` (elevador "evidencia `null` y se pide avanzar", §1) y la aprueba el **Desarrollador** con justificación escrita que diga "evidencia diferida" y por qué.
+- La etapa N pasa a `aprobada` con `evidencia_pipeline.observada: null`. El Orquestador abre un riesgo `RG-nnn` "evidencia diferida de <etapa>" (`alto`, `abierto`) que se cierra cuando el Desarrollador reporte la evidencia (prompt `05`).
+- La bitácora lo registra como `aprobacion` con la palabra "diferida" en **Por qué**.
+- No aplica a `state_calculation` (N4): su aprobación sigue siendo del `PO` o del `Aprobador designado`.
 
 Además aplican las condiciones de bloqueo de `09` §5.1 (artefacto que depende de `[A:<ID>]`, checklist de seguridad de `08` §8 incompleto, supuesto irreversible sin confirmar, hallazgo de seguridad sin escalar).
 

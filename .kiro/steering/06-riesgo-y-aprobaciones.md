@@ -71,7 +71,7 @@ Estas no se re-evalúan caso por caso:
 |---|---|---|---|
 | **N1** | El artefacto y su justificación en una línea | Desarrollador | Bitácora, entrada simple |
 | **N2** | Artefacto + alternativas consideradas + qué se rompe si está mal + prueba asociada | Desarrollador | Bitácora, con las alternativas |
-| **N3** | Todo lo de N2 + análisis de impacto en otras ingestas + plan de reversión + prueba de no afectación | Desarrollador **y** dueño del patrón (Ingesta 3) | Bitácora + expediente, con los dos visados |
+| **N3** | Todo lo de N2 + análisis de impacto en otras ingestas + plan de reversión + prueba de no afectación | Desarrollador, con **justificación escrita**. El dueño del patrón (Ingesta 3) se consulta solo si el Desarrollador lo pide | Bitácora + expediente, con la justificación |
 | **N4** | **No se propone como acción.** Se documenta como hallazgo y se escala | Aprobador designado / PO | Bitácora + expediente + escalamiento explícito |
 
 Regla de N4: un riesgo crítico **no se resuelve bajando la fricción ni pidiendo una confirmación rápida.** Se detiene y se escala. Si el agente se encuentra redactando una justificación para hacer algo N4, eso mismo es la señal de parada.
@@ -82,7 +82,7 @@ Regla de N4: un riesgo crítico **no se resuelve bajando la fricción ni pidiend
 |---|---|---|
 | Análisis de la etapa 0 (contexto e ingesta) | Desarrollador; PO para el cierre formal | `[C]` |
 | Artefacto de etapa N1/N2 | Desarrollador (Operador) | `[C]` |
-| Artefacto de etapa N3 | Desarrollador + dueños del patrón: Julio Morales, Jose Lozano, Andrés Pérez | `[C]` |
+| Artefacto de etapa N3 y transición N3 (incluida la de evidencia diferida) | Desarrollador, con justificación escrita. Consulta opcional a los dueños del patrón (Ingesta 3) | `[C]` (decisión del Desarrollador, 2026-11-18) |
 | **Patrón generado, línea base de garantía** | **Aprobador designado — sin nombrar** | `[A:OQ-06]` |
 | Alcance: qué entra y qué sale del MVP | PO | `[C]` |
 | Fallback manual vs. automatización | PO | `[C]` |

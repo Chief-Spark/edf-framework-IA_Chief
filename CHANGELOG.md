@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.0 — 2026-11-18
+
+El riesgo alto (N3) lo aprueba el Desarrollador con justificación escrita, y se puede avanzar de etapa con la evidencia del pipeline diferida. Decisión del Desarrollador.
+
+### Cambios
+- **Aprobación N3 sin visado obligatorio.** Basta la aprobación del Desarrollador con justificación escrita; el visado de los dueños del patrón (Ingesta 3) es opcional, solo si el Desarrollador lo pide. Archivos: `steering/06` §3 y §4, `steering/03` §8, `edf-orquestador/references/03` §2, `prompts/03-registrar-aprobacion.md`.
+- **Evidencia diferida** (`edf-orquestador/references/03` §3b): una transición puede aprobarse sin evidencia del pipeline (condición 5) con riesgo `alto` y justificación del Desarrollador que diga "evidencia diferida". La etapa queda `aprobada` con la evidencia en `null` y se abre un riesgo "evidencia diferida de <etapa>" hasta reportarla (prompt `05`). `references/01` §6 y `prompts/02` la mencionan como vía prevista.
+- Esquema y `validar-expediente.py` sin cambios: ya aceptaban una aprobación `alto` del Desarrollador con justificación.
+
+### Sin cambios
+- State Calculation (N4) sigue requiriendo `PO` o `Aprobador designado`.
+
 ## 1.4.0 — 2026-11-18
 
 La skill `edf-validation` solo genera artefactos: ya no compila nada ni necesita Java ni Maven. Decisión del Desarrollador.

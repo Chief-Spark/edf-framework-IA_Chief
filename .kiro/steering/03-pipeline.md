@@ -161,7 +161,7 @@ JobLogs/<fecha>/                   <- logs de ejecucion
 | Rol | Quién | Alcance | Estado |
 |---|---|---|---|
 | Operador del framework | Ingeniero de datos de Experian | Usa los skills, aprueba o rechaza cada artefacto | `[C]` |
-| Dueños del patrón | Equipo Ingesta 3 — Julio Morales, Jose Lozano, Andrés Pérez | Revisan y aprueban el patrón generado | `[C]` |
+| Dueños del patrón | Equipo Ingesta 3 — Julio Morales, Jose Lozano, Andrés Pérez | Se consultan sobre el patrón generado si el Desarrollador lo pide; su visado no es obligatorio en N3 (`06` §4) | `[C]` |
 | Aprobador formal del patrón | Sin designar, requerido antes del 2026-11-19 | Línea base del criterio de garantía | `[A:OQ-06]` |
 | Responsable nominal por etapa | Sin designar | — | `[PM]` |
 | Infraestructura y despliegue | Cloud Engineering / Experian (~25 áreas) | Data Reception, IAM, redes, ambientes | `[C]` |

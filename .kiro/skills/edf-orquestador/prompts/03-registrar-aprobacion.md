@@ -25,7 +25,8 @@ Para el insumo: verificar que el artefacto esté `propuesto` o `prevalidado` (pr
    - `actor.rol` y `actor.identificador` presentes y **sin PII** (no nombre completo, no correo) — GR-6.
    - Si `riesgo = alto` o `critico` → `justificacion` obligatoria, mínimo 10 caracteres. **Sin ella, no se registra y la transición sigue bloqueada.**
    - Si `riesgo = critico` (N4, siempre en `state_calculation`) → `actor.rol` debe ser `PO` o `Aprobador designado`. Un Desarrollador no puede registrar esa aprobación.
-   - Si `riesgo = alto` (N3) → pedir también el visado del dueño del patrón (steering `06` §3) y registrarlo como una segunda aprobación con `actor.rol: Dueno del patron`.
+   - Si `riesgo = alto` (N3) → basta la aprobación del Desarrollador con su justificación (steering `06` §3). Si el Desarrollador pide el visado del dueño del patrón, se registra como una segunda aprobación con `actor.rol: Dueno del patron`.
+   - Si la justificación declara la evidencia **diferida** (`references/03` §3b) → la condición 5 se da por cumplida, la etapa N pasa a `aprobada` sin evidencia y se abre el riesgo "evidencia diferida de <etapa>".
    - Si `decision = condicional` → `condiciones[]` con al menos un elemento, y **no** se habilita la transición.
 3. **Escribir** la aprobación en `aprobaciones[]` con `id` `APR-nnn` nuevo (nunca reusado), `tipo`, `desde_etapa`, `hacia_etapa`, `artefactos`, `decision`, `riesgo`, `nivel_friccion`, `resultado` y `ref_bitacora`.
 4. **Actualizar la etapa N**: `estado: aprobada`, `cerrada_en`, `ref_aprobacion`, artefactos obligatorios a `aprobado` con su `hash`.
