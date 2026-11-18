@@ -1,35 +1,43 @@
 # Archivos deprecados
 
-Desde el 2026-10-20 el generador de Validation está en Java 17 (`scripts/java/`). Los archivos Python de
-abajo **se conservan solo como referencia**: no los use para generar ni para verificar el spec.
+## Desde 2026-11-18 (versión 1.4.0 del framework): el generador vigente es Python
 
-| Archivo deprecado | Reemplazo vigente |
+La skill **solo genera artefactos y no compila nada** (decisión del Desarrollador, 2026-11-18). El generador
+vigente es `render_templates.py`: solo necesita Python 3 con PyYAML y jsonschema.
+
+| Archivo | Estado |
 |---|---|
-| `render_templates.py` | `java/src/main/java/com/experian/edf/skills/validation/RenderTemplates.java` (`java -jar java/target/render-templates.jar`), con `Contexto.java` y `Verificaciones.java` |
-| `tests/test_render_templates.py` | `java/src/test/java/com/experian/edf/skills/validation/RenderTemplatesTest.java` |
+| `render_templates.py` | **Vigente.** Generador y verificador del source-spec |
+| `spec_utils.py` | Vigente. Reutiliza la verificación de `render_templates.py`; ya no llama a ningún `.jar` |
+| `tests/test_render_templates.py` | Vigente, en la suite (`python -m pytest scripts/tests`) y en la cobertura |
+| `java/` (generador `RenderTemplates`, `Contexto`, `Verificaciones`, `Py` y `RenderTemplatesTest`) | **Deprecado.** Solo referencia histórica. No se compila ni se ejecuta; la skill nunca usa `mvn` ni `java -jar` |
 
-Siguen vigentes en Python: `prevalidar_archivo.py`, `spec_utils.py` (verifica el spec con el jar),
-`verificar_hocon.py`, `tests/test_prevalidar_archivo.py` y `tests/test_verificar_hocon.py`. Ninguno
-importa `render_templates.py`.
+### Evidencia de equivalencia (2026-11-18)
 
-## Fuera de la suite y de la cobertura vigentes (ADR-04, 2026-10-21)
+`render_templates.py` se reescribió como traducción del generador Java vigente hasta la 1.3.x (marcas
+`ASSUMPTION` con ID, `manifest["supuestos"]` derivado de las marcas, generación todo o nada, verificación
+de métricas). Con el source-spec de ejemplo de SISBEN y con el de `expedientes/sisben/fuentes/spec-sisben.md`
+(Anexo A), las dos versiones producen los mismos archivos byte a byte, incluido `manifest.json`. Solo
+puede diferir la redacción de los mensajes de error del JSON Schema (los errores detectados son los mismos).
 
-| Qué | Cómo | Efecto |
-|---|---|---|
-| `tests/test_render_templates.py` | `collect_ignore = ["test_render_templates.py"]` en `tests/conftest.py` | `python -m pytest scripts/tests` ya no lo recoge (antes recogía sus 21 pruebas). Se puede ejecutar a mano dando su ruta: `python -m pytest scripts/tests/test_render_templates.py` |
-| `render_templates.py` | `omit` en `../.coveragerc` (raíz del skill) | `coverage` solo mide los scripts vigentes. Comando por script (P-5): `coverage report --include=scripts/<script>.py --fail-under=80` |
+La suite `tests/test_render_templates.py` traduce los casos de `RenderTemplatesTest.java`, incluido
+"el ejemplo persistido es igual a una regeneración". Ese caso fallaba en Java porque al ejemplo versionado
+le faltaba `processor/SISBENValidationProcessor.scala` (el `manifest.json` sí lo listaba); se repuso con la
+salida generada.
 
-No se borró ni se movió ningún archivo.
+La comprobación con el parser real del motor (Typesafe Config), que antes hacían las pruebas Java, ocurre
+ahora al compilar y probar en el fork, fuera de la skill (`references/runbook-ejecucion.md` §5). Antes,
+opcionalmente, `verificar_hocon.py` con `pyhocon`.
 
-## Evidencia de equivalencia (2026-10-20)
+## Historia: 2026-10-20 a 2026-11-17 (versión Java)
 
-Con la spec SISBEN (generación y `--solo-verificar`) y las 24 specs de
-`Discovery/13_casos_de_prueba/datos_mock/validation/06_specs_negativas`, la versión Java dio 26/26
-corridas iguales a la versión Python: mismo código de salida y mismos archivos byte a byte, incluido
-`manifest.json`. Solo difiere la redacción de los mensajes de error del JSON Schema (los errores
-detectados son los mismos).
+Entre esas fechas el generador vigente fue Java 17 (`java/`) y `render_templates.py` se conservó solo como
+referencia (ADR-04, 2026-10-21: fuera de la suite y de la cobertura). En esa época se comprobó la
+equivalencia inversa: con la spec SISBEN y las 24 specs de
+`Discovery/13_casos_de_prueba/datos_mock/validation/06_specs_negativas`, la versión Java dio 26/26 corridas
+iguales a la versión Python de entonces.
 
-## Condición para retirarlos
+## Condición para retirar `java/`
 
-Borrarlos cuando el equipo lo apruebe. Mientras existan, si cambia una plantilla o una regla, la versión
-Java es la que manda; los archivos deprecados no se actualizan.
+Borrarla cuando el equipo lo apruebe. Mientras exista, no se actualiza: si cambia una plantilla o una regla,
+manda `render_templates.py`.

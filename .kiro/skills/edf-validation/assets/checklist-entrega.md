@@ -4,8 +4,8 @@ Marcar cada punto antes de pedir la aprobación del técnico. Un punto sin marca
 
 ## 1. Source-spec
 
-- [ ] `java -jar scripts/java/target/render-templates.jar --spec <spec> --solo-verificar` termina en `source-spec OK`.
-- [ ] `mvn -q -f scripts/java/pom.xml verify` en verde (pruebas del generador, HOCON con Typesafe Config, cobertura ≥ 80 %).
+- [ ] `python scripts/render_templates.py --spec <spec> --solo-verificar` termina en `source-spec OK`.
+- [ ] Generado con `python scripts/render_templates.py --spec <spec> --out <salida>`; nada se compiló.
 - [ ] Cada `ASSUMPTION` del spec fue revisado con el técnico (confirmado o ajustado).
 - [ ] Discrepancias documentales nuevas registradas en `references/decisiones-y-abiertos.md`.
 - [ ] Fixture y `ejemplo_invalido` son sintéticos; ningún registro real.

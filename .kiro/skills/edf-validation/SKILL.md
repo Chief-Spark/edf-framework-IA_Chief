@@ -59,6 +59,14 @@ aquí. Alcance y glosario: `references/alcance-y-glosario.md`.
 7. **Discrepancias:** se registran en `references/decisiones-y-abiertos.md`; no se resuelven en
    silencio. Para comportamiento del motor, el código Oxygen gana sobre los documentos.
 
+## Regla de ejecución: generar, nunca compilar
+
+Esta skill **solo genera archivos**. Todo se hace con Python 3 (PyYAML y jsonschema):
+
+- **Nunca** ejecutes `mvn`, `javac`, `java -jar`, `sbt`, `gradle`, `spark-submit` ni Docker, ni compiles el código generado. La compilación y la ejecución del processor las hace el ingeniero en el fork, fuera de esta skill (`references/runbook-ejecucion.md` §4 a §7).
+- La carpeta `scripts/java/` es el generador Java anterior, conservado solo como referencia histórica (`scripts/DEPRECADOS.md`). No se usa.
+- Si falta PyYAML o jsonschema, detente y pide al Desarrollador que los instale (`pip install pyyaml jsonschema`). No busques otra forma de generar.
+
 ## Flujo de trabajo
 
 ### Paso 1 · Obtener el source-spec
@@ -77,8 +85,7 @@ Referencias: `references/especificacion-sisben.md`, `references/dsl-config-refer
 ### Paso 2 · Verificar el spec
 
 ```bash
-mvn -q -f scripts/java/pom.xml verify          # una vez: construye el generador (Java 17) y corre sus pruebas
-java -jar scripts/java/target/render-templates.jar --spec <spec.yaml> --solo-verificar
+python scripts/render_templates.py --spec <spec.yaml> --solo-verificar
 ```
 
 Debe terminar en `source-spec OK`. Corrige el spec (no las plantillas) ante cualquier error. Lo que se
@@ -91,8 +98,10 @@ coherente con el regex del nombre.
 ### Paso 3 · Generar los artefactos
 
 ```bash
-java -jar scripts/java/target/render-templates.jar --spec <spec.yaml> --out <salida>/
+python scripts/render_templates.py --spec <spec.yaml> --out <salida>/
 ```
+
+En macOS/Linux usa `python3` si `python` no existe. Para una ingesta del framework, `<salida>` es `expedientes/<id>/propuestas/validation/`.
 
 Genera (VAL-TPL-01..11, detalle en `references/inventario-plantillas.md`):
 
@@ -107,13 +116,13 @@ Genera (VAL-TPL-01..11, detalle en `references/inventario-plantillas.md`):
 | HOCON | `propuesta/validation-configs-<fuente>.conf`, `propuesta/lookups-<fuente>.conf` |
 | Control | `manifest.json` (archivos, sha256, supuestos, requisitos de ambiente) |
 
-El generador sale con código 2 si queda algún `{{hueco}}` sin resolver o si la salida contiene patrones
-de credenciales. No edites los archivos generados: cambia el spec y regenera. La versión Python
-(`scripts/render_templates.py`) está deprecada (`scripts/DEPRECADOS.md`).
+El generador es todo o nada: sale con código 2, sin escribir ningún archivo, si queda algún `{{hueco}}`
+sin resolver, una marca `ASSUMPTION` sin ID o un patrón de credenciales. No edites los archivos generados:
+cambia el spec y regenera.
 
-El parse del HOCON generado con el parser del motor (Typesafe Config 1.3.4) lo hacen las pruebas Java
-(`mvn -q -f scripts/java/pom.xml verify`). Opcional, con `pyhocon`: `python scripts/verificar_hocon.py
---generado <salida> --fuente <fuente> --archivo-ejemplo <fixture>`.
+Verificación opcional del HOCON generado, con `pyhocon`: `python scripts/verificar_hocon.py
+--generado <salida> --fuente <fuente> --archivo-ejemplo <fixture>`. Si `pyhocon` no está, se reporta
+"no verificado" (no es un error).
 
 ### Paso 4 · Revisar con el checklist
 
@@ -136,7 +145,7 @@ python scripts/prevalidar_archivo.py --spec <spec.yaml> --archivo <archivo> [--l
 
 Simula el flujo del motor (vacío → nombre → header → filtro → registros → duplicados → métricas) y
 muestra el conteo por código, el promedio de RQS y una vista previa de Acceptance. El resultado nunca
-incluye valores de campos. Verifica antes el spec con el generador Java (necesita el jar construido). Con el fixture SISBEN debe coincidir con
+incluye valores de campos. Verifica el spec con el mismo generador Python, sin Java. Con el fixture SISBEN debe coincidir con
 `assets/examples/sisben/esperado/resumen-prevalidacion.json`. No modela E8 (footer): con `filas_footer > 0`
 sale con código 2 (`references/interpretar-salida.md`). En Windows, si rediriges la salida JSON, fija
 `PYTHONIOENCODING=utf-8` o usa `--salida <archivo>`; si no, sale en cp1252.
@@ -151,12 +160,13 @@ Presenta al técnico, en este orden: resumen del manifiesto; diff contra el fork
 
 No continúes sin un "sí" explícito. Ante "cambios", vuelve al Paso 1.
 
-### Paso 7 · Ejecutar (tras la aprobación)
+### Paso 7 · Entregar al ingeniero (la skill no ejecuta)
 
-Sigue `references/runbook-ejecucion.md`: copia aditiva al fork, compilación (si hay JAR), tests,
-ejecución local con `spark-submit`, Docker o EMR Serverless, y checklist de ambiente
-(`lambda = batch`, `historicAttributes = false`, `emitStockMetrics` presente, motor confirmado). Cada
-ejecución contra un clúster requiere su propia aprobación.
+La skill termina en el Paso 6. Copiar al fork, compilar, probar y ejecutar lo hace el **ingeniero**, fuera
+de la skill, siguiendo `references/runbook-ejecucion.md` §4 a §7 (copia aditiva al fork, compilación,
+tests, `spark-submit`, Docker o EMR Serverless, y checklist de ambiente: `lambda = batch`,
+`historicAttributes = false`, `emitStockMetrics` presente, motor confirmado). Si el ingeniero lo pide, la
+skill le explica esos pasos, pero no los ejecuta.
 
 ### Paso 8 · Interpretar la salida y entregar a Acceptance
 
@@ -187,16 +197,14 @@ assets/templates/   plantillas .scala.tpl, .conf.tpl, .csv.tpl, .txt.tpl (capa-a
 assets/schema/      source-spec.schema.yaml
 assets/examples/sisben/  source-spec, input/ (fixture sintético), esperado/, generated/ (salida de referencia)
 assets/checklist-entrega.md  (incluye la nota de verificación)
-scripts/java/  generador RenderTemplates (Java 17, Maven) y sus pruebas JUnit
-scripts/  prevalidar_archivo.py · spec_utils.py · verificar_hocon.py · tests/ (pytest)
-          render_templates.py y tests/test_render_templates.py: deprecados (scripts/DEPRECADOS.md)
+scripts/  render_templates.py (generador) · prevalidar_archivo.py · spec_utils.py · verificar_hocon.py ·
+          tests/ (pytest)
+scripts/java/  generador Java anterior: solo referencia histórica, no se usa (scripts/DEPRECADOS.md)
 ```
 
-Requisitos: Java 17 y Maven para el generador (`mvn -q -f scripts/java/pom.xml verify`; la primera vez
-descarga sus dependencias de Maven Central). Python ≥ 3.10 con PyYAML y `pytest` para la pre-validación
-y sus pruebas (`python -m pytest scripts/tests`; no recoge las pruebas deprecadas, `scripts/tests/conftest.py`,
-ADR-04); `pyhocon` opcional (sin él se omiten 3 pruebas y `verificar_hocon.py` sale con código 3, "no
-verificado"). Cobertura: desde la raíz del skill, `coverage run -m pytest scripts/tests` (lee `.coveragerc`)
+Requisitos: Python ≥ 3.10 con PyYAML y jsonschema para generar y prevalidar. Sin Java ni Maven. Para las
+pruebas del skill, `pytest` (`python -m pytest scripts/tests`); `pyhocon` opcional (sin él se omiten 4
+pruebas y `verificar_hocon.py` sale con código 3, "no verificado"). Cobertura: desde la raíz del skill, `coverage run -m pytest scripts/tests` (lee `.coveragerc`)
 y un `coverage report --include=scripts/<script>.py --fail-under=80` por script (`assets/checklist-entrega.md`, k3).
 
 ## Fuentes

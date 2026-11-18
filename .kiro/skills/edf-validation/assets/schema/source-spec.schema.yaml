@@ -1,5 +1,5 @@
 # Esquema (JSON Schema 2020-12, escrito en YAML) del source-spec de la etapa Validation.
-# El ingeniero de datos llena un archivo con esta forma; el generador Java (scripts/java) lo valida antes de generar.
+# El ingeniero de datos llena un archivo con esta forma; el generador scripts/render_templates.py lo valida antes de generar.
 # Cada propiedad indica en `x-placeholders` qué huecos {{...}} de las plantillas alimenta.
 $schema: "https://json-schema.org/draft/2020-12/schema"
 title: source-spec (Validation EDF/Oxygen)

@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.4.0 — 2026-11-18
+
+La skill `edf-validation` solo genera artefactos: ya no compila nada ni necesita Java ni Maven. Decisión del Desarrollador.
+
+### Cambios
+- **Generador en Python.** `scripts/render_templates.py` se reescribió como traducción del generador Java vigente (marcas `ASSUMPTION` con ID, supuestos del `manifest.json` derivados de las marcas, generación todo o nada, verificación de métricas) y pasa a ser el generador oficial. Con el ejemplo de SISBEN y con el Anexo A de `spec-sisben.md`, produce los mismos archivos byte a byte que la versión Java, incluido `manifest.json`.
+- `scripts/spec_utils.py` y `prevalidar_archivo.py` verifican el source-spec con el generador Python; ya no llaman a ningún `.jar`. El prevalidador ahora muestra los errores del spec.
+- `SKILL.md`: nueva regla "generar, nunca compilar" (prohibido `mvn`, `javac`, `java -jar`, `sbt`, `spark-submit`, Docker); los pasos 2 y 3 usan Python; el paso 7 deja la copia al fork, la compilación y la ejecución al ingeniero.
+- `references/runbook-ejecucion.md`: tabla de quién hace cada paso (§1 a §3 la skill, con Python; §4 a §7 el ingeniero, en el fork).
+- `scripts/java/` queda como referencia histórica (`NO-USAR.md`, `DEPRECADOS.md`).
+- Pruebas: `tests/test_render_templates.py` traduce la suite Java (52 casos) y vuelve a la suite y a la cobertura. Suite del skill: 139 pruebas en verde, 4 omitidas sin `pyhocon`. Cobertura: `render_templates.py` 99 %, `spec_utils.py` 100 %, `prevalidar_archivo.py` 96 %, `verificar_hocon.py` 97 %.
+- Referencias actualizadas: `checklist-entrega.md`, `inventario-plantillas.md`, `assets/examples/sisben/LEEME.md`, comentario del esquema, `edf-analisis/SKILL.md` (verificación mecánica) y `edf-orquestador/references/04-contratos-por-skill.md` (evidencia de Validation). README: requisitos.
+
+### Corregido
+- Al ejemplo versionado `assets/examples/sisben/generated/` le faltaba `processor/SISBENValidationProcessor.scala`, aunque su `manifest.json` lo listaba. Se repuso con la salida generada. Era la falla de "1 de 39" de `mvn verify` en Validation registrada como F-FW-5.
+
+### Pendiente
+- `edf-acceptance` y `edf-curation` siguen con generador Java: hay que pasarlos a Python igual que Validation.
+
 ## 1.3.1 — 2026-11-17
 
 Cierra los huecos que la etapa 0 de SISBEN encontró con la versión 1.3.0.

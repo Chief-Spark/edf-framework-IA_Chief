@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
-"""DEPRECADO (2026-10-20): use el generador Java de scripts/java (ver scripts/DEPRECADOS.md).
+"""Genera los artefactos de la etapa Validation (EDF/Oxygen) desde un source-spec.
 
-Se conserva solo como referencia: produce la misma salida byte a byte que
-java -jar scripts/java/target/render-templates.jar, que es la versión vigente.
-
-Genera los artefactos de la etapa Validation (EDF/Oxygen) desde un source-spec.
+Generador VIGENTE de la skill (desde la versión 1.4.0 del framework, 2026-11-18). No requiere compilar nada:
+solo Python 3 con PyYAML y jsonschema. Es la traducción fiel del generador Java que se usó hasta la 1.3.x
+(scripts/java, conservado como referencia): misma salida byte a byte, incluido manifest.json.
 
 Uso:
-    python render_templates.py --spec source-spec.yaml --out carpeta_salida [--solo-verificar]
+    python render_templates.py --spec source-spec.yaml --out carpeta_salida
+    python render_templates.py --spec source-spec.yaml --solo-verificar
 
-Pasos: (1) carga y valida el source-spec contra el esquema; (2) verificaciones semánticas
-(códigos de longitud fija y sin colisiones de subcadena, referencias de catálogo, guard-rails, fixture);
-(3) rellena cada {{hueco}} de las plantillas; (4) falla si queda algún hueco sin resolver o si la salida
-contiene patrones prohibidos (credenciales); (5) escribe manifest.json con archivos, sha256 y supuestos.
+Pasos: (1) carga y valida el source-spec contra el esquema (draft 2020-12); (2) verificaciones semánticas
+(códigos de longitud fija y sin colisiones de subcadena, quality scores, métricas, referencias de catálogo,
+guard-rails, contrato de archivo, fixture); (3) arma en memoria las plantillas rellenas, los CSV de catálogo
+y manifest.json (archivos, sha256 y supuestos derivados de las marcas ASSUMPTION); (4) falla sin escribir
+nada si queda algún hueco sin resolver, una marca ASSUMPTION sin ID o un patrón prohibido (credenciales);
+(5) si no hay problemas, escribe todo.
 
-No ejecuta nada en el clúster ni modifica repositorios: solo escribe en --out. Requiere PyYAML;
-jsonschema es opcional (si falta, se avisa y se omite la validación de esquema).
+No compila, no ejecuta nada en el clúster y no modifica repositorios: solo escribe en --out.
+Códigos de salida: 0 bien; 2 spec inválida, error de generación o de uso; 1 error inesperado.
 """
 from __future__ import annotations
 
@@ -34,6 +36,11 @@ TEMPLATES_DIR = SKILL_DIR / "assets" / "templates"
 SCHEMA_PATH = SKILL_DIR / "assets" / "schema" / "source-spec.schema.yaml"
 
 PLACEHOLDER_RE = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
+# ID de un supuesto de references/decisiones-y-abiertos.md (ADR-G1).
+ID_SUPUESTO = r"F-\d{2}|VAL-P[AT]\d{2}|VAL-SP\d{2}"
+# Marca válida: ASSUMPTION seguido del ID en la misma línea.
+MARCA_RE = re.compile(r"\bASSUMPTION[ \t]+(" + ID_SUPUESTO + r")\b")
+ASSUMPTION_RE = re.compile(r"\bASSUMPTION\b")
 DUPLICATE_MARK = "OxygenDuplicate"
 DSL_KEYWORDS = ("errorcodeIn", "errorcodeNotIn", "errorcodeInList", "errorcodeNotInList", "errorlevelIn",
                 "errorlevelNotIn", "errorlevelInList", "errorlevelNotInList", "count(errors)", "and", "or",
@@ -46,6 +53,7 @@ FORBIDDEN_PATTERNS = (
     re.compile(r"AKIA[0-9A-Z]{16}"),
 )
 JAVA_DATE_TOKENS = {"dd": "%d", "MM": "%m", "yyyy": "%Y", "HH": "%H", "mm": "%M", "ss": "%S"}
+QS_REF = re.compile(r"qs\.([A-Za-z0-9_]+)")
 
 # Plantilla → ruta destino (relativa a --out). Los {{huecos}} de la ruta se rellenan con el contexto.
 TEMPLATE_TARGETS: dict[str, str] = {
@@ -65,13 +73,17 @@ TEMPLATE_TARGETS: dict[str, str] = {
 
 
 class SpecError(Exception):
-    """El source-spec no cumple el esquema o una regla semántica."""
+    """El source-spec no cumple el esquema o una regla semántica, o la generación encontró un problema."""
 
 
 # --------------------------------------------------------------------------------------------- carga
+def read_text(path: Path) -> str:
+    """UTF-8 sin BOM, con \\r\\n y \\r normalizados a \\n."""
+    return path.read_text(encoding="utf-8-sig")
+
+
 def load_yaml(path: Path) -> Any:
-    with path.open("r", encoding="utf-8-sig") as fh:
-        return yaml.safe_load(fh)
+    return yaml.safe_load(read_text(path))
 
 
 def load_spec(path: Path) -> dict:
@@ -82,16 +94,17 @@ def load_spec(path: Path) -> dict:
 
 
 def validate_schema(spec: dict, schema_path: Path = SCHEMA_PATH) -> list[str]:
-    """Devuelve la lista de errores de esquema; vacía si es válido o si jsonschema no está disponible."""
+    """Errores de la spec contra el JSON Schema (draft 2020-12), ordenados por ruta."""
     try:
         import jsonschema  # type: ignore
-    except ImportError:
-        print("AVISO: jsonschema no está instalado; se omite la validación de esquema.", file=sys.stderr)
-        return []
-    schema = load_yaml(schema_path)
-    validator = jsonschema.Draft202012Validator(schema)
-    return [f"{'/'.join(str(p) for p in e.absolute_path) or '(raíz)'}: {e.message}"
-            for e in sorted(validator.iter_errors(spec), key=lambda e: list(e.absolute_path))]
+    except ImportError as exc:  # sin jsonschema no se puede certificar la forma del spec
+        raise SpecError("falta el paquete jsonschema: pip install jsonschema") from exc
+    validator = jsonschema.Draft202012Validator(load_yaml(schema_path))
+    found = []
+    for error in validator.iter_errors(spec):
+        path = "/".join(str(p) for p in error.absolute_path)
+        found.append((path, f"{path or '(raíz)'}: {error.message}"))
+    return [text for _, text in sorted(found, key=lambda f: f[0])]
 
 
 # ------------------------------------------------------------------------------------ utilidades
@@ -100,21 +113,27 @@ def scala_str(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
 
 
-def hocon_str(value: str) -> str:
+def hocon_str(value: Any) -> str:
     """Contenido de una cadena HOCON entre comillas (mismas reglas que JSON)."""
     return json.dumps(value, ensure_ascii=False)[1:-1]
 
 
-def scala_list(values: list[str]) -> str:
+def scala_list(values: list) -> str:
     return ", ".join(f'"{scala_str(v)}"' for v in values)
 
 
 def camel(name: str) -> str:
+    """NOMBRE_EN_MAYUSCULAS -> nombreEnMayusculas."""
     parts = name.lower().split("_")
-    return parts[0] + "".join(p.capitalize() for p in parts[1:])
+    return parts[0] + "".join(p[:1].upper() + p[1:] for p in parts[1:])
+
+
+def lower(value: Any) -> str:
+    return str(value).lower()
 
 
 def java_to_py_date(pattern: str) -> str:
+    """Traduce un patrón de fecha Java (dd, MM, yyyy, HH, mm, ss) a strftime; falla con otra letra."""
     out, i = "", 0
     while i < len(pattern):
         for token, repl in JAVA_DATE_TOKENS.items():
@@ -131,6 +150,7 @@ def java_to_py_date(pattern: str) -> str:
 
 
 def all_codes(spec: dict) -> list[str]:
+    """Códigos de campos, reglas y especiales, sin repetidos y en orden de aparición."""
     codes = [c["codigo"] for c in spec["campos"]]
     codes += [r["codigo"] for r in spec["reglas_entre_campos"]]
     codes += list(spec["codigos_especiales"].values())
@@ -151,7 +171,7 @@ def build_fixture_line(spec: dict, case: dict) -> str:
         values[fields[name]["posicion"] - 1] = value
     if "columnas" in case:
         values = values[: case["columnas"]]
-    values += case.get("columnas_extra", [])
+    values += case.get("columnas_extra") or []
     return spec["archivo"]["delimitador"].join(values)
 
 
@@ -159,9 +179,9 @@ def build_fixture_line(spec: dict, case: dict) -> str:
 def check_codes(spec: dict) -> list[str]:
     errors: list[str] = []
     codes = all_codes(spec)
-    lengths = {len(c) for c in codes}
+    lengths = sorted({len(c) for c in codes})
     if len(lengths) != 1:
-        errors.append(f"los códigos de error deben tener longitud fija; longitudes encontradas: {sorted(lengths)}")
+        errors.append(f"los códigos de error deben tener longitud fija; longitudes encontradas: {lengths}")
     errors += [f"código de 11 caracteres (lo reescribe decodeErrorObject): {c}" for c in codes if len(c) == 11]
     for a in codes:
         for b in codes:
@@ -179,12 +199,24 @@ def check_quality_scores(spec: dict) -> list[str]:
     errors = []
     texts = [spec["diagnostico_archivo"]["fileName"], spec["diagnostico_archivo"]["header"],
              spec["handoff_acceptance"]["record_acceptance"]]
+    codes = all_codes(spec)
     for qs in spec["quality_scores"]:
         name = qs["nombre"]
-        if any(name in kw for kw in DSL_KEYWORDS) or any(name in c for c in all_codes(spec)):
+        if any(name in kw for kw in DSL_KEYWORDS) or any(name in c for c in codes):
             errors.append(f"el nombre de quality score {name!r} aparece dentro de un operador o código del DSL")
         if any(name in t for t in texts):
             errors.append(f"el nombre de quality score {name!r} aparece en una expresión de registro/archivo")
+    return errors
+
+
+def check_metrics(spec: dict) -> list[str]:
+    """AC-VAL-54a: cada referencia qs.<X> de metricas[].expr nombra un quality score declarado."""
+    errors = []
+    declarados = {q["nombre"] for q in spec["quality_scores"]}
+    for metrica in spec["metricas"]:
+        for usado in dict.fromkeys(QS_REF.findall(metrica["expr"])):
+            if usado not in declarados:
+                errors.append(f"métrica {metrica['id']} usa el quality score no declarado {usado} (AC-VAL-54a)")
     return errors
 
 
@@ -199,12 +231,12 @@ def check_fields(spec: dict) -> list[str]:
     for c in spec["campos"]:
         if c["tipo"] == "fecha" and not c.get("formatos_fecha"):
             errors.append(f"{c['nombre']}: un campo fecha requiere formatos_fecha")
-        for fmt in c.get("formatos_fecha", []):
+        for fmt in c.get("formatos_fecha") or []:
             try:
                 java_to_py_date(fmt)
             except SpecError as exc:
                 errors.append(f"{c['nombre']}: {exc}")
-        if c["obligatorio"] != (c["severidad"] == "1"):
+        if bool(c["obligatorio"]) != (c["severidad"] == "1"):
             errors.append(f"{c['nombre']}: obligatorio ⇒ severidad 1 y opcional ⇒ severidad 3")
     return errors
 
@@ -219,7 +251,7 @@ def check_references(spec: dict) -> list[str]:
             return
         if name not in fields:
             errors.append(f"{where}: campo inexistente {name}")
-        elif tipo and fields[name]["tipo"] != tipo:
+        elif tipo is not None and fields[name]["tipo"] != tipo:
             errors.append(f"{where}: {name} debe ser de tipo {tipo}")
 
     def need_column(tabla: str, columna: str, where: str, key: bool) -> None:
@@ -241,7 +273,7 @@ def check_references(spec: dict) -> list[str]:
             need_column(r["tabla"], r["columna_clave"], r["id"], key=True)
             need_column(r["tabla"], r["columna_nombre"], r["id"], key=False)
         else:
-            need_field(r["campo"], r["id"])
+            need_field(r.get("campo"), r["id"])
     for cat in spec["catalogos"]:
         for key in cat["keys"]:
             if key not in cat["columnas"]:
@@ -250,14 +282,14 @@ def check_references(spec: dict) -> list[str]:
             if len(row) != len(cat["columnas"]):
                 errors.append(f"{cat['tabla']}: fila sintética con {len(row)} valores (esperado {len(cat['columnas'])})")
     gr = spec["guard_rails"]
-    need_field(gr["subscriber_relation"], "guard_rails.subscriber_relation")
-    need_field(gr["as_of_date"], "guard_rails.as_of_date", tipo="fecha")
+    need_field(gr.get("subscriber_relation"), "guard_rails.subscriber_relation")
+    need_field(gr.get("as_of_date"), "guard_rails.as_of_date", tipo="fecha")
     need_field(spec["filtro_filas"].get("campo"), "filtro_filas.campo")
     dup = spec["duplicados"]
     if dup["habilitado"]:
-        if not dup["clave"]:
+        if not dup.get("clave"):
             errors.append("duplicados.habilitado exige una clave no vacía (assert(false) del motor)")
-        for name in dup["clave"]:
+        for name in dup.get("clave") or []:
             need_field(name, "duplicados.clave")
         if dup["modo"] == "EXTN":
             need_field(dup.get("campo_fecha"), "duplicados.campo_fecha", tipo="fecha")
@@ -292,12 +324,13 @@ def check_fixture(spec: dict) -> list[str]:
     fields = field_by_name(spec)
     if len(spec["fixture"]["registro_base"]) != len(spec["campos"]):
         errors.append("fixture.registro_base debe tener un valor por campo")
+    codes = all_codes(spec)
     for case in spec["fixture"]["casos"]:
-        for name in (case.get("cambios") or {}):
+        for name in case.get("cambios") or {}:
             if name not in fields:
                 errors.append(f"fixture {case['id']}: campo inexistente {name}")
-        for code in case["esperado"].get("codigos", []):
-            if code not in all_codes(spec):
+        for code in case["esperado"].get("codigos") or []:
+            if code not in codes:
                 errors.append(f"fixture {case['id']}: código esperado no declarado {code}")
     ids = [c["id"] for c in spec["fixture"]["casos"]]
     if len(ids) != len(set(ids)):
@@ -310,8 +343,8 @@ def verify_spec(spec: dict, schema_path: Path = SCHEMA_PATH) -> list[str]:
     errors = validate_schema(spec, schema_path)
     if errors:
         return errors  # sin forma válida, las reglas semánticas no son confiables
-    for check in (check_fields, check_codes, check_quality_scores, check_references, check_file_contract,
-                  check_fixture):
+    for check in (check_fields, check_codes, check_quality_scores, check_metrics, check_references,
+                  check_file_contract, check_fixture):
         errors += check(spec)
     return errors
 
@@ -321,10 +354,17 @@ SEVERIDAD_SCALA = {"1": "Severidad.Error", "3": "Severidad.Inconsistencia"}
 TIPO_SCALA = {"alfanumerico": "TipoDato.Alfanumerico", "numerico": "TipoDato.Numerico", "fecha": "TipoDato.Fecha"}
 NORMALIZACION_SCALA = {"quitar_espacios": "Normalizacion.QuitarEspacios",
                        "quitar_ceros_izquierda": "Normalizacion.QuitarCerosIzquierda"}
+DEDUP_VERSION = {"EXTN": "EXTN", "RANDOM": "RANDOM", "AS-IS": ""}
 
 
 def _opt(value: Any, render: Callable[[Any], str]) -> str:
     return "None" if value is None else f"Some({render(value)})"
+
+
+def render_marcas_supuesto(item: dict, sangria: str) -> str:
+    """Una línea // ASSUMPTION <ID>: ... por cada ID de la lista opcional `supuestos` del elemento (ADR-G1)."""
+    return "".join(f"{sangria}// ASSUMPTION {i}: valor supuesto en el source-spec (references/decisiones-y-abiertos.md)\n"
+                   for i in item.get("supuestos") or [])
 
 
 def render_fieldspec(c: dict) -> str:
@@ -333,25 +373,29 @@ def render_fieldspec(c: dict) -> str:
     dominio = _opt(c.get("dominio"), lambda d: f"Set({scala_list(d)})")
     catalogo = _opt(c.get("catalogo"),
                     lambda k: f'CatalogoRef("{scala_str(k["tabla"])}", "{scala_str(k["columna"])}")')
-    normal = ", ".join(NORMALIZACION_SCALA[n] for n in c.get("normalizacion", []))
-    return (f"    FieldSpec(nombre = {c['nombre']}, posicion = {c['posicion']}, aliasHeader = Seq({scala_list(alias)}),\n"
-            f"      obligatorio = {str(c['obligatorio']).lower()}, severidad = {SEVERIDAD_SCALA[c['severidad']]}, "
+    normal = ", ".join(NORMALIZACION_SCALA[n] for n in c.get("normalizacion") or [])
+    return (render_marcas_supuesto(c, "    ")
+            + f"    FieldSpec(nombre = {c['nombre']}, posicion = {c['posicion']}, aliasHeader = Seq({scala_list(alias)}),\n"
+            f"      obligatorio = {lower(c['obligatorio'])}, severidad = {SEVERIDAD_SCALA[c['severidad']]}, "
             f"tipo = {TIPO_SCALA[c['tipo']]},\n"
             f"      longitudMax = {_opt(c.get('longitud_max'), str)}, rango = {rango}, dominio = {dominio},\n"
-            f"      catalogo = {catalogo}, formatosFecha = Seq({scala_list(c.get('formatos_fecha', []))}), "
-            f"noFutura = {str(c.get('no_futura', False)).lower()},\n"
+            f"      catalogo = {catalogo}, formatosFecha = Seq({scala_list(c.get('formatos_fecha') or [])}), "
+            f"noFutura = {lower(c.get('no_futura', False))},\n"
             f"      normalizacion = Seq({normal}), codigoError = \"{scala_str(c['codigo'])}\")")
 
 
 def render_regla(r: dict) -> str:
     sev = SEVERIDAD_SCALA[r["severidad"]]
+    marcas = render_marcas_supuesto(r, "    ")
     if r["tipo"] == "correspondencia_catalogo":
-        return (f"    CorrespondenciaCatalogo(id = \"{scala_str(r['id'])}\", campoCodigo = {r['campo_codigo']}, "
+        return (marcas
+                + f"    CorrespondenciaCatalogo(id = \"{scala_str(r['id'])}\", campoCodigo = {r['campo_codigo']}, "
                 f"campoNombre = {r['campo_nombre']},\n"
                 f"      tabla = \"{scala_str(r['tabla'])}\", columnaClave = \"{scala_str(r['columna_clave'])}\", "
                 f"columnaNombre = \"{scala_str(r['columna_nombre'])}\",\n"
                 f"      codigo = \"{scala_str(r['codigo'])}\", severidad = {sev})")
-    return (f"    ValorConCodigoPropio(id = \"{scala_str(r['id'])}\", campo = {r['campo']}, "
+    return (marcas
+            + f"    ValorConCodigoPropio(id = \"{scala_str(r['id'])}\", campo = {r['campo']}, "
             f"valores = Set({scala_list(r['valores'])}),\n"
             f"      codigo = \"{scala_str(r['codigo'])}\", severidad = {sev}, causa = \"{scala_str(r['causa'])}\")")
 
@@ -375,17 +419,15 @@ def render_metric(m: dict) -> str:
 
 
 def render_field_tests(spec: dict) -> str:
-    blocks = []
-    for c in spec["campos"]:
-        blocks.append(
-            f"  test(\"{c['nombre']} inválido produce {c['codigo']}\") {{\n"
-            f"    assert(codigos(conValor({c['posicion']}, \"{scala_str(c['ejemplo_invalido'])}\")).contains(\"{c['codigo']}\"))\n"
-            "  }")
-    return "\n\n".join(blocks)
+    return "\n\n".join(
+        f"  test(\"{c['nombre']} inválido produce {c['codigo']}\") {{\n"
+        f"    assert(codigos(conValor({c['posicion']}, \"{scala_str(c['ejemplo_invalido'])}\")).contains(\"{c['codigo']}\"))\n"
+        "  }"
+        for c in spec["campos"])
 
 
 def render_fixture_tests(spec: dict) -> str:
-    blocks, dup_cases = [], []
+    blocks, dup_lines, dup_flags = [], [], []
     for case in spec["fixture"]["casos"]:
         line = scala_str(build_fixture_line(spec, case))
         title = scala_str(f"fixture {case['id']}: {case['descripcion']}")
@@ -394,13 +436,14 @@ def render_fixture_tests(spec: dict) -> str:
             body = f"    assert(RecordValidator.debeFiltrar(spec, \"{line}\"))"
         else:
             body = (f"    assert(!RecordValidator.debeFiltrar(spec, \"{line}\"))\n"
-                    f"    assert(codigos(\"{line}\") == Seq({scala_list(esperado.get('codigos', []))}))")
+                    f"    assert(codigos(\"{line}\") == Seq({scala_list(esperado.get('codigos') or [])}))")
         blocks.append(f"  test(\"{title}\") {{\n{body}\n  }}")
         if "duplicado" in esperado:
-            dup_cases.append((line, esperado["duplicado"]))
-    if dup_cases:
-        kept = [i for i, (_, dup) in enumerate(dup_cases) if not dup]
-        lines = ", ".join(f'"{line}"' for line, _ in dup_cases)
+            dup_lines.append(line)
+            dup_flags.append(bool(esperado["duplicado"]))
+    if dup_lines:
+        kept = dup_flags.index(False) if False in dup_flags else -1
+        lines = ", ".join(f'"{line}"' for line in dup_lines)
         delim = scala_str(spec["archivo"]["delimitador"])
         blocks.append(
             "  test(\"fixture duplicados: misma clave y se conserva el más reciente (ASSUMPTION F-14)\") {\n"
@@ -409,7 +452,7 @@ def render_fixture_tests(spec: dict) -> str:
             "    assert(claves.distinct.size == 1)\n"
             "    val fechas = grupo.map(l => RecordValidator.asOfDate(spec, l).getOrElse(0L))\n"
             "    val candidatos = fechas.zipWithIndex.map { case (f, i) => (f, \"%05d\".format(i)) }\n"
-            f"    assert(RecordValidator.indiceAConservar(candidatos) == {kept[0] if kept else -1})\n"
+            f"    assert(RecordValidator.indiceAConservar(candidatos) == {kept})\n"
             "  }")
     return "\n\n".join(blocks)
 
@@ -421,7 +464,8 @@ def render_catalog_scala(spec: dict) -> str:
             "        Map(" + ", ".join(f'"{scala_str(col)}" -> "{scala_str(val)}"'
                                      for col, val in zip(cat["columnas"], row)) + ")"
             for row in cat["filas_sinteticas"])
-        tables.append(f"      \"{scala_str(cat['tabla'])}\" -> Seq(\n{rows}\n      )")
+        tables.append(render_marcas_supuesto(cat, "      ")
+                      + f"      \"{scala_str(cat['tabla'])}\" -> Seq(\n{rows}\n      )")
     return ",\n".join(tables)
 
 
@@ -444,34 +488,41 @@ def render_error_codes(spec: dict) -> str:
 
 
 def build_context(spec: dict) -> dict[str, str]:
+    """Valores de los {{huecos}} de las plantillas, calculados desde el source-spec."""
     f, archivo, dup = spec["fuente"], spec["archivo"], spec["duplicados"]
     fields = field_by_name(spec)
-    paquete_fuente = f"{spec['paquetes']['base_fuente']}.{f['fuente']}"
+    paquetes, nombre = spec["paquetes"], archivo["nombre"]
+    grupos, fixture = nombre["grupos"], spec["fixture"]
+    especiales, diag = spec["codigos_especiales"], spec["diagnostico_archivo"]
+    campos = spec["campos"]
+    paquete_fuente = f"{paquetes['base_fuente']}.{f['fuente']}"
     delim = archivo["delimitador"]
     filtro = spec["filtro_filas"]
     filtro_pos = fields[filtro["campo"]]["posicion"] if filtro.get("campo") else None
-    header = delim.join(c["nombre"] for c in spec["campos"])
-    ref = spec["fixture"]["fecha_referencia"].split("-")
+    header = delim.join(c["nombre"] for c in campos)
+    ref = fixture["fecha_referencia"].split("-")
     footer_expr = ("false" if archivo["filas_footer"] == 0 else
                    f'Try(Option(row).exists(_.trim.matches("{scala_str(archivo["footer_regex"])}"))).getOrElse(false)')
-    as_of = archivo["nombre"]["file_as_of_date"]
-    dedup = {"EXTN": "EXTN", "RANDOM": "RANDOM", "AS-IS": ""}[dup["modo"]]
+    ultimo_dia = nombre["file_as_of_date"] == "ultimo_dia_periodo"
+    if dup["modo"] not in DEDUP_VERSION:
+        raise SpecError(f"duplicados.modo desconocido: {dup['modo']}")
     filtro_desc = []
-    if filtro["lineas_vacias"]:
+    if filtro.get("lineas_vacias"):
         filtro_desc.append("líneas vacías")
     if filtro_pos:
-        filtro_desc.append(f"{filtro['campo']} en {{{', '.join(filtro.get('valores', []))}}}")
+        filtro_desc.append(f"{filtro['campo']} en {{{', '.join(filtro.get('valores') or [])}}}")
+    clave = list(dup.get("clave") or [])
     return {
-        "spec_version": spec["spec_version"],
+        "spec_version": str(spec["spec_version"]),
         "Fuente": f["Fuente"],
         "fuente": f["fuente"],
         "event_type": str(f["event_type"]),
         "datasource": scala_str(f["datasource"]),
         "subscriber": scala_str(f["subscriber"]),
         "zona_horaria": scala_str(f["zona_horaria"]),
-        "paquete_comun": spec["paquetes"]["comun"],
+        "paquete_comun": paquetes["comun"],
         "paquete_fuente": paquete_fuente,
-        "ruta_comun": spec["paquetes"]["comun"].replace(".", "/"),
+        "ruta_comun": paquetes["comun"].replace(".", "/"),
         "ruta_fuente": paquete_fuente.replace(".", "/"),
         "processor_fqcn": f"{paquete_fuente}.processor.{f['Fuente']}ValidationProcessor",
         "file_format": archivo["formato"],
@@ -482,56 +533,56 @@ def build_context(spec: dict) -> dict[str, str]:
         "linea_encoding": (f'  encoding = "{hocon_str(archivo["encoding"])}"' if archivo.get("encoding")
                            else "  # sin clave encoding: ruta textFile UTF-8 (D5, F-17)"),
         "file_pattern_hocon": hocon_str(archivo["file_pattern"]),
-        "regex_nombre_scala": scala_str(archivo["nombre"]["regex"]),
-        "grupo_prefijo": str(archivo["nombre"]["grupos"]["prefijo"]),
-        "grupo_periodo": str(archivo["nombre"]["grupos"]["periodo"]),
-        "grupo_marca_tiempo": str(archivo["nombre"]["grupos"]["marca_tiempo"]),
-        "grupo_offset": str(archivo["nombre"]["grupos"]["offset"]),
+        "regex_nombre_scala": scala_str(nombre["regex"]),
+        "grupo_prefijo": str(grupos["prefijo"]),
+        "grupo_periodo": str(grupos["periodo"]),
+        "grupo_marca_tiempo": str(grupos["marca_tiempo"]),
+        "grupo_offset": str(grupos["offset"]),
         "bloque_file_tags": ", ".join(f'"{scala_str(k)}" -> "{scala_str(v)}"'
-                                      for k, v in archivo["nombre"]["file_tag_por_prefijo"].items()),
-        "expr_file_as_of_date": "i.periodo.atEndOfMonth" if as_of == "ultimo_dia_periodo" else "i.periodo.atDay(1)",
-        "file_as_of_date_desc": "último día del periodo AAAAMM" if as_of == "ultimo_dia_periodo"
-                                else "primer día del periodo AAAAMM",
+                                      for k, v in nombre["file_tag_por_prefijo"].items()),
+        "expr_file_as_of_date": "i.periodo.atEndOfMonth" if ultimo_dia else "i.periodo.atDay(1)",
+        "file_as_of_date_desc": "último día del periodo AAAAMM" if ultimo_dia else "primer día del periodo AAAAMM",
         "received_date_desc": "marca de tiempo del nombre con su offset",
-        "campo_subscriber_relation": spec["guard_rails"]["subscriber_relation"],
-        "campo_as_of_date": spec["guard_rails"]["as_of_date"],
-        "bloque_constantes_campos": "\n".join(f'  val {c["nombre"]}: String = "{c["nombre"]}"' for c in spec["campos"]),
-        "bloque_fieldspecs": ",\n".join(render_fieldspec(c) for c in spec["campos"]),
+        "campo_subscriber_relation": str(spec["guard_rails"].get("subscriber_relation")),
+        "campo_as_of_date": str(spec["guard_rails"].get("as_of_date")),
+        "bloque_constantes_campos": "\n".join(f'  val {c["nombre"]}: String = "{c["nombre"]}"' for c in campos),
+        "bloque_fieldspecs": ",\n".join(render_fieldspec(c) for c in campos),
         "bloque_reglas": ",\n".join(render_regla(r) for r in spec["reglas_entre_campos"]),
         "bloque_accesores": "\n".join(f'  val {camel(c["nombre"])}: String = Campos.valor(valores, {c["posicion"]})'
-                                      for c in spec["campos"]),
-        "bloque_mapa_json": "\n".join(f'    m.put("{c["nombre"]}", {camel(c["nombre"])})' for c in spec["campos"]),
-        "filtro_lineas_vacias": str(filtro["lineas_vacias"]).lower(),
+                                      for c in campos),
+        "bloque_mapa_json": "\n".join(f'    m.put("{c["nombre"]}", {camel(c["nombre"])})' for c in campos),
+        "filtro_lineas_vacias": lower(filtro.get("lineas_vacias")),
         "filtro_posicion_scala": f"Some({filtro_pos})" if filtro_pos else "None",
-        "filtro_valores_scala": scala_list(filtro.get("valores", [])),
+        "filtro_valores_scala": scala_list(filtro.get("valores") or []),
         "filtro_descripcion": "; ".join(filtro_desc) or "sin filtro",
         "bloque_quality_scores": ", ".join(f'QualityScoreSpec("{scala_str(q["nombre"])}", Set({scala_list(q["anulan_niveles"])}))'
                                            for q in spec["quality_scores"]),
-        "dup_habilitado": str(dup["habilitado"]).lower(),
-        "dup_clave_scala": ", ".join(dup["clave"]),
+        "dup_habilitado": lower(dup["habilitado"]),
+        "dup_clave_scala": ", ".join(clave),
         "dup_campo_fecha_scala": f"Some({dup['campo_fecha']})" if dup.get("campo_fecha") else "None",
-        "dup_descripcion": " + ".join(dup["clave"]) + ", normalizados" if dup["clave"] else "sin clave",
-        "dup_campo_fecha_desc": dup.get("campo_fecha") or "sin fecha",
-        "dedup_version": dedup,
+        "dup_descripcion": " + ".join(clave) + ", normalizados" if clave else "sin clave",
+        "dup_campo_fecha_desc": str(dup["campo_fecha"]) if dup.get("campo_fecha") else "sin fecha",
+        "dedup_version": DEDUP_VERSION[dup["modo"]],
         "linea_duplicate_threshold": (f"  duplicateThreshold = {dup['umbral']}" if dup.get("umbral")
                                       else "  # duplicateThreshold omitido: default Integer.MAX_VALUE (F-15)"),
-        "codigo_nombre_archivo": spec["codigos_especiales"]["nombre_archivo"],
-        "codigo_header": spec["codigos_especiales"]["header"],
-        "codigo_estructura": spec["codigos_especiales"]["estructura"],
-        "codigo_interno": spec["codigos_especiales"]["interno"],
-        "validate_file_name_hocon": hocon_str(spec["diagnostico_archivo"]["fileName"]),
-        "validate_header_hocon": hocon_str(spec["diagnostico_archivo"]["header"]),
+        "default_output_structure": lower(spec["ambiente"].get("default_output_structure")),
+        "codigo_nombre_archivo": especiales["nombre_archivo"],
+        "codigo_header": especiales["header"],
+        "codigo_estructura": especiales["estructura"],
+        "codigo_interno": especiales["interno"],
+        "validate_file_name_hocon": hocon_str(diag["fileName"]),
+        "validate_header_hocon": hocon_str(diag["header"]),
         "bloque_metricas": ",\n".join(render_metric(m) for m in spec["metricas"]),
         "bloque_lookups": ",\n".join(render_lookup(c) for c in spec["catalogos"]),
         "bloque_codigos_error": render_error_codes(spec),
         "bloque_catalogo_sintetico": render_catalog_scala(spec),
-        "registro_base_scala": scala_list(spec["fixture"]["registro_base"]),
+        "registro_base_scala": scala_list(fixture["registro_base"]),
         "header_linea": header,
         "header_linea_scala": scala_str(header),
-        "numero_campos": str(len(spec["campos"])),
+        "numero_campos": str(len(campos)),
         "fecha_referencia_scala": f"LocalDate.of({int(ref[0])}, {int(ref[1])}, {int(ref[2])})",
-        "fixture_nombre_archivo": spec["fixture"]["nombre_archivo"],
-        "bloque_registros_fixture": "\n".join(build_fixture_line(spec, c) for c in spec["fixture"]["casos"]),
+        "fixture_nombre_archivo": fixture["nombre_archivo"],
+        "bloque_registros_fixture": "\n".join(build_fixture_line(spec, c) for c in fixture["casos"]),
         "bloque_casos_campo": render_field_tests(spec),
         "bloque_casos_fixture": render_fixture_tests(spec),
     }
@@ -554,19 +605,17 @@ def fill(text: str, context: dict[str, str]) -> tuple[str, set[str]]:
 
 def template_placeholders(templates_dir: Path = TEMPLATES_DIR) -> dict[str, set[str]]:
     """Huecos usados por cada plantilla (cuerpo + ruta destino)."""
-    result = {}
-    for rel, target in TEMPLATE_TARGETS.items():
-        body = (templates_dir / rel).read_text(encoding="utf-8-sig")
-        result[rel] = set(PLACEHOLDER_RE.findall(body)) | set(PLACEHOLDER_RE.findall(target))
-    return result
+    return {rel: set(PLACEHOLDER_RE.findall(read_text(templates_dir / rel))) | set(PLACEHOLDER_RE.findall(target))
+            for rel, target in TEMPLATE_TARGETS.items()}
 
 
 def schema_placeholders(schema_path: Path = SCHEMA_PATH) -> set[str]:
+    """Huecos declarados en el esquema (claves x-placeholders)."""
     found: set[str] = set()
 
     def walk(node: Any) -> None:
         if isinstance(node, dict):
-            found.update(node.get("x-placeholders", []))
+            found.update(node.get("x-placeholders") or [])
             for value in node.values():
                 walk(value)
         elif isinstance(node, list):
@@ -581,91 +630,140 @@ def scan_forbidden(text: str) -> list[str]:
     return [p.pattern for p in FORBIDDEN_PATTERNS if p.search(text)]
 
 
-def write_lookup_csvs(spec: dict, out: Path) -> list[Path]:
-    """Catálogos SINTÉTICOS para tests/ejecución local (no son datos oficiales)."""
-    written = []
+def marcas_supuesto(text: str) -> list[str]:
+    """IDs de las marcas ASSUMPTION <ID> del texto, en orden de aparición (ADR-G1)."""
+    return MARCA_RE.findall(text)
+
+
+def marcas_sin_id(text: str) -> list[int]:
+    """Números de línea (desde 1) con una marca ASSUMPTION que no lleva un ID reconocible en la misma línea."""
+    out = []
+    for number, line in enumerate(text.split("\n"), start=1):
+        for any_mark in ASSUMPTION_RE.finditer(line):
+            ok = MARCA_RE.search(line, any_mark.start())
+            if not ok or ok.start() != any_mark.start():
+                out.append(number)
+    return out
+
+
+def lookup_csvs(spec: dict, out: Path) -> dict[Path, str]:
+    """Catálogos SINTÉTICOS para tests/ejecución local (no son datos oficiales): ruta → contenido."""
     base = out / "src" / "test" / "resources" / spec["fuente"]["fuente"] / "lookup"
-    base.mkdir(parents=True, exist_ok=True)
+    csvs = {}
     for cat in spec["catalogos"]:
-        path = base / cat["archivo"]
-        lines = [cat["delimitador"].join(cat["columnas"])] + [cat["delimitador"].join(r) for r in cat["filas_sinteticas"]]
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-        written.append(path)
-    return written
+        delim = cat["delimitador"]
+        lines = [delim.join(cat["columnas"])] + [delim.join(r) for r in cat["filas_sinteticas"]]
+        csvs[base / cat["archivo"]] = "\n".join(lines) + "\n"
+    return csvs
+
+
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def _rel(out: Path, path: Path) -> str:
+    return path.relative_to(out).as_posix()
 
 
 def render_all(spec: dict, out: Path, templates_dir: Path = TEMPLATES_DIR) -> dict:
+    """Genera todo o nada (AC-22).
+
+    (a) Arma en memoria las plantillas rellenas, los CSV de catálogo y manifest.json, y revisa todo: huecos
+    sin valor o sin resolver, marcas ASSUMPTION sin ID (AC-18a) y patrones prohibidos. (b) Si hubo algún
+    problema lanza SpecError sin escribir nada; si no, escribe cada archivo. manifest["supuestos"] es el
+    conjunto ordenado de IDs de las marcas (ADR-G1).
+    """
     context = build_context(spec)
-    files, problems = [], []
+    files: dict[Path, str] = {}
+    supuestos: set[str] = set()
+    problems: list[str] = []
     for rel, target in TEMPLATE_TARGETS.items():
-        body = (templates_dir / rel).read_text(encoding="utf-8-sig")
-        rendered, missing = fill(body, context)
+        body, missing = fill(read_text(templates_dir / rel), context)
         target_path, missing_path = fill(target, context)
-        missing |= missing_path
+        missing = missing | missing_path
         if missing:
             problems.append(f"{rel}: huecos sin valor {sorted(missing)}")
             continue
-        leftover = PLACEHOLDER_RE.findall(rendered)
+        leftover = sorted(set(PLACEHOLDER_RE.findall(body)))
         if leftover:
-            problems.append(f"{rel}: quedaron huecos sin resolver {sorted(set(leftover))}")
-        forbidden = scan_forbidden(rendered)
+            problems.append(f"{rel}: quedaron huecos sin resolver {leftover}")
+        forbidden = scan_forbidden(body)
         if forbidden:
             problems.append(f"{rel}: patrón prohibido en la salida {forbidden}")
-        path = out / target_path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(rendered, encoding="utf-8", newline="\n")
-        files.append(path)
-    if problems:
-        raise SpecError("; ".join(problems))
-    files += write_lookup_csvs(spec, out)
+        sin_id = marcas_sin_id(body)
+        if sin_id:
+            problems.append(f"{rel}: marca ASSUMPTION sin ID en las líneas {sin_id} (AC-18a)")
+        supuestos.update(marcas_supuesto(body))
+        files[out / target_path] = body
+    for path, text in lookup_csvs(spec, out).items():
+        forbidden = scan_forbidden(text)
+        if forbidden:
+            problems.append(f"{_rel(out, path)}: patrón prohibido en la salida {forbidden}")
+        files[path] = text
+
+    ambiente = spec["ambiente"]
     manifest = {
         "skill": "edf-validation-stage",
         "spec_version": spec["spec_version"],
         "fuente": spec["fuente"]["Fuente"],
         "estado": "PROPUESTA - requiere aprobación del técnico antes de copiar al fork (Human-in-the-Loop)",
         "compilacion": "NO CERTIFICADA (F-01: sin acceso al JAR del framework)",
-        "archivos": [{"ruta": p.relative_to(out).as_posix(),
-                      "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in files],
+        "archivos": [{"ruta": _rel(out, path), "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest()}
+                     for path, text in files.items()],
         "requisitos_de_ambiente": {
-            "oxygen.application.lambda": spec["ambiente"]["lambda"],
-            "oxygen.application.historicAttributes": spec["ambiente"]["historic_attributes"],
-            "oxygen.features.enable.defaultOutputStructure": spec["ambiente"]["default_output_structure"],
+            "oxygen.application.lambda": ambiente.get("lambda"),
+            "oxygen.application.historicAttributes": ambiente.get("historic_attributes"),
+            "oxygen.features.enable.defaultOutputStructure": ambiente.get("default_output_structure"),
             "oxygen.features.enable.emitStockMetrics": "debe existir (se lee con .get)",
         },
-        "supuestos": ["F-04", "F-07", "F-08", "F-09", "F-11", "F-12", "F-13", "F-14", "VAL-PT01", "VAL-PT03",
-                      "VAL-PT04", "VAL-PA04"],
+        "supuestos": sorted(supuestos),
     }
-    (out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
-                                       encoding="utf-8", newline="\n")
+    manifest_text = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
+    forbidden = scan_forbidden(manifest_text)
+    if forbidden:
+        problems.append(f"manifest.json: patrón prohibido en la salida {forbidden}")
+    if problems:
+        raise SpecError("; ".join(problems))  # fase (b) sin escribir nada
+    for path, text in files.items():
+        _write(path, text)
+    _write(out / "manifest.json", manifest_text)
     return manifest
 
 
+# ----------------------------------------------------------------------------------------- CLI
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser = argparse.ArgumentParser(description="Genera los artefactos de Validation desde un source-spec.")
     parser.add_argument("--spec", required=True, type=Path, help="source-spec YAML")
     parser.add_argument("--out", type=Path, help="carpeta de salida (se crea si no existe)")
     parser.add_argument("--solo-verificar", action="store_true", help="solo valida el spec; no genera")
     args = parser.parse_args(argv)
-    print("AVISO: render_templates.py está DEPRECADO; use java -jar scripts/java/target/render-templates.jar "
-          "(ver scripts/DEPRECADOS.md).", file=sys.stderr)
-
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, OSError):
+            pass
     try:
         spec = load_spec(args.spec)
         errors = verify_spec(spec)
         if errors:
             print("El source-spec NO pasa la verificación:", file=sys.stderr)
-            for e in errors:
-                print(f"  - {e}", file=sys.stderr)
+            for error in errors:
+                print(f"  - {error}", file=sys.stderr)
             return 2
         print(f"source-spec OK ({len(spec['campos'])} campos, {len(all_codes(spec))} códigos).")
         if args.solo_verificar:
             return 0
         if args.out is None:
-            parser.error("--out es obligatorio salvo con --solo-verificar")
+            print("ERROR: --out es obligatorio salvo con --solo-verificar", file=sys.stderr)
+            return 2
         manifest = render_all(spec, args.out)
     except (SpecError, OSError, yaml.YAMLError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
+    except Exception as exc:  # noqa: BLE001 - red de seguridad: error inesperado con código propio
+        print(f"ERROR inesperado: {exc!r}", file=sys.stderr)
+        return 1
     print(f"Generados {len(manifest['archivos'])} archivos en {args.out} (ver manifest.json).")
     print("Estado: PROPUESTA. Revisar el diff y aprobar antes de copiar al fork.")
     return 0

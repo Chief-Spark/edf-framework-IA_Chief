@@ -16,7 +16,7 @@ Uso:
 Privacidad: el resumen NUNCA contiene valores de campos; solo números de línea, códigos y conteos.
 Catálogos: sin --lookups se usan las filas SINTÉTICAS del source-spec (no son datos oficiales).
 Es una simulación: no certifica el comportamiento del framework (F-01).
-Verifica el spec con el generador Java (scripts/java/target/render-templates.jar, ver spec_utils.py).
+Verifica el spec con el generador Python (render_templates.py, vía spec_utils.py). No requiere Java.
 """
 from __future__ import annotations
 
@@ -415,9 +415,9 @@ def main(argv: list[str] | None = None) -> int:
         spec = load_spec(args.spec)
         errors = verify_spec(args.spec)
         if errors:
-            print("El source-spec NO pasa la verificación; ejecute "
-                  "java -jar scripts/java/target/render-templates.jar --spec <spec> --solo-verificar.",
-                  file=sys.stderr)
+            print("El source-spec NO pasa la verificación:", file=sys.stderr)
+            for error in errors:
+                print(f"  - {error}", file=sys.stderr)
             return 2
         today = date.fromisoformat(args.hoy) if args.hoy else date.today()
         catalog = Catalog.from_dir(spec, args.lookups) if args.lookups else Catalog.from_spec(spec)

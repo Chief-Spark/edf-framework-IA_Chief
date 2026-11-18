@@ -39,7 +39,7 @@ Skill: `edf-analisis`, modo etapa 0.
 | Out | `<Fuente>ValidationProcessorSpec.scala` + fixture sintético + catálogos sintéticos + `codigos-error-<fuente>.csv` | ✅ |
 | Out | HOCON aditivo: `propuesta/validation-configs-<fuente>.conf`, `propuesta/lookups-<fuente>.conf` | ✅ |
 | Out | `manifest.json` (archivos, sha256, supuestos, requisitos de ambiente) | ✅ |
-| Evidencia | `render-templates.jar --solo-verificar` → `source-spec OK`; `checklist-entrega.md` recorrido | ✅ |
+| Evidencia | `python scripts/render_templates.py --solo-verificar` → `source-spec OK`; `checklist-entrega.md` recorrido. Generado sin compilar nada | ✅ |
 | Evidencia | Compilación en el fork: **no certificada** (F-01). Se registra como `prevalidacion.compila: null` hasta que el Desarrollador la reporte | ➖ |
 
 ## Etapa 2 — Acceptance (`acceptance`) · Aceptación · N2 `medio` (N3 si cambia el umbral)

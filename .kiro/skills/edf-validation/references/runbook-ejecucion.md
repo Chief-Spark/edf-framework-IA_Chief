@@ -1,7 +1,12 @@
 # Runbook de ejecución
 
 Todo paso que copia archivos al fork o ejecuta un job requiere **aprobación explícita del técnico**
-(HITL). El skill propone comandos; no los ejecuta por su cuenta.
+(HITL).
+
+| Pasos | Quién | Herramientas |
+|---|---|---|
+| §1 a §3 (verificar, generar, prevalidar) | La skill | Solo Python 3 (PyYAML y jsonschema). Sin compilar nada |
+| §4 a §7 (copiar al fork, compilar, probar, ejecutar) | El **ingeniero**, en el fork | Las del repositorio Oxygen (JDK 11, Maven, Spark). La skill no los ejecuta |
 
 ## 0. Antes de empezar
 
@@ -14,12 +19,10 @@ Todo paso que copia archivos al fork o ejecuta un job requiere **aprobación exp
 
 ## 1. Verificar el source-spec
 
-El generador está en Java 17 (`scripts/java/`). Construirlo una vez desde la raíz del skill; descarga sus
-dependencias de Maven Central y corre sus pruebas:
+El generador es `scripts/render_templates.py` (Python 3, sin compilar):
 
 ```bash
-mvn -q -f scripts/java/pom.xml verify
-java -jar scripts/java/target/render-templates.jar --spec mi-source-spec.yaml --solo-verificar
+python scripts/render_templates.py --spec mi-source-spec.yaml --solo-verificar
 ```
 
 Falla (código 2) ante: esquema inválido, códigos de longitud distinta, colisiones de subcadena,
@@ -29,12 +32,12 @@ vacía, nombre de fixture que no cumple el regex.
 ## 2. Generar la propuesta
 
 ```bash
-java -jar scripts/java/target/render-templates.jar --spec mi-source-spec.yaml --out salida/
+python scripts/render_templates.py --spec mi-source-spec.yaml --out salida/
 python scripts/verificar_hocon.py --generado salida/ --fuente <fuente> --archivo-ejemplo <fixture>   # opcional (pyhocon)
 ```
 
 Sin `pyhocon`, `verificar_hocon.py` sale con código 3: el HOCON queda **no verificado** (no es un fallo
-ni un "OK"). El parse con el parser del motor (Typesafe Config) lo cubren las pruebas Java de `mvn verify`.
+ni un "OK"). El parse con el parser real del motor (Typesafe Config) ocurre al compilar y probar en el fork (§5).
 
 `salida/manifest.json` lista archivos, sha256, supuestos y requisitos de ambiente. Presentar al técnico
 el diff contra el fork (`git diff --no-index <fork>/src salida/src`) y **esperar aprobación**.

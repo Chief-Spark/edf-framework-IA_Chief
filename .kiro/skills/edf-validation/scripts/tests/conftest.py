@@ -1,10 +1,5 @@
-"""Configuración de pytest para la suite vigente del skill.
+"""Configuración de pytest para la suite del skill.
 
-ADR-04 (2026-10-21): las pruebas del generador Python deprecado salen de la suite vigente sin borrarse.
-test_render_templates.py se conserva solo como referencia (ver scripts/DEPRECADOS.md); su reemplazo es
-scripts/java/src/test/java/.../RenderTemplatesTest.java. Para ejecutarla a mano (la ruta explícita
-no se ignora):
-    python -m pytest scripts/tests/test_render_templates.py -p no:cacheprovider
+Desde la versión 1.4.0 del framework (2026-11-18) el generador vigente es scripts/render_templates.py
+(Python, sin compilar) y test_render_templates.py vuelve a la suite. Ver scripts/DEPRECADOS.md.
 """
-
-collect_ignore = ["test_render_templates.py"]

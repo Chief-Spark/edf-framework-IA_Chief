@@ -193,12 +193,7 @@ def test_java_to_py_date():
         su.java_to_py_date("dd/MMM/yyyy")
 
 
-requiere_jar = pytest.mark.skipif(not su.JAR_PATH.is_file(),
-                                  reason="falta el jar: mvn -q -f scripts/java/pom.xml package")
-
-
-@requiere_jar
-def test_verificacion_del_spec_con_el_generador_java(tmp_path):
+def test_verificacion_del_spec_con_el_generador_python(tmp_path):
     assert su.verify_spec(SPEC_PATH) == []
     bad = tmp_path / "malo.yaml"
     bad.write_text(SPEC_PATH.read_text(encoding="utf-8-sig").replace("fuente: sisben", "fuente: SISBEN"),
@@ -206,7 +201,6 @@ def test_verificacion_del_spec_con_el_generador_java(tmp_path):
     assert su.verify_spec(bad)
 
 
-@requiere_jar
 def test_cli(tmp_path, capsys):
     out = tmp_path / "r.json"
     archivo = EXAMPLE / "input" / "SISBEN_EXPERIAN_202406.20240630120000-0500.txt"
@@ -216,7 +210,6 @@ def test_cli(tmp_path, capsys):
     assert pv.main(["--spec", str(SPEC_PATH), "--archivo", str(tmp_path / "no-existe.txt")]) == 2
 
 
-@requiere_jar
 def test_cli_spec_con_footer_sale_con_2(tmp_path, capsys):
     # La guarda E8 también se ve desde el CLI: código 2 y mensaje que nombra E8/footer (plan #6, P-2).
     con_footer = tmp_path / "con-footer.yaml"

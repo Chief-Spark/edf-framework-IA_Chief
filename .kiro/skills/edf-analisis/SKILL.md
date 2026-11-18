@@ -86,7 +86,7 @@ Flujo:
    Para decidir si ese valor abre una pregunta bloqueante, sigue `references/deteccion-ambiguedades.md`.
 3. **Coherencia de nombres entre etapas** (obligatoria): toda clave de campo curado que cites en `contrato-curation-pinning.md` y en los `yaml-skill-*.yaml` debe existir **literal** en `campos_curados[].destino` de `source-spec-curation.yaml`. Si no coincide, márcalo `[A:mapeo-claves-curation-pinning]` (steering `11` §6 #5) y no lo pongas como `[C]`.
 4. **Verificación mecánica** antes de entregar:
-   - source-spec: que valide contra el esquema de su skill. Si el Desarrollador tiene Java 17, `java -jar .kiro/skills/edf-validation/scripts/java/target/render-templates.jar --spec <spec> --solo-verificar` (y el equivalente de la skill si existe). Si no se pudo correr, dilo: "verificación de esquema no ejecutada".
+   - source-spec: que valide contra el esquema de su skill. Para Validation: `python .kiro/skills/edf-validation/scripts/render_templates.py --spec <spec> --solo-verificar` (solo Python, sin compilar). Para otra skill, su equivalente si existe; nunca compiles un generador. Si no se pudo correr, dilo: "verificación de esquema no ejecutada".
    - YAML: que tenga todas las secciones de su plantilla y que ningún valor de `instruccion_generacion*` dependa de un `[A:*]`.
    - Coherencia de claves entre insumos: `python tools/verificar-claves.py <ingesta-id>` (requiere PyYAML). Debe terminar en "claves coherentes".
    - `source-spec-curation.yaml` de una ingesta de Colombia: debe incluir las claves `standardizedId*` del requisito de `edf-curation` ("Claves de identidad para Pinning").

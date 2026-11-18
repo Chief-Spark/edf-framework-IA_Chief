@@ -1,7 +1,7 @@
 # Inventario de plantillas (VAL-TPL-01..11)
 
 Sintaxis de hueco `{{nombre}}`. Cada hueco está declarado en `assets/schema/source-spec.schema.yaml`
-(propiedad `x-placeholders`) y lo rellena el generador Java (`scripts/java/`, clase `Contexto`). Rutas destino relativas a la
+(propiedad `x-placeholders`) y lo rellena el generador `scripts/render_templates.py` (función `build_context`). Rutas destino relativas a la
 raíz del fork de Colombia de oxygen-validation; `raiz_fuente` = `src/main/scala/<paquete_fuente>/`.
 
 | Id | Plantilla (`assets/templates/`) | Capa | Genera | Frecuencia |
@@ -30,7 +30,7 @@ cada objeto como elemento nuevo de `oxygen.stage.validation.configs[]` y `oxygen
 4. VAL-TPL-06, 10.
 5. VAL-TPL-07, 08.
 
-El generador (`render-templates.jar`) genera todo en una pasada; el orden importa para revisar y copiar.
+El generador (`scripts/render_templates.py`) genera todo en una pasada; el orden importa para revisar y copiar.
 
 ## De esqueleto a parametrizada
 

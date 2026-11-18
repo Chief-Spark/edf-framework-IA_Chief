@@ -1,13 +1,11 @@
 # Cobertura de los scripts Python VIGENTES del skill (AC-41). Se lee al ejecutar coverage desde la raíz del skill.
-# ADR-04 (2026-10-21): render_templates.py está deprecado (scripts/DEPRECADOS.md) y no entra en la medición.
+# Desde 1.4.0 (2026-11-18) render_templates.py es el generador vigente y entra en la medición.
 # Comando por script (P-5): coverage report --include=scripts/<script>.py --fail-under=80
 [run]
 source = scripts
 omit =
     scripts/tests/*
-    scripts/render_templates.py
 
 [report]
 omit =
     scripts/tests/*
-    scripts/render_templates.py
