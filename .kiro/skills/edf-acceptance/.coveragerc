@@ -1,16 +1,13 @@
-# Cobertura de los scripts Python vigentes del skill (AC-31). Se lee al correr coverage desde la raíz del skill.
-# ADR-04 (2026-10-21): los scripts deprecados no se miden (ver scripts/DEPRECADOS.md).
-# P-5 (2026-10-21): el 80 % se comprueba por script, con un `coverage report --include=<script> --fail-under=80`
-# por cada script vigente (simular_decision.py y hocon_check.py).
+# Cobertura de los scripts Python VIGENTES del skill (AC-31). Se lee al correr coverage desde la raíz del skill.
+# Desde 1.6.0 (2026-11-18) render_templates.py es el generador vigente y entra en la medición.
+# P-5: el 80 % se comprueba por script, con un `coverage report --include=<script> --fail-under=80` por script.
 [run]
 source = scripts
 omit =
     scripts/tests/*
-    scripts/render_templates.py
 
 [report]
 omit =
     scripts/tests/*
-    scripts/render_templates.py
 precision = 2
 show_missing = True

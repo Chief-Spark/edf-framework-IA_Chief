@@ -76,16 +76,19 @@ Este skill es autocontenido: todo lo que necesita está en esta carpeta.
 | `assets/schema/source-spec.schema.yaml` | Schema de la spec (define todos los huecos) |
 | `assets/examples/sisben/` | Spec prellenada, resumen esperado y salida generada de ejemplo |
 | `assets/checklist-entrega.md` | Checklist previo a la propuesta |
-| `scripts/java/` | Generador (`RenderTemplates`) en Java 17 con sus pruebas JUnit (proyecto Maven) |
-| `scripts/` | `simular_decision.py`, `hocon_check.py`, `tests/` (pruebas Python de esos dos). `render_templates.py` y `tests/test_render_templates.py` están deprecados (`scripts/DEPRECADOS.md`) |
+| `scripts/` | `render_templates.py` (generador), `simular_decision.py`, `hocon_check.py`, `tests/` (pytest) |
+| `scripts/java/` | Generador Java anterior: solo referencia histórica, no se usa (`scripts/DEPRECADOS.md`) |
 
-Requisitos locales: Java 17 y Maven para el generador (la primera construcción descarga sus
-dependencias de Maven Central); Python 3.10+ con PyYAML y pytest para el simulador y `hocon_check.py`.
-No requiere Scala ni el classpath de Oxygen. Construir una vez desde la raíz del skill:
+Requisitos locales: Python 3.10+ con PyYAML y jsonschema para generar y simular; `pytest` para las
+pruebas del skill. Sin Java, Maven, Scala ni el classpath de Oxygen.
 
-```bash
-mvn -q -f scripts/java/pom.xml verify     # compila, 54 pruebas, cobertura >= 80 %, deja el jar
-```
+## Regla de ejecución: generar, nunca compilar
+
+Esta skill **solo genera archivos**, con Python 3:
+
+- **Nunca** ejecutes `mvn`, `javac`, `java -jar`, `sbt`, `gradle`, `spark-submit` ni Docker, ni compiles el código generado. Integrar en el fork, compilar y ejecutar lo hace el ingeniero, fuera de esta skill (`references/runbook-ejecucion.md` §1 a §4).
+- La carpeta `scripts/java/` es el generador Java anterior, conservado solo como referencia histórica (`scripts/DEPRECADOS.md`). No se usa.
+- Si falta PyYAML o jsonschema, detente y pide al Desarrollador que los instale (`pip install pyyaml jsonschema`). No busques otra forma de generar.
 
 ## Guardrails (no negociables)
 
@@ -118,8 +121,10 @@ mvn -q -f scripts/java/pom.xml verify     # compila, 54 pruebas, cobertura >= 80
 ### Paso 2 · Generar los artefactos (orden real del inventario)
 
 ```bash
-java -jar scripts/java/target/render-templates.jar --spec <spec>.yaml --out <salida> --audit
+python scripts/render_templates.py --spec <spec>.yaml --out <salida> --audit
 ```
+
+En macOS/Linux usa `python3` si `python` no existe. Para una ingesta del framework, `<salida>` es `expedientes/<id>/propuestas/acceptance/`.
 
 Orden del `manifest.yaml`: (1) ACC-TPL-02 condiciones con nombre → (2) ACC-TPL-03 severidades, si
 aplica → (3) ACC-TPL-01 bloque de ingesta → (4) ACC-TPL-04 `contextualOverride`, solo con decisión →
@@ -153,15 +158,12 @@ sin `--audit`, después de las líneas `generado`/`omitido`. Una spec sin el blo
 ```bash
 python scripts/simular_decision.py --spec <spec>.yaml          # decisión por archivo del fixture
 python scripts/hocon_check.py <salida>/hocon/*.conf            # parse del HOCON generado
-mvn -q -f scripts/java/pom.xml verify                          # pruebas del generador (Typesafe Config)
-python -m pytest scripts/tests -q                              # suite vigente: simulador y hocon_check
+python -m pytest scripts/tests -q                              # pruebas del skill (generador, simulador, hocon_check)
 ```
 
-`scripts/tests/conftest.py` deja fuera de la suite las pruebas deprecadas (ADR-04). La cobertura de
-los scripts Python se mide por script (`.coveragerc` en la raíz del skill excluye los deprecados):
-`python -m coverage run -m pytest scripts/tests -q` y luego
-`python -m coverage report --include=scripts/<script>.py --fail-under=80` para `simular_decision.py`
-y para `hocon_check.py` (AC-31).
+La cobertura de los scripts Python se mide por script: `python -m coverage run -m pytest scripts/tests -q`
+y luego `python -m coverage report --include=scripts/<script>.py --fail-under=80` para
+`render_templates.py`, `simular_decision.py` y `hocon_check.py` (AC-31).
 
 Luego recorre `assets/checklist-entrega.md` (A automático, B manual, C seguridad, D HITL). Busca
 expresamente en la salida: credenciales, rutas locales, datos que no sean sintéticos.
@@ -181,11 +183,12 @@ Presenta, en este orden:
 **No continúes** hasta recibir aprobación. Si piden cambios, edita la spec (no los generados) y
 vuelve al Paso 2.
 
-### Paso 5 · Integrar, ejecutar e interpretar
+### Paso 5 · Entregar al ingeniero (la skill no ejecuta)
 
-Tras la aprobación, guía la integración aditiva y la ejecución con
-`references/runbook-ejecucion.md` (local, Docker, EMR). Interpreta resultados con
-`references/interpretar-salida.md` y contrasta con la simulación del Paso 3.
+La skill termina en el Paso 4. Integrar en el fork, compilar y ejecutar lo hace el **ingeniero**, fuera de
+la skill, con `references/runbook-ejecucion.md` §1 a §4 (local, Docker, EMR). Si el ingeniero lo pide, la
+skill le explica esos pasos e interpreta los resultados que le reporte (`references/interpretar-salida.md`,
+contrastando con la simulación del Paso 3), pero no los ejecuta.
 
 ## Contratos de hand-off
 

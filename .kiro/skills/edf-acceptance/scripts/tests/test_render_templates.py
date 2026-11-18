@@ -1,7 +1,7 @@
-"""DEPRECADO (2026-10-20): prueban render_templates.py, la versión Python deprecada.
+"""Pruebas del generador vigente render_templates.py (sin Java ni compilación).
 
-Las pruebas vigentes están en scripts/java/src/test (RenderTemplatesTest); las del simulador, en
-scripts/tests/test_simulador.py. Ver scripts/DEPRECADOS.md.
+Incluyen los casos de la suite Java que lo acompañaba hasta la versión 1.5.x
+(scripts/java/src/test/.../RenderTemplatesTest.java). Las del simulador están en test_simulador.py.
 Pruebas del renderizador, de las verificaciones de la spec y del fixture sintético SISBEN.
 
 Ejecutar desde la raíz del skill:  python -m pytest scripts/tests -q
@@ -259,3 +259,267 @@ def test_expresion_rota_acepta_el_registro():
 def test_riesgo_subcadena_de_niveles():
     event = {"errorCodes": [{"errorCodeValue": "X", "errorLevel": "10"}]}
     assert sim.eval_record('errorlevelNotIn("1")', event) is False
+
+
+
+# ------------------------------------------------------------------ casos traducidos de la suite Java (1.6.0)
+GEN_PATH = SKILL / "assets" / "examples" / "sisben" / "generated"
+TEMPLATES = SKILL / "assets" / "templates"
+DECISIONES = SKILL / "references" / "decisiones-y-abiertos.md"
+LINEA_SUPUESTO = re.compile(r"^supuesto  (S-ACC-\d{2})  impacto=(.+)  donde=(.+)  texto=(.+)$")
+
+
+def _arbol(root: Path) -> dict[str, str]:
+    return {p.relative_to(root).as_posix(): p.read_text(encoding="utf-8") for p in sorted(root.rglob("*")) if p.is_file()}
+
+
+def _mutated(base: dict, path: str, value):
+    copia = copy.deepcopy(base)
+    node = copia
+    parts = path.split(".")
+    for part in parts[:-1]:
+        node = node[int(part)] if isinstance(node, list) else node[part]
+    node[parts[-1]] = value
+    return copia
+
+
+def _con_score(spec: dict, score):
+    return _mutated(spec, "fixture.archivos.0.eventos.2.qualityScores.0.score", score)
+
+
+def test_ejemplo_persistido_igual_a_regeneracion(spec, tmp_path):
+    rt.generate(spec, tmp_path)
+    assert _arbol(GEN_PATH) == _arbol(tmp_path)
+
+
+@pytest.mark.parametrize("path,value,expected", [
+    ("archivo.filePattern", "SISBEN_EXPERIAN.*", "empezar con .*"),
+    ("archivo.filePattern", ".*(", "no compila"),
+    ("fileActions.accept", 'average("qs.RQS") >= 90', "escala del umbral"),
+    ("fileActions.reject", 'average("qs.RQS") < 0.90', "sintaxis nueva"),
+    ("fileActions.reject", "anyOf(NO_DEFINIDA)", "no definidas"),
+    ("fileActions.reject", "anyOf(RQS_BAJO_UMBRAL_SISBEN) hasErrorlevelIn(1)", "severidades"),
+    ("registro.recordAcceptance", 'errorlevelNotIn("1") and RQS > 0.5', "ACC-R02"),
+    ("registro.recordAcceptance", 'errorcodeNotIn("CODIGO_INVENTADO")', "no existe en IN-05"),
+    ("registro.niveles_que_rechazan", ["10"], "ACC-R01"),
+    ("registro.codigos_que_rechazan", ["SISBEN_ERR_999"], "IN-05"),
+    ("condiciones.0.nombre", "RQS_BAJO_UMBRAL", "nombre de la fuente"),
+    ("condiciones.0.expresion", 'average("qs.RQS") < 0.85', "escala del umbral"),
+    ("fileActions.accept", 'average("qs.RQS") >= 0.90 or isEmptyBodyFile', "isEmptyBodyFile"),
+    ("fileActions.accept", 'min("qs.RQS") >= 0.90', "quality score declarado"),
+])
+def test_verificaciones_detectan_errores_java(spec, path, value, expected):
+    problems = rt.verify_spec(_mutated(spec, path, value))
+    assert any(expected in p for p in problems), problems
+
+
+def test_codigo_subcadena_lista_ordenada(spec):
+    corto = spec["diagnostico_validation"]["codigos_sev1"][0][:-1]
+    problems = rt.verify_spec(_mutated(spec, "registro.codigos_que_rechazan", [corto]))
+    sub = [p for p in problems if "es subcadena de" in p]
+    assert sub and sub[0].endswith("(ACC-R01)")
+    lista = sub[0].split("es subcadena de ")[1].rsplit(" (", 1)[0]
+    assert eval(lista) == sorted(eval(lista))  # noqa: S307 - lista literal generada por la prueba
+
+
+def test_manual_sin_external_action_rechazado(spec):
+    bad = _mutated(spec, "intervencion_manual.habilitada", True)
+    bad = _mutated(bad, "intervencion_manual.manualReject", 'average("qs.RQS") < 0.5')
+    problems = rt.verify_spec(bad)
+    assert any(p.startswith("manualReject") and "externalAction" in p for p in problems)
+    assert any(p.startswith("manualAccept") for p in problems)
+
+
+def test_umbral_fuera_de_rango_rechazado(spec, schema):
+    bad = _mutated(spec, "calidad.umbral", "1.50")
+    bad = _mutated(bad, "fileActions.accept", 'average("qs.RQS") >= 1.50')
+    bad = _mutated(bad, "condiciones.0.expresion", 'average("qs.RQS") < 1.50')
+    problems = rt.verify_spec(bad)
+    assert any(p.startswith("umbral en [0, 1]") and "'1.50'" in p for p in problems), problems
+    assert not any("escala del umbral" in p for p in problems)
+    assert any(p.startswith("calidad/umbral") for p in rt.validate_schema(bad, schema))
+
+
+def test_umbral_en_rango_y_fuera_de_rango():
+    for ok in ("0.0", "0.90", "1.0", "1.00", "0", "1"):
+        assert rt.umbral_fuera_de_rango(ok) is None, ok
+    for malo in ("1.50", "-0.10", "1.01", "90"):
+        assert "fuera de [0, 1]" in rt.umbral_fuera_de_rango(malo), malo
+    assert "no es un número" in rt.umbral_fuera_de_rango("abc")
+
+
+def test_qs_por_registro_no_binario_rechazado(spec, schema):
+    bad = _con_score(spec, 0.5)
+    problems = rt.verify_spec(bad)
+    assert len(problems) == 1, problems
+    assert problems[0].startswith("QS por registro binario: RQS = 0.5 en fixture/archivos/0/eventos/2")
+    assert any(p.startswith("fixture/archivos/0/eventos/2/qualityScores/0/score") for p in rt.validate_schema(bad, schema))
+
+
+def test_qs_por_registro_binario_acepta_cero_y_uno(spec, schema):
+    for ok in (0, 1, 0.0, 1.0):
+        assert rt.verify_spec(_con_score(spec, ok)) == [], ok
+        assert rt.validate_schema(_con_score(spec, ok), schema) == [], ok
+    for malo in (-1, 2, 0.99, True):
+        assert rt.verify_spec(_con_score(spec, malo)), malo
+
+
+def test_qs_no_binarios_tolera_otra_forma():
+    assert rt.qs_no_binarios({}) == []
+    assert rt.qs_no_binarios({"fixture": {"archivos": ["x", {"eventos": ["y", {"qualityScores": ["z"]}]}]}}) == []
+
+
+def test_sin_jsonschema_falla_en_vez_de_omitir(spec, schema, monkeypatch):
+    monkeypatch.setitem(sys.modules, "jsonschema", None)
+    with pytest.raises(rt.TemplateError, match="jsonschema"):
+        rt.validate_schema(spec, schema)
+
+
+def _cli(capsys, *args) -> tuple[int, str]:
+    code = rt.main(list(args))
+    return code, capsys.readouterr().out
+
+
+def test_cli_rechaza_qs_no_binario(tmp_path, capsys):
+    original = SPEC_PATH.read_text(encoding="utf-8")
+    bad = re.sub(r"(SINT-A-03,[^\n]*score: )1\.0", r"\g<1>0.5", original, count=1)
+    assert bad != original
+    f = tmp_path / "qs.yaml"
+    f.write_text(bad, encoding="utf-8")
+    code, out = _cli(capsys, "--spec", str(f), "--out", str(tmp_path / "o"))
+    assert code == 1 and "QS por registro binario: RQS = 0.5" in out
+    assert not (tmp_path / "o").exists()
+
+
+def test_cli_sale_con_uno_si_la_spec_no_pasa(tmp_path, capsys):
+    bad = tmp_path / "mala.yaml"
+    bad.write_text(SPEC_PATH.read_text(encoding="utf-8").replace("filePattern: '.*", "filePattern: '"), encoding="utf-8")
+    code, out = _cli(capsys, "--spec", str(bad), "--out", str(tmp_path / "o"))
+    assert code == 1 and out.startswith("ERROR: la spec no pasa las verificaciones:")
+    assert not (tmp_path / "o").exists()
+
+
+def test_cli_spec_con_forma_inesperada(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(rt, "validate_schema", lambda spec, schema: [])
+    f = tmp_path / "rara.yaml"
+    f.write_text("Fuente: X\n", encoding="utf-8")
+    code, out = _cli(capsys, "--spec", str(f), "--out", str(tmp_path / "o"))
+    assert code == 1 and "la spec no tiene la forma esperada" in out
+
+
+def test_cli_archivo_inexistente_o_sin_jsonschema(tmp_path, capsys, monkeypatch):
+    code, out = _cli(capsys, "--spec", str(tmp_path / "no-existe.yaml"), "--out", str(tmp_path / "o"))
+    assert code == 1 and out.startswith("ERROR:")
+    monkeypatch.setitem(sys.modules, "jsonschema", None)
+    code, out = _cli(capsys, "--spec", str(SPEC_PATH), "--out", str(tmp_path / "o"))
+    assert code == 1 and "jsonschema" in out
+
+
+def test_cli_error_de_plantilla(tmp_path, capsys, monkeypatch):
+    def falla(*a, **k):
+        raise rt.TemplateError("hueco sin resolver en x: {{y}}")
+    monkeypatch.setattr(rt, "generate", falla)
+    code, out = _cli(capsys, "--spec", str(SPEC_PATH), "--out", str(tmp_path / "o"))
+    assert code == 1 and out.startswith("ERROR: hueco sin resolver")
+
+
+def test_cli_sale_con_dos_si_faltan_argumentos():
+    for argv in (["--spec"], ["--out", "x"], ["--otro", "x"]):
+        with pytest.raises(SystemExit) as exc:
+            rt.main(argv)
+        assert exc.value.code == 2
+
+
+def _supuestos_del_documento() -> dict[str, list[str]]:
+    doc = DECISIONES.read_text(encoding="utf-8")
+    desde = doc.index("## Supuestos propios de este skill")
+    hasta = doc.find("\n## ", desde + 1)
+    filas = {}
+    for line in doc[desde: hasta if hasta >= 0 else len(doc)].split("\n"):
+        if line.startswith("| S-ACC-"):
+            cells = line.split("|")
+            assert len(cells) == 6, line
+            filas[cells[1].strip()] = [cells[2].strip(), cells[3].strip(), cells[4].strip()]
+    return filas
+
+
+def _normalizado(s: str) -> str:
+    return re.sub(r"\s+", " ", s.replace("`", "")).strip()
+
+
+def test_audit_lista_los_supuestos_con_impacto(spec, tmp_path, capsys):
+    code, out = _cli(capsys, "--spec", str(SPEC_PATH), "--out", str(tmp_path), "--audit")
+    assert code == 0
+    lines = out.splitlines()
+    sup = [l for l in lines if l.startswith("supuesto  ")]
+    assert [l.split("  ")[1] for l in sup] == ["S-ACC-01", "S-ACC-02", "S-ACC-03", "S-ACC-04", "S-ACC-05"]
+    for s in rt.supuestos(spec):
+        assert s["impacto"] and rt.linea_supuesto(s) in sup
+    assert all(LINEA_SUPUESTO.match(l) for l in sup)
+    ultimo_hueco = max(i for i, l in enumerate(lines) if " schema=" in l)
+    primer_generado = min(i for i, l in enumerate(lines) if l.startswith("generado  "))
+    assert ultimo_hueco < lines.index(sup[0]) and lines.index(sup[-1]) < primer_generado
+    assert "schema=True  spec=lleno" in out
+    assert "omitido   ACC-TPL-03  reason-severity.csv.tpl  (severidades.habilitado = false)" in out
+
+
+def test_reporte_lista_los_supuestos(spec, tmp_path, capsys):
+    code, out = _cli(capsys, "--spec", str(SPEC_PATH), "--out", str(tmp_path))
+    assert code == 0
+    lines = out.splitlines()
+    esperadas = [rt.linea_supuesto(s) for s in rt.supuestos(spec)]
+    assert len(esperadas) == 5 and lines[-5:] == esperadas
+    assert all(l.startswith(("generado  ", "omitido   ")) for l in lines[:-5])
+
+
+def test_spec_sin_supuestos_no_imprime_ni_falla(spec, schema, tmp_path, capsys):
+    sin = {k: v for k, v in spec.items() if k != "supuestos"}
+    assert rt.validate_schema(sin, schema) == [] and rt.supuestos(sin) == []
+    f = tmp_path / "sin-supuestos.yaml"
+    f.write_text(yaml.safe_dump(sin, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    for audit in (False, True):
+        o = tmp_path / f"o-{audit}"
+        args = ["--spec", str(f), "--out", str(o)] + (["--audit"] if audit else [])
+        code, out = _cli(capsys, *args)
+        assert code == 0 and "supuesto  " not in out and "generado  ACC-TPL-05" in out
+        assert _arbol(GEN_PATH) == _arbol(o)
+
+
+def test_supuestos_toleran_otra_forma():
+    assert rt.supuestos(None) == [] and rt.supuestos({"supuestos": "x"}) == []
+    assert rt.supuestos({"supuestos": ["x", {"id": "S-ACC-01", "supuesto": "a\n  b"}]}) == [
+        {"id": "S-ACC-01", "supuesto": "a b", "impacto": "", "donde": ""}]
+
+
+def test_schema_supuestos_exige_id_y_cuatro_campos(spec, schema):
+    ok = {"id": "S-ACC-09", "supuesto": "s", "impacto": "i", "donde": "d"}
+    assert rt.validate_schema(_mutated(spec, "supuestos", [ok]), schema) == []
+    assert rt.validate_schema(_mutated(spec, "supuestos", []), schema) == []
+    for bad in ("S-01", "S-ACC-1", "S-ACC-001", "s-acc-01", "VAL-SP01"):
+        assert rt.validate_schema(_mutated(spec, "supuestos", [{**ok, "id": bad}]), schema), bad
+    for campo in ok:
+        assert rt.validate_schema(_mutated(spec, "supuestos", [{k: v for k, v in ok.items() if k != campo}]), schema)
+    assert rt.validate_schema(_mutated(spec, "supuestos", [{**ok, "otro": "x"}]), schema)
+
+
+def test_supuestos_de_la_spec_iguales_a_los_del_documento(spec):
+    doc = _supuestos_del_documento()
+    en_spec = rt.supuestos(spec)
+    assert set(doc) == {s["id"] for s in en_spec} == {"S-ACC-01", "S-ACC-02", "S-ACC-03", "S-ACC-04", "S-ACC-05"}
+    assert len(en_spec) == len(doc)
+    for s in en_spec:
+        fila = doc[s["id"]]
+        assert _normalizado(fila[1]) and _normalizado(fila[1]) == _normalizado(s["impacto"])
+        assert _normalizado(fila[2]) == _normalizado(s["donde"])
+
+
+def test_marcas_assumption_citan_un_supuesto_del_documento():
+    ids = set(_supuestos_del_documento())
+    marca = re.compile(r"ASSUMPTION(?: (S-ACC-\d{2}))?")
+    citados = set()
+    for f in [SPEC_PATH, *sorted(TEMPLATES.glob("*.tpl"))]:
+        for m in marca.finditer(f.read_text(encoding="utf-8")):
+            assert m.group(1), f"ASSUMPTION sin ID en {f.name}"
+            assert m.group(1) in ids
+            citados.add(m.group(1))
+    assert citados == {"S-ACC-02", "S-ACC-04"}

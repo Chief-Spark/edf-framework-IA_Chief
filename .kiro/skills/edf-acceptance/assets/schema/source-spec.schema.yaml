@@ -1,5 +1,5 @@
 # JSON Schema (draft 2020-12, escrito en YAML) de la source-spec del skill edf-acceptance-stage.
-# Define TODOS los huecos {{...}} de assets/templates/*.tpl (lo comprueba render-templates.jar --audit
+# Define TODOS los huecos {{...}} de assets/templates/*.tpl (lo comprueba scripts/render_templates.py --audit
 # y el test test_todo_hueco_definido_en_schema). Las entradas IN-xx son las del inventario.
 $schema: "https://json-schema.org/draft/2020-12/schema"
 title: source-spec edf-acceptance-stage

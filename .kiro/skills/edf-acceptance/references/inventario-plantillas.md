@@ -33,8 +33,8 @@ en `assets/templates/`; `manifest.yaml` fija el orden de generación.
 | 5 | ACC-TPL-06 | `validated-events.json.tpl` | datos | `src/test/resources/{{fuente}}/validated/<dir>/part-00000.json` (uno por archivo del fixture) | siempre |
 | 5 | ACC-TPL-05 | `AcceptanceExpressionsSpec.scala.tpl` | esqueleto | `{{raiz_tests}}{{Fuente}}AcceptanceExpressionsSpec.scala` | siempre |
 
-Verificaciones del inventario (las aplica el generador Java, `scripts/java/.../Verificaciones.java`,
-método `verifySpec`):
+Verificaciones del inventario (las aplica el generador `scripts/render_templates.py`, función
+`verify_spec`):
 
 - ACC-TPL-01: el umbral aparece con una sola escala y `calidad.umbral` está en [0, 1] (regla "umbral en
   [0, 1]", desde 2026-10-21); todo código/nivel de `recordAcceptance` existe en
@@ -49,7 +49,7 @@ método `verifySpec`):
 
 ## Motor de plantillas
 
-Sintaxis propia (ver el Javadoc de `scripts/java/.../Plantillas.java`): `{{ruta}}`,
+Sintaxis propia (ver el docstring de `scripts/render_templates.py`): `{{ruta}}`,
 filtros `|hocon`, `|scala` (escapan `\` y `"`), `|json`; bloques `{{#cada lista}}…{{/cada}}`,
 `{{#si flag}}…{{/si}}`; parciales `{{> archivo.tpl}}`. Un hueco ausente o nulo es error; tras
 renderizar no puede quedar `{{`. `--audit` lista cada hueco con `en_schema` y `en_spec` y, después,

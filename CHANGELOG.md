@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.6.0 — 2026-11-18
+
+La skill `edf-acceptance` solo genera artefactos: ya no compila nada ni necesita Java ni Maven. Mismo criterio que Validation en la 1.4.0.
+
+### Cambios
+- **Generador en Python.** `scripts/render_templates.py` pasa a ser el oficial. Se le agregó lo que tenía el generador Java: listado de supuestos (AC-27), regla "umbral en [0, 1]" (AC-04), regla "QS por registro binario" (AC-ACC-05), reporte de spec mal formada sin excepción, `jsonschema` obligatorio y lectura con o sin BOM.
+- **Equivalencia comprobada:** con la spec de ejemplo de SISBEN (con y sin `--audit`), mismos archivos byte a byte y mismo reporte que Java; con 22 variantes de error, mismo código de salida y mismos errores en las mismas rutas.
+- `SKILL.md`: regla "generar, nunca compilar"; el paso 2 usa Python; el paso 5 deja integración, compilación y ejecución al ingeniero. `runbook-ejecucion.md` §0 con Python.
+- Pruebas: `tests/test_render_templates.py` vuelve a la suite con los casos de la suite Java. Suite del skill: 116 en verde, 1 omitida sin `pyhocon`. Cobertura: `render_templates.py` 94,46 %, `simular_decision.py` 96,40 %, `hocon_check.py` 100 %.
+- Referencias actualizadas: `inventario-plantillas.md`, `decisiones-y-abiertos.md`, `checklist-entrega.md`, comentario del esquema, `simular_decision.py`. README: requisitos.
+- `scripts/java/` queda como referencia histórica (`NO-USAR.md`, `DEPRECADOS.md`).
+
+### Corregido
+- Al ejemplo versionado `assets/examples/sisben/generated/` le faltaba `src/` (la prueba Scala y los eventos del fixture que cita `expected-output.yaml`). Se repuso con la salida generada. Explica las fallas de la suite Java de Acceptance registradas como F-FW-5.
+
+### Pendiente
+- `edf-curation` sigue con generador Java.
+
 ## 1.5.1 — 2026-11-18
 
 Corrige el orden de la evidencia diferida de la 1.5.0, que dejaba un bloqueo circular.

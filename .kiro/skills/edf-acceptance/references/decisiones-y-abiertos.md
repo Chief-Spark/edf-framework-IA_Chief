@@ -48,9 +48,9 @@ resuelve.
 ## Supuestos propios de este skill
 
 Desde el 2026-10-21 (AC-27, ADR-G2) la spec los declara en el bloque opcional `supuestos` con el mismo ID y
-el mismo impacto, y `render-templates.jar` los lista: con `--audit`, después de los huecos; sin `--audit`,
+el mismo impacto, y `scripts/render_templates.py` los lista: con `--audit`, después de los huecos; sin `--audit`,
 después de `generado`/`omitido` (línea `supuesto  S-ACC-xx  impacto=…  donde=…  texto=…`). La prueba
-`supuestosDeLaSpecIgualesALosDelDocumento` compara esta tabla con la spec SISBEN. Las marcas `ASSUMPTION`
+`test_supuestos_de_la_spec_iguales_a_los_del_documento` compara esta tabla con la spec SISBEN. Las marcas `ASSUMPTION`
 citan el ID (`ASSUMPTION S-ACC-xx`).
 
 | Id | Supuesto | Impacto | Dónde |

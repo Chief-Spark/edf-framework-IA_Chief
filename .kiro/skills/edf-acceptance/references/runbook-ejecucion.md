@@ -1,6 +1,6 @@
 # Runbook de ejecución — Acceptance
 
-Prerrequisitos del motor (`Motor-Oxigen/oxygen-acceptance`: `pom.xml`, `Dockerfile`, `migrate.md`): JDK 11, Scala 2.12.15, Spark 3.3.1, Hadoop 3. Java 17 es solo del generador del skill. Clase principal
+Prerrequisitos del motor (`Motor-Oxigen/oxygen-acceptance`: `pom.xml`, `Dockerfile`, `migrate.md`): JDK 11, Scala 2.12.15, Spark 3.3.1, Hadoop 3. Los usa el ingeniero en el fork; la skill no compila ni ejecuta nada (genera con Python). Clase principal
 `com.experian.edf.oxygen.acceptance.app.AcceptanceApp`; argumentos: `env.conf` y el conf de la
 aplicación (`acceptance-application.conf` o el inner del fork). **Compilación no certificada (F-01)**:
 sin acceso al repositorio de artefactos ni a los JAR del framework, nada de lo generado se compiló.
@@ -12,12 +12,11 @@ sin acceso al repositorio de artefactos ni a los JAR del framework, nada de lo g
 
 ```bash
 cd <raíz del skill>
-mvn -q -f scripts/java/pom.xml verify                         # una vez: generador Java 17 y sus pruebas
-java -jar scripts/java/target/render-templates.jar --spec <su-spec>.yaml --out <salida> --audit   # huecos y supuestos
+python scripts/render_templates.py --spec <su-spec>.yaml --out <salida> --audit   # huecos y supuestos (sin compilar)
 python scripts/simular_decision.py --spec <su-spec>.yaml     # decisión esperada por archivo
 python scripts/hocon_check.py <salida>/hocon/*.conf          # parse del subconjunto HOCON
-python -m pytest scripts/tests -q                            # suite vigente: simulador y hocon_check
-python -m coverage run -m pytest scripts/tests -q            # cobertura (opcional; .coveragerc excluye lo deprecado)
+python -m pytest scripts/tests -q                            # pruebas del skill
+python -m coverage run -m pytest scripts/tests -q            # cobertura (opcional)
 python -m coverage report --include=scripts/hocon_check.py --fail-under=80        # una vez por script (AC-31)
 ```
 
@@ -25,8 +24,8 @@ Con `--audit`, después de los huecos, el generador imprime una línea `supuesto
 donde=…  texto=…` por cada supuesto del bloque `supuestos` de la spec (AC-27); sin `--audit`, las
 imprime después de `generado`/`omitido`. Llévelas a la propuesta (Paso 4 de `SKILL.md`).
 
-La suite no recoge las pruebas deprecadas (`scripts/tests/conftest.py`, ADR-04); se pueden correr a
-mano nombrando el archivo.
+El §0 lo hace la skill, solo con Python. Del §1 en adelante lo hace el **ingeniero** en el fork (JDK 11,
+Maven, Spark); la skill no los ejecuta.
 
 ## 1. Integrar en el fork (regla aditiva)
 

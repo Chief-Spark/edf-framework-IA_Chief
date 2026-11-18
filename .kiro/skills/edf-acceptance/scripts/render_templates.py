@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""DEPRECADO (2026-10-20): use el generador Java de scripts/java (ver scripts/DEPRECADOS.md).
+"""Renderiza las plantillas del skill edf-acceptance-stage a partir de una source-spec.
 
-Se conserva solo como referencia: produce la misma salida byte a byte que
-java -jar scripts/java/target/render-templates.jar, que es la versión vigente.
-
-Renderiza las plantillas del skill edf-acceptance-stage a partir de una source-spec.
+Generador VIGENTE de la skill (desde la versión 1.6.0 del framework, 2026-11-18). No requiere compilar nada:
+solo Python 3 con PyYAML y jsonschema. Equivale al generador Java que se usó hasta la 1.5.x (scripts/java,
+conservado como referencia): mismos archivos byte a byte y mismo reporte.
 
 Uso:
     python render_templates.py --spec <source-spec.yaml> --out <dir> [--schema <schema.yaml>]
@@ -21,7 +20,11 @@ Las etiquetas de bloque solas en su línea no dejan línea en blanco. Las rutas 
 el elemento actual del bucle y después en los ámbitos exteriores, hasta la raíz de la spec.
 
 Sale con código 1 si la spec no valida, si una verificación del inventario falla o si queda algún
-hueco sin resolver. Solo usa la biblioteca estándar más PyYAML (jsonschema es opcional).
+hueco sin resolver; con código 2 ante un error de uso. Requiere PyYAML y jsonschema.
+
+Si la spec declara el bloque opcional `supuestos` (AC-27, ADR-G2), imprime una línea
+`supuesto  S-ACC-xx  impacto=…  donde=…  texto=…` por supuesto: con --audit, después de los huecos;
+sin --audit, después de generado/omitido.
 """
 from __future__ import annotations
 
@@ -30,6 +33,7 @@ import json
 import re
 import sys
 from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
@@ -81,7 +85,7 @@ def expand_partials(source: str, templates_dir: Path, depth: int = 0) -> str:
             raise TemplateError(f"parcial fuera del directorio de plantillas: {name}")
         if not partial.is_file():
             raise TemplateError(f"parcial inexistente: {name}")
-        return expand_partials(partial.read_text(encoding="utf-8"), templates_dir, depth + 1)
+        return expand_partials(partial.read_text(encoding="utf-8-sig"), templates_dir, depth + 1)
 
     return re.sub(r"\{\{>\s*([^}]+?)\s*\}\}", repl, source)
 
@@ -125,7 +129,7 @@ def parse(source: str) -> tuple:
 
 
 def load_template(name: str, templates_dir: Path) -> tuple:
-    text = (templates_dir / name).read_text(encoding="utf-8")
+    text = (templates_dir / name).read_text(encoding="utf-8-sig")
     return parse(expand_partials(text, templates_dir))
 
 
@@ -280,6 +284,24 @@ def audit(spec: dict, schema: dict, templates_dir: Path = DEFAULT_TEMPLATES) -> 
     return rows
 
 
+def _una_linea(value: Any) -> str:
+    return "" if value is None else re.sub(r"\s+", " ", str(value)).strip()
+
+
+def supuestos(spec: Any) -> list[dict]:
+    """Supuestos declarados en la spec (AC-27, ADR-G2), en su orden. Bloque opcional: sin él, lista vacía."""
+    out = []
+    if isinstance(spec, dict) and isinstance(spec.get("supuestos"), list):
+        for item in spec["supuestos"]:
+            if isinstance(item, dict):
+                out.append({k: _una_linea(item.get(k)) for k in ("id", "supuesto", "impacto", "donde")})
+    return out
+
+
+def linea_supuesto(s: dict) -> str:
+    return f"supuesto  {s['id']}  impacto={s['impacto']}  donde={s['donde']}  texto={s['supuesto']}"
+
+
 # --------------------------------------------------------------------------- verificaciones
 
 NUM_RE = re.compile(r"(?<![\w.])\d+\.\d+|(?<![\w.])\d+(?![\w.])")
@@ -319,6 +341,9 @@ def verify_spec(spec: dict) -> list[str]:
             errors.append(f"filePattern vs {case['clave']}: se esperaba {case['debe_coincidir']} (ACC-R03)")
 
     umbral = spec["calidad"]["umbral"]
+    fuera_de_rango = umbral_fuera_de_rango(umbral)
+    if fuera_de_rango:
+        errors.append(fuera_de_rango)
     exprs = [spec["fileActions"]["accept"]] + [c["expresion"] for c in spec["condiciones"]]
     for expr in exprs:
         nums = NUM_RE.findall(expr)
@@ -348,7 +373,7 @@ def verify_spec(spec: dict) -> list[str]:
 
     record = spec["registro"]["recordAcceptance"]
     diag = spec["diagnostico_validation"]
-    known_codes = set(diag["codigos_sev1"] + diag["codigos_sev3"] + diag["codigos_motor"])
+    known_codes = sorted(set(diag["codigos_sev1"] + diag["codigos_sev3"] + diag["codigos_motor"]))
     for level in spec["registro"]["niveles_que_rechazan"]:
         if level not in diag["niveles"] or len(level) != 1:
             errors.append(f"nivel {level!r} no emitido por Validation o no es de un carácter (ACC-R01)")
@@ -371,16 +396,59 @@ def verify_spec(spec: dict) -> list[str]:
         errors.append("contextualOverride habilitado sin referencia a la decisión humana (ACC-TPL-04)")
     if spec["intervencion_manual"]["habilitada"]:
         for key in ("manualReject", "manualAccept"):
-            if "externalAction(" not in (spec["intervencion_manual"].get(key) or ""):
+            expr = spec["intervencion_manual"].get(key)
+            if not isinstance(expr, str) or "externalAction(" not in expr:
                 errors.append(f"{key} solo admite expresiones con externalAction(...) (IN-07)")
+    errors += qs_no_binarios(spec)
+    return errors
+
+
+def umbral_fuera_de_rango(umbral: Any) -> str | None:
+    """Regla "umbral en [0, 1]" (AC-04, P-3). Devuelve el mensaje de error o None si está en rango."""
+    try:
+        valor = Decimal(str(umbral).strip())
+    except InvalidOperation:
+        return f"umbral en [0, 1]: calidad.umbral {umbral!r} no es un número (AC-04)"
+    if valor < 0 or valor > 1:
+        return f"umbral en [0, 1]: calidad.umbral {umbral!r} está fuera de [0, 1] (AC-04)"
+    return None
+
+
+def qs_no_binarios(spec: dict) -> list[str]:
+    """Regla "QS por registro binario" (AC-ACC-05): en el fixture, cada quality score declarado vale 0 o 1."""
+    errors: list[str] = []
+    declarados = set()
+    diag = spec.get("diagnostico_validation")
+    if isinstance(diag, dict) and isinstance(diag.get("quality_scores"), list):
+        declarados |= {q for q in diag["quality_scores"] if isinstance(q, str)}
+    calidad = spec.get("calidad")
+    if isinstance(calidad, dict) and isinstance(calidad.get("quality_score"), str):
+        declarados.add(calidad["quality_score"])
+    fixture = spec.get("fixture")
+    if not isinstance(fixture, dict) or not isinstance(fixture.get("archivos"), list):
+        return errors
+    for i, archivo in enumerate(fixture["archivos"]):
+        if not isinstance(archivo, dict) or not isinstance(archivo.get("eventos"), list):
+            continue
+        for j, evento in enumerate(archivo["eventos"]):
+            if not isinstance(evento, dict) or not isinstance(evento.get("qualityScores"), list):
+                continue
+            for score in evento["qualityScores"]:
+                if not isinstance(score, dict) or score.get("name") not in declarados:
+                    continue
+                v = score.get("score")
+                binario = isinstance(v, (int, float)) and not isinstance(v, bool) and float(v) in (0.0, 1.0)
+                if not binario:
+                    errors.append(f"QS por registro binario: {score.get('name')} = {v} en fixture/archivos/{i}"
+                                  f"/eventos/{j} ({evento.get('eventId')}); debe ser 0 o 1 (AC-ACC-05)")
     return errors
 
 
 def validate_schema(spec: dict, schema: dict) -> list[str]:
     try:
-        import jsonschema  # opcional
-    except ImportError:
-        return []
+        import jsonschema  # type: ignore
+    except ImportError as exc:  # sin jsonschema no se puede certificar la forma de la spec
+        raise TemplateError("falta el paquete jsonschema: pip install jsonschema") from exc
     validator = jsonschema.Draft202012Validator(schema)
     return [f"{'/'.join(map(str, e.path)) or '(raíz)'}: {e.message}" for e in validator.iter_errors(spec)]
 
@@ -388,7 +456,7 @@ def validate_schema(spec: dict, schema: dict) -> list[str]:
 # --------------------------------------------------------------------------- generación
 
 def load_manifest(templates_dir: Path) -> list[dict]:
-    data = yaml.safe_load((templates_dir / "manifest.yaml").read_text(encoding="utf-8"))
+    data = yaml.safe_load((templates_dir / "manifest.yaml").read_text(encoding="utf-8-sig"))
     return data["plantillas"]
 
 
@@ -426,7 +494,7 @@ def generate(spec: dict, out_dir: Path, templates_dir: Path = DEFAULT_TEMPLATES)
 
 
 def load_yaml(path: Path) -> dict:
-    return yaml.safe_load(path.read_text(encoding="utf-8"))
+    return yaml.safe_load(path.read_text(encoding="utf-8-sig"))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -437,19 +505,33 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES)
     parser.add_argument("--audit", action="store_true", help="lista cada hueco: en schema / en spec")
     args = parser.parse_args(argv)
-    print("AVISO: render_templates.py está DEPRECADO; use java -jar scripts/java/target/render-templates.jar "
-          "(ver scripts/DEPRECADOS.md).", file=sys.stderr)
-
-    spec, schema = load_yaml(args.spec), load_yaml(args.schema)
-    problems = validate_schema(spec, schema) + verify_spec(spec)
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, OSError):
+            pass
+    try:
+        spec, schema = load_yaml(args.spec), load_yaml(args.schema)
+        problems = validate_schema(spec, schema)
+    except (OSError, yaml.YAMLError, TemplateError) as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    try:
+        problems += verify_spec(spec)
+    except Exception as exc:  # noqa: BLE001 - una spec que no cumple el schema puede no tener la forma esperada
+        if not problems:
+            problems.append(f"la spec no tiene la forma esperada: {exc!r}")
     if problems:
         print("ERROR: la spec no pasa las verificaciones:", *problems, sep="\n  - ")
         return 1
+    lista_supuestos = supuestos(spec)
     if args.audit:
         rows = audit(spec, schema, args.templates)
         undefined = [r for r in rows if not r["en_schema"]]
         for row in rows:
             print(f"{row['plantilla']:<40} {row['hueco']:<55} schema={row['en_schema']!s:<5} spec={row['en_spec']}")
+        for s in lista_supuestos:
+            print(linea_supuesto(s))
         if undefined:
             print(f"ERROR: {len(undefined)} huecos no definidos en el schema")
             return 1
@@ -462,6 +544,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"generado  {item['id']}  {item['archivo']}")
     for item in report["omitidos"]:
         print(f"omitido   {item['id']}  {item['plantilla']}  ({item['motivo']})")
+    if not args.audit:
+        for s in lista_supuestos:
+            print(linea_supuesto(s))
     return 0
 
 

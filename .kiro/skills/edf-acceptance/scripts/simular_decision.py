@@ -12,7 +12,7 @@ motor SparkAcceptor:
   - average("qs.X"): promedio de X sobre los eventos que lo traen; sin ninguno -> error (null).
 Contrato de entrada (AC-ACC-05, regla "QS por registro binario"): cada quality score declarado vale
 0 o 1 en cada evento del fixture. Si no, el simulador no decide: lanza ContratoError y `main` sale
-con código 1, igual que el generador (render-templates.jar) rechaza esa spec.
+con código 1, igual que el generador (render_templates.py) rechaza esa spec.
 No sustituye las pruebas ACC-TPL-05 contra los parsers reales; sirve para revisar la propuesta y
 para el resumen esperado del fixture. Uso: python simular_decision.py --spec <spec.yaml>
 """
