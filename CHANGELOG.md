@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.1 — 2026-11-18
+
+### Corregido (`edf-curation`)
+- **`reglas_documento.por_tipo` vacío rompía la generación** ("huecos con valor vacío: reglas_documento_scala"; RG-014 de SISBEN). Es válido: significa la misma regla para todos los tipos. Ahora genera `ReglasDocumento` como `Map()` con un comentario.
+- **`--solo-verificar` no detectaba fallas de generación.** Ahora hace en memoria el mismo cálculo que `--out` (fixture, lookups, salida esperada y las 12 plantillas rellenas) sin escribir nada: si pasa, la generación también pasa.
+- Pruebas: 87 en verde, 2 omitidas sin `pyhocon`. El ejemplo SISBEN sale idéntico.
+
 ## 1.7.0 — 2026-11-18
 
 La skill `edf-curation` solo genera artefactos: ya no compila nada ni necesita Java ni Maven. Con esto, ninguna skill del framework compila. Además, Curation puede concatenar campos curados (nombre completo) y la spec de cada ingesta fija qué pasa con los campos de severidad 3.

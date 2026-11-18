@@ -18,7 +18,8 @@ resolver y escribe:
   <out>/expected/                    salida esperada del fixture (implementación de referencia)
   <out>/MANIFEST.json                qué plantilla generó qué archivo y adónde va en el fork
 Con --write-expected DIR copia además la salida esperada a DIR (golden versionado). Sin red.
-Con --solo-verificar valida el source-spec (esquema + coherencia) y no escribe nada (lo usa edf-analisis).
+Con --solo-verificar hace todo el cálculo de la generación en memoria y no escribe nada (lo usa edf-analisis):
+si pasa, la generación con --out también pasa.
 ATENCIÓN: --out se borra y se vuelve a crear.
 
 Requiere Python 3.9+ con PyYAML y jsonschema. Salida: 0 bien; 1 spec inválida o error de generación;
@@ -363,6 +364,13 @@ def regla_scala(r: dict[str, Any]) -> str:
             f"conservarOriginal = {str(r.get('conservar_original')).lower()}, padding = {pad})")
 
 
+def reglas_documento_scala(rd: dict[str, Any]) -> str:
+    """Entradas de ReglasDocumento. Sin reglas por tipo (la misma regla para todos), un comentario: Map() vacío."""
+    if not rd.get("por_tipo"):
+        return "    // Sin reglas por tipo: todos los tipos usan ReglaDocumentoPorDefecto."
+    return ",\n".join(f"    {q(k)} -> {regla_scala(v)}" for k, v in rd["por_tipo"].items())
+
+
 def mapa_scala(d: dict[Any, Any], sangria: str = "", por_linea: bool = False) -> str:
     pares = [f"{q(k)} -> {q(v)}" for k, v in d.items()]
     return ",\n".join(sangria + p for p in pares) if por_linea else ", ".join(pares)
@@ -535,7 +543,7 @@ def huecos(spec: dict[str, Any], fixture: dict[str, Any], eventos: list[dict],
         "pendientes_scala": lambda: lista_scala(hom["pendientes"]),
         "campo_tipo_documento": lambda: rd["campo_tipo"],
         "regla_documento_defecto_scala": lambda: regla_scala(rd["por_defecto"]),
-        "reglas_documento_scala": lambda: ",\n".join(f"    {q(k)} -> {regla_scala(v)}" for k, v in rd["por_tipo"].items()),
+        "reglas_documento_scala": lambda: reglas_documento_scala(rd),
         "mapeos_scala": lambda: "\n".join(mapeo_scala(m, i == len(cc) - 1) for i, m in enumerate(cc)),
         "claves_publicadas_scala": lambda: lista_scala([m["destino"] for m in cc] + [adv]),
         "campos_record_scala": lambda: ",\n".join(f"  {m['destino']}: Option[{SCALA_TIPO[m['tipo_salida']]}]" for m in cc),
@@ -614,24 +622,16 @@ def sha256(archivo: Path) -> str:
     return hashlib.sha256(archivo.read_bytes()).hexdigest()
 
 
-def verificar(spec_path: Path, schema_path: Path) -> str:
-    """Solo valida el source-spec (esquema + coherencia); no escribe nada."""
-    spec = cargar_yaml(spec_path)
-    validar_spec(spec, cargar_yaml(schema_path))
-    cc = spec["campos_curados"]
-    concat = sum(1 for m in cc if m["transformacion"]["tipo"] == "concatenacion")
-    return f"source-spec OK ({len(cc)} campos curados, {concat} con concatenacion)"
-
-
-def render(spec_path: Path, out: Path, templates: Path, schema_path: Path,
-           write_expected: Path | None = None) -> dict[str, Any]:
+def preparar(spec_path: Path, templates: Path, schema_path: Path) -> dict[str, Any]:
+    """Valida y calcula todo en memoria (plantillas rellenas, salida esperada, lookups); no escribe nada."""
     spec = cargar_yaml(spec_path)
     schema = cargar_yaml(schema_path)
     validar_spec(spec, schema)
-    ph = schema.get("x-placeholders") or {}
-    declarados = set(ph)
+    declarados = set(schema.get("x-placeholders") or {})
     fixture_spec = spec["fixture"]
     fixture_path = (spec_path.parent / fixture_spec["entrada"]).resolve()
+    if not fixture_path.exists():
+        raise RenderError(f"no existe el fixture {fixture_spec['entrada']} (relativo al source-spec)")
     fixture = cargar_yaml(fixture_path)
     eventos = construir_eventos(spec, fixture)
     curados, resumen = salida_esperada(spec, eventos)
@@ -639,11 +639,8 @@ def render(spec_path: Path, out: Path, templates: Path, schema_path: Path,
     faltan = sorted(declarados - set(valores))
     if faltan:
         raise RenderError(f"x-placeholders sin cálculo en el renderer: {faltan}")
-
-    # Todo o nada: se rellenan todas las plantillas antes de tocar --out.
     contenidos = [(tpl_id, destino, rellenar(leer_texto(templates / tpl), valores, declarados, tpl))
                   for tpl_id, tpl, destino in plan(spec)]
-    rutas = spec["rutas_destino"]
     lk_in = fixture_path.parent / fixture_spec["lookups_dir"]
     tabla_hom = spec["homologacion_tipo_documento"]["catalogo"]["tabla"]
     for c in spec["catalogos"]:
@@ -654,6 +651,29 @@ def render(spec_path: Path, out: Path, templates: Path, schema_path: Path,
     # aparte: un comentario dentro del CSV podría romper la carga de OxygenLookup (lee con cabecera).
     if not (lk_in / MARCA_LOOKUPS).exists():
         raise RenderError(f"falta la marca de sintético de los lookups: {fixture_spec['lookups_dir']}/{MARCA_LOOKUPS}")
+    return {"spec": spec, "curados": curados, "resumen": resumen, "contenidos": contenidos,
+            "lk_in": lk_in, "tabla_hom": tabla_hom}
+
+
+def verificar(spec_path: Path, schema_path: Path, templates: Path) -> str:
+    """Verificación completa sin escribir: esquema, coherencia, fixture, lookups y las 12 plantillas rellenas.
+
+    Si pasa, la generación con --out también pasa (mismo cálculo).
+    """
+    ctx = preparar(spec_path, templates, schema_path)
+    cc = ctx["spec"]["campos_curados"]
+    concat = sum(1 for m in cc if m["transformacion"]["tipo"] == "concatenacion")
+    return (f"source-spec OK ({len(cc)} campos curados, {concat} con concatenacion; "
+            f"{len(ctx['contenidos'])} plantillas y {len(ctx['curados'])} eventos esperados calculados)")
+
+
+def render(spec_path: Path, out: Path, templates: Path, schema_path: Path,
+           write_expected: Path | None = None) -> dict[str, Any]:
+    # Todo o nada: se calcula todo antes de tocar --out.
+    ctx = preparar(spec_path, templates, schema_path)
+    spec, curados, resumen = ctx["spec"], ctx["curados"], ctx["resumen"]
+    contenidos, lk_in, tabla_hom = ctx["contenidos"], ctx["lk_in"], ctx["tabla_hom"]
+    rutas = spec["rutas_destino"]
 
     if out.exists():
         shutil.rmtree(out)
@@ -710,7 +730,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     try:
         if args.solo_verificar:
-            print(verificar(args.spec, args.schema))
+            print(verificar(args.spec, args.schema, args.templates))
             return 0
         manifest = render(args.spec, args.out, args.templates, args.schema, args.write_expected)
     except (RenderError, OSError, yaml.YAMLError) as exc:

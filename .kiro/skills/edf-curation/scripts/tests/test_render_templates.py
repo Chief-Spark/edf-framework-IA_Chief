@@ -562,12 +562,30 @@ def test_cli_ok_y_write_expected(tmp_path, capsys):
 
 def test_cli_solo_verificar(tmp_path, capsys):
     assert rt.main(["--spec", str(SPEC), "--out", str(tmp_path / "out"), "--solo-verificar"]) == 0
-    assert capsys.readouterr().out.strip() == "source-spec OK (29 campos curados, 0 con concatenacion)"
+    assert capsys.readouterr().out.strip() == ("source-spec OK (29 campos curados, 0 con concatenacion; "
+                                               "12 plantillas y 7 eventos esperados calculados)")
     assert not (tmp_path / "out").exists(), "solo verifica: no escribe nada"
     malo = tmp_path / "spec.yaml"
     malo.write_text("schema_version: '1.0'\n", encoding="utf-8")
     assert rt.main(["--spec", str(malo), "--solo-verificar"]) == 1
     assert capsys.readouterr().err.startswith("ERROR: source-spec inválido")
+
+
+def test_reglas_documento_por_tipo_vacio_genera(tmp_path, spec, capsys):
+    """RG-014 de SISBEN: la misma regla para todos los tipos (por_tipo vacío) es válida y genera Map() vacío."""
+    copia = spec_con_cambios(tmp_path, spec, lambda s: s["reglas_documento"].update(por_tipo={}))
+    assert rt.main(["--spec", str(copia), "--solo-verificar"]) == 0
+    rt.render(copia, tmp_path / "out", TEMPLATES, SCHEMA)
+    cs = leer(tmp_path / "out" / SCALA_FUENTE / "config/SISBENCurationSpec.scala")
+    assert ("val ReglasDocumento: Map[String, ReglaDocumento] = Map(\n"
+            "    // Sin reglas por tipo: todos los tipos usan ReglaDocumentoPorDefecto.\n  )") in cs
+
+
+def test_solo_verificar_detecta_fallas_de_generacion(tmp_path, spec, capsys):
+    """--solo-verificar hace el mismo cálculo que --out: un fixture inexistente o un hueco vacío fallan igual."""
+    copia = spec_con_cambios(tmp_path, spec, lambda s: s["fixture"].update(entrada="fixture/no-existe.yaml"))
+    assert rt.main(["--spec", str(copia), "--solo-verificar"]) == 1
+    assert "no existe el fixture" in capsys.readouterr().err
 
 
 def test_cli_errores_de_uso():
