@@ -2,7 +2,7 @@
 // Tests de la fuente {{Fuente}} sobre eventos aceptados SINTÉTICOS, sin Spark. Usa el núcleo puro
 // {{processor_clase}}.curar; requiere el JAR del framework en el classpath para compilar
 // (CuratedEvent, TaggedValidatedEvent): compilación NO CERTIFICADA (F-01).
-// Los JSON esperados salen de la implementación de referencia (scripts/java/.../Referencia.java).
+// Los JSON esperados salen de la implementación de referencia (scripts/curation_reference.py).
 package {{paquete_fuente}}
 
 import org.junit.runner.RunWith

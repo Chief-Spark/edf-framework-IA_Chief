@@ -2,7 +2,7 @@
 
 Requisitos de ejecución de oxygen-curation (`Motor-Oxigen/oxygen-curation`: `pom.xml`, `Dockerfile`,
 `README.md` y `migrate.md` coinciden): JDK 11, Scala 2.12.15, Spark 3.3.1,
-Hadoop 3, Maven para compilar. Java 17 es solo del generador del skill (`scripts/java/`), no del motor. **La compilación no está certificada desde el skill** (F-01: sin
+Hadoop 3, Maven para compilar. El skill no compila nada: genera con Python (§0) y el ingeniero compila y ejecuta en el fork (§1 a §5). **La compilación no está certificada desde el skill** (F-01: sin
 acceso a Artifactory ni a los JAR del framework). Todo lo que sigue se ejecuta en el fork, con el
 classpath que el equipo ya tiene.
 
@@ -10,18 +10,20 @@ Prohibido en cualquier paso: copiar, leer o adjuntar `settings-artifactory.xml` 
 credenciales; usar datos reales en ambientes locales. Si un archivo con credenciales quedó expuesto,
 pedir su rotación.
 
-## 0. Generar y revisar (sin framework)
+## 0. Generar y revisar (lo que hace la skill; sin framework y sin compilar)
 
 ```bash
 cd edf-curation
-mvn -q -f scripts/java/pom.xml verify             # una vez: generador Java 17, referencia y sus pruebas
-java -jar scripts/java/target/render-templates.jar \
+python -m pip install pyyaml jsonschema pytest     # una vez
+python scripts/render_templates.py \
   --spec assets/examples/sisben/source-spec.sisben.yaml \
   --out  assets/examples/sisben/generated          # ATENCIÓN: --out se borra y se recrea
-python -m pip install pyyaml pytest                # una vez, para hocon_check y portabilidad
 python -m pytest scripts/tests -q
 python scripts/hocon_check.py assets/examples/sisben/generated/fragmentos/*.conf
 ```
+
+La skill nunca ejecuta `mvn`, `javac` ni `java -jar`: `scripts/java/` es el generador anterior, deprecado
+(`scripts/DEPRECADOS.md`). Los pasos 1 a 5 los hace el ingeniero en el fork.
 
 Para otra fuente: copiar el source-spec, ajustarlo, y pasar `--spec`/`--out` propios. La carpeta de
 lookups del fixture debe traer `LEEME.md` (marca de sintético); sin él el generador sale con código 1

@@ -5,10 +5,10 @@ no se oculta.
 
 ## Generación
 
-- [ ] `java -jar scripts/java/target/render-templates.jar` terminó con `OK` (source-spec válido contra el esquema).
+- [ ] `python scripts/render_templates.py` terminó con `OK` (source-spec válido contra el esquema). No se ejecutó `mvn`, `javac` ni `java -jar`.
 - [ ] Ningún `{{hueco}}` sin resolver en la salida (lo verifica el generador y sus pruebas).
-- [ ] `mvn -q -f scripts/java/pom.xml verify` y `python -m pytest scripts/tests -q` en verde.
-- [ ] Parse-check HOCON de `fragmentos/*.conf` en verde (Typesafe Config en las pruebas Java; `hocon_check.py`).
+- [ ] `python -m pytest scripts/tests -q` en verde.
+- [ ] Parse-check HOCON de `fragmentos/*.conf` en verde (`hocon_check.py`; Typesafe Config queda para el fork y se reporta como no verificado).
 - [ ] Los 12 artefactos CUR-TPL-01..12 están en `MANIFEST.json` (`archivos`).
 - [ ] Todo archivo generado salvo `MANIFEST.json` está en exactamente una de `archivos`, `marcas_sintetico`
       u `otros_archivos`, y los `sha256` de `otros_archivos` coinciden (AC-25, ADR-G3).

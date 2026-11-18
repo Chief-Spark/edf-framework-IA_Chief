@@ -25,6 +25,8 @@ object Transformacion {
   case object Documento extends Transformacion
   final case class DesdeArchivo(atributo: String) extends Transformacion
   final case class CopiaDe(campo: String) extends Transformacion
+  /** Une los valores curados no vacíos de campos anteriores con el separador (p. ej. standardizedIdName). */
+  final case class Concatenacion(campos: Seq[String], separador: String) extends Transformacion
   final case class Constante(valor: Option[String]) extends Transformacion
 }
 

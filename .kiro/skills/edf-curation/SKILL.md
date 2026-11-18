@@ -19,7 +19,7 @@ metadata:
 
 ## Paso 0 · Habilitación por el expediente (obligatorio, framework EDF)
 
-Esta skill es parte del framework `edf-framework-IA` y opera **debajo del Orquestador** (`.kiro/steering/00-framework-edf.md` §3). Antes de generar cualquier artefacto:
+Esta skill es parte del framework `edf-framework-IA` y opera **debajo del Orquestador** (steering `00-framework-edf.md` §3). Antes de generar cualquier artefacto:
 
 1. **Identifica la ingesta** (`<ingesta-id>`) y abre `expedientes/<ingesta-id>/estado-ingesta.json`. Si no existe → no generes; pide al Desarrollador que inicie el expediente con `edf-orquestador`.
 2. **Verifica la habilitación:** en `etapas[]`, la etapa `acceptance` debe estar en `aprobada`, `completada_manualmente` u `omitida` (esta última solo con aprobación de omisión del PO, `edf-orquestador/references/03` §4b), con `transicion_habilitada: true`. Tu etapa en el expediente es `curation_flow` y `curation_stock` (un mismo processor sirve a ambas).
@@ -37,17 +37,14 @@ Pinning compara texto exacto y lee solo las claves de `identifying-attributes` d
 ```yaml
   - {destino: standardizedIdType,   origen: "", transformacion: {tipo: copia_de, campo: tipoDocumento},   tipo_salida: entero, estado: cerrado}
   - {destino: standardizedIdNumber, origen: "", transformacion: {tipo: copia_de, campo: numeroDocumento}, tipo_salida: texto,  estado: cerrado}
+  - {destino: standardizedIdName,   origen: "", transformacion: {tipo: concatenacion, campos: [primerNombre, segundoNombre, primerApellido, segundoApellido], separador: " "}, tipo_salida: texto, estado: cerrado}
 ```
+
+`concatenacion` (desde la 1.7.0 del framework) une los valores **ya curados** de campos anteriores del mapeo, en el orden de `campos`, con `separador` (por defecto un espacio). Un componente nulo, vacío u omitido no aparece; si todos faltan, el campo sale nulo sin advertencia propia (los nombres que lo componen ya advirtieron). Los nombres de `campos` deben ser los `destino` de la spec de la ingesta.
 
 - `standardizedIdNumber` hereda la regla de `reglas_documento`. Decisión DA-13: **se eliminan los ceros a la izquierda**. Si se aplica a todos los tipos (incluidos PPT y pasaporte, que en el ejemplo SISBEN los conservan) está pendiente de confirmar: hasta entonces se deja como en el ejemplo y se reporta como supuesto.
 
-Y declara en `campos_abiertos` lo que el generador todavía no puede producir:
-
-```yaml
-campos_abiertos:
-  - {destino: standardizedIdName, motivo: "Concatenación PriNombre SegNombre PriApellido SegApellido con catálogos 111 y 113, omitiendo vacíos (CUR-SIS-03). El generador no tiene transformación de concatenación: requiere desarrollo en RenderTemplates y Transformations (pendiente framework)."}
-  - {destino: "<nombre pendiente> (NUM_DOCUMENTO_SISBEN)", motivo: "Valor original de NUM_DOCUMENTO para PPT (CUR-SIS-02). Nombre de la clave y si se publica solo para PPT pendientes de confirmar."}
-```
+Declara en `campos_abiertos` solo lo que la HU o la spec de la ingesta no definen (los campos abiertos no se generan).
 
 Pendientes que **no** se resuelven aquí y se reportan en la entrega:
 - Formato de `subscriberRelation` (por defecto `NUM_DOCUMENTO` sin normalizar; PIN-SIS-04 pide `standardizedIdType_standardizedIdNumber`): steering `11` §6 #8. Solo se cambia si el `source-spec-curation.yaml` aprobado declara el bloque opcional `extension_subscriber_relation: {campos: [...], separador: "_"}` (D14): el processor arma `subscriberRelation` con esos campos curados y, si falta alguno, conserva el del evento aceptado. La firma del gancho no está verificada contra el JAR (F-01): se reporta como supuesto.
@@ -55,10 +52,35 @@ Pendientes que **no** se resuelven aquí y se reportan en la entrega:
 - `standardizedIdNumber` y el resto de los números de documento salen en mayúsculas (`reglas_documento` con `conservar_original: true` los devuelve tal como vinieron).
 - Bandera de fuente para el matcher de Colombia (`isOfficialSource` o una nueva): `OQ-TR-6`. Si se decide, Curation la publica como `constante`.
 
-El ejemplo `assets/examples/sisben/source-spec.sisben.yaml` **no** incluye estas entradas a propósito: sus salidas esperadas y pruebas se generaron sin ellas. Al cambiarlo hay que regenerar con `mvn -q -f scripts/java/pom.xml verify`.
+## Campos con error de severidad 3 (RF-CUR-10)
+
+La política la fija la spec de la ingesta en `parametros` (ver `assets/schema/source-spec.schema.yaml`):
+
+| La spec dice | Configuración | Efecto en el evento curado |
+|---|---|---|
+| "no se almacena" | el nivel `"3"` en `niveles_no_almacenar` | la clave se omite |
+| "se anula" | el nivel en `niveles_anular` | la clave sale nula |
+| "se publica estandarizado" (SISBEN, spec 1.0.1 §10.4) | `niveles_no_almacenar: []` y el nivel fuera de `niveles_anular` | el valor se transforma como cualquier otro; si no se puede, sale nulo con advertencia `campo:MOTIVO` |
+
+Si la spec de la ingesta no lo dice, es una pregunta abierta: no se elige por defecto.
+
+El ejemplo `assets/examples/sisben/source-spec.sisben.yaml` **no** incluye las entradas `standardizedId*` y usa la política "no se almacena", a propósito: sus salidas esperadas y pruebas se generaron así. Si se cambia, hay que regenerarlo y actualizar la copia versionada:
+
+```bash
+python scripts/render_templates.py --write-expected assets/examples/sisben/expected
+python -m pytest scripts/tests -q
+```
 
 
 Skill portable y autocontenido. Todas las rutas son relativas a la carpeta del skill.
+
+## Regla de ejecución: generar, nunca compilar
+
+Esta skill **solo genera archivos**, con Python 3:
+
+- **Nunca** ejecutes `mvn`, `javac`, `java -jar`, `sbt`, `gradle`, `spark-submit` ni Docker, ni compiles el código generado. Integrar en el fork, compilar y ejecutar lo hace el ingeniero, fuera de esta skill (`references/runbook-ejecucion.md` §1 a §5).
+- La carpeta `scripts/java/` es el generador Java anterior, conservado solo como referencia histórica (`scripts/DEPRECADOS.md`). No se usa.
+- Si falta PyYAML o jsonschema, detente y pide al Desarrollador que los instale (`pip install pyyaml jsonschema`). No busques otra forma de generar.
 
 ## Cuándo usarlo
 
@@ -80,7 +102,8 @@ Transformaciones SISBEN (RF-CUR-04..10): nombres en mayúsculas sin tildes ni es
 dato; fechas a epoch ms; **homologación de `TIP_DOCUMENTO`** SISBEN→Experian
 `1→10, 2→7, 3→1, 4→4, 5→8, 6→5, 7→pendiente (nunca un código arbitrario), 8→9, PPT→11`, con el
 original en `tipoDocumentoSisben`; número de documento (espacios, ceros, PEP sin letras, PPT
-original); padding DANE; severidad 3 → no se almacena, severidad 0 → se anula. Enriquecimiento:
+original); padding DANE; concatenación de campos curados (nombre completo); campos con severidad 3 según
+la política de la spec (sección anterior). Enriquecimiento:
 tipo de archivo y fecha de corte desde el nombre. De los 7 lookups SISBEN, Curation persiste la
 homologación (`202_SISBEN_PROCESS_ID_TYPE_HO`); los otros seis los consulta Validation.
 
@@ -127,8 +150,8 @@ entrada, códigos de error → campo, homologación, reglas de documento, catál
 ### 3. Generar
 
 ```bash
-mvn -q -f scripts/java/pom.xml verify          # una vez: construye el generador (Java 17) y corre sus pruebas
-java -jar scripts/java/target/render-templates.jar --spec <source-spec.yaml> --out <carpeta-salida>
+python scripts/render_templates.py --spec <source-spec.yaml> --solo-verificar   # opcional: valida sin generar
+python scripts/render_templates.py --spec <source-spec.yaml> --out <carpeta-salida>
 ```
 
 `--out` se borra y se vuelve a crear: use una carpeta dedicada. Si `zona_horaria_fechas` difiere de
@@ -136,11 +159,11 @@ java -jar scripts/java/target/render-templates.jar --spec <source-spec.yaml> --o
 difiere de la zona de asOfDate de la etapa anterior (<z2>) (C-CUR-04)` y la guarda en
 `MANIFEST.json["advertencias"]`; stdout sigue terminando en `OK: …` (con la spec SISBEN, `UTC`, sale siempre
 mientras C-CUR-04 siga abierta). Sin `--out` se escribe en
-`assets/examples/sisben/generated`. La versión Python (`scripts/render_templates.py`) está deprecada
-(`scripts/DEPRECADOS.md`).
+`assets/examples/sisben/generated`. La generación es todo o nada: si algo falla, sale con código 1, dice
+qué falta y no toca `--out`.
 
-Valida el spec (esquema + coherencia: nombres únicos, orígenes existentes, `filePattern` contra
-ejemplos y contraejemplos, campos abiertos excluidos), rellena las 12 plantillas
+Valida el spec (esquema + coherencia: nombres únicos, orígenes existentes, `copia_de` y `concatenacion`
+solo sobre campos anteriores, `filePattern` contra ejemplos y contraejemplos, campos abiertos excluidos), rellena las 12 plantillas
 (`references/inventario-plantillas.md`), rechaza huecos sin resolver y escribe:
 
 | Salida | Contenido |
@@ -150,19 +173,21 @@ ejemplos y contraejemplos, campos abiertos excluidos), rellena las 12 plantillas
 | `src/test/scala/...` | `TransformacionesSpec.scala`, `<F>CurationProcessorSpec.scala` (casos del fixture) |
 | `src/test/resources/<fuente>/` | `accepted-events.json` (JSON lines) + `lookups/*.csv` sintéticos + `lookups/LEEME.md` (marca de sintético, AC-30) |
 | `fragmentos/` | HOCON del bloque, HOCON de lookups, entradas del domain dictionary (**a fusionar**) |
-| `expected/` | salida esperada del fixture (implementación de referencia `Referencia.java`). Con `--write-expected <dir>` se copia además a `<dir>`: para SISBEN, la copia versionada `assets/examples/sisben/expected/`, que es la que compara `salidaIgualALaVersionada` (hoy iguales; H-09 de `G_2026-10-20`) |
+| `expected/` | salida esperada del fixture (implementación de referencia `scripts/curation_reference.py`). Con `--write-expected <dir>` se copia además a `<dir>`: para SISBEN, la copia versionada `assets/examples/sisben/expected/`, que es la que compara `test_salida_igual_a_la_versionada` |
 | `MANIFEST.json` | plantilla → archivo → ¿fusionar? (12 entradas en `archivos`); `marcas_sintetico` lista la marca de los lookups; `otros_archivos` lista, con `ruta` y `sha256`, los CSV de lookups y `expected/` (todo lo generado salvo el propio manifest, ADR-G3); `zona_horaria_fechas: {valor, origen}` y `advertencias` (ADR-G4) |
 
 Parte manual (`TODO(manual)` en el processor): enriquecimiento sin valores (Business Line Code,
-Type of Data) y nombre completo (bloqueado por P2).
+Type of Data). El nombre completo se genera con `concatenacion` cuando la spec de la ingesta define su orden.
 
 ### 4. Verificar
 
 ```bash
-mvn -q -f scripts/java/pom.xml verify                       # generador + referencia; HOCON con Typesafe Config
-python -m pytest scripts/tests -q                           # hocon_check y portabilidad (las deprecadas se excluyen, ADR-04)
+python -m pytest scripts/tests -q                           # generador, referencia, hocon_check y portabilidad
 python scripts/hocon_check.py <carpeta-salida>/fragmentos/*.conf
 ```
+
+El parse con Typesafe Config (el parser del motor), la compilación y las pruebas Scala ocurren en el fork,
+fuera de la skill: se reportan como **no verificados** hasta que el ingeniero informe el resultado.
 
 Recorrer `assets/checklist-entrega.md`. Revisar `expected/resumen.json`
 (`references/interpretar-salida.md`). Confirmar que no hay PII, credenciales ni rutas personales.
@@ -184,8 +209,8 @@ regenerar y volver al paso 4.
 
 ### 6. Integrar y ejecutar (guiado)
 
-Seguir `references/runbook-ejecucion.md`: copiar a rutas del fork, fusionar fragmentos, `mvn
-package` / `mvn test`, ejecución local, Docker o EMR, y diagnóstico. Interpretar con
+Lo hace el ingeniero en el fork, fuera de esta skill, siguiendo `references/runbook-ejecucion.md`:
+copiar a rutas del fork, fusionar fragmentos, compilar y probar, ejecución local, Docker o EMR, y diagnóstico. Interpretar con
 `references/interpretar-salida.md`.
 
 ## Contrato de entrada (hand-off desde Acceptance)
@@ -219,13 +244,13 @@ cada campo publicado; sin renombrar después).
 | `references/interpretar-salida.md` | lectura del evento curado, motivos, conciliación, ejemplo |
 | `references/decisiones-y-abiertos.md` | D*, F-*, C-CUR-*, puntos abiertos, discrepancias |
 | `assets/checklist-entrega.md` | checklist previo a la propuesta |
-| `VERIFICACION.md` | qué se ejecutó para verificar esta versión del skill |
+| `scripts/DEPRECADOS.md` | generador Java deprecado y evidencia de equivalencia con el Python |
 
 ## Requisitos para los scripts
 
-Java 17 y Maven para el generador y la implementación de referencia (`scripts/java/`; la primera
-construcción descarga sus dependencias de Maven Central). Python 3.10+ con `pyyaml` y `pytest` para
-`hocon_check.py` y las pruebas de portabilidad (`pyhocon` opcional).
+Python 3.9+ con `pyyaml` y `jsonschema` para el generador (`scripts/render_templates.py`) y la
+implementación de referencia (`scripts/curation_reference.py`); `pytest` para las pruebas (`pyhocon` opcional).
+Sin Java ni Maven.
 
 ## Fuentes
 

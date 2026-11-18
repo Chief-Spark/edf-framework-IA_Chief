@@ -68,8 +68,7 @@ El instalador copia `kiro/` → `.kiro/`, `tools/` → `tools/`, `docs/` → `do
 |---|---|
 | Validar expedientes (hook) | Python 3 + `pip install jsonschema` |
 | Verificar claves entre insumos | Python 3 + `pip install pyyaml` |
-| Generadores de Validation y Acceptance | Python 3 + `pip install pyyaml jsonschema` (`python .kiro/skills/edf-<etapa>/scripts/render_templates.py`). No se compila nada |
-| Generador de Curation | Java 17 + Maven 3.9 (`mvn -q -f .kiro/skills/edf-curation/scripts/java/pom.xml verify`). Pendiente de pasar a Python |
+| Generadores de Validation, Acceptance y Curation | Python 3 + `pip install pyyaml jsonschema` (`python .kiro/skills/edf-<etapa>/scripts/render_templates.py`). No se compila nada: ninguna skill usa Java ni Maven |
 | Verificadores de Pinning, Synthesis y State Calculation | PowerShell (`evals/verificar-artefacto.ps1`) |
 
 No se necesita Scala ni el classpath de Oxygen: lo generado se compila en el fork.

@@ -90,6 +90,12 @@ class TransformacionesSpec extends AnyFunSuite {
     assert(Transformaciones.convertir(None, TipoSalida.Texto) == Resultado.nulo)
   }
 
+  test("concatenar: omite vacíos y nulos; todo vacío es nulo sin advertencia") {
+    assert(Transformaciones.concatenar(Seq(Some("ANA"), None, Some("PRUEBA"), Some(" ")), " ") == Resultado.ok("ANA PRUEBA"))
+    assert(Transformaciones.concatenar(Seq(Some(1), Some("X")), "_") == Resultado.ok("1_X"))
+    assert(Transformaciones.concatenar(Seq(None, Some("")), " ") == Resultado.nulo)
+  }
+
   test("infoArchivo: tipo por prefijo y último día del mes") {
     val rx = """(RT_|EP_)?FUENTE_(\d{6})""".r
     val pref = Map("RT_" -> "RT", "EP_" -> "EP", "" -> "REGULAR")

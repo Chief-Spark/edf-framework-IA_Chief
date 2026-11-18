@@ -1,5 +1,6 @@
 """Fixtures comunes. Todos los datos de prueba son sintéticos."""
 
+import copy
 import sys
 from pathlib import Path
 
@@ -15,15 +16,18 @@ SCHEMA = SKILL / "assets/schema/source-spec.schema.yaml"
 TEMPLATES = SKILL / "assets/templates"
 EXPECTED = SKILL / "assets/examples/sisben/expected"
 GENERATED = SKILL / "assets/examples/sisben/generated"
-
-# ADR-04 (2026-10-21): las pruebas de los scripts Python deprecados (ver ../DEPRECADOS.md) salen de la
-# suite vigente sin borrarse. Se pueden correr a mano: python -m pytest scripts/tests/test_render.py
-collect_ignore = ["test_render.py", "test_reference.py"]
+SCALA_FUENTE = "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/"
 
 
 @pytest.fixture(scope="session")
-def spec():
+def spec_base():
     return yaml.safe_load(SPEC.read_text(encoding="utf-8"))
+
+
+@pytest.fixture
+def spec(spec_base):
+    """Copia profunda por prueba: una prueba puede modificarla sin afectar a las demás."""
+    return copy.deepcopy(spec_base)
 
 
 @pytest.fixture(scope="session")
@@ -33,9 +37,9 @@ def schema():
 
 @pytest.fixture(scope="session")
 def rendered(tmp_path_factory):
-    # Solo la usan las pruebas deprecadas (test_render.py); DEPRECADO junto con render_templates.py.
+    """Generación del ejemplo SISBEN en una carpeta temporal: (out, manifest)."""
     import render_templates
 
-    out = tmp_path_factory.mktemp("generated")
+    out = tmp_path_factory.mktemp("generated") / "out"
     manifest = render_templates.render(SPEC, out, TEMPLATES, SCHEMA)
     return out, manifest

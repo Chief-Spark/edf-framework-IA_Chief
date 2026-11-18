@@ -2,7 +2,7 @@
 // Tests de la fuente SISBEN sobre eventos aceptados SINTÉTICOS, sin Spark. Usa el núcleo puro
 // SISBENCurationProcessor.curar; requiere el JAR del framework en el classpath para compilar
 // (CuratedEvent, TaggedValidatedEvent): compilación NO CERTIFICADA (F-01).
-// Los JSON esperados salen de la implementación de referencia (scripts/java/.../Referencia.java).
+// Los JSON esperados salen de la implementación de referencia (scripts/curation_reference.py).
 package com.experian.edf.oxygen.curation.source.sisben
 
 import org.junit.runner.RunWith

@@ -112,7 +112,7 @@ Las reglas se expresan **por su efecto**, no por su código de severidad (el voc
 - Transformaciones: estandarización, homologación por catálogo, conversión a epoch, enriquecimiento.
 - Manejo de RT y EP.
 - Registro de los campos curados en el domain dictionary de la ingesta.
-- Ambigüedad abierta: la regla de concatenación de nombres. **No implementar sin confirmar.** `[A:11/vision]`
+- Regla de concatenación de nombres: la fija la spec de cada ingesta (orden de los campos y separador). `edf-curation` la genera con la transformación `concatenacion` desde la 1.7.0. Sin esa definición en la spec, **no implementar sin confirmar.** `[A:11/vision]`. SISBEN: resuelta por `spec-sisben.md` §10.1 (`standardizedIdName`)
 - El manejo de EP se diseñó agnóstico a `inferDelete` de Pinning; posible colisión. `[A:PT-12]`
 
 ### 5.5 Pinning `[C]`
@@ -183,7 +183,7 @@ Si el código auxiliar común entre ingestas se duplica por repo o se factoriza 
 | 1 | Nombre, tipo, etapa y propósito de los 3 campos internos (§2.1) | `[PM]` |
 | 2 | Contrato de entrada que Pinning espera de Curation | `[A:OQ-IL-3]` |
 | 3 | Semántica de los Field Handlers LFP / LAP / EUC | `[A:OQ-TR-3]` |
-| 4 | Regla de concatenación de nombres en Curation | `[A:11/vision]` |
+| 4 | Regla de concatenación de nombres en Curation | `[A:11/vision]` para una ingesta cuya spec no la define. SISBEN: resuelta (`spec-sisben.md` §10.1) |
 | 5 | Si SISBEN usa `inferDelete` o solo EP | `[A:PT-12]` |
 | 6 | Si State Calculation de SISBEN requiere lógica propia en el enricher | `[A:CQ-006]` |
 | 7 | Uso de Nashorn en State Calculation | `[A:OQ-TR-2]` |

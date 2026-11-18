@@ -38,7 +38,7 @@ lista a sí mismo.
 4. CUR-TPL-06, 11 (incluye la parte manual).
 5. CUR-TPL-07, 09.
 
-El generador Java (`scripts/java/.../RenderTemplates.java`) sigue este orden (método `plan`).
+El generador (`scripts/render_templates.py`) sigue este orden (función `plan`).
 
 ## Qué es fijo, qué es parámetro y qué es manual
 

@@ -17,7 +17,7 @@ infiere eliminaciones (Acceptance, `contextualOverride`).
 ## Hasta dónde llega el ingeniero con este skill
 
 1. Completar o revisar el source-spec (SISBEN viene prellenado).
-2. Generar los 12 artefactos (CUR-TPL-01..12) con el generador Java (`scripts/java/target/render-templates.jar`).
+2. Generar los 12 artefactos (CUR-TPL-01..12) con el generador Python (`scripts/render_templates.py`). La skill no compila nada.
 3. Revisar la salida esperada del fixture sintético y el checklist.
 4. Presentar la propuesta y **esperar aprobación** (HITL).
 5. Copiar los artefactos al fork de Colombia de oxygen-curation, fusionar los fragmentos (regla
@@ -31,10 +31,10 @@ Lo que **no** hace: modificar el motor (`SparkCurator`), cambiar claves de etapa
 
 | Tarea | Modo |
 |---|---|
-| Validación del source-spec, coherencia nombres ↔ domain dictionary | Automático (generador Java) |
+| Validación del source-spec, coherencia nombres ↔ domain dictionary | Automático (generador Python) |
 | Generación de Capa A, B, evento, lector, processor, HOCON, lookups, dictionary, fixture, tests | Automático |
-| Salida esperada del fixture | Automático (implementación de referencia `Referencia.java`) |
-| Parse-check de HOCON generado | Automático (Typesafe Config en las pruebas Java; parser mínimo `hocon_check.py`) |
+| Salida esperada del fixture | Automático (implementación de referencia `scripts/curation_reference.py`) |
+| Parse-check de HOCON generado | Automático (parser mínimo `hocon_check.py`; `pyhocon` si está instalado). Typesafe Config: en el fork |
 | Enriquecimiento sin valores (Business Line Code, Type of Data) | Guiado: `TODO(manual)` en el processor |
 | Nombre completo | Bloqueado hasta cerrar P2 |
 | Fusión en el inner del fork, compilación y ejecución | Guiado (runbook + checklist) |

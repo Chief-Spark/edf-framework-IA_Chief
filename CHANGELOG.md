@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.7.0 — 2026-11-18
+
+La skill `edf-curation` solo genera artefactos: ya no compila nada ni necesita Java ni Maven. Con esto, ninguna skill del framework compila. Además, Curation puede concatenar campos curados (nombre completo) y la spec de cada ingesta fija qué pasa con los campos de severidad 3.
+
+### Cambios
+- **Generador en Python.** `scripts/render_templates.py` y `scripts/curation_reference.py` se reescribieron como traducción de `RenderTemplates.java` y `Referencia.java`. **Equivalencia comprobada:** con la spec de ejemplo de SISBEN, los 23 archivos salen idénticos byte a byte a la salida Java versionada, incluidos `MANIFEST.json` y `expected/`.
+- **Transformación `concatenacion`** (RG-013 de SISBEN): une, en orden, los valores ya curados de campos anteriores con un separador, omitiendo nulos y vacíos; si todos faltan, nulo sin advertencia propia. Cambian el esquema, `FieldMapping`, `Transformaciones` (`concatenar`), el processor y `TransformacionesSpec`. `standardizedIdName` ya no va en `campos_abiertos`.
+- **Política de severidad 3** documentada en el esquema y en `SKILL.md`: un nivel en `niveles_no_almacenar` omite la clave; en `niveles_anular`, la publica nula; fuera de las dos listas, la publica estandarizada (nula con advertencia si no se puede transformar). No requirió cambio de código.
+- Generación todo o nada: se valida todo antes de borrar `--out`. Nuevo `--solo-verificar` (valida el source-spec sin escribir); `edf-analisis` lo usa para verificar el insumo de Curation.
+- `SKILL.md`: regla "generar, nunca compilar"; pasos 3, 4 y 6 con Python; integración y compilación quedan al ingeniero en el fork. Actualizados `runbook-ejecucion.md` §0, `checklist-entrega.md`, `alcance-y-glosario.md`, `inventario-plantillas.md`, `decisiones-y-abiertos.md` (C-CUR-05, P2/CUR-PA01) y comentarios de las plantillas.
+- Pruebas: `tests/test_render_templates.py` y `tests/test_curation_reference.py` traducen las suites Java y agregan concatenación, opción B y todo o nada; reemplazan `test_render.py` y `test_reference.py`. Suite del skill: 85 en verde, 2 omitidas sin `pyhocon`. Cobertura: `render_templates.py` 98,7 %, `curation_reference.py` 99,6 %, `hocon_check.py` 86,2 %.
+- `scripts/java/` queda como referencia histórica (`NO-USAR.md`, `DEPRECADOS.md`).
+- Steering `07`: la regla de concatenación de nombres la fija la spec de cada ingesta; para SISBEN queda resuelta. README: requisitos sin Java.
+
+### Corregido
+- `SKILL.md` de Curation citaba la ruta `.kiro/steering/…`, que su propia prueba de portabilidad prohíbe (fallaba desde la versión base).
+
+### Fuentes de SISBEN (en `expedientes/sisben/fuentes/`, fuera de git)
+- `spec-sisben.md` 1.0.1: §10.4 nuevo (los campos con severidad 3 se publican estandarizados; ninguna clave se omite) y §10.1 precisa `standardizedIdName`. `hu-sisben.md` 1.0.1: R-23 y un escenario nuevo en §5.3. Cierran PA-003 y RG-013 de Curation.
+
 ## 1.6.0 — 2026-11-18
 
 La skill `edf-acceptance` solo genera artefactos: ya no compila nada ni necesita Java ni Maven. Mismo criterio que Validation en la 1.4.0.

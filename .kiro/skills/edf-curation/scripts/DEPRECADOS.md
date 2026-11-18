@@ -1,40 +1,57 @@
 # Archivos deprecados
 
-Desde el 2026-10-20 el generador de Curation y su implementación de referencia están en Java 17
-(`scripts/java/`). Los archivos Python de abajo **se conservan solo como referencia**: no los use para
-generar ni para calcular la salida esperada.
+## Desde 2026-11-18 (versión 1.7.0 del framework): el generador vigente es Python
 
-| Archivo deprecado | Reemplazo vigente |
+La skill **solo genera artefactos y no compila nada** (decisión del Desarrollador, 2026-11-18). El generador
+vigente es `render_templates.py`: solo necesita Python 3 con PyYAML y jsonschema.
+
+| Archivo | Estado |
 |---|---|
-| `render_templates.py` | `java/src/main/java/com/experian/edf/skills/curation/RenderTemplates.java` (`java -jar java/target/render-templates.jar`) |
-| `curation_reference.py` | `java/src/main/java/com/experian/edf/skills/curation/Referencia.java` |
-| `tests/test_render.py` | `java/src/test/java/com/experian/edf/skills/curation/RenderTemplatesTest.java` |
-| `tests/test_reference.py` | `java/src/test/java/com/experian/edf/skills/curation/ReferenciaTest.java` |
+| `render_templates.py` | **Vigente.** Generador de los 12 artefactos, salida esperada y `MANIFEST.json` |
+| `curation_reference.py` | **Vigente.** Implementación de referencia (espejo de Capa A y del núcleo del processor) |
+| `hocon_check.py` | Vigente. Parse-check mínimo de los fragmentos HOCON |
+| `tests/test_render_templates.py`, `tests/test_curation_reference.py`, `tests/test_hocon_y_portabilidad.py` | Vigentes, en la suite (`python -m pytest scripts/tests -q`) y en la cobertura |
+| `java/` (generador `RenderTemplates`, `Referencia`, `Py`, `RenderError` y sus pruebas) | **Deprecado.** Solo referencia histórica. No se compila ni se ejecuta; la skill nunca usa `mvn` ni `java -jar` |
 
-Siguen vigentes en Python: `hocon_check.py` y `tests/test_hocon_y_portabilidad.py`.
+Las pruebas Python anteriores (`tests/test_render.py`, `tests/test_reference.py`), que cubrían la versión
+Python de 2026-10-20 y estaban fuera de la suite, se reemplazaron por las dos suites nuevas.
 
-## Fuera de la suite y de la cobertura vigentes (ADR-04, 2026-10-21)
+### Evidencia de equivalencia (2026-11-18)
 
-- **Suite.** `tests/conftest.py` declara `collect_ignore = ["test_render.py", "test_reference.py"]`:
-  `python -m pytest scripts/tests -q` ya no las recoge. No se borraron ni se movieron; se pueden correr a
-  mano (`python -m pytest scripts/tests/test_render.py scripts/tests/test_reference.py`). La fixture
-  `rendered` de `conftest.py` solo la usan esas pruebas.
-- **Cobertura.** `.coveragerc` (raíz del skill) omite `scripts/render_templates.py` y
-  `scripts/curation_reference.py`. El 80 % de AC-39 se mide por script vigente (P-5):
-  `coverage report --include=scripts/hocon_check.py --fail-under=80`.
-- **Deriva esperada.** Como los deprecados no se actualizan, desde el 2026-10-21 (plantilla
-  `TransformationsSpec.scala.tpl` con la prueba de ADR-02 y `LEEME.md` en los lookups generados, plan #9)
-  `test_render.py::test_salida_igual_a_la_versionada` falla si se corre a mano: `render_templates.py` ya no
-  produce el ejemplo versionado. La versión Java es la que manda.
+`render_templates.py` y `curation_reference.py` se reescribieron como traducción de `RenderTemplates.java` y
+`Referencia.java` (vigentes hasta la 1.6.x: subscriberRelation por extensión, F-FW-10/11/13/14, marca de
+sintético de los lookups, `otros_archivos` con SHA-256, zona de fechas y advertencias). Con el source-spec de
+ejemplo de SISBEN y las plantillas de entonces, la versión Python produjo los mismos 23 archivos que la salida
+Java versionada en `assets/examples/sisben/generated/` y `expected/`, **byte a byte**, incluido
+`MANIFEST.json`. Solo puede diferir la redacción de los mensajes de error del JSON Schema (los errores
+detectados son los mismos).
 
-## Evidencia de equivalencia (2026-10-20)
+Las suites Python traducen los casos de `RenderTemplatesTest.java` y `ReferenciaTest.java`, incluido "la
+salida es igual a la versionada". La comprobación con Typesafe Config (el parser HOCON del motor), que antes
+hacían las pruebas Java, ocurre ahora al compilar y probar en el fork, fuera de la skill
+(`references/runbook-ejecucion.md` §1 a §5); antes, `hocon_check.py` y, si está instalado, `pyhocon`.
 
-Con la spec SISBEN (con y sin `--write-expected`) y con la spec mock `G-07_zona_bogota.yaml` (zona
-`America/Bogota`), la versión Java produjo los mismos 22 archivos, byte a byte, que la versión Python,
-incluidos `expected/curated-events.json` y `expected/resumen.json`, y el mismo código de salida. Solo
-difiere la redacción de los mensajes de error del JSON Schema (los errores detectados son los mismos).
+### Cambios de la 1.7.0 sobre la equivalencia
 
-## Condición para retirarlos
+Después de comprobar la equivalencia se agregaron, solo en Python y en las plantillas:
 
-Borrarlos cuando el equipo lo apruebe. Mientras existan, si cambia una plantilla o una regla, la versión
-Java es la que manda; los archivos deprecados no se actualizan.
+- Transformación `concatenacion` (une valores curados de campos anteriores; RG-013 de SISBEN,
+  `standardizedIdName`). Cambian `FieldMapping.scala`, `Transformaciones.scala`, el processor y
+  `TransformacionesSpec.scala` del ejemplo; `expected/` no cambia porque el ejemplo no la usa.
+- Política de severidad 3 documentada en el esquema: un nivel fuera de `niveles_no_almacenar` y
+  `niveles_anular` se publica estandarizado (opción B de SISBEN, PA-003). No requirió cambio de código.
+- Generación todo o nada: se valida todo antes de borrar `--out`.
+- `info_archivo` devuelve fecha de corte nula con año 0000 (Java devolvía una fecha del año 0).
+- La comparación de zonas para la advertencia C-CUR-04 trata como iguales los alias de UTC (`UTC`,
+  `Etc/UTC`, `GMT`, `Z`, …) y compara por nombre las demás zonas.
+
+## Historia: 2026-10-20 a 2026-11-17 (versión Java)
+
+Entre esas fechas el generador vigente fue Java 17 (`java/`) y los Python se conservaron solo como referencia
+(ADR-04, 2026-10-21: fuera de la suite y de la cobertura). En esa época se comprobó la equivalencia inversa con
+la spec SISBEN y con la spec mock `G-07_zona_bogota.yaml`.
+
+## Condición para retirar `java/`
+
+Borrarla cuando el equipo lo apruebe. Mientras exista, no se actualiza: si cambia una plantilla o una regla,
+manda `render_templates.py`.

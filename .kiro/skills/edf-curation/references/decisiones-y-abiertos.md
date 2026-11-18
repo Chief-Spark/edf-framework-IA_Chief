@@ -44,7 +44,7 @@ Curation (sus efectos llegan ya resueltos en el evento aceptado).
 | C-CUR-02 | Nombres publicados camelCase en español para los campos sin nombre acordado | `campos_curados` | HU-006 / Pinning (`APELLID1`, `NOMBRES1`...) |
 | C-CUR-03 | La Ñ se translitera a N | `parametros.conservar_enie` | confirmar con Pinning |
 | C-CUR-04 | Fechas curadas en UTC (RF-CUR-06) aunque `asOfDate` de Validation usa America/Bogota | `parametros.zona_horaria_fechas` | confirmar; cambiar el parámetro y regenerar |
-| C-CUR-05 | Severidad 3 = clave omitida; nulos escritos como `null` | `CuratedEvent.toJavaMap` | confirmar con Synthesis |
+| C-CUR-05 | Severidad 3 = clave omitida (política por defecto del ejemplo); nulos escritos como `null`. Desde la 1.7.0 la política la fija la spec de la ingesta (`niveles_no_almacenar`; SISBEN publica estandarizado, spec 1.0.1 §10.4) | `CuratedEvent.toJavaMap` | confirmar con Synthesis |
 | C-CUR-06 | Formato del domain dictionary `{source, eventType, fields[{name,type,nullable}]}` | `domain-dictionary.json.tpl` | ver el archivo real del inner |
 | C-CUR-07 | Claves de `validatedRecordJson` = nombres de dominio | `SISBENAcceptedRecord` | ver salida real de Validation |
 | C-CUR-08 | Reglas de documento por tipo (pasaporte conserva ceros, sin padding) | `reglas_documento` | longitudes estándar Experian |
@@ -57,7 +57,7 @@ Curation (sus efectos llegan ya resueltos en el evento aceptado).
 | ID | Tema | Bloquea |
 |---|---|---|
 | D11-a | Origen de `puntajeSisben`, `fechaEncuesta`, `fechaModificacion`; nombres de Pinning | esos campos (no se generan) |
-| P2 / CUR-PA01 | Orden del nombre completo | `nombreCompleto` (no se genera) |
+| P2 / CUR-PA01 | Orden del nombre completo | en el ejemplo, `nombreCompleto` (no se genera). Desde la 1.7.0 el generador tiene `concatenacion`: cuando la spec de la ingesta fija el orden (SISBEN: `standardizedIdName`, spec 1.0.1 §10.1), el campo se genera y el punto queda cerrado para esa ingesta |
 | CUR-PA02 / CUR-PT04 | Lector propio vs librería de Validation | se asume lector propio |
 | CUR-PA03 | Tipo de archivo desde `lineage.fileName` | inferencia implementada |
 | CUR-PA04 | `outputEventType = 30` | inferido |

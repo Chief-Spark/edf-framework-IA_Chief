@@ -2,7 +2,7 @@
 // Acciones de transformación genéricas como funciones puras (modelo Information Type + Action,
 // CUR-P08). Sin Spark, sin framework, sin reflexión por llamada (CUR-AP03, CUR-AP04).
 // Un valor no transformable devuelve nulo + advertencia; nunca una excepción (CUR-RC03).
-// La implementación de referencia en Java (scripts/java/.../Referencia.java) replica esta lógica.
+// La implementación de referencia en Python (scripts/curation_reference.py) replica esta lógica.
 package {{paquete_compartido}}
 
 import java.text.Normalizer
@@ -111,6 +111,15 @@ object Transformaciones {
             case _ => Resultado.advertir(Motivos.FormatoInvalido)
           }
       }
+  }
+
+  /**
+   * Une los valores curados no vacíos con el separador, en el orden dado; un componente nulo u omitido no
+   * aparece. Si todos están vacíos, nulo sin advertencia (los campos que lo componen ya advirtieron).
+   */
+  def concatenar(valores: Seq[Option[Any]], separador: String): Resultado[String] = {
+    val partes = valores.flatten.map(_.toString.trim).filter(_.nonEmpty)
+    if (partes.isEmpty) Resultado.nulo else Resultado.ok(partes.mkString(separador))
   }
 
   /**

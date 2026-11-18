@@ -1,5 +1,5 @@
 # Esquema del source-spec de Curation (JSON Schema draft 2020-12 escrito en YAML).
-# El generador Java (scripts/java) valida el source-spec contra este archivo antes de generar.
+# El generador Python (scripts/render_templates.py) valida el source-spec contra este archivo antes de generar.
 # La sección x-placeholders declara TODOS los huecos {{nombre}} que usan las plantillas y de qué
 # parte del source-spec sale cada uno (origen). Un hueco no declarado aquí es un error (test).
 
@@ -91,6 +91,12 @@ properties:
         # "uuuu-MM-dd" (ISO, solo fecha) se agregó por F-FW-10 (E2E sisben-e2e, PA-006).
         items: {enum: ["dd/MM/uuuu", "uuuu-MM-dd HH:mm:ss", "uuuu-MM-dd"]}
       conservar_enie: {type: boolean}
+      # RF-CUR-10. Política para los campos con un error de Validation (por nivel de severidad):
+      #   niveles_no_almacenar: el campo NO se publica (la clave se omite del evento curado);
+      #   niveles_anular: el campo se publica nulo;
+      #   un nivel que no está en ninguna lista: el campo se publica ESTANDARIZADO y, si no se puede
+      #   transformar, nulo con advertencia. Para publicar estandarizado los campos con severidad 3, deje "3"
+      #   fuera de las dos listas (p. ej. niveles_no_almacenar: []).
       niveles_no_almacenar: {type: array, items: {type: string}}
       niveles_anular: {type: array, items: {type: string}}
       campo_advertencias: {$ref: "#/$defs/identificador_campo"}
@@ -157,11 +163,18 @@ properties:
           properties:
             tipo:
               enum: [texto, original, nombre, padding_izquierda, fecha_epoch, homologacion,
-                     documento, desde_archivo, copia_de, constante]
+                     documento, desde_archivo, copia_de, constante, concatenacion]
             longitud: {type: integer, minimum: 1}
             atributo: {enum: [fecha_corte, tipo_archivo]}
             campo: {type: string}
             valor: {type: [string, "null"]}
+            # concatenacion (1.7.0): une los valores curados no vacíos de campos ANTERIORES, en este orden, con
+            # el separador (por defecto un espacio). No lleva origen. Todos vacíos: nulo sin advertencia.
+            campos:
+              type: array
+              minItems: 1
+              items: {$ref: "#/$defs/identificador_campo"}
+            separador: {type: string, minLength: 1}
   campos_abiertos:
     type: array
     items:

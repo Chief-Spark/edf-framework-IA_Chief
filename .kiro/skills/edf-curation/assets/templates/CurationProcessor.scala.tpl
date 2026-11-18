@@ -120,6 +120,8 @@ object {{processor_clase}} {
         val v: Option[Any] = if (atributo == "tipo_archivo") tipoArchivo else fechaCorte
         if (v.isEmpty) Resultado.advertir(Motivos.ArchivoNoReconocido) else Resultado(v)
       case Transformacion.CopiaDe(campo) => Resultado(acc.getOrElse(campo, None))
+      case Transformacion.Concatenacion(campos, separador) =>
+        Transformaciones.concatenar(campos.map(c => acc.getOrElse(c, None)), separador)
       case Transformacion.Constante(valor) => Resultado(valor)
     }
     if (transformado.advertencia.isDefined) transformado
