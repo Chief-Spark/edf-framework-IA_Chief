@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T18:30:48-05:00",
-    "vista_md_regenerada_en": "2026-11-24T18:30:48-05:00"
+    "actualizado_en": "2026-11-24T18:36:23-05:00",
+    "vista_md_regenerada_en": "2026-11-24T18:36:23-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -156,7 +156,7 @@
       "dag_airflow": "daily-validation",
       "clasificacion_compromiso": "aceptacion",
       "riesgo_tipico": "medio",
-      "estado": "en_progreso",
+      "estado": "aprobada",
       "depende_de": [
         "analisis"
       ],
@@ -181,46 +181,49 @@
           "id": "ART-011",
           "tipo": "codigo",
           "nombre": "SISBENValidationProcessor.scala + Spec, ValidatedEvent, FileMetadata",
-          "ruta": "propuestas/validation/",
+          "ruta": "propuestas/validation/src/main/scala/com/experian/edf/oxygen/validation/source/sisben/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
           },
-          "riesgo": "medio"
+          "riesgo": "medio",
+          "hash": "sha256:16dc1080831ffab4b8b63a2083c6c6bfae4b3841706c7491a65a617489ee5ea2"
         },
         {
           "id": "ART-012",
           "tipo": "codigo",
           "nombre": "Capa A: FieldSpec, FieldValidators, FieldValidatorsSpec",
-          "ruta": "propuestas/validation/",
+          "ruta": "propuestas/validation/src/main/scala/com/experian/edf/oxygen/validation/source/common/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
-          }
+          },
+          "hash": "sha256:e502b2bb821b94269f0f5863ac46e23cf012f964e3dfbf112914cc1776647060"
         },
         {
           "id": "ART-013",
           "tipo": "prueba",
           "nombre": "SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv",
-          "ruta": "propuestas/validation/",
+          "ruta": "propuestas/validation/src/test/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
-          }
+          },
+          "hash": "sha256:512a21af37dc2cdc5ba3fdf7a96bddc2cd0aac3d18c965cd60c6eba040d6e8be"
         },
         {
           "id": "ART-014",
@@ -228,14 +231,15 @@
           "nombre": "HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf",
           "ruta": "propuestas/validation/env/application-conf/innersource/propuesta/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
-          }
+          },
+          "hash": "sha256:7f80dd2717c3adcc0cf9718078cc1149683b658aeddfd0fb923ec227efbc3425"
         },
         {
           "id": "ART-015",
@@ -243,14 +247,15 @@
           "nombre": "manifest.json",
           "ruta": "propuestas/validation/manifest.json",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "bajo",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
-          }
+          },
+          "hash": "sha256:cb5478fee063c7946fe94434018c890283776858aa099755d10028384e978e3a"
         }
       ],
       "evidencia_pipeline": {
@@ -263,7 +268,7 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": null,
+      "ref_aprobacion": "APR-008",
       "preguntas_abiertas": [],
       "riesgos": [
         "RG-004",
@@ -271,10 +276,15 @@
         "RG-009",
         "RG-012",
         "RG-013",
-        "RG-014"
+        "RG-014",
+        "RG-015",
+        "RG-015"
       ],
       "transicion_habilitada": false,
-      "iniciada_en": "2026-11-24T17:31:49-05:00"
+      "iniciada_en": "2026-11-24T17:31:49-05:00",
+      "cerrada_en": "2026-11-24T18:35:42-05:00",
+      "riesgo_evaluado": "alto",
+      "nivel_friccion": "detallada"
     },
     {
       "id": "acceptance",
@@ -295,7 +305,14 @@
           "nombre": "insumo: source-spec-acceptance.yaml (edf-analisis)",
           "ruta": "insumos/source-spec-acceptance.yaml",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "riesgo": "medio",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Analista (INT-020): render_templates --audit rc=0; simular_decision 9/9 (muestra acepta 19 = spec §15); hocon_check OK",
+            "reportada_en": "2026-11-24"
+          }
         },
         {
           "id": "ART-021",
@@ -337,7 +354,9 @@
       },
       "aprobacion_requerida": true,
       "ref_aprobacion": null,
-      "preguntas_abiertas": [],
+      "preguntas_abiertas": [
+        "PA-006"
+      ],
       "riesgos": [],
       "transicion_habilitada": false
     },
@@ -408,7 +427,8 @@
       "riesgos": [
         "RG-005",
         "RG-007",
-        "RG-008"
+        "RG-008",
+        "RG-016"
       ],
       "transicion_habilitada": false,
       "nota_regla_de_corte": null
@@ -777,6 +797,67 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0048"
+    },
+    {
+      "id": "APR-007",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-011",
+        "ART-012",
+        "ART-013",
+        "ART-014",
+        "ART-015"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T18:35:41-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBADO de los cinco (auditorias/validation.md §7); cerrados AUD-V-01 (P0) y AUD-V-02/03/05/06 (P1). Pruebas asociadas: ART-011 SISBENValidationProcessorSpec + muestra = spec §15 + casos v7; ART-012 FieldValidatorsSpec (SoloCeros, crudo, reglas del nombre, offset); ART-013 fixture 27 líneas verificado caso a caso y suite 216; ART-014 verificar_hocon OK (filePattern y lookupHome); ART-015 18/18 sha256 y marcas 8 abiertas / 9 resueltas. ART-013 incluye docs/codigos-error-sisben.csv (fuera del hash de src/test; cubierto por el manifest de ART-015).",
+      "condiciones": [
+        "prevalidacion.compila queda null; RG-006 abierto (F-01)",
+        "AUD-V-27 (HF-16) se aprueba como desviación declarada de spec §6 (no cambia aceptación: ambas filas traen ERR_015); corrección obligatoria en el lote de cierre antes de certificar",
+        "AUD-V-28 (HF-17): una prueba Scala debe aislar RA-02 antes de certificar",
+        "AUD-V-29 (HF-18): antes de aprobar ART-030, HF-18 corregido o el insumo de Curation declara que se quita el \\r final (RG-016)",
+        "Confirmar en el fork ValidationConfigs/LookupElements de oxygen-core y CSV en la raíz de lookupHome (AUD-V-26), como parte de la evidencia diferida"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0054"
+    },
+    {
+      "id": "APR-008",
+      "tipo": "contexto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-010",
+        "ART-011",
+        "ART-012",
+        "ART-013",
+        "ART-014",
+        "ART-015"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T18:35:42-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Validation se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork (sin acceso a S3/Airflow; F-01), así que evidencia_pipeline.observada queda null. Los artefactos ART-010 a ART-015 están aprobados por auditoría independiente (auditorias/validation.md §6 y §7): reproducibles, la muestra da spec §15 y el fixture, los nombres inválidos y RV-SIS-05 dan los códigos de la spec. Acceptance depende del contrato fijado por la spec §7 y el Anexo A, no de la ejecución. La evidencia se reportará con el prompt 05. Escenarios HU §5.1: cubiertos salvo «sin marca de tiempo» (cumplido en parte, desviación PA-003/RG-012) y el contador de menores del log (no certificable por la skill, PA-005/RG-014); duplicados con notas PA-004/RG-013 y HF-16. DoD HU §6: prevalidación = spec §15 cumplida; SISBENValidationProcessorSpec y Zephyr diferidos (RG-015).",
+      "condiciones": [
+        "RG-015 evidencia diferida de validation: se cierra con daily-validation sobre la muestra (conteos = spec §15, joblog, cluster_id/step_id), compilación y pruebas Scala en verde en el fork con evidencia Zephyr, y confirmación contra oxygen-core de AUD-V-01/-06 y ubicación de los CSV",
+        "No habilita Acceptance: faltan ART-020 y la transición validation→acceptance (riesgo alto)",
+        "RG-015 cerrado antes de certificar o llevar a producción; si S3 contradice la réplica, gana S3 y se revisa con §3c"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0057"
     }
   ],
   "preguntas_abiertas": [
@@ -839,6 +920,18 @@
       "resuelta_en": null,
       "respuesta": null,
       "ref_bitacora": "BIT-0036"
+    },
+    {
+      "id": "PA-006",
+      "pregunta": "¿Qué valores usa Acceptance donde la HU y la spec callan? (a) nombre de la condición y reasonCode del rechazo por FQS (propuesta de la skill: RQS_BAJO_UMBRAL_SISBEN / SISBFA00001); (b) archivo sin registros (propuesta: aceptar_cuerpo_vacio false, rechazo automático); (c) customReasonForAutomaticRejectionEnabled (propuesta: true).",
+      "origen": "Analista (INT-020); HU R-20..22, §5.2, §6; spec §7; edf-acceptance/references/inventario-plantillas.md:18. Dirigida al Desarrollador; cierra el PO.",
+      "etapa_afectada": "acceptance",
+      "bloqueante": true,
+      "estado": "abierta",
+      "abierta_en": "2026-11-24T18:35:57-05:00",
+      "resuelta_en": null,
+      "respuesta": null,
+      "ref_bitacora": "BIT-0061"
     }
   ],
   "riesgos": [
@@ -953,14 +1046,30 @@
       "etapa_afectada": "validation",
       "mitigacion": "No se genera lógica de conteo ni se toca el motor; se declara no certificable por la skill (spec §14); PA-005",
       "estado": "abierto"
+    },
+    {
+      "id": "RG-016",
+      "descripcion": "Con un archivo CRLF, FECHA_ACTUALIZACION_CNS llega a Curation con \\r final (Campos.crudo, AUD-V-29) y alimenta fechaModificacion de #sisben (spec §13); la spec no fija el fin de línea",
+      "nivel": "medio",
+      "etapa_afectada": "curation_flow",
+      "mitigacion": "Antes de aprobar ART-030: HF-18 corregido en el framework o el insumo de Curation declara que se quita el \\r final",
+      "estado": "abierto"
+    },
+    {
+      "id": "RG-015",
+      "descripcion": "Evidencia diferida de validation: aprobada sin ejecución de pipeline (observada null)",
+      "nivel": "alto",
+      "etapa_afectada": "validation",
+      "mitigacion": "Cerrar con prompt 05: daily-validation sobre la muestra (conteos spec §15, joblog, cluster_id/step_id), compilación y pruebas Scala en el fork con Zephyr, confirmación contra oxygen-core (AUD-V-01/-06, CSV en lookupHome)",
+      "estado": "abierto"
     }
   ],
   "backlog_evolutivo": [],
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0053",
-    "eventos_totales": 53,
+    "ultimo_evento": "BIT-0062",
+    "eventos_totales": 62,
     "append_only": true,
     "retencion_meses": 24
   }

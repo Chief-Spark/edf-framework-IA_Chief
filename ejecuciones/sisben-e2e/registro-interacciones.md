@@ -158,14 +158,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:31:02-05:00
 - **Pedido:** Preparar insumos/source-spec-acceptance.yaml (ART-020) desde HU §5/§6 y spec 1.0.2, con verificaciones de edf-acceptance.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Borrador de source-spec-acceptance.yaml (sin anexo en la spec: valores de HU R-20..22, §5.2, §6 y spec §1, §2, §6, §7, §8, handoff del Anexo A). Umbral 0.90 sobre average(qs.RQS); regla de registro errorlevelNotIn("1") and errorcodeNotIn("OxygenDuplicate"); filePattern de spec §2; sin intervención manual ni inferDelete. Fixture de 9 archivos; render --audit rc=0; simular_decision: 9/9, la muestra acepta 19 (= spec §15); hocon_check OK. Propone PA-006 (nombre/reasonCode del rechazo, archivo vacío, customReason) bloqueante para el insumo. Reporta 5 posibles defectos del framework (P2).
+- **Decisión:** Registrar ART-020 prevalidado y PA-006; auditor independiente de Acceptance para el insumo y los 5 posibles defectos; PA-006 al aprobador.
 - **Bitácora:** —
 
 ## INT-021 · Aprobador simulado SIM-DEV-01 · `validation`
 
 - **Cuándo:** 2026-11-24T18:34:06-05:00
 - **Pedido:** Aprobar ART-011..015 y la etapa validation con evidencia diferida (references/03 §3b paso 1).
+- **Respuesta:** Aprueba ART-011..015 (medio; ART-015 bajo) con condiciones (F-01; HF-16 desviación de spec §6 a corregir antes de certificar; HF-17; HF-18 antes de ART-030 → RG-016; confirmar oxygen-core y lookupHome) y la etapa validation con evidencia diferida (alto; RG-015; tabla de escenarios HU §5.1: cubiertos, PA-003 en parte, PA-005 no certificable).
+- **Decisión:** Registradas APR-007 (artefactos con sha256), RG-016, validation pendiente_evidencia → APR-008 (contexto alto, diferida) → aprobada; RG-015 abierto.
+- **Bitácora:** BIT-0054..BIT-0059
+
+## INT-022 · Auditor independiente (acceptance) · `acceptance`
+
+- **Cuándo:** 2026-11-24T18:36:23-05:00
+- **Pedido:** Auditar el insumo ART-020, el contrato con la Validation aprobada, PA-006 y los 5 posibles defectos del framework.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

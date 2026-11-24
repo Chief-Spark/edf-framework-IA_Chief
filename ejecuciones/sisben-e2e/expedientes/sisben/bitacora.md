@@ -919,3 +919,156 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0054 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-007 (artefacto): Artefactos de Validation regenerados (insumo v2, framework 1.9.4) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T18:35:41-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBADO de los cinco (auditorias/validation.md §7); cerrados AUD-V-01 (P0) y AUD-V-02/03/05/06 (P1). Pruebas asociadas: ART-011 SISBENValidationProcessorSpec + muestra = spec §15 + casos v7; ART-012 FieldValidatorsSpec (SoloCeros, crudo, reglas del nombre, offset); ART-013 fixture 27 líneas verificado caso a caso y suite 216; ART-014 verificar_hocon OK (filePattern y lookupHome); ART-015 18/18 sha256 y marcas 8 abiertas / 9 resueltas. ART-013 incluye docs/codigos-error-sisben.csv (fuera del hash de src/test; cubierto por el manifest de ART-015). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-011, ART-012, ART-013, ART-014, ART-015 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0055 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-016 (medio, curation_flow): Con un archivo CRLF, FECHA_ACTUALIZACION_CNS llega a Curation con \r final (Campos.crudo, AUD-V-29) y alimenta fechaModificacion de #sisben (spec §13); la spec no fija el fin de línea |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:35:42-05:00 |
+| **Por qué** | Aprobador SIM-DEV-01, INT-021, condición 4 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0056 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `validation` → estado `pendiente_evidencia` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:35:42-05:00 |
+| **Por qué** | Artefactos de Validation aprobados; no hay pipeline en la corrida: se pide la aprobación con evidencia diferida (references/03 §3b paso 1). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0057 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-008 (contexto): Aprobación de la etapa validation con evidencia diferida (references/03 §3b paso 1) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T18:35:42-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Validation se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork (sin acceso a S3/Airflow; F-01), así que evidencia_pipeline.observada queda null. Los artefactos ART-010 a ART-015 están aprobados por auditoría independiente (auditorias/validation.md §6 y §7): reproducibles, la muestra da spec §15 y el fixture, los nombres inválidos y RV-SIS-05 dan los códigos de la spec. Acceptance depende del contrato fijado por la spec §7 y el Anexo A, no de la ejecución. La evidencia se reportará con el prompt 05. Escenarios HU §5.1: cubiertos salvo «sin marca de tiempo» (cumplido en parte, desviación PA-003/RG-012) y el contador de menores del log (no certificable por la skill, PA-005/RG-014); duplicados con notas PA-004/RG-013 y HF-16. DoD HU §6: prevalidación = spec §15 cumplida; SISBENValidationProcessorSpec y Zephyr diferidos (RG-015). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-010, ART-011, ART-012, ART-013, ART-014, ART-015 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0058 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-015 (alto, validation): Evidencia diferida de validation: aprobada sin ejecución de pipeline (observada null) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:35:42-05:00 |
+| **Por qué** | APR-008, references/03 §3b paso 1 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0059 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `validation` → estado `aprobada` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:35:42-05:00 |
+| **Por qué** | Aplica APR-008 (SIMULADO, SIM-DEV-01, INT-021): aprobada con evidencia diferida. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0060 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:35:42-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0061 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-006: ¿Qué valores usa Acceptance donde la HU y la spec callan? (a) nombre de la condición y reasonCode del rechazo por FQS (propuesta de la skill: RQS_BAJO_UMBRAL_SISBEN / SISBFA00001); (b) archivo sin registros (propuesta: aceptar_cuerpo_vacio false, rechazo automático); (c) customReasonForAutomaticRejectionEnabled (propuesta: true). |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:35:57-05:00 |
+| **Por qué** | Analista (INT-020); HU R-20..22, §5.2, §6; spec §7; edf-acceptance/references/inventario-plantillas.md:18. Dirigida al Desarrollador; cierra el PO. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0062 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:36:23-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

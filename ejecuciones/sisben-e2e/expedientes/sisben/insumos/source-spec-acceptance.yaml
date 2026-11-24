@@ -1,0 +1,365 @@
+# Insumo de la etapa Acceptance (`edf-acceptance`) · ingesta `sisben` · producido por `edf-analisis` (Modo 2, tipo T2).
+# Versión 1 · 2026-11-24 · Estado: PROPUESTO (pendiente de aprobación registrada por `edf-orquestador`).
+# BORRADOR: la etapa `validation` no está aprobada (su propuesta está en re-auditoría); `edf-acceptance` no genera hasta que
+# Validation esté aprobada con transición habilitada y este insumo figure como aprobado (edf-acceptance SKILL.md, Paso 0).
+# Esquema: .kiro/skills/edf-acceptance/assets/schema/source-spec.schema.yaml. El ejemplo SISBEN de la skill es solo forma:
+# ningún valor se copió de él (edf-analisis SKILL.md Modo 2 paso 1; edf-acceptance SKILL.md Paso 1).
+#
+# Fuentes: fuentes/hu-sisben.md 1.0.2 (R-20 a R-22, §5.2, §6 fila Acceptance) y fuentes/spec-sisben.md 1.0.2 (§1, §2, §6, §7
+# RQ-01 a RQ-05, §8, Anexo A `handoff_acceptance`). La spec NO trae un anexo con el contenido de este insumo: no hay líneas
+# «que se aparten del anexo»; los valores [C] salen de las secciones citadas, y el contrato de entrada (IN-05) de
+# insumos/source-spec-validation.yaml v2.
+#
+# Marcadores (steering 05): [C] confirmado por la fuente · [PM] propuesta del modelo / convención del framework, sin fuente
+# de la ingesta · [A:PA-006] depende de la pregunta abierta propuesta PA-006 (no se convierte en instrucción de generación).
+#   [C]  umbral 0.90 y FQS = average("qs.RQS") (HU R-21, R-22; spec RQ-02, RQ-03); regla de registro (spec RQ-04, Anexo A
+#        handoff_acceptance; HU §6); marcadores rechazan el archivo (spec RQ-05); sin intervención manual (HU R-22: aceptado o
+#        rechazado completo); sin contextualOverride (PA-001 resuelta: inferDelete descartado sin versión nueva de HU/spec;
+#        HU §2, spec §10.3); identidad (spec §1); filePattern (spec §2).
+#   [A:PA-006] (a) nombre de la condición RQS_BAJO_UMBRAL_SISBEN y reasonCode SISBFA00001 (valores que propone la skill,
+#        edf-acceptance/references/inventario-plantillas.md:18; ni la HU ni la spec los declaran); (b) aceptar_cuerpo_vacio:
+#        false (las fuentes no dicen qué pasa con un archivo sin registros); (c) customReasonForAutomaticRejectionEnabled: true.
+#   [PM] rutas_destino (convención de la skill: SKILL.md:95, archivo inner aditivo); marcador errorInEmptyFileBody en IN-05
+#        (lo emite el motor: edf-validation/scripts/prevalidar_archivo.py:352); campos de `severidades` (rama deshabilitada,
+#        supuesto S-ACC-02 de la skill).
+# Supuestos de la skill (S-ACC-01..05): bloque `supuestos`, copiados de edf-acceptance/references/decisiones-y-abiertos.md:58-62.
+# Relación con Validation (expediente): PA-003 (sin marca de tiempo: no llega a validated/, no lo ve Acceptance), PA-004 y
+# RG-013 (en duplicados puede ganar un registro con sev. 1: el fixture 900005 documenta que ninguno de los dos se acepta),
+# PA-005 (contador de menores; Acceptance no lo cambia). Ninguna cambia este insumo.
+# No representable en el fixture: el escenario «Umbral parametrizable» de HU §5.2 (umbral 0.95) exige otro valor de
+# calidad.umbral; el generador exige una sola escala por spec. Queda para AcceptanceExpressionsSpec (HU §6) [PM].
+# DATOS SINTÉTICOS: todo nombre, documento, fecha e id del bloque `fixture` es inventado (eventId con prefijo SINT-).
+
+schema_version: "0.1.0"
+version_skill: "0.1.0"
+etapa: acceptance
+Fuente: SISBEN
+fuente: sisben
+
+identidad:                       # [C] spec §1
+  data_source: DNP
+  subscriber: "999722"
+  event_type: 30
+  zona_horaria: America/Bogota
+
+rutas_destino:                   # [PM] convención de la skill (fork de Colombia de oxygen-acceptance; SKILL.md:95)
+  hocon: env/application-conf/innersource/acceptance-common-application-inner.conf
+  raiz_tests: src/test/scala/com/experian/edf/oxygen/acceptance/source/sisben/
+  recursos_tests: src/test/resources/sisben/
+  paquete_tests: com.experian.edf.oxygen.acceptance.source.sisben
+
+# IN-01 · [C] spec §2 (filePattern HOCON, compara la ruta completa). Sin prefijos RT_/EP_ (spec §2, HU §2).
+archivo:
+  convencion: "SISBEN_EXPERIAN_AAAAMM.yyyyMMddHHmmss±ZZZZ.txt (extensión txt o TXT)"
+  filePattern: '.*SISBEN_EXPERIAN_\d{6}\.\d{14}[+-]\d{4}\.(txt|TXT)'
+  estado: cerrado
+  claves_de_prueba:
+    - {clave: ruta_validada_sin_extension, valor: "/home/app/validation/validated/SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", debe_coincidir: true}
+    - {clave: ruta_marcador_sin_extension, valor: "/home/app/validation/validated/SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInHeader.900007", debe_coincidir: true}
+    - {clave: lineage_fileName, valor: "SISBEN_EXPERIAN_202601.20260205093000-0500.txt", debe_coincidir: true}
+    - {clave: lineage_fileName_mayusculas, valor: "SISBEN_EXPERIAN_202601.20260205093000-0500.TXT", debe_coincidir: true}
+    - {clave: otra_fuente, valor: "/home/app/validation/validated/RUNT_EXPERIAN_202601.20260205093000-0500.txt.900010", debe_coincidir: false}
+    - {clave: sin_marca_de_tiempo, valor: "SISBEN_EXPERIAN_202601.txt", debe_coincidir: false}   # PA-003
+
+# IN-02 · [C] HU R-21, R-22; spec RQ-02, RQ-03. Umbral parametrizable (spec RQ-03); cambiarlo es N3 (edf-acceptance SKILL.md:49).
+calidad:
+  quality_score: RQS
+  agregacion: average
+  umbral: "0.90"
+  estado: cerrado
+
+# IN-03 · [A:PA-006 a] nombre y reasonCode: propuesta de la skill, no los declara la fuente. Expresión [C] (spec RQ-03).
+condiciones:
+  - nombre: RQS_BAJO_UMBRAL_SISBEN
+    expresion: 'average("qs.RQS") < 0.90'
+    reasonCode: SISBFA00001
+    isLogged: true
+    estado: inferido
+
+# ACC-TPL-01 · [C] spec RQ-03: se acepta con FQS >= 0.90; si no, se rechaza completo.
+fileActions:
+  reject: anyOf(RQS_BAJO_UMBRAL_SISBEN)
+  accept: 'average("qs.RQS") >= 0.90'
+
+# IN-04 · [C] spec RQ-04; Anexo A handoff_acceptance.record_acceptance; HU §6 fila Acceptance.
+registro:
+  niveles_que_rechazan: ["1"]
+  codigos_que_rechazan: [OxygenDuplicate]
+  recordAcceptance: 'errorlevelNotIn("1") and errorcodeNotIn("OxygenDuplicate")'
+  estado: cerrado
+
+# IN-06 · [C] spec RQ-05 (un marcador rechaza el archivo). [A:PA-006 b, c] cuerpo vacío y customReason.
+rechazo_automatico:
+  customReasonForAutomaticRejectionEnabled: true
+  aceptar_cuerpo_vacio: false
+  estado: inferido
+
+# IN-07 · [C] HU R-22 y spec RQ-03: decisión binaria (aceptado o rechazado completo); sin revisión manual.
+intervencion_manual:
+  habilitada: false
+  manualReject: null
+  manualAccept: null
+  estado: cerrado
+
+# IN-05 · Contrato de entrada desde Validation: insumos/source-spec-validation.yaml v2 (spec §3, §4, §6, §7, §8).
+diagnostico_validation:
+  quality_scores: [RQS]                       # spec RQ-01
+  niveles: ["1", "3", ""]                     # spec §8; "" = nivel de OxygenDuplicate (spec §6)
+  codigos_sev1: [SISBEN_ERR_003, SISBEN_ERR_004, SISBEN_ERR_005, SISBEN_ERR_006, SISBEN_ERR_007, SISBEN_ERR_010,
+                 SISBEN_ERR_012, SISBEN_ERR_014, SISBEN_ERR_015, SISBEN_ERR_016, SISBEN_ERR_017, SISBEN_ERR_021,
+                 SISBEN_ERR_022, SISBEN_ERR_023, SISBEN_ERR_024, SISBEN_ERR_025, SISBEN_ERR_026, SISBEN_ERR_027,
+                 SISBEN_ERR_028, SISBEN_ERR_029]
+  codigos_sev3: [SISBEN_INC_001, SISBEN_INC_002, SISBEN_INC_008, SISBEN_INC_009, SISBEN_INC_011, SISBEN_INC_013,
+                 SISBEN_INC_018, SISBEN_INC_019, SISBEN_INC_020]
+  codigos_motor: [OxygenDuplicate]            # spec §6, §8
+  marcadores_de_archivo: [errorInFileName, errorInHeader, errorInEmptyFileBody]   # spec RQ-05; sin footer (spec §2); errorInEmptyFileBody [PM]
+  estado: cerrado
+
+# ACC-TPL-03 · Deshabilitada: reject no usa hasErrorlevelIn (supuesto S-ACC-01). Campos obligatorios del esquema con los
+# valores del supuesto S-ACC-02 de la skill [PM]; no se genera nada con ellos.
+severidades:
+  habilitado: false
+  tableName: SISBEN_ACC_REASON_SEVERITY_NH          # ASSUMPTION S-ACC-02
+  archivo: lookups/sisben/SISBEN_ACC_REASON_SEVERITY_NH.csv   # ASSUMPTION S-ACC-02
+  fileFormat: csv                                   # ASSUMPTION S-ACC-02
+  delimiter: ","                                    # ASSUMPTION S-ACC-02
+  mapFromColumn: reasonCode
+  mapToColumn: severity
+  filas:
+    - {reasonCode: SISBFA00001, severidad: 1}       # ASSUMPTION S-ACC-02; [A:PA-006 a]
+  estado: abierto
+
+# IN-08 · [C] no se configura: PA-001 resuelta (inferDelete descartado sin versión nueva de HU/spec); HU §2 y spec §10.3
+# (sin archivos RT ni EP). R-26 se cumple en State Calculation (PA-002).
+contextual_override:
+  decision_humana: false
+  decision_ref: null
+  inferDelete: {enabled: null, lookBackPeriod: null, deletePredicates: null}
+  explicitDelete: {enabled: null, lookBackPeriod: null, deletePredicates: null}
+  estado: cerrado
+
+expresiones_propuestas_sisben:
+  - regla: Registro aceptado = sin severidad 1 y sin marca de duplicado
+    expresion: 'recordAcceptance = "errorlevelNotIn(\"1\") and errorcodeNotIn(\"OxygenDuplicate\")"'
+    evidencia: "[C] spec §7 RQ-04; Anexo A handoff_acceptance; HU §6"
+  - regla: Archivo aceptado si FQS >= 0.90
+    expresion: 'accept = "average(\"qs.RQS\") >= 0.90"'
+    evidencia: "[C] spec §7 RQ-02, RQ-03; HU R-21, R-22"
+  - regla: Rechazo del archivo con código de razón
+    expresion: 'reject = "anyOf(RQS_BAJO_UMBRAL_SISBEN)"'
+    detalle: Condición RQS_BAJO_UMBRAL_SISBEN con average("qs.RQS") < 0.90 en oxygen.stage.acceptance.fileConditions[]
+    evidencia: "[C] expresión (spec RQ-03); [A:PA-006 a] nombre y reasonCode"
+  - regla: Marcadores de archivo rechazan el archivo
+    detalle: errorInFileName (SISBEN_ERR_024) y errorInHeader (SISBEN_ERR_025) se rechazan sin evaluar calidad
+    evidencia: "[C] spec §7 RQ-05; §2 RA-01 a RA-05"
+
+# Supuestos propios de la skill (edf-acceptance/references/decisiones-y-abiertos.md:58-62), con su impacto.
+supuestos:
+  - id: S-ACC-01
+    supuesto: >-
+      severidades.habilitado = false: reject no usa hasErrorlevelIn, así que la severidad de SISBFA00001 no
+      es necesaria
+    impacto: >-
+      No se generan ACC-TPL-03 (CSV y lookup.conf) ni lookupMapping. Si reject llega a usar
+      hasErrorlevelIn/NotIn, hay que habilitar la tabla (verifySpec lo exige, ACC-TPL-03) y cerrar ACC-PT03
+    donde: spec (severidades.habilitado)
+  - id: S-ACC-02
+    supuesto: "Si se habilita: tabla SISBEN_ACC_REASON_SEVERITY_NH, CSV con delimitador ',', SISBFA00001 -> 1"
+    impacto: >-
+      Hoy ninguno: la rama está deshabilitada y ACC-TPL-03 se omite. Si se habilita sin confirmar,
+      lookupMapping, el CSV y su lookup.conf salen con nombre de tabla, formato y delimitador sin verificar
+      (F-12/F-13) y con una severidad provisional (ACC-PT03): hasErrorlevelIn/NotIn clasificaría el rechazo
+      de SISBFA00001 con esa severidad, o lo omitiría si la tabla no se carga
+    donde: spec (severidades, ASSUMPTION S-ACC-02)
+  - id: S-ACC-03
+    supuesto: average de un QS ausente en todos los eventos es null => condición false => archivo pendiente
+    impacto: >-
+      Un archivo sin RQS (contrato con Validation roto) no se rechaza ni se acepta: queda pendiente y no sale
+      de validated/. El fixture 900009 y el simulador esperan "pendiente"; falta confirmarlo contra Spark (N4)
+    donde: simulador, fixture 900009
+  - id: S-ACC-04
+    supuesto: JsonUtils en com.experian.edf.oxygen.utils para el Spec
+    impacto: >-
+      Si el paquete es otro, el Spec Scala (ACC-TPL-05) no compila. No afecta el HOCON ni la decisión del
+      motor; la compilación ya no está certificada (F-01)
+    donde: ACC-TPL-05 (ASSUMPTION S-ACC-04)
+  - id: S-ACC-05
+    supuesto: >-
+      Fixture JSON Lines con campos de TaggedValidatedEvent; payload/minFrequency omitidos (deserialización
+      tolerante)
+    impacto: >-
+      Si JsonUtils.fromJson no tolera la falta de payload/minFrequency, el Spec no puede leer los directorios
+      del fixture y sus casos de registro y de archivo fallan al cargar los eventos. No afecta el HOCON ni la
+      decisión en producción
+    donde: ACC-TPL-06
+
+# ACC-TPL-06 · Fixture SINTÉTICO de eventos validados. Fechas: receivedDate = 2026-02-05 09:30 -05:00 (HU §5.1);
+# fileAsOfDate = 2026-01-31 (spec §2; epoch de HU §5.3); asOfDate = 10/01/2026 (HU §5.3). Un directorio por archivo.
+fixture:
+  archivos:
+    # Muestra de spec §15 (HU §5.2 «Archivo aceptado»): 20 validados, 1 con sev. 1 (SISBEN_ERR_016), 0 duplicados.
+    - directorio: SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001
+      nombre_lineage: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+      datasetId: "900001"
+      fileTag: REGULAR
+      marcador: ""
+      receivedDate: 1770301800000
+      fileAsOfDate: 1769835600000
+      decision_esperada: aceptado
+      reason_code_esperado: ""
+      descripcion: "spec §15: FQS 19/20 = 0.95 >= 0.90, se acepta con 19 registros"
+      eventos:
+        - {eventId: SINT-A-01, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000201", keys: "3|1000000201", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000201"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-02, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000202", keys: "3|1000000202", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000202"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-03, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000203", keys: "3|1000000203", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000203"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-04, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000204", keys: "3|1000000204", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000204"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-05, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000205", keys: "3|1000000205", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000205"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-06, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000206", keys: "3|1000000206", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000206"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-07, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000207", keys: "3|1000000207", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000207"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-08, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000208", keys: "3|1000000208", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000208"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-09, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000209", keys: "3|1000000209", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000209"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-10, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000210", keys: "3|1000000210", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000210"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-11, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000211", keys: "3|1000000211", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000211"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-12, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000212", keys: "3|1000000212", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000212"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-13, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000213", keys: "3|1000000213", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000213"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-14, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000214", keys: "3|1000000214", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000214"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-15, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000215", keys: "3|1000000215", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000215"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-16, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000216", keys: "3|1000000216", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000216"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-17, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000217", keys: "3|1000000217", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000217"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-18, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000218", keys: "3|1000000218", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000218"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-19, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000219", keys: "3|1000000219", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000219"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-A-20, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000220", keys: "3|1000000220", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000220"}', qualityScores: [{name: RQS, score: 0.0}], errorCodes: [{errorCodeName: ID_GRUPO, errorCodeValue: SISBEN_ERR_016, errorLevel: "1", messageKey: "dominio", errorType: event}], headerErrors: [], esperado_registro: false}
+    # HU §5.2 «Archivo rechazado»: FQS = 0.60.
+    - directorio: SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900002
+      nombre_lineage: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+      datasetId: "900002"
+      fileTag: REGULAR
+      marcador: ""
+      receivedDate: 1770301800000
+      fileAsOfDate: 1769835600000
+      decision_esperada: rechazado
+      reason_code_esperado: "SISBFA00001"
+      descripcion: "FQS 3/5 = 0.60 < 0.90, el archivo completo se rechaza"
+      eventos:
+        - {eventId: SINT-B-01, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000301", keys: "3|1000000301", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000301"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-B-02, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000302", keys: "3|1000000302", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000302"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-B-03, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000303", keys: "3|1000000303", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000303"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-B-04, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000304", keys: "7|1000000304", validatedRecordJson: '{"TIP_DOCUMENTO":"7","NUM_DOCUMENTO":"1000000304"}', qualityScores: [{name: RQS, score: 0.0}], errorCodes: [{errorCodeName: TIP_DOCUMENTO, errorCodeValue: SISBEN_ERR_023, errorLevel: "1", messageKey: "tipo_pendiente_creacion", errorType: event}], headerErrors: [], esperado_registro: false}
+        - {eventId: SINT-B-05, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "0", keys: "3|0", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"0"}', qualityScores: [{name: RQS, score: 0.0}], errorCodes: [{errorCodeName: NUM_DOCUMENTO, errorCodeValue: SISBEN_ERR_029, errorLevel: "1", messageKey: "documento_cero", errorType: event}], headerErrors: [], esperado_registro: false}
+    # HU R-22 / spec RQ-03 (>=): frontera exacta.
+    - directorio: SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003
+      nombre_lineage: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+      datasetId: "900003"
+      fileTag: REGULAR
+      marcador: ""
+      receivedDate: 1770301800000
+      fileAsOfDate: 1769835600000
+      decision_esperada: aceptado
+      reason_code_esperado: ""
+      descripcion: "frontera exacta: FQS 9/10 = 0.90, se acepta"
+      eventos:
+        - {eventId: SINT-C-01, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000401", keys: "3|1000000401", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000401"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-C-02, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000402", keys: "3|1000000402", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000402"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-C-03, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000403", keys: "3|1000000403", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000403"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-C-04, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000404", keys: "3|1000000404", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000404"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-C-05, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000405", keys: "3|1000000405", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000405"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-C-06, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000406", keys: "3|1000000406", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000406"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-C-07, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000407", keys: "3|1000000407", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000407"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-C-08, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000408", keys: "3|1000000408", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000408"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-C-09, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000409", keys: "3|1000000409", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000409"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-C-10, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000410", keys: "3|1000000410", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000410"}', qualityScores: [{name: RQS, score: 0.0}], errorCodes: [{errorCodeName: NUM_DOCUMENTO, errorCodeValue: SISBEN_ERR_026, errorLevel: "1", messageKey: "columnas", errorType: event}], headerErrors: [], esperado_registro: false}
+    # HU R-22 / spec RQ-03: justo bajo el umbral.
+    - directorio: SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004
+      nombre_lineage: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+      datasetId: "900004"
+      fileTag: REGULAR
+      marcador: ""
+      receivedDate: 1770301800000
+      fileAsOfDate: 1769835600000
+      decision_esperada: rechazado
+      reason_code_esperado: "SISBFA00001"
+      descripcion: "FQS 7/8 = 0.875 < 0.90, se rechaza"
+      eventos:
+        - {eventId: SINT-D-01, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000501", keys: "3|1000000501", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000501"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-D-02, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000502", keys: "3|1000000502", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000502"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-D-03, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000503", keys: "3|1000000503", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000503"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-D-04, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000504", keys: "3|1000000504", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000504"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-D-05, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000505", keys: "3|1000000505", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000505"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-D-06, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000506", keys: "3|1000000506", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000506"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-D-07, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000507", keys: "3|1000000507", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000507"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-D-08, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000508", keys: "3|1000000508", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000508"}', qualityScores: [{name: RQS, score: 0.0}], errorCodes: [{errorCodeName: ID_NIVEL, errorCodeValue: SISBEN_ERR_017, errorLevel: "1", messageKey: "rango", errorType: event}], headerErrors: [], esperado_registro: false}
+    # HU R-21 (duplicados cuentan con su RQS), spec RQ-04 y §6; sev. 3 pasa (HU R-20); RG-013: el ganador del grupo 609 tiene sev. 1 y ninguno se acepta.
+    - directorio: SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005
+      nombre_lineage: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+      datasetId: "900005"
+      fileTag: REGULAR
+      marcador: ""
+      receivedDate: 1770301800000
+      fileAsOfDate: 1769835600000
+      decision_esperada: aceptado
+      reason_code_esperado: ""
+      descripcion: "FQS 9/10 = 0.90 con 2 OxygenDuplicate (RQS 1): se acepta con 7 registros"
+      eventos:
+        - {eventId: SINT-E-01, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000601", keys: "3|1000000601", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000601"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-E-02, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000602", keys: "3|1000000602", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000602"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-E-03, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000603", keys: "3|1000000603", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000603"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-E-04, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000604", keys: "3|1000000604", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000604"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-E-05, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000605", keys: "3|1000000605", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000605"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-E-06, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000606", keys: "3|1000000606", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000606"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-E-07, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000601", keys: "3|1000000601", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000601"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [{errorCodeName: OxygenDuplicateError, errorCodeValue: OxygenDuplicate, errorLevel: "", messageKey: "", errorType: event}], headerErrors: [], esperado_registro: false}
+        - {eventId: SINT-E-08, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000608", keys: "3|1000000608", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000608"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [{errorCodeName: FECHA_DIGITACION, errorCodeValue: SISBEN_INC_018, errorLevel: "3", messageKey: "no_futura", errorType: event}], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-E-09, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000609", keys: "3|1000000609", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000609"}', qualityScores: [{name: RQS, score: 0.0}], errorCodes: [{errorCodeName: ID_ESTADO, errorCodeValue: SISBEN_ERR_021, errorLevel: "1", messageKey: "dominio", errorType: event}], headerErrors: [], esperado_registro: false}
+        - {eventId: SINT-E-10, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000609", keys: "3|1000000609", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000609"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [{errorCodeName: OxygenDuplicateError, errorCodeValue: OxygenDuplicate, errorLevel: "", messageKey: "", errorType: event}], headerErrors: [], esperado_registro: false}
+    # spec RQ-05 y RA-02: marcador errorInFileName (SISBEN_ERR_024).
+    - directorio: SISBEN_EXPERIAN_209901.20260205093000-0500.txt.errorInFileName.900006
+      nombre_lineage: SISBEN_EXPERIAN_209901.20260205093000-0500.txt
+      datasetId: "900006"
+      fileTag: REGULAR
+      marcador: "errorInFileName"
+      receivedDate: 1770301800000
+      fileAsOfDate: 4073518800000
+      decision_esperada: rechazo_automatico
+      reason_code_esperado: ""
+      descripcion: "marcador de nombre: rechazo automático sin evaluar calidad"
+      eventos:
+        - {eventId: SINT-F-01, eventType: -1002, asOfDate: 4073518800000, subscriberRelation: "", keys: "", validatedRecordJson: '{}', qualityScores: [], errorCodes: [], headerErrors: [], esperado_registro: true}
+    # spec RQ-05 y RA-05: marcador errorInHeader (SISBEN_ERR_025).
+    - directorio: SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInHeader.900007
+      nombre_lineage: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+      datasetId: "900007"
+      fileTag: REGULAR
+      marcador: "errorInHeader"
+      receivedDate: 1770301800000
+      fileAsOfDate: 1769835600000
+      decision_esperada: rechazo_automatico
+      reason_code_esperado: ""
+      descripcion: "marcador de header: rechazo automático sin evaluar calidad"
+      eventos:
+        - {eventId: SINT-G-01, eventType: -1003, asOfDate: 1769835600000, subscriberRelation: "", keys: "", validatedRecordJson: '{}', qualityScores: [], errorCodes: [], headerErrors: [], esperado_registro: true}
+    # [A:PA-006 b] archivo sin registros: rechazo automático porque accept no contiene isEmptyBodyFile.
+    - directorio: SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInEmptyFileBody.900008
+      nombre_lineage: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+      datasetId: "900008"
+      fileTag: REGULAR
+      marcador: "errorInEmptyFileBody"
+      receivedDate: 1770301800000
+      fileAsOfDate: 1769835600000
+      decision_esperada: rechazo_automatico
+      reason_code_esperado: ""
+      descripcion: "cuerpo vacío y accept sin isEmptyBodyFile: rechazo automático"
+      eventos:
+        - {eventId: SINT-H-01, eventType: -1005, asOfDate: 1769835600000, subscriberRelation: "", keys: "", validatedRecordJson: '{}', qualityScores: [], errorCodes: [], headerErrors: [], esperado_registro: true}
+    # Supuesto S-ACC-03 de la skill: contrato roto (sin RQS) -> archivo pendiente.
+    - directorio: SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900009
+      nombre_lineage: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+      datasetId: "900009"
+      fileTag: REGULAR
+      marcador: ""
+      receivedDate: 1770301800000
+      fileAsOfDate: 1769835600000
+      decision_esperada: pendiente
+      reason_code_esperado: ""
+      descripcion: "contrato roto: Validation no emitió RQS, reject y accept fallan, archivo pendiente"
+      eventos:
+        - {eventId: SINT-I-01, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000901", keys: "3|1000000901", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000901"}', qualityScores: [], errorCodes: [], headerErrors: [], esperado_registro: true}
+        - {eventId: SINT-I-02, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000902", keys: "3|1000000902", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000902"}', qualityScores: [], errorCodes: [], headerErrors: [], esperado_registro: true}
