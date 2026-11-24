@@ -133,8 +133,11 @@ tests) o una más (se reutilizan).
 
 ### 2. Source-spec
 
-- SISBEN: usar `assets/examples/sisben/source-spec.sisben.yaml` (prellenado).
-- Fuente nueva: copiarlo y completarlo siguiendo `assets/schema/source-spec.schema.yaml`. Preguntar
+- Ingesta real (también SISBEN): el source-spec es el insumo aprobado de `edf-analisis` (Paso 0.3); sus valores
+  salen de la HU y la spec de la ingesta (steering `00-framework-edf.md` §6).
+- `assets/examples/sisben/source-spec.sisben.yaml` es solo referencia de **forma**: nunca se copian sus
+  valores, tampoco para SISBEN. Si difiere del insumo, manda el insumo.
+- Borrador de una fuente nueva: seguir la forma del ejemplo y completarlo según `assets/schema/source-spec.schema.yaml`. Preguntar
   solo lo que falte; cada respuesta se registra con su estado (cerrado, propuesta, inferido,
   supuesto, abierto). La carpeta de lookups del fixture (`fixture.lookups_dir`) debe traer un
   `LEEME.md` que marque los CSV como sintéticos: sin él el generador sale con código 1 ("falta la

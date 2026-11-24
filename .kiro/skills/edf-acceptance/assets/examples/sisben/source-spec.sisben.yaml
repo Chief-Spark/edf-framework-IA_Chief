@@ -1,3 +1,6 @@
+# EJEMPLO DE FORMA, NO ES FUENTE. Este archivo enseña la estructura y el nivel de detalle del insumo.
+# Sus valores NO se copian a ninguna ingesta, tampoco a SISBEN: pueden diferir de la HU y la spec vigentes
+# (00-framework-edf.md §6). Los valores salen siempre de expedientes/<id>/fuentes/ (HU y spec).
 # Especificación de fuente para el skill edf-acceptance-stage — caso piloto SISBEN V4.
 # Valida contra assets/schema/source-spec.schema.yaml.
 # DATOS SINTÉTICOS: todos los nombres de archivo, documentos, fechas e ids del bloque `fixture`

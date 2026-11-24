@@ -47,7 +47,8 @@ Antes de habilitar la etapa `N+1`, el Orquestador verifica **todas** estas condi
        que referencia la transición N → N+1 y apunta a un evento de bitácora.
 [ ] 3. Todas las dependencias declaradas de N+1 están satisfechas (ver `01-flujo-etapas.md` §2),
        incluido su insumo aprobado de `edf-analisis` (ver `04-contratos-por-skill.md`).
-[ ] 4. No quedan preguntas abiertas con `bloqueante: true` en la etapa N.
+[ ] 4. No quedan preguntas abiertas con `bloqueante: true` cuya `etapa_afectada` sea N o N+1
+       (una pregunta sin `etapa_afectada` cuenta para todas las etapas).
 [ ] 5. Si la transición exige evidencia de pipeline, `evidencia_pipeline.observada != null`,
        o la etapa N fue aprobada con evidencia **diferida** (§3b).
 [ ] 6. Si el riesgo es `alto` o `critico`, la aprobación trae `justificacion` no vacía

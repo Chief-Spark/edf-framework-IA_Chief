@@ -27,7 +27,7 @@ Rutas relativas a `expedientes/<ingesta-id>/`.
 
 Skill: `edf-analisis`, modo etapa 0.
 **Gate de entrada:** La HU y la spec de Confluence son obligatorias. Si falta alguna, el análisis no arranca: se dice cuál falta y se detiene. Se verifican en `expedientes/<ingesta-id>/fuentes/` (archivo `HU*` y archivo `spec*`, o su ruta en `fuentes/rutas-fuentes.json`); lo hace cumplir el hook `.kiro/hooks/compuerta-etapa0.json`.
-**Gate de cierre:** no se habilita `validation` si queda alguna pregunta abierta `bloqueante: true`, o si `mapeo-campos.md` no cubre todos los campos declarados en el contrato del archivo. El mapeo a **XPM no se hace aquí** (se arma al final del proceso).
+**Gate de cierre:** no se habilita `validation` si queda alguna pregunta abierta `bloqueante: true` con `etapa_afectada` ∈ {`analisis`, `validation`} (o sin `etapa_afectada`), o si `mapeo-campos.md` no cubre todos los campos declarados en el contrato del archivo. El mapeo a **XPM no se hace aquí** (se arma al final del proceso). Una pregunta bloqueante de una etapa posterior no frena este gate: frena la aprobación del insumo de su `etapa_afectada` y la transición hacia ella (`03-gobierno-riesgo-aprobacion.md` §3, condición 4).
 
 ## Etapa 1 — Validation (`validation`) · Aceptación · N2 `medio` mínimo
 

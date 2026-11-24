@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.9.1 — 2026-11-24
+
+Cinco defectos del framework que encontró la etapa 0 de la corrida E2E SISBEN y que confirmó un auditor independiente (AUD-E0-10, -11, -13, -14 y -15).
+
+### Corregido (P1)
+- **AUD-E0-10. El bloqueo era global y no por etapa.** `edf-analisis/references/deteccion-ambiguedades.md` §4 trataba como bloqueante de la etapa 0 toda pregunta que cambiara «ningún insumo de etapa», y el gate de `edf-orquestador/references/04-contratos-por-skill.md` (y `01-flujo-etapas.md`) no distinguía etapa. Ahora el bloqueo se mide por `etapa_afectada`: una pregunta bloqueante detiene solo su etapa (el insumo, la generación, la aprobación y la transición hacia ella). El gate de la etapa 0 considera solo `etapa_afectada` ∈ {`analisis`, `validation`}. Una pregunta sin `etapa_afectada` cuenta para todas. Se alinearon la condición 4 de `03-gobierno-riesgo-aprobacion.md` («`etapa_afectada` N o N+1»), la plantilla `estado-ingesta.template.md` y el Paso 0 de `edf-analisis/SKILL.md`. `tools/validar-expediente.py`, regla 5: antes contaba las preguntas listadas en cada etapa y solo al aprobarla. Ahora cuenta las bloqueantes abiertas por `etapa_afectada` y revisa también la transición N → N+1 (preguntas de N o de N+1).
+- **AUD-E0-11. Las skills mandaban partir del ejemplo SISBEN.** `edf-validation/SKILL.md` («Modo SISBEN pre-llenado») y `edf-analisis/SKILL.md` («Parte del ejemplo SISBEN de la etapa») contradecían `00-framework-edf.md` §6. El ejemplo difiere de la spec 1.0.2 (prefijos RT/EP, `SISBEN_ERR_001`, catálogo). Ahora el ejemplo es solo referencia de forma: los valores salen siempre de la HU y la spec, y nunca se copian del ejemplo, tampoco para SISBEN. El mismo ajuste se hizo en `edf-acceptance/SKILL.md` y `edf-curation/SKILL.md`, que tenían la misma instrucción, y en sus `LEEME`/`alcance-y-glosario.md`. Los seis ejemplos SISBEN de insumo empiezan con la cabecera `EJEMPLO DE FORMA, NO ES FUENTE`.
+
+### Corregido (P2)
+- **AUD-E0-13. Varios hechos por celda en `mapeo-campos.md.tpl`.** `05-convenciones.md` §8 declara la excepción explícita para la tabla de mapeo (formato de contrato). La plantilla explica en su cabecera el marcador `[A:*]`/`[PM]` por dimensión dentro de la celda, y que `Estado` resume la fila.
+- **AUD-E0-14. Faltaban efectos en `07-contratos-frontera.md` §5.1.** Se agregan «nulo con advertencia» (sin `<campo>_original`), «descarte silencioso» (filtro) y «marca de duplicado no aceptado», más la columna «Etapa que lo produce». La plantilla de mapeo usa ese vocabulario exacto.
+- **AUD-E0-15. Faltaba una casilla en `contexto-ingesta.md.tpl`.** El checklist de cierre empieza ahora por «Insumos obligatorios presentes y leídos» (`04-reglas-analisis.md` §4.3).
+
+### Pruebas
+- `tests/test_validar_expediente.py`: 7 pruebas nuevas de la regla 5. Una bloqueante de `state_calculation` no frena `analisis` ni la transición a `validation`, pero sí la transición `synthesis` → `state_calculation` y la aprobación de esa etapa.
+- `tests/test_regresion_e2e_etapa0.py` (nuevo, 22 pruebas): comprueba en los archivos las cinco correcciones.
+- Herramientas: 114 (antes 85). Validation 160, Acceptance 127 y Curation 106, sin cambios. `auditar-skills.py`: 0 silencios y 0 obsoletas.
+
 ## 1.9.0 — 2026-11-24
 
 Auditoría de defectos del framework en todas las skills, las herramientas, los hooks y los instaladores. Detalle completo en `auditoria/informe-auditoria.md`: 37 hallazgos, 35 corregidos con prueba de regresión, 1 descartado tras verificarlo y 1 conocido y documentado.

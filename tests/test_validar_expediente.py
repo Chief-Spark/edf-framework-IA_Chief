@@ -159,3 +159,74 @@ def test_main_pii_es_hallazgo_salvo_permisivo(est, tmp_path, capsys):
 
 def test_main_sin_argumentos(capsys):
     assert ve.main([]) == 2
+
+
+# --- Regla 5, condición 4 por etapa afectada (1.9.1; corrida E2E SISBEN, AUD-E0-10) ---
+
+def pregunta(pid, etapa_afectada, bloqueante=True, estado="abierta"):
+    return {"id": pid, "pregunta": "Pregunta sintética de prueba", "origen": None, "etapa_afectada": etapa_afectada,
+            "bloqueante": bloqueante, "estado": estado, "abierta_en": "2026-11-24T10:00:00-05:00",
+            "resuelta_en": None, "respuesta": None, "ref_bitacora": None}
+
+
+def codigos_preguntas(e):
+    return [f.split(" ")[0] for f in ve.reglas_preguntas(e)]
+
+
+def test_estado_base_sin_preguntas_pasa_regla_5(est):
+    assert ve.reglas_preguntas(est) == []
+
+
+def test_bloqueante_de_state_calculation_no_frena_la_etapa_0(est):
+    """La pregunta se registró en la lista de `analisis` (como en la corrida E2E), pero afecta a State Calculation."""
+    est["preguntas_abiertas"].append(pregunta("PA-002", "state_calculation"))
+    etapa(est, "analisis")["preguntas_abiertas"].append("PA-002")
+    # analisis aprobada y transición analisis -> validation habilitada (fixture): no hay hallazgo.
+    assert ve.reglas_preguntas(est) == []
+    # validation aprobada y transición a acceptance tampoco se frenan.
+    habilitar_validation(est, evidencia="s3://sintetico/validated/")
+    assert ve.reglas_preguntas(est) == []
+
+
+def test_bloqueante_de_state_calculation_frena_la_transicion_hacia_ella(est):
+    est["preguntas_abiertas"].append(pregunta("PA-002", "state_calculation"))
+    sy = etapa(est, "synthesis")
+    sy.update(estado="aprobada", transicion_habilitada=True, ref_aprobacion="APR-060")
+    fallos = ve.reglas_preguntas(est)
+    assert len(fallos) == 1 and "`synthesis` -> `state_calculation`" in fallos[0] and "PA-002" in fallos[0]
+    # Y frena la aprobación de la propia etapa.
+    sy.update(transicion_habilitada=False)
+    etapa(est, "state_calculation")["estado"] = "aprobada"
+    assert codigos_preguntas(est) == ["5."]
+    assert "`state_calculation` aprobada" in ve.reglas_preguntas(est)[0]
+
+
+def test_bloqueante_de_analisis_o_validation_frena_la_etapa_0(est):
+    for afectada in ("analisis", "validation"):
+        e = copy.deepcopy(est)
+        e["preguntas_abiertas"].append(pregunta("PA-001", afectada))
+        fallos = ve.reglas_preguntas(e)
+        assert len(fallos) == 1 and "PA-001" in fallos[0], afectada
+
+
+def test_sin_etapa_afectada_cuenta_para_todas(est):
+    est["preguntas_abiertas"].append(pregunta("PA-003", None))
+    assert codigos_preguntas(est) == ["5."]
+
+
+def test_no_bloqueante_o_resuelta_no_frena(est):
+    est["preguntas_abiertas"] += [pregunta("PA-004", "analisis", bloqueante=False),
+                                  pregunta("PA-005", "validation", estado="resuelta")]
+    assert ve.reglas_preguntas(est) == []
+
+
+def test_main_reporta_la_regla_5(est, tmp_path, capsys):
+    pytest.importorskip("jsonschema")
+    est["preguntas_abiertas"].append(pregunta("PA-001", "validation"))
+    ruta = tmp_path / "estado-ingesta.json"
+    ruta.write_text(json.dumps(est, ensure_ascii=False), encoding="utf-8")
+    assert ve.main([str(ruta)]) == 1
+    assert "[cond. 4] Transicion `analisis` -> `validation`" in capsys.readouterr().out
+    est["preguntas_abiertas"][-1]["etapa_afectada"] = "state_calculation"
+    ruta.write_text(json.dumps(est, ensure_ascii=False), encoding="utf-8")
+    assert ve.main([str(ruta)]) == 0

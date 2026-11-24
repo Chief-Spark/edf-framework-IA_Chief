@@ -42,7 +42,7 @@ Reglas duras:
 ## Paso 0 · Ubicar la ingesta
 
 1. Pide o deduce `<ingesta-id>` y abre `expedientes/<ingesta-id>/estado-ingesta.json`. Si no existe → deriva a `edf-orquestador` para iniciar el expediente.
-2. Lee `preguntas_abiertas[]` y el estado de las etapas: no prepares el insumo de una etapa cuya etapa previa tenga preguntas bloqueantes abiertas sin avisarlo.
+2. Lee `preguntas_abiertas[]` y el estado de las etapas: no prepares el insumo de una etapa que tenga preguntas bloqueantes abiertas con esa `etapa_afectada`, o cuya etapa previa las tenga, sin avisarlo. Una pregunta bloqueante solo detiene su `etapa_afectada` (`references/deteccion-ambiguedades.md` §4).
 3. **Compuerta de entrada.** La HU y la spec de Confluence son obligatorias. Si falta alguna, el análisis no arranca: se dice cuál falta y se detiene. Búscalas en `expedientes/<ingesta-id>/fuentes/` (un archivo cuyo nombre empiece por `HU` y otro por `spec`). Si no están ahí, pide al Desarrollador la ruta y regístrala en `expedientes/<ingesta-id>/fuentes/rutas-fuentes.json` (`{"hu": "<ruta>", "spec": "<ruta>"}`). El hook `.kiro/hooks/compuerta-etapa0.json` bloquea la escritura en el expediente mientras falte alguna.
 4. Escribe solo en `expedientes/<ingesta-id>/analisis/` (modo etapa 0) o `expedientes/<ingesta-id>/insumos/` (modo técnico). La única excepción es `expedientes/<ingesta-id>/fuentes/rutas-fuentes.json`, que registra la ruta de la HU y la spec que indique el Desarrollador.
 
@@ -70,7 +70,7 @@ Flujo:
 
 Produce el insumo de **una** etapa por vez. Requisito: la etapa 0 aprobada (o, para preparar borradores, avisar que no lo está).
 
-| Etapa | Salida en `insumos/` | Formato / esquema (fuente única, no copiar) | Ejemplo SISBEN de referencia | Fuentes de análisis |
+| Etapa | Salida en `insumos/` | Formato / esquema (fuente única, no copiar) | Ejemplo SISBEN (solo forma, no es fuente) | Fuentes de análisis |
 |---|---|---|---|---|
 | Validation | `source-spec-validation.yaml` | `.kiro/skills/edf-validation/assets/schema/source-spec.schema.yaml` | `.kiro/skills/edf-validation/assets/examples/sisben/source-spec.sisben.yaml` | `mapeo-campos.md`; `edf-validation/references/` |
 | Acceptance | `source-spec-acceptance.yaml` | `.kiro/skills/edf-acceptance/assets/schema/source-spec.schema.yaml` | `.kiro/skills/edf-acceptance/assets/examples/sisben/source-spec.sisben.yaml` | `source-spec-validation.yaml` (sección `diagnostico_validation` sale de aquí); `edf-acceptance/references/` |
@@ -81,7 +81,7 @@ Produce el insumo de **una** etapa por vez. Requisito: la etapa 0 aprobada (o, p
 | State Calculation | `yaml-skill-statecalc.yaml` | `_cabecera` + `yaml-skill-statecalc.yaml.tpl` | `assets/examples/sisben/yaml-skill-statecalc.yaml` | `references/logica-statecalc.md` |
 
 Flujo:
-1. Parte del ejemplo SISBEN de la etapa y del esquema o plantilla. El ejemplo enseña el nivel de detalle; **no** copies sus valores a otra ingesta.
+1. Parte del esquema o plantilla de la etapa. El ejemplo SISBEN es solo referencia de **forma** (estructura, nivel de detalle, citas y marcadores): **nunca** copies sus valores, tampoco para SISBEN, porque puede diferir de la HU y la spec vigentes. Los valores salen siempre de la HU y la spec (`00-framework-edf.md` §6) a través de `mapeo-campos.md`.
 2. Llena cada valor desde `mapeo-campos.md` y las referencias de la etapa, con su marcador y su cita. Lo no confirmado queda marcado y **no** se convierte en instrucción de generación (`[C]` solo).
    Para decidir si ese valor abre una pregunta bloqueante, sigue `references/deteccion-ambiguedades.md`.
 3. **Coherencia de nombres entre etapas** (obligatoria): toda clave de campo curado que cites en `contrato-curation-pinning.md` y en los `yaml-skill-*.yaml` debe existir **literal** en `campos_curados[].destino` de `source-spec-curation.yaml`. Si no coincide, márcalo `[A:mapeo-claves-curation-pinning]` (steering `11` §6 #5) y no lo pongas como `[C]`.

@@ -16,7 +16,7 @@ infiere eliminaciones (Acceptance, `contextualOverride`).
 
 ## Hasta dónde llega el ingeniero con este skill
 
-1. Completar o revisar el source-spec (SISBEN viene prellenado).
+1. Revisar el source-spec aprobado de `edf-analisis` (el ejemplo SISBEN es solo de forma, no es fuente).
 2. Generar los 12 artefactos (CUR-TPL-01..12) con el generador Python (`scripts/render_templates.py`). La skill no compila nada.
 3. Revisar la salida esperada del fixture sintético y el checklist.
 4. Presentar la propuesta y **esperar aprobación** (HITL).

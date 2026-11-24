@@ -12,7 +12,9 @@ Verifica:
      riesgo critico (N4) aprobado solo por PO o Aprobador designado.
   4. Integridad referencial: ref_aprobacion -> aprobaciones[]; preguntas/riesgos por etapa
      existen en las listas globales.
-  5. Condicion 4: ninguna etapa aprobada con preguntas bloqueantes abiertas.
+  5. Condicion 4 (1.9.1, por etapa): una pregunta bloqueante abierta detiene solo su `etapa_afectada`
+     (sin `etapa_afectada`, todas). Ninguna etapa aprobada con bloqueantes abiertas de esa etapa, y
+     ninguna transicion N -> N+1 habilitada con bloqueantes abiertas de N o de N+1.
   2d. Etapa omitida: solo con nota_omision y aprobacion tipo 'omision' del PO o del Aprobador designado.
   6. Heuristica anti-PII sobre el JSON (y la bitacora con --cruzado).
   7. (1.9.0, references/03 del Orquestador) Reglas que antes no se exigian:
@@ -145,6 +147,39 @@ def reglas_gobierno(estado):
     return fallos
 
 
+def reglas_preguntas(estado):
+    """Regla 5, condicion 4 de references/03 (1.9.1): el bloqueo se mide por `etapa_afectada`.
+
+    Una pregunta bloqueante abierta detiene la aprobacion de su etapa y la transicion hacia ella. Antes se
+    contaban las preguntas listadas en la etapa, y una pregunta de una etapa posterior registrada en
+    `analisis` frenaba la etapa 0 (corrida E2E SISBEN, AUD-E0-10). Sin `etapa_afectada`, cuenta para todas.
+    """
+    fallos = []
+    etapas = {e.get("id"): e for e in estado.get("etapas", [])}
+    abiertas = [p for p in estado.get("preguntas_abiertas", [])
+                if p.get("bloqueante") and p.get("estado") in ("abierta", "en_consulta")]
+
+    def de(eid):
+        return sorted(p["id"] for p in abiertas if p.get("etapa_afectada") in (eid, None, ""))
+
+    for eid, et in etapas.items():
+        if et.get("estado") in ("aprobada", "completada_manualmente"):
+            pend = de(eid)
+            if pend:
+                fallos.append(f"5. [cond. 4] Etapa `{eid}` aprobada con preguntas bloqueantes abiertas de la etapa: "
+                              f"{', '.join(pend)}.")
+        if et.get("transicion_habilitada"):
+            for m, e2 in etapas.items():
+                if eid in (e2.get("depende_de") or []):
+                    # Las de N ya se reportan arriba si N esta aprobada; aqui las de N+1 (y las de N si se omitio).
+                    ya = set(de(eid)) if et.get("estado") in ("aprobada", "completada_manualmente") else set()
+                    pend = sorted((set(de(m)) | set(de(eid))) - ya)
+                    if pend:
+                        fallos.append(f"5. [cond. 4] Transicion `{eid}` -> `{m}` habilitada con preguntas bloqueantes "
+                                      f"abiertas de `{eid}` o `{m}`: {', '.join(pend)}.")
+    return fallos
+
+
 def bitacora_cruzada(estado, btxt):
     """Regla 8: IDs unicos y crecientes; contadores del JSON iguales a la bitacora."""
     fallos = []
@@ -193,10 +228,6 @@ def main(argv=None):
     aprobaciones = {a["id"]: a for a in estado.get("aprobaciones", [])}
     preguntas = {p["id"]: p for p in estado.get("preguntas_abiertas", [])}
     riesgos = {r["id"] for r in estado.get("riesgos", [])}
-    bloqueantes_abiertas = {
-        pid for pid, p in preguntas.items()
-        if p.get("bloqueante") and p.get("estado") in ("abierta", "en_consulta")
-    }
 
     for et in estado.get("etapas", []):
         eid = et.get("id")
@@ -221,11 +252,6 @@ def main(argv=None):
                 fallos.append(f"2d. Etapa `{eid}`: omitida sin aprobacion tipo 'omision' con decision 'aprobada'. 'omitida' no cuenta como aprobada por defecto.")
             elif (apr.get("actor") or {}).get("rol") not in ("PO", "Aprobador designado"):
                 fallos.append(f"2d. Etapa `{eid}`: la omision la aprobo '{(apr.get('actor') or {}).get('rol')}'; solo PO o Aprobador designado.")
-        # 5. Condicion 4
-        if et.get("estado") in ("aprobada", "completada_manualmente"):
-            pend = sorted(set(et.get("preguntas_abiertas", [])) & bloqueantes_abiertas)
-            if pend:
-                fallos.append(f"5. [cond. 4] Etapa `{eid}` aprobada con preguntas bloqueantes abiertas: {', '.join(pend)}.")
         # Regla de corte
         if et.get("estado") == "completada_manualmente":
             if et.get("clasificacion_compromiso") != "exito":
@@ -254,6 +280,9 @@ def main(argv=None):
             fallos.append(f"3. [R3.5] {aid}: regla_de_corte sin justificacion.")
         if a.get("decision") == "condicional" and not a.get("condiciones"):
             fallos.append(f"3. {aid}: aprobacion condicional sin condiciones[].")
+
+    # 5. Condicion 4, por etapa afectada (1.9.1)
+    fallos += reglas_preguntas(estado)
 
     # 7. Reglas de gobierno de references/03 (1.9.0)
     fallos += reglas_gobierno(estado)

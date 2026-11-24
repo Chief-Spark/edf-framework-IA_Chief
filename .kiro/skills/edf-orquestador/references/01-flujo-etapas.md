@@ -32,14 +32,14 @@ analisis (gate 0)
 
 Reglas de dependencia que el Orquestador **debe** verificar antes de habilitar una transición (R1.4):
 
-- `validation` requiere `analisis` **aprobada** (contexto cerrado, sin preguntas bloqueantes) y el insumo `insumos/source-spec-validation.yaml` aprobado.
+- `validation` requiere `analisis` **aprobada** (contexto cerrado, sin preguntas bloqueantes abiertas con `etapa_afectada` ∈ {`analisis`, `validation`}) y el insumo `insumos/source-spec-validation.yaml` aprobado.
 - `acceptance` requiere `validation` aprobada.
 - `curation_flow` y `curation_stock` requieren `acceptance` aprobada.
 - `pinning` requiere `curation_flow` **y** `curation_stock` aprobadas.
 - `synthesis` requiere `pinning` aprobada.
 - `state_calculation` requiere `synthesis` aprobada.
 
-Cada etapa necesita además su **insumo aprobado** producido por `edf-analisis` (ver `04-contratos-por-skill.md`).
+Cada etapa necesita además su **insumo aprobado** producido por `edf-analisis` (ver `04-contratos-por-skill.md`). Una pregunta bloqueante abierta detiene solo su `etapa_afectada`: el insumo, la generación, la aprobación y la transición hacia esa etapa (`03-gobierno-riesgo-aprobacion.md` §3, condición 4). No detiene las etapas anteriores.
 
 ## 3. Lo que queda FUERA (el Orquestador lo reconoce y lo rechaza como trabajo propio)
 

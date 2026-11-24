@@ -59,7 +59,7 @@ Evaluado {{checklist.evaluado_en}} → **{{checklist.resultado}}**
 - [{{c1}}] 1. Etapa previa `aprobada` o `completada_manualmente`
 - [{{c2}}] 2. Aprobación registrada que referencia esta transición
 - [{{c3}}] 3. Dependencias declaradas satisfechas
-- [{{c4}}] 4. Sin preguntas abiertas bloqueantes en la etapa previa
+- [{{c4}}] 4. Sin preguntas abiertas bloqueantes con `etapa_afectada` en la etapa previa o en esta
 - [{{c5}}] 5. Evidencia de pipeline observada (si la transición la exige)
 - [{{c6}}] 6. Justificación presente si el riesgo es alto o crítico (en crítico, aprobado por PO o Aprobador designado)
 

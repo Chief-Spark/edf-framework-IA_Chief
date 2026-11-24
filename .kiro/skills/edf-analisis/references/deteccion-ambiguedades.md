@@ -50,9 +50,9 @@ Los patrones 1, 4 y 5 ya ocurrieron en el proyecto. La lección registrada en `0
 
 ## 4. Bloqueante o no bloqueante
 
-Determina si la etapa 0 puede cerrarse. El gate de la etapa 0 no habilita `validation` si queda una pregunta con `bloqueante: true` (`.kiro/skills/edf-orquestador/references/04-contratos-por-skill.md`, etapa 0). El skill propone el valor al abrir la pregunta. No reclasifica ni cierra una pregunta ya registrada.
+Determina qué etapa queda detenida. **El bloqueo se mide por `etapa_afectada`:** una pregunta bloqueante detiene solo la etapa a la que afecta (su insumo, su generación, su aprobación y la transición hacia ella), no las demás (`.kiro/skills/edf-orquestador/references/03-gobierno-riesgo-aprobacion.md` §3, condición 4). El gate de la etapa 0 considera solo las preguntas con `bloqueante: true` y `etapa_afectada` ∈ {`analisis`, `validation`}: `validation` cuenta porque su insumo se aprueba junto con la etapa 0 (`.kiro/skills/edf-orquestador/references/04-contratos-por-skill.md`, etapa 0). Una pregunta bloqueante de una etapa posterior (por ejemplo, `state_calculation`) queda abierta y detiene esa etapa, no la etapa 0. Una pregunta sin `etapa_afectada` se trata como bloqueante de todas las etapas (en la duda, bloqueante). El skill propone el valor de `bloqueante` y de `etapa_afectada` al abrir la pregunta. No reclasifica ni cierra una pregunta ya registrada.
 
-**Bloqueante** si la respuesta puede cambiar:
+**Bloqueante para su `etapa_afectada`** si la respuesta puede cambiar:
 
 - El efecto de la violación de una regla, sobre todo si pasa a ser o deja de ser **rechazo del registro** (`07` §5.1).
 - La llave de identidad de un campo (`07` §3, dimensión 8) o el valor de `reusePIN`.
@@ -62,7 +62,7 @@ Determina si la etapa 0 puede cerrarse. El gate de la etapa 0 no habilita `valid
 - El umbral de calidad `qualityThreshold` o la fórmula del FQS (`02-lexico-edf.md`).
 - El número de campos a mapear (`04` §4.1).
 
-**No bloqueante** solo si la respuesta no cambia ningún valor de los cuatro artefactos de la etapa 0 ni de ningún insumo de etapa, por ejemplo:
+**No bloqueante** solo si la respuesta no cambia ningún valor de los artefactos ni del insumo de la etapa afectada, por ejemplo:
 
 - Afecta un campo opcional cuya violación no rechaza el registro.
 - Es una mejora de documentación.
@@ -71,6 +71,8 @@ Determina si la etapa 0 puede cerrarse. El gate de la etapa 0 no habilita `valid
 **En la duda, bloqueante.** Bloquear cuesta una pregunta al Desarrollador. No bloquear puede dejar pasar un supuesto invisible dentro de un contexto aprobado.
 
 Una pregunta no bloqueante sigue abierta: la afirmación que dependa de ella queda `[A:PA-nnn]` y no se convierte en instrucción de generación (`05` §3).
+
+**Qué etapa afecta.** `etapa_afectada` es la primera etapa cuyos artefactos o cuyo insumo cambian con la respuesta (identificador de `00-framework-edf.md` §2). Si la respuesta cambia un artefacto de la etapa 0 o `source-spec-validation.yaml`, la etapa afectada es `analisis` o `validation` y la pregunta frena la etapa 0. Si solo cambia el insumo de una etapa posterior, la etapa afectada es esa etapa: la pregunta no frena la etapa 0 y frena la aprobación del insumo y la transición hacia esa etapa.
 
 ## 5. Formato de la pregunta abierta
 
@@ -115,7 +117,7 @@ Reglas de forma:
    - La pregunta en `contexto-ingesta.md` §6 y, si hay contradicción, en §4.
    - `[A:PA-nnn]` en la columna `Estado` de la fila del campo afectado en `mapeo-campos.md`.
    - La pregunta en la entrega al Desarrollador, para que el Orquestador la registre.
-10. Si queda una pregunta bloqueante abierta, la etapa 0 **no** está lista para aprobar y se dice así al entregar (`04` §4.3). Una pregunta que solo vive en el chat se pierde en la sesión siguiente.
+10. Si queda una pregunta bloqueante abierta con `etapa_afectada` ∈ {`analisis`, `validation`}, la etapa 0 **no** está lista para aprobar y se dice así al entregar (`04` §4.3). Las bloqueantes de etapas posteriores se entregan igual, con su etapa afectada, y no frenan la etapa 0. Una pregunta que solo vive en el chat se pierde en la sesión siguiente.
 
 ## 7. Qué no es una ambigüedad
 

@@ -14,7 +14,7 @@ clase Scala cargada por reflexión (clave `processor` del HOCON) más un bloque 
 
 | Incluido | Fuera de alcance |
 |---|---|
-| Leer/llenar el source-spec (modo SISBEN pre-llenado) | Escribir en el fork sin aprobación del técnico |
+| Leer y revisar el source-spec aprobado de `edf-analisis` (el ejemplo SISBEN es solo de forma) | Escribir en el fork sin aprobación del técnico |
 | Generar Capa A, Capa B, evento, metadatos, processor, tests, fixture, HOCON, lookups | Modificar `*-common-application.conf` o los motores |
 | Verificar el spec y la salida (códigos, huecos, PII, credenciales) | Compilar contra el JAR (F-01: no hay acceso) |
 | Pre-validar localmente un archivo (simulación) | Reportes `Log_Sisben/RPT_*`, notificación al DNP |

@@ -74,7 +74,7 @@ Este skill es autocontenido: todo lo que necesita está en esta carpeta.
 | `references/decisiones-y-abiertos.md` | D*, C-ACC-*, F-01..F-17, supuestos S-ACC-*, abiertos |
 | `assets/templates/` | Plantillas `.tpl` + `manifest.yaml` (orden de generación) |
 | `assets/schema/source-spec.schema.yaml` | Schema de la spec (define todos los huecos) |
-| `assets/examples/sisben/` | Spec prellenada, resumen esperado y salida generada de ejemplo |
+| `assets/examples/sisben/` | Spec de ejemplo (solo forma, no es fuente), resumen esperado y salida generada de ejemplo |
 | `assets/checklist-entrega.md` | Checklist previo a la propuesta |
 | `scripts/` | `render_templates.py` (generador), `simular_decision.py`, `hocon_check.py`, `tests/` (pytest) |
 | `scripts/java/` | Generador Java anterior: solo referencia histórica, no se usa (`scripts/DEPRECADOS.md`) |
@@ -109,8 +109,11 @@ Esta skill **solo genera archivos**, con Python 3:
 
 ### Paso 1 · Recoger la source-spec
 
-- Si la fuente es SISBEN, parte de `assets/examples/sisben/source-spec.sisben.yaml`.
-- Si es otra fuente, copia esa spec y pide al ingeniero cada entrada IN-01..IN-08
+- En una ingesta real (también SISBEN), la source-spec es el insumo aprobado de `edf-analisis` (Paso 0.3); sus
+  valores salen de la HU y la spec de la ingesta (`.kiro/steering/00-framework-edf.md` §6).
+- `assets/examples/sisben/source-spec.sisben.yaml` es solo referencia de **forma**: nunca se copian sus
+  valores, tampoco para SISBEN. Si difiere del insumo, manda el insumo.
+- Para revisar un borrador de otra fuente, sigue la forma del ejemplo y pide al ingeniero cada entrada IN-01..IN-08
   (`references/inventario-plantillas.md`). Pregunta solo lo que falte; muestra el estado de cada
   valor (`cerrado`, `propuesta_de_frontera`, `inferido`, `abierto`).
 - IN-05 (diagnóstico) **no se inventa**: se toma de la especificación de Validation de la fuente

@@ -1,3 +1,6 @@
+# EJEMPLO DE FORMA, NO ES FUENTE. Este archivo enseña la estructura y el nivel de detalle del insumo.
+# Sus valores NO se copian a ninguna ingesta, tampoco a SISBEN: pueden diferir de la HU y la spec vigentes
+# (00-framework-edf.md §6). Los valores salen siempre de expedientes/<id>/fuentes/ (HU y spec).
 # ─────────────────────────────────────────────────────────────
 # Intermediario Lógica → Configuración — etapa State Calculation (SISBEN, piloto)
 # Instancia de Diseño/plantilla-cabecera-yaml-skill.yaml

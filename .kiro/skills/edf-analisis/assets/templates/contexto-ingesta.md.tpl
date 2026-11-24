@@ -60,6 +60,7 @@
 
 ## Checklist de cierre (`04` §4.3)
 
+- [ ] Insumos obligatorios presentes y leídos (la HU y la spec de Confluence; si falta alguna, el análisis no arranca).
 - [ ] Todos los campos mapeados con las nueve dimensiones (`mapeo-campos.md`).
 - [ ] Contrato del archivo completo (seis dimensiones).
 - [ ] Reglas de negocio extraídas y trazadas.

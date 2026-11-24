@@ -71,11 +71,17 @@ Esta skill **solo genera archivos**. Todo se hace con Python 3 (PyYAML y jsonsch
 
 ### Paso 1 · Obtener el source-spec
 
-- **Modo SISBEN pre-llenado:** partir de `assets/examples/sisben/source-spec.sisben.yaml`. Revisar con
-  el técnico cada `ASSUMPTION` (lista en `references/decisiones-y-abiertos.md`) y confirmar o ajustar.
-- **Fuente nueva:** copiar el ejemplo y llenarlo siguiendo `assets/schema/source-spec.schema.yaml`.
-  Preguntar al técnico, en un solo bloque, lo que falte: identidad (IN-01), contrato del archivo
-  (IN-02), tabla de campos (IN-03), reglas entre campos (IN-04), guard-rails (IN-05), duplicados
+- **Ingesta real (también SISBEN):** el source-spec es el insumo aprobado de `edf-analisis`
+  (`expedientes/<ingesta-id>/insumos/source-spec-validation.yaml`, Paso 0.3). Sus valores salen de la HU y la
+  spec de la ingesta (`.kiro/steering/00-framework-edf.md` §6). Revisar con el técnico cada `ASSUMPTION`
+  (lista en `references/decisiones-y-abiertos.md`) y confirmar o ajustar.
+- **Ejemplo SISBEN = solo referencia de FORMA.** `assets/examples/sisben/source-spec.sisben.yaml` muestra la
+  estructura y el nivel de detalle; **nunca** se copian sus valores, tampoco para SISBEN: difiere de la spec
+  vigente (prefijos de RT/EP, códigos, longitudes, catálogos). Si el insumo y el ejemplo difieren, manda el
+  insumo. El ejemplo solo es entrada en el trabajo sobre fixtures de la excepción del Paso 0.
+- **Fuente nueva sin insumo:** no se escribe aquí; se deriva a `edf-analisis` (Paso 0.3). Para revisar un
+  borrador, seguir `assets/schema/source-spec.schema.yaml` y preguntar al técnico, en un solo bloque, lo
+  que falte: identidad (IN-01), contrato del archivo (IN-02), tabla de campos (IN-03), reglas entre campos (IN-04), guard-rails (IN-05), duplicados
   (IN-06), filtro (IN-07), catálogos (IN-08), quality scores (IN-09), diagnóstico de archivo (IN-10).
   Cada campo necesita un `ejemplo_invalido` sintético y el fixture, casos sintéticos con su resultado
   esperado.

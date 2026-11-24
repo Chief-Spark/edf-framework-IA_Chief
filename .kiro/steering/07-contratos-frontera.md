@@ -84,11 +84,16 @@ Logs de ejecución de todas las etapas: `JobLogs/<fecha>/`. `[C]`
 
 Las reglas se expresan **por su efecto**, no por su código de severidad (el vocabulario de códigos está excluido del léxico, `02` §9).
 
-| Efecto | Descripción | Suma al puntaje de calidad |
-|---|---|---|
-| **Rechazo del registro** | El registro no avanza | Sí |
-| **Inconsistencia registrada** | Se anota y el registro avanza | No |
-| **Vaciado del campo con preservación** | El campo se vacía y se crea `<campo>_original` con el valor recibido | No |
+| Efecto | Descripción | Etapa que lo produce | Suma al puntaje de calidad |
+|---|---|---|---|
+| **Rechazo del registro** | El registro no avanza | Validation lo marca; Acceptance no lo acepta | Sí |
+| **Inconsistencia registrada** | Se anota y el registro avanza | Validation | No |
+| **Vaciado del campo con preservación** | El campo se vacía y se crea `<campo>_original` con el valor recibido | Curation | No |
+| **Nulo con advertencia** | El campo sale nulo y se anota una advertencia con el campo y el motivo, **sin** el valor recibido y sin `<campo>_original`. El registro avanza (ejemplo: `expedientes/sisben/fuentes/spec-sisben.md` §10.4) | Curation | No |
+| **Descarte silencioso** | Un filtro saca el registro sin error: no se emite y **no cuenta** en el total del puntaje (ejemplo: menores de edad, `expedientes/sisben/fuentes/spec-sisben.md` §5) | Validation (filtro de la spec); Acceptance lo excluye del total | No (sale del total) |
+| **Marca de duplicado no aceptado** | El registro se conserva con la marca de duplicado del motor y no se acepta; su puntaje por registro no cambia. Se acepta solo el más vigente (ejemplo: `expedientes/sisben/fuentes/spec-sisben.md` §6) | Validation lo marca; Acceptance no lo acepta | No |
+
+El efecto de cada regla lo declara la spec de la ingesta. Ningún agente elige el efecto: si la spec no lo dice, es pregunta abierta (`04-reglas-analisis.md` §5). `mapeo-campos.md` usa estos nombres exactos.
 
 ### 5.2 Validation `[C]`
 
@@ -102,7 +107,7 @@ Las reglas se expresan **por su efecto**, no por su código de severidad (el voc
 
 - Umbral: `qualityThreshold = 0.90`, **parametrizable, nunca hardcodeado**.
 - Fórmula del puntaje del archivo: `(total − menores − rechazados) / (total − menores)`.
-- **Rechazo silencioso de menores**: tipos documentales 7 y 10 se rechazan sin sumar al puntaje.
+- **Rechazo silencioso de menores** (efecto «descarte silencioso» de §5.1): tipos documentales 7 y 10 se rechazan sin sumar al puntaje.
 - Duplicados por llave documental: se conserva el registro más vigente.
 - **El rechazo es a nivel de archivo completo**, no de registro.
 - Notificaciones por SNS/SES: **sin PII**.

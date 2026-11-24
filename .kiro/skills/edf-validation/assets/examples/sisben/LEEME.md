@@ -5,7 +5,7 @@ muestra DIVIPOLA es mínima y **no está verificada contra DANE**. No reemplazar
 
 | Ruta | Contenido |
 |---|---|
-| `source-spec.sisben.yaml` | Spec pre-llenado de SISBEN (entrada del modo pre-llenado) |
+| `source-spec.sisben.yaml` | Ejemplo de FORMA de un source-spec (entrada solo de este fixture). **No es fuente:** sus valores no se copian a ninguna ingesta, tampoco a SISBEN; el insumo real sale de la HU y la spec vía `edf-analisis` |
 | `input/SISBEN_EXPERIAN_202406.20240630120000-0500.txt` | Fixture sintético: header + 15 casos (válidos, filtrados, errores, duplicados) |
 | `esperado/resumen-prevalidacion.json` | Salida esperada de `prevalidar_archivo.py --hoy 2024-06-30 --detalle` sobre el fixture |
 | `generated/` | Salida de referencia del generador `scripts/render_templates.py` (regenerable; no editar) |

@@ -111,6 +111,7 @@ Regla dura: **toda afirmación `[C]` lleva cita.** Una afirmación sin cita no p
 ## 8. Formato de tablas
 
 - Una fila = una afirmación. Nunca dos hechos en una celda.
+- **Excepción explícita: tablas en formato de contrato** (hoy solo la tabla de `mapeo-campos.md` de la etapa 0, plantilla `.kiro/skills/edf-analisis/assets/templates/mapeo-campos.md.tpl`). Una fila = un campo con sus nueve dimensiones (`07-contratos-frontera.md` §3), y una celda puede juntar los hechos de una misma dimensión (tipo en origen → destino; obligatoriedad y qué pasa si falta). Cada hecho de la celda que no sea `[C]` lleva su propio marcador junto a él (`[A:<ID>]`, `[PM]`), y la columna `Estado` resume la fila: `[C]` solo si todas las dimensiones son `[C]`; si no, enumera los marcadores abiertos. No se aplica a ninguna otra tabla.
 - Toda tabla factual lleva las columnas `Estado` (marcador de §3) y `Fuente`.
 - Tablas de decisión llevan además `Fecha` y `Quién decidió`.
 - Sin celdas vacías: usar `—` (no aplica) o `[PM]` (pendiente manual). La celda vacía es ambigua entre las dos.
