@@ -229,9 +229,35 @@ def cmd_riesgo(a) -> None:
     print(r["id"], r["estado"])
 
 
+def cmd_pregunta(a) -> None:
+    e = cargar()
+    q = next((x for x in e["preguntas_abiertas"] if x["id"] == a.id), None) if a.id else None
+    if q is None:
+        qid = a.id or f"PA-{len(e['preguntas_abiertas']) + 1:03d}"
+        q = {"id": qid, "pregunta": a.pregunta, "origen": a.origen, "etapa_afectada": a.etapa,
+             "bloqueante": a.bloqueante == "true", "estado": "abierta", "abierta_en": ahora(),
+             "resuelta_en": None, "respuesta": None, "ref_bitacora": None}
+        e["preguntas_abiertas"].append(q)
+        for eid in a.etapas_bloqueadas or []:
+            etapa(e, eid).setdefault("preguntas_abiertas", []).append(qid)
+        q["ref_bitacora"] = nuevo_evento(e, "pregunta_abierta", f"{qid}: {a.pregunta}", a.quien, a.origen or "—",
+                                         "aplicado", a.etapa or "—", traza="R3.1 · condición 4")
+    else:
+        q.update(estado=a.estado or "resuelta", respuesta=a.respuesta, resuelta_en=ahora())
+        q["ref_bitacora"] = nuevo_evento(e, "cierre_pregunta", f"{q['id']} {q['estado']}: {a.respuesta}", a.quien,
+                                         a.origen or "Respuesta del aprobador simulado con cita a las fuentes.",
+                                         "aplicado", q.get("etapa_afectada") or "—", traza="R3.1 · condición 4")
+    guardar(e)
+    print(q["id"], q["estado"], q["ref_bitacora"])
+
+
 def cmd_vista(a) -> None:
     e = cargar()
     t = ahora()
+    # El evento se registra ANTES de escribir la vista, para que sus contadores coincidan con el JSON.
+    nuevo_evento(e, "regeneracion_vista", "Regeneración de estado-ingesta.md desde el JSON.",
+                 "Orquestador (emulado) · `ORQ-E2E`", "La vista se regenera tras cada cambio de estado (R2.2).",
+                 "aplicado", e["etapa_actual"], traza="R2.2")
     i = e["ingesta"]
     L = [f"# Estado de la ingesta — {i['nombre']} (`{i['id']}`)", "",
          f"> Vista regenerada desde `estado-ingesta.json` el {t}. No se edita a mano: la fuente de verdad es el JSON.",
@@ -264,8 +290,6 @@ def cmd_vista(a) -> None:
           for r in e["riesgos"]]
     (EXP / "estado-ingesta.md").write_text("\n".join(L) + "\n", encoding="utf-8")
     e["generado_por"]["vista_md_regenerada_en"] = t
-    nuevo_evento(e, "regeneracion_vista", "Regeneración de estado-ingesta.md desde el JSON.", "Orquestador (emulado) · `ORQ-E2E`",
-                 "La vista se regenera tras cada cambio de estado (R2.2).", "aplicado", e["etapa_actual"], traza="R2.2")
     guardar(e)
     print("vista regenerada")
 
@@ -322,6 +346,12 @@ def main() -> int:
     p = sub.add_parser("riesgo")
     for k in ("id", "descripcion", "nivel", "etapa", "mitigacion", "estado"):
         p.add_argument(f"--{k}")
+    p = sub.add_parser("pregunta")
+    for k in ("id", "pregunta", "origen", "etapa", "estado", "respuesta"):
+        p.add_argument(f"--{k}")
+    p.add_argument("--bloqueante", choices=["true", "false"], default="true")
+    p.add_argument("--etapas-bloqueadas", nargs="*")
+    p.add_argument("--quien", default="Orquestador (emulado) · `ORQ-E2E`")
     sub.add_parser("vista")
     sub.add_parser("validar")
     p = sub.add_parser("interaccion")
