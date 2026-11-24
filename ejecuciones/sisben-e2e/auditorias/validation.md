@@ -92,3 +92,73 @@ Raíz: `/home/user/edf-framework-IA_Chief`. EXP = `ejecuciones/sisben-e2e/expedi
 4. Volver a correr v1, v2 (la nueva propuesta debe ser reproducible), v5 (debe seguir dando spec §15), v6, v7 (los casos de borde deben dar el resultado de la spec) y v9.
 5. Los P2 no bloquean la aprobación N2. Conviene resolverlos en el mismo ciclo los que cambian la salida generada (AUD-V-08, -10, -16, -17, -19), para no regenerar dos veces. Los documentales (AUD-V-11 a -15, -21) y los de la spec (AUD-V-07, -18, -20) van a la bitácora y a la próxima versión de la spec o del framework.
 6. Al registrar la aprobación N2: artefacto, alternativas consideradas (por ejemplo, para AUD-V-04: ampliar `filePattern` o ajustar la HU), qué se rompe si está mal (AUD-V-01: ningún archivo SISBEN se valida) y prueba asociada (`06:73`).
+
+## 6. Insumo v2
+
+| Campo | Valor |
+|---|---|
+| Alcance | Solo ART-010 v2: `expedientes/sisben/insumos/source-spec-validation.yaml` (242 líneas, sha256 `46dfbdef…c187b15`). La propuesta generada no se audita aquí: se regenerará |
+| Contra qué | Anexo A de `spec-sisben.md` 1.0.2 (bloque YAML desde la línea 388; no cambió desde la primera auditoría), autorización INT-012 (`registro-interacciones.md:93-99`), esquema 1.9.2 (`assets/schema/source-spec.schema.yaml`) y las marcas `ASSUMPTION` de `assets/templates/` |
+| **Dictamen del insumo** | **APROBADO, con observaciones P2 no bloqueantes** (AUD-V-22 a AUD-V-27). El diff contra el Anexo A contiene solo lo que autorizó INT-012 y cada cambio cita su regla. Los 9 `supuestos_resueltos` los fija de verdad la spec. Los casos nuevos siguen HU §5.1. Las verificaciones dan lo esperado. Conviene corregir la cabecera (AUD-V-22, -23) en la misma edición en que se registre la re-aprobación |
+
+### 6.1 Diff contra el Anexo A
+
+`diff <Anexo A> insumo` solo muestra:
+
+1. La cabecera de comentarios (líneas 1-40). Se declara v2 y PROPUESTO y lista los 7 cambios con su cita.
+2. `supuestos_resueltos`, nuevo en la raíz (`:44-56`).
+3. `periodo_no_futuro`, `recepcion_no_futura` y `recepcion_desde_inicio_periodo: true`, nuevos en `archivo.nombre` (`:83-87`): spec RA-02 a RA-04 y la autorización (2) de INT-012.
+4. RV-SIS-05 pasa de la lista literal a `tipo: solo_ceros` (`:123-124`), que es la única línea del Anexo A modificada: autorización (2).
+5. Los casos `DUP_CEROS_ANTIGUO` y `DUP_CEROS_RECIENTE`, agregados después de los 24 del Anexo A, que no cambian (`:231-233`).
+6. `fixture.nombres_invalidos`, nuevo (`:235-242`).
+
+`spec_version` sigue en `sisben-iv-1.0.0`, como pidió (5) de INT-012. No hay ningún cambio sin autorizar.
+
+### 6.2 `supuestos_resueltos` frente a las marcas de las plantillas
+
+| ID | Marca en la plantilla | Fuente citada | ¿La spec lo resuelve? |
+|---|---|---|---|
+| F-07 | «tipo de archivo según el prefijo del nombre» (`FileMetadata.scala.tpl:34`) | §2 | Sí: siempre `REGULAR`; `RT_`/`EP_` se rechazan (`spec-sisben.md:38`) |
+| F-09 | «fila con un número de columnas distinto → error de nivel 1» (`SourceSpec.scala.tpl:53`) | §2, §8 | Sí (`:44`, `:158`) |
+| F-11 | códigos de nombre y header (`SourceSpec.scala.tpl:50`) y expresiones `validate[]` (`validation-block.conf.tpl:25`) | §2, §7 RQ-05, §8 | Sí. La segunda marca describe un hecho del motor que el código confirma (`SparkValidator.scala:229`); la expresión la fija RQ-05 (`:135`) |
+| F-12 | «archivo, columnas y delimitador de cada tabla; confirmar con el dueño» (`lookups.conf.tpl:7`) | §9 y Anexo A | Sí en nombres, columnas, llave y delimitador (`:166-237`). Ver AUD-V-26 sobre la ubicación |
+| F-14 | «más reciente = mayor asOfDate; desempate por mayor eventId» (`ValidationProcessor.scala.tpl:122`; `capa-a/FieldValidators.scala.tpl:302`) | §6 | Sí (`:122`) |
+| VAL-PA04 | `outputEventType = fuente.event_type` (`ValidationProcessor.scala.tpl:56`) | §1 | Sí (`:22`) |
+| VAL-SP01 | código de error interno (`SourceSpec.scala.tpl:55`) | §8 | Sí (`:159`) |
+| VAL-SP03 | «campo de la clave vacío → clave única por contenido de la fila» (`capa-a/FieldValidators.scala.tpl:283`) | §6 | Sí, la regla («sin tipo o sin número no se agrupa», `:124`). Ver AUD-V-27 sobre el mecanismo |
+| VAL-SP07 | fecha de corte (`FileMetadata.scala.tpl:29`) | §2 | Sí (`:39`) |
+
+Quedan bien fuera de la lista F-13 (DIVIPOLA sintético), F-04, VAL-SP02, VAL-SP08, VAL-SP09, VAL-SP10 y VAL-PT*: la spec no los fija.
+
+### 6.3 Casos del fixture frente a HU §5.1
+
+- **`DUP_CEROS_*`:** siguen el escenario «Duplicados por tipo y número» (`hu-sisben.md:214-218`). Tipo `3`; el número sin ceros va con `01/01/2026` y se marca, el número con ceros va con `15/01/2026` y se conserva; `codigos: []`. Usan `…198` en vez del `…199` de la HU para no formar grupo con `DUP_ANTIGUO`/`DUP_RECIENTE`, y lo dicen en `:231`. Es correcto.
+- **`nombres_invalidos`:** cubren `RT_`/`EP_` (RA-01; R-02 `hu-sisben.md:51`), periodo futuro (RA-02), recepción antes del periodo (RA-04), recepción futura (RA-03) y el archivo sin marca de tiempo (`hu-sisben.md:120-123`). Este último lleva la desviación PA-003 (`:241`).
+- **No aplicado:** el header con los nombres fuente (AUD-V-09 b), porque el esquema no tiene clave para eso. Se verificará en la propuesta regenerada (la prueba `HeaderFuente`).
+
+### 6.4 Verificaciones corridas (insumo v2)
+
+| # | Comando | Resultado |
+|:-:|---|---|
+| w1 | `render_templates.py --spec EXP/insumos/source-spec-validation.yaml --solo-verificar` | `source-spec OK (22 campos, 29 códigos).` rc 0. Incluye la comprobación de que la réplica Python rechaza `nombres_invalidos` |
+| w2 | `prevalidar_archivo.py --spec … --archivo EXP/fuentes/muestra/… --hoy 2026-11-24 --detalle` | 20 validados, 1 filtrado, 1 sev. 1 (línea 21, `SISBEN_ERR_016`), 0 duplicados, RQS 0.95, `ACEPTARIA` 19. **Igual a spec §15** |
+| w3 | Nombres de v7 sobre copias en `<scratchpad>/aud-val/casos/` (`--hoy 2026-11-24`) | `202701.2027…`, `202601.20251205…`, `202611.20261230…`, `202613…`, sin marca, `RT_…` y offset `-2500` dan todos `MARCADOR errorInFileName`, `eventType -1002`, `SISBEN_ERR_024`. Así se cierran en la réplica AUD-V-02 y AUD-V-16 |
+| w4 | Controles de borde (`<scratchpad>/aud-val/casos2/`, `--hoy 2026-11-24`) | `202611.20261124093000` y `202611.20261101000000`: VALIDADO. `202611.20261031235959` (un segundo antes del periodo) y `202612.…`: MARCADOR. No hay falsos rechazos |
+| w5 | RV-SIS-05 (`casos/`, mismo archivo de v7) | 16 ceros: ERR_029. `00 00`: ERR_029. `" 0000"`: ERR_029. Duplicado con ceros (líneas 5-6): se marca el más antiguo. AUD-V-03 queda cerrado en la réplica |
+| w6 | `reglas_nombre_violadas` de `render_templates.py` sobre `fixture.nombres_invalidos` con `fecha_referencia` 2026-02-05 (`python3 -I`, sin escribir en el repo) | `RT_`, `EP_` y sin marca: no cumplen la regex. `202603…`: `periodo_no_futuro` y `recepcion_desde_inicio_periodo`. `…20251231…`: `recepcion_desde_inicio_periodo`. `…20260206…`: `recepcion_no_futura`. El nombre del fixture: ninguna |
+
+### 6.5 Hallazgos nuevos
+
+| ID | Artefacto | Clasificación | Sev. | Evidencia | Corrección sugerida |
+|---|---|---|:-:|---|---|
+| AUD-V-22 | ART-010 (cabecera) | insumo | P2 | `:24` («Todos los valores son [C]») y `:37` («Sin `[A:*]` ni `[PM]` en este insumo»), cuando `:83-84` declara un supuesto del aprobador: «mes actual» = mes en America/Bogota (INT-012 (2); RA-02, `spec-sisben.md:52`, no dice la zona). El esquema no tiene `supuestos` en `archivo.nombre`, así que este supuesto no dejará una marca con ID en el código ni en `manifest["supuestos"]` (ADR-G1) | Marcarlo `[A:INT-012]` en la cabecera y quitar «Sin `[A:*]`». En el framework, admitir `supuestos` en `archivo.nombre` para que deje huella |
+| AUD-V-23 | ART-010 (cabecera) | insumo | P2 | `:37-38` («Ninguna pregunta abierta lo afecta: PA-001 … PA-002 …») queda desactualizado: el propio insumo cita PA-003 (`:241`), y PA-003, PA-004 y PA-005 están abiertas en `validation` (`estado-ingesta.json`, `preguntas_abiertas`) | Citar PA-003 (no bloqueante, afecta el caso sin marca de tiempo) y decir que PA-004 y PA-005 no cambian el insumo |
+| AUD-V-24 | Registro de ART-010 | framework (registro del orquestador) | P2 | `estado-ingesta.json` (ART-010) conserva `hash` `sha256:7a8d7a6e…` (v1) con `estado_artefacto: prevalidado`, pero el archivo v2 da `46dfbdef…` | Actualizar el hash al registrar la v2 y re-aprobarla |
+| AUD-V-25 | ART-010 (`nombres_invalidos`) | spec | P2 (informativo) | El caso RA-02 (`202603.20260205…`) también viola RA-04 (w6). No hay forma de aislar RA-02: un periodo futuro obliga a violar RA-03 o RA-04, porque una recepción ≥ el primer día de un mes futuro es futura. RA-02 solo agrega, aparte, que el mes sea válido | Nada en el insumo. Si se quiere probar RA-02 sola, hacerlo con una prueba unitaria de la Capa A con las otras dos reglas apagadas |
+| AUD-V-26 | ART-010 (`supuestos_resueltos` F-12) | spec | P2 (informativo) | La spec fija nombres, columnas, llave y delimitador (§9), pero no la ubicación del CSV dentro de `lookupHome` (raíz o subcarpeta; §9 solo dice «se cargan desde Collibra a S3 con estos nombres», `spec-sisben.md:166`). Con 1.9.2 el HOCON emitirá `${oxygen.application.paths.lookupHome}"/<archivo>"` con `archivo` en la raíz | Aceptable dar F-12 por resuelto. Al desplegar, confirmar que Collibra deja los seis CSV en la raíz de `lookupHome` |
+| AUD-V-27 | Propuesta futura (VAL-SP03) | framework | P2 (para la re-auditoría) | La regla «un registro sin tipo o sin número no se agrupa» (`spec-sisben.md:124`) queda resuelta, pero el mecanismo genera la clave con `valores.mkString("\u0001").hashCode` (`FieldValidators.scala:266` en la propuesta v1). Dos líneas idénticas sin número reciben la misma clave y se agrupan, y un choque de `hashCode` puede unir registros distintos. Impacto bajo: los dos tienen ERR_015 | Revisarlo en la propuesta regenerada (por ejemplo, usar `recordHash`/`eventId` o un contador). No cambia el insumo |
+
+### 6.6 Qué sigue
+
+- Re-aprobación N2 de ART-010 v2. Se recomienda corregir antes AUD-V-22 y AUD-V-23 (solo comentarios) y actualizar el hash (AUD-V-24).
+- Regenerar la propuesta con el framework 1.9.2 y volver a auditarla: AUD-V-01, -05, -06 y la prueba `HeaderFuente` (AUD-V-09 b) solo se pueden verificar en la salida generada.

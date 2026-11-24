@@ -110,6 +110,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:19:27-05:00
 - **Pedido:** Auditar el insumo ART-010 v2 contra la spec, el Anexo A y la autorización INT-012.
+- **Respuesta:** Insumo v2 APROBADO: diff contra el Anexo A = solo lo autorizado en INT-012, con citas; 9 supuestos_resueltos verificados contra las plantillas; fixture sigue HU §5.1; --solo-verificar OK; muestra = spec §15; los 7 nombres v7 dan ERR_024; RV-SIS-05 con 16 ceros, «00 00» y « 0000» da ERR_029. P2: AUD-V-22 (cabecera omite el supuesto de America/Bogota; el esquema no admite supuestos en archivo.nombre), -23 (cabecera sobre preguntas abiertas), -24 (hash v1 en el expediente), -25/-26 informativos, -27 (para la propuesta: VAL-SP03 agrupa dos líneas sin número).
+- **Decisión:** AUD-V-22/23 al analista (solo comentarios); AUD-V-24 se resuelve al re-aprobar (hash nuevo); AUD-V-22 (esquema) se registra como HF-13 P2; AUD-V-27 pasa a la re-auditoría de la propuesta.
+- **Bitácora:** —
+
+## INT-015 · Analista (edf-analisis) · insumo v2 comentarios · `validation`
+
+- **Cuándo:** 2026-11-24T18:22:41-05:00
+- **Pedido:** AUD-V-22/23: corregir solo comentarios de la cabecera del insumo v2.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

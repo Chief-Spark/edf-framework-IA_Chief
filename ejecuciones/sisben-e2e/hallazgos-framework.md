@@ -17,6 +17,7 @@ acordada: se registran, se corrigen con su prueba de regresión (commit aparte e
 | HF-10 (AUD-V-06) | validation | P1. Lookups sin `lookupHome` | `lookups.conf.tpl`; confs del motor; runbook de la skill | Ruta con `${oxygen.application.paths.lookupHome}` | 872c07c |
 | HF-11 (AUD-V-08..13, -15, -16, -19, -21) | validation | P2. Supuestos que la spec ya resuelve; nombre de skill `edf-validation-stage`; escritura en `references/` contra la regla de solo expediente; checklist y references desactualizados; `07` §5; offset no validado en el prevalidador; ubicación del catálogo de códigos; nombre del conf destino | `auditorias/validation.md` §2 | Ver informe de la corrección | 872c07c |
 | HF-12 (Orquestador) | validation | P1. No hay procedimiento para revisar un insumo ya aprobado de una etapa en curso; el validador (7b) rechaza el expediente y la guía no dice qué hacer | Regla 7b con ART-010 en `propuesto` (BIT-0041); `references/03` sin caso | `references/03` §3c: insumo a `propuesto`, transición suspendida, etapa siguiente a `no_iniciada`, re-aprobación del insumo y de la transición (BIT-0042, BIT-0043) | 7a6ded2 |
+| HF-13 (AUD-V-22) | validation | P2. El esquema del source-spec no admite `supuestos` en `archivo.nombre`: un supuesto sobre las reglas del nombre no deja marca con ID en el código | `source-spec.schema.yaml` (bloque `archivo.nombre`) | Registrado; se corrige al cierre de la corrida si no bloquea | pendiente |
 
 Hallazgos de la spec (no del framework; se dejan para la próxima versión de la spec, no se corrigen en la corrida):
 
