@@ -65,6 +65,17 @@ El Desarrollador puede cerrar la etapa N y avanzar a N+1 sin haber ejecutado aú
 
 El riesgo "evidencia diferida" se cierra cuando el Desarrollador reporta la evidencia (prompt `05`). La bitácora registra los pasos 1 y 3 como `aprobacion`, con la palabra "diferida" en **Por qué**. No aplica a `state_calculation` (N4): su aprobación sigue siendo del `PO` o del `Aprobador designado`.
 
+### 3c. Revisión de un insumo ya aprobado
+
+Si el insumo de una etapa que ya empezó (N+1 `en_progreso`) tiene que cambiar —por ejemplo, porque la auditoría de su generación encontró que el insumo no expresa una regla de la spec—, se hace en este orden:
+
+1. **El insumo vuelve a `propuesto`** (prompt `08`) con versión nueva y evento `correccion` que cite la aprobación anterior. El hash aprobado queda en esa aprobación; no se borra.
+2. **Se suspende la transición N → N+1**: `transicion_habilitada = false` con evento `bloqueo` (la condición 3 deja de cumplirse). La etapa N+1 vuelve a `no_iniciada` (evento `bloqueo`; regla 7b: una etapa empezada exige la transición de su dependencia habilitada) y **no se aprueba ningún artefacto de N+1** mientras dure la suspensión. Sus artefactos generados con el insumo anterior quedan como están (no `aprobado`) y se regeneran con el nuevo.
+3. **Re-auditoría y re-aprobación del insumo** (prompt `03`, `tipo: artefacto`, mismo riesgo que la primera vez) con el hash nuevo.
+4. **Nueva aprobación de la transición** (prompts `02` y `03`, `tipo: transicion`) con el checklist reevaluado; `ref_aprobacion` de N pasa a esa aprobación y N+1 vuelve a `en_progreso`. La aprobación de la etapa N no se repite: no cambió.
+
+El validador lo exige con la regla 7b (ninguna transición habilitada con un insumo de N+1 que no esté `aprobado`).
+
 Además aplican las condiciones de bloqueo de `09` §5.1 (artefacto que depende de `[A:<ID>]`, checklist de seguridad de `08` §8 incompleto, supuesto irreversible sin confirmar, hallazgo de seguridad sin escalar).
 
 Si **alguna** falla: `transicion_habilitada = false`, la etapa N+1 permanece `no_iniciada`, y el Orquestador responde con el checklist marcando exactamente qué falta. **No hay excepción ni override.**

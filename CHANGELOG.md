@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.3 — 2026-11-24
+
+### Corregido
+- **HF-12. Revisión de un insumo ya aprobado** (corrida E2E SISBEN, Validation). El framework no decía qué hacer cuando el insumo de una etapa que ya empezó tiene que cambiar: el validador (regla 7b) rechazaba el expediente y no había procedimiento. `edf-orquestador/references/03-gobierno-riesgo-aprobacion.md` §3c lo define: el insumo vuelve a `propuesto`, se suspende la transición y la etapa siguiente vuelve a `no_iniciada`, se re-aprueba el insumo y luego la transición. Prueba: `tests/test_regresion_e2e_gobierno.py`.
+
 ## 1.9.2 — 2026-11-24
 
 Defectos del framework que encontró la auditoría independiente de la etapa Validation de la corrida E2E SISBEN (`ejecuciones/sisben-e2e/auditorias/validation.md`, dictamen RECHAZADO). Las claves nuevas del source-spec son opcionales: el insumo actual de la corrida sigue dando `source-spec OK (22 campos, 29 códigos)` y su prevalidación sigue igual a la spec §15. Para que la propuesta cambie hay que regenerarla.

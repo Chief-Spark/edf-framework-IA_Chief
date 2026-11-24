@@ -1,0 +1,45 @@
+"""Regresión de la corrida E2E SISBEN: revisión de un insumo ya aprobado (HF-12)."""
+import importlib.util
+import json
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parent.parent
+REF03 = RAIZ / ".kiro/skills/edf-orquestador/references/03-gobierno-riesgo-aprobacion.md"
+
+
+def _validador():
+    spec = importlib.util.spec_from_file_location("validar_expediente", RAIZ / "tools/validar-expediente.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_ref03_documenta_revision_de_insumo_aprobado():
+    txt = REF03.read_text(encoding="utf-8")
+    assert "### 3c. Revisión de un insumo ya aprobado" in txt
+    seccion = txt.split("### 3c.")[1].split("Además aplican")[0]
+    for frase in ("vuelve a `propuesto`", "Se suspende la transición", "`transicion_habilitada = false`", "vuelve a `no_iniciada`",
+                  "Nueva aprobación de la transición", "regla 7b"):
+        assert frase in seccion, frase
+
+
+def test_regla_7b_bloquea_transicion_con_insumo_en_revision():
+    mod = _validador()
+    estado = {
+        "etapas": [
+            {"id": "analisis", "estado": "aprobada", "transicion_habilitada": True, "depende_de": [],
+             "artefactos": [], "ref_aprobacion": "APR-002"},
+            {"id": "validation", "estado": "en_progreso", "transicion_habilitada": False, "depende_de": ["analisis"],
+             "artefactos": [{"id": "ART-010", "ruta": "insumos/source-spec-validation.yaml", "obligatorio": True,
+                             "estado_artefacto": "propuesto"}]},
+        ],
+        "aprobaciones": [{"id": "APR-002", "tipo": "transicion", "desde_etapa": "analisis", "hacia_etapa": "validation",
+                          "decision": "aprobada", "riesgo": "medio", "actor": {"rol": "Desarrollador"}}],
+    }
+    fallos = mod.reglas_gobierno(estado)
+    assert any(f.startswith("7b.") and "ART-010" in f for f in fallos), json.dumps(fallos, ensure_ascii=False)
+    # Suspensión correcta (3c paso 2): transición apagada y N+1 de vuelta en no_iniciada.
+    estado["etapas"][0]["transicion_habilitada"] = False
+    assert any("sin transicion" in f for f in mod.reglas_gobierno(estado))  # en_progreso no se admite
+    estado["etapas"][1]["estado"] = "no_iniciada"
+    assert not any(f.startswith("7b.") for f in mod.reglas_gobierno(estado))
