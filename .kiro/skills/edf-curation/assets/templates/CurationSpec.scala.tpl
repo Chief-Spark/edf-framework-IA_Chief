@@ -28,6 +28,9 @@ object {{Fuente}}CurationSpec {
   /** Nombres publicados, en orden: deben coincidir con el domain dictionary. */
   val ClavesPublicadas: Seq[String] = Seq({{claves_publicadas_scala}})
 
+  /** Claves de identidad que se omiten del evento si son nulas: ausentes, nunca null (AUD-C4, C-CUR-05). */
+  val OmitirSiNulas: Set[String] = Set({{omitir_si_nulas_scala}})
+
   // --- Homologación del tipo de documento (RF-CUR-07): Validation la consulta, Curation la persiste.
   val TablaHomologacion: String = "{{tabla_homologacion}}"
   val ColumnaClaveHomologacion: String = "{{columna_clave_homologacion}}"   // ASSUMPTION: F-12

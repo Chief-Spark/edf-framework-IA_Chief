@@ -66,7 +66,8 @@ def test_todo_hueco_declarado_se_rellena_desde_el_spec_sisben(spec, schema):
     valores = contexto(spec)
     for nombre in schema["x-placeholders"]:
         assert nombre in valores, nombre
-        assert str(valores[nombre]()).strip(), f"hueco vacío: {nombre}"
+        # omitir_si_nulas_scala: SISBEN no tiene claves standardizedId* (AUD-C4), Set() vacío es legítimo
+        assert str(valores[nombre]()).strip() or nombre in rt.PUEDEN_QUEDAR_VACIOS, f"hueco vacío: {nombre}"
 
 
 def test_spec_valida_contra_esquema(spec, schema):
@@ -140,6 +141,117 @@ def test_domain_dictionary_coincide_con_claves_del_evento(rendered):
     scala = leer(out / SCALA_FUENTE / "config/SISBENCurationSpec.scala")
     for n in nombres:
         assert f'"{n}"' in scala, n
+
+
+def test_domain_dictionary_formato_del_motor(rendered, spec):
+    """AUD-C1 (C-CUR-06): cada campo lleva solo name y description. Ni type/nullable (el motor los ignora), ni
+    fieldType (solo versión 1), ni dataType (enum fuera del repo: un valor inválido rompe todo el diccionario),
+    ni handler (lo fija Synthesis)."""
+    out, _ = rendered
+    dd = json.loads(leer(out / "fragmentos/colombia-domain-dictionary-inner.sisben.json"))
+    for f in dd["fields"]:
+        assert set(f) == {"name", "description"}, f
+    tipos = {m["destino"]: m["tipo_salida"] for m in spec["campos_curados"]}
+    for f in dd["fields"][:-1]:
+        assert f["description"] == rt.DD_DESCRIPCION.format(tipo=tipos[f["name"]])
+    assert dd["fields"][-1] == {"name": "advertenciasCuracion", "description": rt.DD_DESCRIPCION_ADVERTENCIAS}
+    assert "ASSUMPTION" not in dd["_generado_por"] and "C-CUR-06" in dd["_generado_por"]
+
+
+SILENCIO = [re.compile(r"\bTry\s*[({].*\.getOrElse\s*\("), re.compile(r"\bTry\s*[({].*\.toOption\b"),
+            re.compile(r"case\s+NonFatal\s*\(\s*_?\w*\s*\)\s*=>")]
+
+
+def _silencios_sin_marca(raiz: Path) -> list[str]:
+    """Convención de auditoría: todo error tragado lleva SILENCIO-INTENCIONAL <ID> en su línea o en la anterior."""
+    malos = []
+    for f in sorted(raiz.rglob("*.scala")):
+        lineas = leer(f).split("\n")
+        for i, linea in enumerate(lineas):
+            if any(r.search(linea) for r in SILENCIO):
+                previa = lineas[i - 1].strip() if i else ""
+                if "SILENCIO-INTENCIONAL" not in linea and not (previa.startswith("//") and "SILENCIO-INTENCIONAL" in previa):
+                    malos.append(f"{f.name}:{i + 1}")
+    return malos
+
+
+def test_silencios_del_codigo_generado_estan_marcados(rendered, tmp_path, spec):
+    out, _ = rendered
+    assert _silencios_sin_marca(out) == []
+    ext = {"campos": ["tipoDocumento", "numeroDocumento"], "separador": "_"}
+    rt.render(spec_con_cambios(tmp_path, spec, lambda s: s.update(extension_subscriber_relation=ext)),
+              tmp_path / "out", TEMPLATES, SCHEMA)
+    assert _silencios_sin_marca(tmp_path / "out") == []
+
+
+def test_red_de_seguridad_registra_sin_datos(rendered):
+    """AUD-C2: el catch por registro no traga en silencio: log con eventId y clase de la excepción, sin valores."""
+    out, _ = rendered
+    p = leer(out / SCALA_FUENTE / "processor/SISBENCurationProcessor.scala")
+    assert "case NonFatal(_) =>" not in p.split("def relacion")[0]
+    assert ('logger.error("Error interno al curar el evento {} ({}); se publica vacío con advertencia", eventId, '
+            "e.getClass.getName)") in p
+    assert "String.valueOf(event.eventId)))" in p
+    t = leer(out / "src/main/scala/com/experian/edf/oxygen/curation/source/common/Transformaciones.scala")
+    assert "case Some(m) if m.groupCount < 2 => (None, None)" in t
+    assert "val corte = Try { val aaaamm = m.group(2);" in t
+
+
+def test_homologacion_fusiona_lookup_y_tabla_embebida(rendered):
+    """AUD-C6: el lookup gana y la tabla embebida completa; un lookup parcial ya no vacía los demás códigos."""
+    out, _ = rendered
+    p = leer(out / SCALA_FUENTE / "processor/SISBENCurationProcessor.scala")
+    assert "SISBENCurationSpec.Homologacion ++ desdeLookup" in p
+    assert "} else desdeLookup" not in p
+    assert "// SILENCIO-INTENCIONAL C-CUR-09:" in p
+
+
+def test_nivel_nulo_y_errores_nulos_en_scala(rendered):
+    """AUD-C7 y AUD-C5: el núcleo Scala advierte el nivel nulo y tolera errores nulo, como la referencia."""
+    out, _ = rendered
+    p = leer(out / SCALA_FUENTE / "processor/SISBENCurationProcessor.scala")
+    assert 'Option(nivel).getOrElse("")' not in p
+    assert 'porCampo.collect { case (c, None) => s"$c:${Motivos.NivelDesconocido}" }' in p
+    assert "Option(errores).getOrElse(Seq.empty).flatMap(Option(_))" in p
+    assert "advIniciales ++ advNivel" in p
+
+
+def test_claves_de_identidad_nulas_se_omiten_en_scala_y_esperado(tmp_path, spec):
+    """AUD-C4: toJavaMap no escribe standardizedId* nulos; la salida esperada tampoco los trae."""
+    def cambio(s):
+        s["campos_curados"] += [
+            {"destino": "standardizedIdType", "origen": "", "tipo_salida": "entero", "estado": "cerrado",
+             "transformacion": {"tipo": "copia_de", "campo": "tipoDocumento"}},
+            {"destino": "standardizedIdNumber", "origen": "", "tipo_salida": "texto", "estado": "cerrado",
+             "transformacion": {"tipo": "copia_de", "campo": "numeroDocumento"}}]
+    rt.render(spec_con_cambios(tmp_path, spec, cambio), tmp_path / "out", TEMPLATES, SCHEMA)
+    out = tmp_path / "out"
+    ce = leer(out / SCALA_FUENTE / "SISBENCuratedEvent.scala")
+    assert ('if (!omitidos("standardizedIdType")) standardizedIdType.foreach(v => m.put("standardizedIdType", '
+            "v.asInstanceOf[AnyRef]))") in ce
+    assert 'if (!omitidos("tipoDocumento")) m.put("tipoDocumento", tipoDocumento.map(_.asInstanceOf[AnyRef]).orNull)' in ce
+    cs = leer(out / SCALA_FUENTE / "config/SISBENCurationSpec.scala")
+    assert 'val OmitirSiNulas: Set[String] = Set("standardizedIdType", "standardizedIdNumber")' in cs
+    vistos_nulos = 0
+    for c in json.loads(leer(out / "expected/curated-events.json")):
+        r = c["curatedRecordJson"]
+        for k in ("standardizedIdType", "standardizedIdNumber"):
+            assert r.get(k, "ausente") is not None, (c["eventId"], k)
+        vistos_nulos += "standardizedIdType" not in r
+    assert vistos_nulos > 0, "el fixture debe tener una identidad nula (salvoconducto pendiente)"
+
+
+def test_lector_y_acciones_scala_derivan_de_la_referencia(rendered):
+    """AUD-C5: los casos del lector y de las acciones de Capa A salen de la referencia Python."""
+    out, _ = rendered
+    t = leer(out / "src/test/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCurationProcessorSpec.scala")
+    assert 'assert(r.get("A") == Some("true"))' in t
+    assert 'assert(r.get("E") == Some("2"))' in t
+    assert 'assert(r.get("B") == Some("[1,\\"x\\",1.50,null]"))' in t
+    ts = leer(out / "src/test/scala/com/experian/edf/oxygen/curation/source/common/TransformacionesSpec.scala")
+    assert 'Transformaciones.convertir(Some("2147483648"), TipoSalida.Largo) == Resultado.ok(2147483648L)' in ts
+    assert 'Transformaciones.nombre(Some("Pruebañez"), conservarEnie = true) == Resultado.ok("PRUEBAÑEZ")' in ts
+    assert rt.literal_scala(1.5) == "1.5" and rt.literal_scala(True) == "true" and rt.literal_scala(3) == "3"
 
 
 def test_lookup_202_coincide_con_la_tabla_embebida(rendered, spec):
@@ -361,9 +473,10 @@ def test_concatenacion_genera_scala_y_salida_esperada(tmp_path, spec, schema):
         r = c["curatedRecordJson"]
         partes = [r.get(k) for k in ("primerNombre", "segundoNombre", "primerApellido", "segundoApellido")]
         esperado = " ".join(p for p in partes if p) or None
-        assert r["standardizedIdName"] == esperado, c["eventId"]
+        assert r.get("standardizedIdName") == esperado, c["eventId"]
+        assert esperado is not None or "standardizedIdName" not in r, "AUD-C4: identidad nula = clave ausente"
     dd = json.loads(leer(out / "fragmentos/colombia-domain-dictionary-inner.sisben.json"))
-    assert {"name": "standardizedIdName", "type": "string", "nullable": True} in dd["fields"]
+    assert {"name": "standardizedIdName", "description": rt.DD_DESCRIPCION.format(tipo="texto")} in dd["fields"]
     spec_test = leer(out / "src/test/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCurationProcessorSpec.scala")
     assert "standardizedIdName" in spec_test
 
@@ -419,16 +532,25 @@ def test_extension_subscriber_relation_genera_override_y_pruebas(tmp_path, spec)
     curados = json.loads(leer(out / "expected/curated-events.json"))
     base = json.loads(leer(EXPECTED / "curated-events.json"))
     assert len(curados) == len(base)
-    unidos = 0
+    unidos = faltantes = 0
     for c, b in zip(curados, base):
         rec = c["curatedRecordJson"]
         tipo, num = rec.get("tipoDocumento"), rec.get("numeroDocumento")
         ambos = tipo is not None and num is not None and num.strip() != ""
         esperado = f"{tipo}_{num}" if ambos else b["subscriberRelation"]
         assert c["subscriberRelation"] == esperado, c["eventId"]
+        assert esperado, "AUD-C3: nunca un subscriberRelation vacío"
         unidos += ambos
-        assert rec == b["curatedRecordJson"], "la extensión no cambia el registro curado"
+        # AUD-C3: la extensión solo agrega la advertencia cuando falta un componente; el resto del registro es igual.
+        extra = [] if ambos else ["subscriberRelation:COMPONENTE_FALTANTE"]
+        base_adv = b["curatedRecordJson"]["advertenciasCuracion"]
+        assert rec == {**b["curatedRecordJson"], "advertenciasCuracion": base_adv + extra}, c["eventId"]
+        faltantes += not ambos
     assert unidos > 0, "el fixture debe ejercitar la unión"
+    assert faltantes > 0, "el fixture debe ejercitar un componente faltante"
+    assert "assert(SISBENCurationProcessor.curar(" in t and '.contains("subscriberRelation:COMPONENTE_FALTANTE") == true' in t
+    assert "private def advertenciaRelacion(valores: Map[String, Option[Any]]): Option[String] =" in p
+    assert "advertencias ++ advertenciaRelacion(valores)" in p
 
 
 def test_sin_extension_no_hay_override_y_el_hueco_no_queda_vacio(rendered):
@@ -472,6 +594,12 @@ INCOHERENTES = [
     (lambda s: s["codigos_error"].update(SISBEN_X="NO_EXISTE"), "no está en campos_entrada"),
     (_concat(["primerNombre", "posterior"]), "campos anteriores"),
     (_concat([]), "inválido"),
+    # AUD-C2: regex_derivacion debe compilar y tener los 2 grupos que lee infoArchivo.
+    (lambda s: s["archivo"].update(regex_derivacion="(RT_|EP_"), "no compila"),
+    (lambda s: s["archivo"].update(regex_derivacion=r"(RT_|EP_)?SISBEN_EXPERIAN_\d{6}"), "al menos 2 grupos"),
+    # AUD-C4: omitir_si_nulas solo admite campos curados publicados.
+    (lambda s: s["parametros"].update(omitir_si_nulas=["noExiste"]), "omitir_si_nulas"),
+    (lambda s: s["parametros"].update(omitir_si_nulas="tipoDocumento"), "inválido"),
 ]
 
 

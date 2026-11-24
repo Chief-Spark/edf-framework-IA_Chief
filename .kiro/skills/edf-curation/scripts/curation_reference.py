@@ -21,6 +21,7 @@ import json
 import re
 import unicodedata
 from datetime import datetime, timedelta, timezone, tzinfo
+from decimal import Decimal
 from typing import Any
 
 # Motivos de advertencia (sin PII: solo nombre de campo + motivo).
@@ -30,6 +31,12 @@ HOMOLOGACION_PENDIENTE = "HOMOLOGACION_PENDIENTE"
 NO_NORMALIZABLE = "NO_NORMALIZABLE"
 REGISTRO_ILEGIBLE = "REGISTRO_ILEGIBLE"
 ARCHIVO_NO_RECONOCIDO = "ARCHIVO_NO_RECONOCIDO"
+# AUD-C7: código de error de Validation con nivel nulo; el campo se conserva.
+NIVEL_DESCONOCIDO = "NIVEL_DESCONOCIDO"
+# AUD-C3 (D14): falta un componente de extension_subscriber_relation; subscriberRelation conserva el aceptado.
+COMPONENTE_FALTANTE = "COMPONENTE_FALTANTE"
+# AUD-C4: prefijo de las claves de identidad que se omiten si son nulas (defecto de parametros.omitir_si_nulas).
+PREFIJO_IDENTIDAD = "standardizedId"
 
 INT_MIN, INT_MAX = -(2**31), 2**31 - 1
 LONG_MIN, LONG_MAX = -(2**63), 2**63 - 1
@@ -174,23 +181,44 @@ def concatenar(valores: list[Any], separador: str):
     return (separador.join(partes), None) if partes else (None, None)
 
 
+def _partes_relacion(curado: dict[str, Any], ext: dict[str, Any]) -> list[str] | None:
+    """Componentes de subscriberRelation como texto (toString de Scala); None si falta alguno (nulo, vacío u omitido)."""
+    partes = []
+    for campo in ext.get("campos") or []:
+        valor = curado.get(campo)
+        s = None if valor is None else _limpio(texto_scala(valor))
+        if s is None:
+            return None
+        partes.append(s)
+    return partes
+
+
 def subscriber_relation(curado: dict[str, Any], spec: dict[str, Any], copiado: str | None) -> str | None:
     """F-FW-11 (D14): subscriberRelation según extension_subscriber_relation.
 
     Los campos curados indicados, unidos por el separador. Sin el bloque en la spec, o si falta algún
     componente (nulo o vacío), devuelve ``copiado``, el subscriberRelation del evento aceptado. Nunca lanza.
+    No devuelve "" a propósito (AUD-C3): el doesMatch base de Pinning une dos registros con el mismo
+    subscriber y subscriberRelation, y un valor vacío uniría personas distintas. ``curar`` deja la
+    advertencia ``subscriberRelation:COMPONENTE_FALTANTE`` en el registro.
     """
     ext = spec.get("extension_subscriber_relation")
     if ext is None:
         return copiado
-    partes = []
-    for campo in ext.get("campos") or []:
-        valor = curado.get(campo)
-        s = None if valor is None else _limpio(str(valor))
-        if s is None:
-            return copiado
-        partes.append(s)
-    return str(ext["separador"]).join(partes)
+    partes = _partes_relacion(curado, ext)
+    return copiado if partes is None else str(ext["separador"]).join(partes)
+
+
+def omitir_si_nulas(spec: dict[str, Any]) -> list[str]:
+    """AUD-C4 (C-CUR-05): claves curadas que se omiten del registro cuando su valor es nulo.
+
+    ``parametros.omitir_si_nulas`` si la spec lo declara; si no, todo destino que empieza por ``standardizedId``
+    (claves de identidad que Pinning lee: una clave ausente le llega como "", una nula rompe ``.get.toString``).
+    """
+    declarados = spec["parametros"].get("omitir_si_nulas")
+    if declarados is not None:
+        return [str(d) for d in declarados]
+    return [m["destino"] for m in spec["campos_curados"] if str(m["destino"]).startswith(PREFIJO_IDENTIDAD)]
 
 
 def convertir(valor: Any, tipo: str):
@@ -226,12 +254,15 @@ def info_archivo(file_name: str | None, spec: dict[str, Any]):
     base = re.split(r"[\\/]", file_name or "")[-1]
     archivo = spec["archivo"]
     m = re.search(archivo["regex_derivacion"], base)
-    if not m:
-        return None, None
+    if not m or m.re.groups < 2:
+        return None, None  # AUD-C2: regex sin los 2 grupos (validar_coherencia lo rechaza antes; defensivo)
     prefijo = m.group(1) or ""
     tipo = archivo["tipo_por_prefijo"].get(prefijo)
     aaaamm = m.group(2)
-    anio, mes = int(aaaamm[:4]), int(aaaamm[4:])
+    try:  # AUD-C2: como el Try de Scala, un grupo 2 ausente o no numérico deja la fecha de corte nula
+        anio, mes = int(aaaamm[:4]), int(aaaamm[4:])
+    except (TypeError, ValueError):
+        return tipo, None
     if not 1 <= mes <= 12 or anio < 1:
         return tipo, None
     dia = calendar.monthrange(anio, mes)[1]
@@ -245,12 +276,83 @@ def coincide_file_pattern(file_name: str | None, spec: dict[str, Any]) -> bool:
 
 
 # ---------------------------------------------------------------- núcleo del processor
+class _Numero(str):
+    """Texto original de un número JSON. Gson lo conserva (LazilyParsedNumber) y lo reescribe tal cual."""
+
+
+# Escapes de com.google.gson.stream.JsonWriter (htmlSafe = false): comillas, barra, controles y U+2028/U+2029.
+_ESCAPES_GSON = {'"': '\\"', "\\": "\\\\", "\t": "\\t", "\b": "\\b", "\n": "\\n", "\r": "\\r", "\f": "\\f",
+                 "\u2028": "\\u2028", "\u2029": "\\u2029"}
+
+
+def _cadena_gson(s: str) -> str:
+    partes = []
+    for c in s:
+        if c in _ESCAPES_GSON:
+            partes.append(_ESCAPES_GSON[c])
+        elif ord(c) < 0x20:
+            partes.append(f"\\u{ord(c):04x}")
+        else:
+            partes.append(c)
+    return '"' + "".join(partes) + '"'
+
+
+def _json_gson(v: Any) -> str:
+    """JsonElement.toString de Gson: JSON compacto, números con su texto original, nulos como null."""
+    if v is None:
+        return "null"
+    if isinstance(v, bool):
+        return "true" if v else "false"
+    if isinstance(v, _Numero):
+        return str.__str__(v)
+    if isinstance(v, str):
+        return _cadena_gson(v)
+    if isinstance(v, list):
+        return "[" + ",".join(_json_gson(x) for x in v) + "]"
+    return "{" + ",".join(_cadena_gson(str(k)) + ":" + _json_gson(x) for k, x in v.items()) + "}"
+
+
+def _numero_plano(texto: str) -> str:
+    """getAsBigDecimal.stripTrailingZeros.toPlainString de Java, sin redondeo (1.0 → "1", 1.5e3 → "1500")."""
+    signo, digitos, exp = Decimal(texto).as_tuple()
+    ds = "".join(map(str, digitos)).lstrip("0")
+    if not ds:
+        return "0"
+    sin_ceros = ds.rstrip("0")
+    exp += len(ds) - len(sin_ceros)
+    ds = sin_ceros
+    if exp >= 0:
+        plano = ds + "0" * exp
+    elif len(ds) > -exp:
+        plano = ds[:exp] + "." + ds[exp:]
+    else:
+        plano = "0." + "0" * (-exp - len(ds)) + ds
+    return ("-" if signo else "") + plano
+
+
+def _texto_gson(v: Any) -> str:
+    """comoTexto de <Fuente>AcceptedRecord (AUD-C5): número plano, booleano en minúsculas, texto tal cual,
+    arreglo u objeto como JSON compacto de Gson."""
+    if isinstance(v, _Numero):
+        return _numero_plano(v)
+    if isinstance(v, bool):
+        return "true" if v else "false"
+    if isinstance(v, str):
+        return v
+    return _json_gson(v)
+
+
 def _parse_registro(validated_record_json: str | None) -> dict[str, str] | None:
-    """JSON del registro validado como mapa CLAVE -> texto; None si no es un objeto JSON legible."""
+    """JSON del registro validado como mapa CLAVE -> texto; None si no es un objeto JSON legible.
+
+    Mismo texto que el lector Scala con Gson (AUD-C5). NaN/Infinity llegan como texto, como en el modo lenient de
+    Gson; los caracteres de control sin escapar se aceptan (strict=False), como en Gson.
+    """
     if validated_record_json is None:
         return None
     try:
-        datos = json.loads(validated_record_json)
+        datos = json.loads(validated_record_json, parse_float=_Numero, parse_int=_Numero, parse_constant=str,
+                           strict=False)
     except (TypeError, ValueError, RecursionError):
         return None
     if not isinstance(datos, dict):
@@ -259,9 +361,7 @@ def _parse_registro(validated_record_json: str | None) -> dict[str, str] | None:
     for k, v in datos.items():
         if v is None:
             continue
-        if isinstance(v, float) and v.is_integer():
-            v = int(v)
-        out[str(k).strip().upper()] = str(v)
+        out[str(k).strip().upper()] = _texto_gson(v)
     return out
 
 
@@ -289,11 +389,18 @@ def curar(validated_record_json: str | None, file_name: str | None, errores: lis
     omitir_entrada: set[str] = set()
     anular_entrada: set[str] = set()
     for e in errores or []:
+        if not e:
+            continue  # AUD-C5: un errorCode nulo se ignora, como en Scala
         codigo = e.get("codigo") or e.get("errorCodeValue")
         campo = codigos.get(codigo)
-        nivel = str(e["nivel"] if "nivel" in e else e["errorLevel"] if "errorLevel" in e else "")
         if campo is None:
             continue
+        crudo_nivel = e["nivel"] if "nivel" in e else e.get("errorLevel")
+        if crudo_nivel is None:
+            # AUD-C7: nivel nulo → el campo se conserva, pero el registro lo advierte (no queda implícito).
+            advertencias.append(f"{campo}:{NIVEL_DESCONOCIDO}")
+            continue
+        nivel = str(crudo_nivel)
         if nivel in (params.get("niveles_no_almacenar") or []):
             omitir_entrada.add(campo)
         elif nivel in (params.get("niveles_anular") or []):
@@ -336,17 +443,24 @@ def curar(validated_record_json: str | None, file_name: str | None, errores: lis
         if motivo is not None:
             advertencias.append(f"{destino}:{motivo}")
         salida[destino] = valor
+    ext = spec.get("extension_subscriber_relation")
+    if ext is not None and _partes_relacion(salida, ext) is None:
+        advertencias.append(f"subscriberRelation:{COMPONENTE_FALTANTE}")  # AUD-C3 (D14)
+    for destino in omitir_si_nulas(spec):
+        if destino in salida and salida[destino] is None:
+            del salida[destino]  # AUD-C4: clave de identidad nula → ausente, nunca null
     salida[params["campo_advertencias"]] = advertencias
     return salida
 
 
 def curar_evento(evento: dict[str, Any], spec: dict[str, Any]) -> dict[str, Any] | None:
     """Simula el motor + processor sobre un TaggedValidatedEvent. None = el motor no lo procesa."""
-    lineage = evento["lineage"]
+    lineage = evento.get("lineage") or {}
     file_name = lineage.get("fileName")
     if not coincide_file_pattern(file_name, spec):
         return None  # CUR-AP02: sin processor, el motor lo descarta sin log
-    errores = [{"codigo": e.get("errorCodeValue"), "nivel": e.get("errorLevel")} for e in evento.get("errorCodes") or []]
+    errores = [{"codigo": e.get("errorCodeValue"), "nivel": e.get("errorLevel")}
+               for e in evento.get("errorCodes") or [] if e]
     curado = curar(evento.get("validatedRecordJson"), file_name, errores, spec)
     return {
         "eventId": evento.get("eventId"),

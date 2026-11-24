@@ -19,16 +19,23 @@ no se oculta.
 
 - [ ] Constructor exacto `(CurationProcessorContext)`; clase `Serializable`.
 - [ ] Logger y lookups como `@transient lazy val`; homologación cargada una vez.
-- [ ] `curateEvent` no lanza; `curar` envuelto en `NonFatal`.
+- [ ] `curateEvent` no lanza; `curar` envuelto en `NonFatal` con log de `eventId` y clase de la excepción (AUD-C2).
+- [ ] Todo `Try(...).getOrElse`, `Try(...).toOption` y `case NonFatal` lleva `SILENCIO-INTENCIONAL <ID>`
+      (`python tools/auditar-skills.py --skill edf-curation` desde la raíz del framework).
 - [ ] `outputEventType = 30` (`ASSUMPTION:`) y `enrichEventWithPayload = event.payload`.
 - [ ] `subscriberRelation` no sobrescrito, salvo que el source-spec declare `extension_subscriber_relation` (D14):
-      en ese caso hay `override def subscriberRelation`, el núcleo `relacion` y su prueba, y la firma del gancho
-      se declara **sin verificar** (F-01).
+      en ese caso hay `override def subscriberRelation`, el núcleo `relacion` y su prueba; un componente faltante
+      deja `subscriberRelation:COMPONENTE_FALTANTE` (AUD-C3). Firma del gancho verificada en la copia del motor
+      (AUD-C8); compilación sin certificar (F-01).
+- [ ] Prueba del lado del fork de `curateEvent` y `subscriberRelation` con un `TaggedValidatedEvent` real
+      (`runbook-ejecucion.md` §2, AUD-C9): pendiente hasta tener el JAR; se reporta como no verificada.
 - [ ] Sin `println`, sin datos de negocio en logs ni en advertencias.
 
 ## Esquema de salida (CUR-RC05)
 
-- [ ] Claves de `write` = entradas del domain dictionary = `ClavesPublicadas`.
+- [ ] Claves de `write` = entradas del domain dictionary = `ClavesPublicadas`, salvo claves de identidad nulas,
+      que se omiten (`OmitirSiNulas`, AUD-C4).
+- [ ] Fragmento del domain dictionary: por campo solo `name` y `description` (AUD-C1, C-CUR-06).
 - [ ] Ningún nombre publicado existente se renombra ni elimina.
 - [ ] Campos abiertos (D11-a, P2, CUR-PT06) **no** generados.
 - [ ] Homologación: 1→10, 2→7, 3→1, 4→4, 5→8, 6→5, 7→pendiente, 8→9, PPT→11; el original en

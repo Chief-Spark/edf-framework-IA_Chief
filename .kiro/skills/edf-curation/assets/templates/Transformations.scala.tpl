@@ -89,6 +89,7 @@ object Transformaciones {
             case i: Int => Resultado.ok(i)
             case other =>
               val s = other.toString.trim
+              // SILENCIO-INTENCIONAL D13: fuera del rango de Int → nulo + FORMATO_INVALIDO, nunca una excepción.
               if (s.matches(Entero)) Try(s.toInt).toOption.map(Resultado.ok(_)).getOrElse(Resultado.advertir(Motivos.FormatoInvalido))
               else Resultado.advertir(Motivos.FormatoInvalido)
           }
@@ -98,6 +99,7 @@ object Transformaciones {
             case i: Int => Resultado.ok(i.toLong)
             case other =>
               val s = other.toString.trim
+              // SILENCIO-INTENCIONAL D13: fuera del rango de Long → nulo + FORMATO_INVALIDO, nunca una excepción.
               if (s.matches(Entero)) Try(s.toLong).toOption.map(Resultado.ok(_)).getOrElse(Resultado.advertir(Motivos.FormatoInvalido))
               else Resultado.advertir(Motivos.FormatoInvalido)
           }
@@ -129,10 +131,13 @@ object Transformaciones {
   def infoArchivo(fileName: String, regex: Regex, tipoPorPrefijo: Map[String, String], zona: ZoneId): (Option[String], Option[Long]) =
     Option(fileName).flatMap(_.split("[\\\\/]").lastOption).flatMap(regex.findFirstMatchIn) match {
       case None => (None, None)
+      // AUD-C2: un regex con menos de 2 grupos lanzaría en m.group(2) para cada registro. El generador lo
+      // rechaza (validar_coherencia); esta guarda es defensiva.
+      case Some(m) if m.groupCount < 2 => (None, None)
       case Some(m) =>
         val tipo = tipoPorPrefijo.get(Option(m.group(1)).getOrElse(""))
-        val aaaamm = m.group(2)
-        val corte = Try(YearMonth.of(aaaamm.take(4).toInt, aaaamm.drop(4).toInt)).toOption
+        // SILENCIO-INTENCIONAL D13: AAAAMM ausente o inválido → sin fecha de corte (fechaCorte:ARCHIVO_NO_RECONOCIDO).
+        val corte = Try { val aaaamm = m.group(2); YearMonth.of(aaaamm.take(4).toInt, aaaamm.drop(4).toInt) }.toOption
           .map(_.atEndOfMonth.atStartOfDay(zona).toInstant.toEpochMilli)
         (tipo, corte)
     }

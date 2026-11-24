@@ -39,7 +39,7 @@ Frontera: entra `TaggedValidatedEvent` aceptado; sale `TaggedCuratedEventWithMap
 
 | ID | Problema (dónde) | Cómo lo trata el skill |
 |---|---|---|
-| CUR-AP01 | Evento que lanza excepción se descarta en silencio (SC:280-284) | `curateEvent` nunca lanza; `curar` con `NonFatal` → registro vacío + `registro:ERROR_INTERNO` |
+| CUR-AP01 | Evento que lanza excepción se descarta en silencio (SC:280-284) | `curateEvent` nunca lanza; `curar` con `NonFatal` → registro vacío + `registro:ERROR_INTERNO` y log con `eventId` y clase de la excepción, sin valores (AUD-C2) |
 | CUR-AP02 | Sin processor para `lineage.fileName` → descarte sin log (SC:277) | `filePattern` probado con ejemplos y contraejemplos; fixture `evt-0008` lo demuestra |
 | CUR-AP03 | Registro de acciones silencia errores + `.get()` (CS:46-73) | No se usa `CurationService` |
 | CUR-AP04 | `newInstance` por llamada (CS:48, 60) | Capa A sin reflexión |
@@ -61,7 +61,7 @@ Frontera: entra `TaggedValidatedEvent` aceptado; sale `TaggedCuratedEventWithMap
 | `curateEvent(TaggedValidatedEvent): CuratedEvent` | abstracto | Sí |
 | `outputEventType: Int` | deprecado pero usado | 30 (inferido) |
 | `enrichEventWithPayload(event): Payload` | deprecado pero usado | `event.payload` |
-| `subscriberRelation(event)` | opcional | No por defecto (se copia del aceptado); sí si el source-spec declara `extension_subscriber_relation` (D14, firma sin verificar, F-01) |
+| `subscriberRelation(event)` | opcional | No por defecto (se copia del aceptado); sí si el source-spec declara `extension_subscriber_relation` (D14, firma verificada en la copia del motor; falta compilar, F-01) |
 | `curationService` | opcional | No |
 | `subscriberRelationStartDate/EndDate` | deprecado | No |
 | `inferredAsDeleted`, `readAcceptedEvent` (`???`), `enrichLogging...` | — | No |

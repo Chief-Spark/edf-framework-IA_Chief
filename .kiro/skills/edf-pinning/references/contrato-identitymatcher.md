@@ -30,6 +30,15 @@ abstract class IdentityMatcher extends Serializable {
 
 Solo `matchingKeysForCelebrity` es abstracto. El resto tiene default razonable — una implementación concreta puede sobrescribir solo lo que necesita.
 
+### 1.1 Atributos ausentes, nunca `null` (AUD-P2)
+
+Desde la auditoría 2026-11-24 (steering `11` §3, `edf-curation` AUD-C4), Curation **omite** las claves de identidad nulas (`standardizedId*` o `parametros.omitir_si_nulas`). Un atributo puede faltar en el evento; nunca llega `null`.
+
+- El motor entrega `""` por un atributo que el evento no trae (comentario de `IdentityMatcher.scala:46-49`).
+- El matcher lee cada atributo con `attributes.get(k).map(_.toString).getOrElse("")` u `Option`, **nunca** con `.get` (`ISIdentityMatcher.scala:46-54` hace `.get.toString`: un `null` rompe la ejecución). Es lo que ya hace `assets/IdentityMatcher.scala.template`.
+- `""` es dato faltante, no coincidencia: un término de scoring solo suma si el valor no está vacío (`thisX.exists(_.nonEmpty) && thisX == thatX`). Igual en `nearNeighborKeys`: una clave vacía no forma bloque.
+- `subscriberRelation` nunca llega vacío de Curation (AUD-C3): `super.doesMatch` puede seguir comparándolo.
+
 ## 2. Las nueve dimensiones que este skill debe parametrizar
 
 Derivadas del esquema real de `Diseño/yaml-skill-pinning.yaml` (`mapeo_identidad.atributos`, `reglas_matching_por_campo`). Por cada atributo identificador de la ingesta nueva, el usuario (o el YAML intermedio que genere para esa ingesta) debe aportar:

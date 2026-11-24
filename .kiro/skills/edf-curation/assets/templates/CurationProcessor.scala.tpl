@@ -5,11 +5,13 @@
 // Contrato (CUR-RC01..06):
 //  - constructor exacto (CurationProcessorContext);
 //  - Serializable (se hace broadcast): logger y lookups como @transient lazy val;
-//  - curateEvent nunca lanza: un valor no transformable queda nulo + advertencia (D13);
+//  - curateEvent nunca lanza: un valor no transformable queda nulo + advertencia (D13); un fallo
+//    inesperado deja el registro vacío con registro:ERROR_INTERNO y un log sin datos (AUD-C2);
 //  - lookups cargados una vez por ejecutor, sin consultas por registro;
 //  - sin println, sin datos de negocio en logs;
 //  - subscriberRelation se copia del evento aceptado (D3), salvo que el source-spec declare
 //    extension_subscriber_relation (D14): entonces se arma con los campos curados indicados.
+//    Si falta algún componente se conserva el aceptado y el registro lo advierte (AUD-C3).
 package {{paquete_fuente}}.processor
 
 import scala.util.Try
@@ -28,15 +30,19 @@ class {{processor_clase}}(context: CurationProcessorContext) extends CurationPro
 
   @transient private lazy val logger = getLogger(this.getClass)
 
-  /** Homologación cargada una sola vez por ejecutor (CUR-RC04). */
+  /**
+   * Homologación cargada una sola vez por ejecutor (CUR-RC04). AUD-C6: fusión, no reemplazo. El valor del
+   * lookup gana; la tabla embebida completa las claves que el lookup no devolvió.
+   */
   @transient private lazy val homologacion: Map[String, String] = {
     val desdeLookup = {{processor_clase}}.cargarHomologacion(context.lookup)
-    if (desdeLookup.isEmpty) {
+    val sinRespuesta = {{Fuente}}CurationSpec.ClavesHomologacion.count(c => !desdeLookup.contains(c))
+    if (sinRespuesta > 0) {
       // ASSUMPTION: CUR-PT02 — si el lookup no responde se usa la tabla embebida (misma tabla de la HU).
-      logger.warn("Lookup {} vacío o no disponible; se usa la tabla de homologación embebida",
-        {{Fuente}}CurationSpec.TablaHomologacion)
-      {{Fuente}}CurationSpec.Homologacion
-    } else desdeLookup
+      logger.warn("Lookup {}: {} claves sin respuesta; se completan con la tabla de homologación embebida",
+        {{Fuente}}CurationSpec.TablaHomologacion, sinRespuesta.toString)
+    }
+    {{Fuente}}CurationSpec.Homologacion ++ desdeLookup
   }
 
   // ASSUMPTION: CUR-PA04 — valor inferido; @deprecated en CurationProcessor pero el motor lo usa.
@@ -49,9 +55,10 @@ class {{processor_clase}}(context: CurationProcessorContext) extends CurationPro
 
   override def curateEvent(event: TaggedValidatedEvent): CuratedEvent = {
     val errores = Option(event.errorCodes).map(_.toSeq).getOrElse(Seq.empty)
-      .map(e => (e.errorCodeValue, e.errorLevel))
+      .flatMap(Option(_)).map(e => (e.errorCodeValue, e.errorLevel))
     val fileName = Option(event.lineage).map(_.fileName).orNull
-    {{Fuente}}CuratedEvent({{processor_clase}}.curar(event.validatedRecordJson, fileName, errores, homologacion))
+    {{Fuente}}CuratedEvent({{processor_clase}}.curar(event.validatedRecordJson, fileName, errores, homologacion,
+      String.valueOf(event.eventId)))
   }
 
 {{parte_manual_comentario}}
@@ -62,8 +69,14 @@ object {{processor_clase}} {
 
   import {{Fuente}}CurationSpec._
 
-  /** Consulta cada clave conocida UNA vez. ASSUMPTION: API de Util.getLookup (CUR-PT02). */
+  @transient private lazy val logger = getLogger(classOf[{{processor_clase}}])
+
+  /**
+   * Consulta cada clave conocida UNA vez. ASSUMPTION: API de Util.getLookup (CUR-PT02). Si el lookup falla
+   * devuelve un mapa vacío: el processor avisa las claves sin respuesta y usa la tabla embebida (AUD-C6).
+   */
   def cargarHomologacion(lookup: OxygenLookup): Map[String, String] =
+    // SILENCIO-INTENCIONAL C-CUR-09: lookup caído → tabla embebida; el warn de claves sin respuesta lo hace visible.
     Try {
       ClavesHomologacion.flatMap { clave =>
         Option(lookup).flatMap(_.get(TablaHomologacion, Map(ColumnaClaveHomologacion -> clave)))
@@ -75,24 +88,37 @@ object {{processor_clase}} {
 
 {{subscriber_relation_helper_scala}}
 
-  /** Cura un registro. Nunca lanza: ante un fallo inesperado devuelve un registro vacío marcado. */
-  def curar(json: String, fileName: String, errores: Seq[(String, String)], homologacion: Map[String, String]): {{Fuente}}CuratedRecord =
+  /**
+   * Cura un registro. Nunca lanza (D13, CUR-RC03): ante un fallo inesperado devuelve un registro vacío marcado y
+   * registra la clase de la excepción y el eventId, nunca valores del registro (AUD-C2, CUR-RC06).
+   */
+  def curar(json: String, fileName: String, errores: Seq[(String, String)], homologacion: Map[String, String],
+            eventId: String = ""): {{Fuente}}CuratedRecord =
     try curarSinGuarda(json, fileName, errores, homologacion)
-    catch { case NonFatal(_) => {{Fuente}}CuratedRecord.vacio(Seq("registro:" + Motivos.ErrorInterno)) }
+    catch {
+      // SILENCIO-INTENCIONAL D13: red de seguridad por registro; el error queda en el log y en registro:ERROR_INTERNO.
+      case NonFatal(e) =>
+        logger.error("Error interno al curar el evento {} ({}); se publica vacío con advertencia", eventId, e.getClass.getName)
+        {{Fuente}}CuratedRecord.vacio(Seq("registro:" + Motivos.ErrorInterno))
+    }
 
   private def curarSinGuarda(json: String, fileName: String, errores: Seq[(String, String)], homologacion: Map[String, String]): {{Fuente}}CuratedRecord = {
     val (registro, advIniciales) = {{Fuente}}AcceptedRecord.parse(json) match {
       case Right(r) => (r, Vector.empty[String])
       case Left(_) => ({{Fuente}}AcceptedRecord.vacio, Vector("registro:" + Motivos.RegistroIlegible))
     }
-    // RF-CUR-10: severidad 3 → no se almacena; severidad 0 → se anula.
-    val porCampo = errores.flatMap { case (codigo, nivel) => CodigosError.get(codigo).map(_ -> Option(nivel).getOrElse("")) }
-    val omitirEntrada = porCampo.collect { case (c, n) if NivelesNoAlmacenar(n) => c }.toSet
-    val anularEntrada = porCampo.collect { case (c, n) if NivelesAnular(n) => c }.toSet
+    // RF-CUR-10: severidad 3 → no se almacena; severidad 0 → se anula. errores nulo = sin errores (AUD-C5).
+    val porCampo = Option(errores).getOrElse(Seq.empty).flatMap(Option(_)).flatMap { case (codigo, nivel) =>
+      CodigosError.get(codigo).map(_ -> Option(nivel))
+    }
+    // AUD-C7: un nivel nulo conserva el campo, pero el registro lo advierte (antes quedaba implícito).
+    val advNivel = porCampo.collect { case (c, None) => s"$c:${Motivos.NivelDesconocido}" }
+    val omitirEntrada = porCampo.collect { case (c, Some(n)) if NivelesNoAlmacenar(n) => c }.toSet
+    val anularEntrada = porCampo.collect { case (c, Some(n)) if NivelesAnular(n) => c }.toSet
 
     val (tipoArchivo, fechaCorte) = Transformaciones.infoArchivo(fileName, RegexArchivo, TipoPorPrefijo, ZonaFechas)
 
-    val inicial = (Map.empty[String, Option[Any]], advIniciales, Set.empty[String])
+    val inicial = (Map.empty[String, Option[Any]], advIniciales ++ advNivel, Set.empty[String])
     val (valores, advertencias, omitidos) = Mapeos.foldLeft(inicial) { case ((acc, advs, omit), m) =>
       if (m.origen.nonEmpty && omitirEntrada(m.origen)) (acc, advs, omit + m.destino)
       else {
@@ -101,7 +127,7 @@ object {{processor_clase}} {
         (acc + (m.destino -> r.valor), advs ++ r.advertencia.map(mot => s"${m.destino}:$mot"), omit)
       }
     }
-    {{Fuente}}CuratedRecord.fromMap(valores, advertencias, omitidos)
+    {{Fuente}}CuratedRecord.fromMap(valores, advertencias ++ advertenciaRelacion(valores), omitidos)
   }
 
   private def aplicar(m: FieldMapping, crudo: Option[String], registro: {{Fuente}}AcceptedRecord,

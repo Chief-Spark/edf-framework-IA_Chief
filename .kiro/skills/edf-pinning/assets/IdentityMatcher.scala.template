@@ -140,13 +140,14 @@ class {{INGESTA_NOMBRE}}IdentityMatcher extends IdentityMatcher {
     if (defaultMatch._1) (true, 0.0)
     else {
       // --- Extraer los atributos confirmados de ambas identidades ---
+      // AUD-P2: un atributo puede faltar (Curation omite las claves de identidad nulas): usar Option, nunca .get.
       // val thisX = taggedIdentity1.identity.attributes.get({{INGESTA_NOMBRE}}IdentityAttributesKey.X).map(_.toString)
       // val thatX = taggedIdentity2.identity.attributes.get({{INGESTA_NOMBRE}}IdentityAttributesKey.X).map(_.toString)
 
       var similarity = 0.0
 
       // --- Un bloque if por cada atributo o combinación de atributos con peso > 0 ---
-      // if (thisX.isDefined && thisX == thatX) { similarity += weightX }
+      // if (thisX.exists(_.nonEmpty) && thisX == thatX) { similarity += weightX }  // "" = faltante, no coincide
 
       // TODO(decisión de negocio pendiente, ver references/decisiones-pendientes.md
       // categoría 3): si esta ingesta requiere validación cruzada contra una
@@ -171,7 +172,7 @@ class {{INGESTA_NOMBRE}}IdentityMatcher extends IdentityMatcher {
     // val x = taggedIdentity.identity.attributes.get({{INGESTA_NOMBRE}}IdentityAttributesKey.X).map(_.toString).orNull
 
     List(/* una entrada por clave de blocking confirmada */)
-      .filter(_ != null)
+      .filter(k => k != null && k.nonEmpty)  // AUD-P2: un atributo ausente no forma bloque
       .distinct
   }
 

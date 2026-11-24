@@ -69,4 +69,8 @@ object Motivos {
   val RegistroIlegible = "REGISTRO_ILEGIBLE"
   val ArchivoNoReconocido = "ARCHIVO_NO_RECONOCIDO"
   val ErrorInterno = "ERROR_INTERNO"
+  /** Código de Validation con nivel nulo: el campo se conserva y el registro lo advierte (AUD-C7). */
+  val NivelDesconocido = "NIVEL_DESCONOCIDO"
+  /** Falta un componente de subscriberRelation: se conserva el del evento aceptado (AUD-C3, D14). */
+  val ComponenteFaltante = "COMPONENTE_FALTANTE"
 }

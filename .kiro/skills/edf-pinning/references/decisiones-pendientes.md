@@ -34,6 +34,30 @@ Si en algún documento aparece una regla de negocio descrita como "ya no aplica"
 
 Si un campo aparece en el archivo de ejemplo de atributos identificadores pero no se usa en ningún lugar del algoritmo de scoring (`doesMatch`) ni de blocking (`nearNeighborKeys`) que el skill puede verificar en el código, ese campo se declara en el código generado como comentado, con nota explícita, no se incluye en el array activo.
 
+### Advertencia: defecto confirmado en `ISIdentityMatcher` (AUD-P3)
+
+`Motor-Oxigen/oxygen-pinning/src/main/scala/com/experian/edf/oxygen/pinning/extension/ISIdentityMatcher.scala:47` y `:52` leen `firstLastName` con la clave `ISIdentityAttributesKey.firstName` (copy-paste). El término "nombre y apellido" (línea 59) compara dos veces el nombre: dos personas con el mismo nombre y distinto apellido suman 0.3.
+
+- Las plantillas de este skill **no** reproducen el defecto: leen cada atributo con su propia clave. Replicarlo solo procede con decisión explícita del equipo (categoría 2), nunca por defecto.
+- No copiar `ISIdentityMatcher` como base de un matcher nuevo sin corregir esas dos líneas.
+- Se reporta a Experian (lista de abajo).
+
+## Defectos del motor para el reporte a Experian
+
+| # | Defecto | Evidencia (copia del motor) | Efecto |
+|---|---|---|---|
+| 1 | Apellido leído con la clave del nombre | `oxygen-pinning/.../extension/ISIdentityMatcher.scala:47, 52` | El término nombre+apellido ignora el apellido |
+| 2 | `.get.toString` sobre atributos de identidad | `ISIdentityMatcher.scala:46-54, 78-80` | Un atributo `null` rompe la ejecución (Curation ya no los emite, AUD-C4) |
+| 3 | `domainDictionaryFile` ausente solo deja un `warn` | `oxygen-pinning/.../engines/SparkPinner.scala:192-198` | Falla silenciosa de configuración |
+
+## Correcciones de auditoría (2026-11-24)
+
+| ID | Hallazgo | Corrección | Fecha |
+|---|---|---|---|
+| AUD-P1 | `clusterSplitter` sin evidencia del nombre de clave (`SparkPinner.scala:221` lee la constante `CLUSTER_SPLITTER` de oxygen-global, fuera del repo); `paths.domainDictionaryFile` de Pinning sin cubrir (`SparkPinner.scala:192-198`, fail-silent) | Comentario "verificar en el fork" en `clusterSplitter`; clave `domainDictionaryFile` con su comentario en `pinning-application-block.conf.template`. En modo Colombia, las claves compartidas no se redefinen | 2026-11-24 |
+| AUD-P2 | Los atributos de identidad podían llegar `null` y los matchers usan `.get` | Atributos ausentes, nunca `null` (`edf-curation` AUD-C4); los matchers usan `Option`/`getOrElse` y tratan `""` como faltante: `contrato-identitymatcher.md` §1.1, steering `11` §3, plantilla del matcher | 2026-11-24 |
+| AUD-P3 | Defecto de `ISIdentityMatcher` (apellido con la clave del nombre) | Advertencia de arriba; lista para el reporte a Experian; las plantillas no lo reproducen | 2026-11-24 |
+
 ## Formato del `TODO` en el código generado
 
 Siempre con esta forma, para que sea buscable y auditable:

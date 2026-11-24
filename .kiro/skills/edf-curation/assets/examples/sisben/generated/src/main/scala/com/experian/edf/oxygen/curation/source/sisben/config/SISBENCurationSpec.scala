@@ -86,6 +86,9 @@ object SISBENCurationSpec {
   /** Nombres publicados, en orden: deben coincidir con el domain dictionary. */
   val ClavesPublicadas: Seq[String] = Seq("idFichaOrigen", "idHogar", "codDepartamentoSisben", "nomDepartamento", "codMunicipioSisben", "nomMunicipio", "idClase", "idPersonaOrden", "idNacional", "primerApellido", "segundoApellido", "primerNombre", "segundoNombre", "tipoDocumento", "tipoDocumentoSisben", "numeroDocumento", "grupoSisben", "nivelSisben", "fechaDigitacion", "fechaActualizacionPersona", "idMarca", "idEstado", "fechaActualizacionCns", "fechaCorte", "tipoArchivo", "currentPartyType", "currentPartyIdNumber", "subscriberBlockStatus", "subscriberBlockReason", "advertenciasCuracion")
 
+  /** Claves de identidad que se omiten del evento si son nulas: ausentes, nunca null (AUD-C4, C-CUR-05). */
+  val OmitirSiNulas: Set[String] = Set()
+
   // --- Homologación del tipo de documento (RF-CUR-07): Validation la consulta, Curation la persiste.
   val TablaHomologacion: String = "202_SISBEN_PROCESS_ID_TYPE_HO"
   val ColumnaClaveHomologacion: String = "tipo_sisben"   // ASSUMPTION: F-12

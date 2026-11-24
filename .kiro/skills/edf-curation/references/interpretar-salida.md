@@ -7,7 +7,7 @@ El motor escribe `TaggedCuratedEventWithMap` en `curatedDir/<runMode>/<dataset>/
 | Campo | De dónde sale |
 |---|---|
 | `lineage`, `eventId`, `asOfDate`, `subscriber`, `fileTag`, `inferredAsDeleted` | copiados del evento aceptado |
-| `subscriberRelation` | por defecto el del aceptado (`NUM_DOCUMENTO`, sin normalizar); con `extension_subscriber_relation` en la spec (D14), los campos curados indicados unidos por el separador, y el del aceptado si falta alguno |
+| `subscriberRelation` | por defecto el del aceptado (`NUM_DOCUMENTO`, sin normalizar); con `extension_subscriber_relation` en la spec (D14), los campos curados indicados unidos por el separador, y el del aceptado si falta alguno (con `subscriberRelation:COMPONENTE_FALTANTE`, AUD-C3) |
 | `eventType` | `outputEventType` = 30 |
 | `payload` | `enrichEventWithPayload` = payload del aceptado |
 | `curatedRecordJson` | `SISBENCuratedEvent.write` → mapa con los nombres publicados |
@@ -18,7 +18,8 @@ El motor escribe `TaggedCuratedEventWithMap` en `curatedDir/<runMode>/<dataset>/
 - Valor presente: transformado y convertido al tipo publicado.
 - `null` sin advertencia: el dato venía vacío, o se anuló por severidad 0, o es una constante nula.
 - `null` con `campo:MOTIVO` en `advertenciasCuracion`: no se pudo transformar.
-- Clave ausente: severidad 3 en el campo de origen → no se almacena (RF-CUR-10).
+- Clave ausente: severidad 3 en el campo de origen → no se almacena (RF-CUR-10); o clave de identidad
+  (`parametros.omitir_si_nulas`, por defecto `standardizedId*`) con valor nulo (AUD-C4). Nunca `null` en esas claves.
 
 | Motivo | Significado | Acción típica |
 |---|---|---|
@@ -28,7 +29,9 @@ El motor escribe `TaggedCuratedEventWithMap` en `curatedDir/<runMode>/<dataset>/
 | `NO_NORMALIZABLE` | queda vacío tras normalizar (nombre solo con símbolos, documento solo ceros) | revisar el dato fuente |
 | `ARCHIVO_NO_RECONOCIDO` | `lineage.fileName` no permite derivar tipo/fecha de corte | revisar convención de nombre |
 | `REGISTRO_ILEGIBLE` | `validatedRecordJson` no es un objeto JSON | revisar Validation |
-| `ERROR_INTERNO` | fallo inesperado capturado; registro vacío | bug del processor: reportar con `eventId` |
+| `ERROR_INTERNO` | fallo inesperado capturado; registro vacío; log `Error interno al curar el evento <eventId> (<excepción>)` | bug del processor: reportar con `eventId` |
+| `NIVEL_DESCONOCIDO` | `<campo de entrada>:NIVEL_DESCONOCIDO`: código de Validation con nivel nulo; el campo se conserva (AUD-C7) | revisar el `errorLevel` en Validation |
+| `COMPONENTE_FALTANTE` | `subscriberRelation:COMPONENTE_FALTANTE`: falta un campo de `extension_subscriber_relation`; se conserva el `subscriberRelation` aceptado (AUD-C3) | revisar el dato de identidad |
 
 Las advertencias nunca contienen valores del registro (CUR-RC06).
 

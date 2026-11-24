@@ -117,6 +117,62 @@ def test_subscriber_relation_une_campos_o_conserva_el_aceptado(spec):
     assert ref.curar_evento(evento, spec)["subscriberRelation"] == "0009990001"
 
 
+def test_subscriber_relation_componente_faltante_advierte(spec, adv):
+    """AUD-C3 (D14): con la extensión y un componente faltante, se conserva el aceptado (nunca "") y el registro
+    lleva subscriberRelation:COMPONENTE_FALTANTE; sin la extensión, nunca."""
+    falta = "subscriberRelation:COMPONENTE_FALTANTE"
+    con_ext = copy.deepcopy(spec)
+    con_ext["extension_subscriber_relation"] = {"campos": ["tipoDocumento", "numeroDocumento"], "separador": "_"}
+    completo = ref.curar('{"TIP_DOCUMENTO": "3", "NUM_DOCUMENTO": "1"}', ARCHIVO, [], con_ext)
+    assert falta not in completo[adv]
+    for reg in ('{"TIP_DOCUMENTO": "3"}', '{"TIP_DOCUMENTO": "99", "NUM_DOCUMENTO": "1"}', "{no es json"):
+        out = ref.curar(reg, ARCHIVO, [], con_ext)
+        assert out[adv][-1] == falta, reg
+        assert ref.subscriber_relation(out, con_ext, "ACEPTADO") == "ACEPTADO"
+    # componente omitido por severidad 3 (la clave no está): también falta
+    con_ext["extension_subscriber_relation"]["campos"] = ["tipoDocumento", "segundoApellido"]
+    out = ref.curar('{"TIP_DOCUMENTO": "3", "SEG_APELLIDO": "X"}', ARCHIVO,
+                    [{"codigo": "SISBEN_INC_011", "nivel": "3"}], con_ext)
+    assert "segundoApellido" not in out and out[adv][-1] == falta
+    assert falta not in ref.curar('{"TIP_DOCUMENTO": "3"}', ARCHIVO, [], spec)[adv]
+    # el componente se compara como texto de Scala (true, no True)
+    assert ref._partes_relacion({"x": True, "y": 1.5}, {"campos": ["x", "y"]}) == ["true", "1.5"]
+
+
+def _spec_con_identidad(spec, **param):
+    spec["campos_curados"] += [
+        {"destino": "standardizedIdType", "origen": "", "tipo_salida": "entero", "estado": "cerrado",
+         "transformacion": {"tipo": "copia_de", "campo": "tipoDocumento"}},
+        {"destino": "standardizedIdNumber", "origen": "", "tipo_salida": "texto", "estado": "cerrado",
+         "transformacion": {"tipo": "copia_de", "campo": "numeroDocumento"}},
+    ]
+    spec["parametros"].update(param)
+    return spec
+
+
+def test_claves_de_identidad_nulas_se_omiten(spec, adv):
+    """AUD-C4: por defecto, standardizedId* nulos salen ausentes (nunca null); los demás nulos siguen como null."""
+    _spec_con_identidad(spec)
+    assert ref.omitir_si_nulas(spec) == ["standardizedIdType", "standardizedIdNumber"]
+    out = ref.curar('{"TIP_DOCUMENTO": "99"}', ARCHIVO, [], spec)
+    assert "standardizedIdType" not in out and "standardizedIdNumber" not in out
+    assert "tipoDocumento" in out and out["tipoDocumento"] is None
+    out = ref.curar('{"TIP_DOCUMENTO": "3", "NUM_DOCUMENTO": "007"}', ARCHIVO, [], spec)
+    assert out["standardizedIdType"] == 1 and out["standardizedIdNumber"] == "7"
+    # declarado en la spec: manda la lista (vacía = nada se omite)
+    spec["parametros"]["omitir_si_nulas"] = []
+    out = ref.curar('{"TIP_DOCUMENTO": "99"}', ARCHIVO, [], spec)
+    assert out["standardizedIdType"] is None
+    spec["parametros"]["omitir_si_nulas"] = ["numeroDocumento"]
+    out = ref.curar("{}", ARCHIVO, [], spec)
+    assert "numeroDocumento" not in out and out["standardizedIdNumber"] is None
+
+
+def test_ejemplo_sisben_no_tiene_claves_de_identidad(spec):
+    """AUD-C4: el ejemplo no tiene standardizedId*: su salida no cambia."""
+    assert ref.omitir_si_nulas(spec) == []
+
+
 def test_convertir_tipos():
     dos31 = 2**31
     assert ref.convertir("12", "entero") == (12, None)
@@ -139,6 +195,14 @@ def test_info_archivo(spec):
     assert ref.info_archivo("SISBEN_EXPERIAN_202413.20240205103000-0500.txt", spec) == ("REGULAR", None)
     assert ref.info_archivo("SISBEN_EXPERIAN_000001.20240205103000-0500.txt", spec) == ("REGULAR", None)
     assert ref.info_archivo("OTRA.txt", spec) == (None, None)
+
+
+def test_info_archivo_regex_sin_dos_grupos_no_lanza(spec):
+    """AUD-C2: igual que Scala (guarda de groupCount y Try): sin 2 grupos, (None, None); grupo 2 ausente, sin corte."""
+    spec["archivo"]["regex_derivacion"] = r"(RT_)?SISBEN_EXPERIAN_\d{6}"
+    assert ref.info_archivo("RT_SISBEN_EXPERIAN_202402.txt", spec) == (None, None)
+    spec["archivo"]["regex_derivacion"] = r"(RT_)?SISBEN_EXPERIAN_(\d{6})?"
+    assert ref.info_archivo("RT_SISBEN_EXPERIAN_X", spec) == ("RT", None)
 
 
 def test_file_pattern(spec):
@@ -212,9 +276,9 @@ def test_curar_concatenacion_usa_los_valores_estandarizados(spec, adv):
     out = ref.curar(reg, ARCHIVO, [{"codigo": "SISBEN_INC_011", "nivel": "3"}], spec)
     assert "segundoApellido" not in out
     assert out["standardizedIdName"] == "MARIA PEREZ PRUEBA"
-    # Todos vacíos: nulo sin advertencia propia (los nombres ya advierten).
+    # Todos vacíos: nulo sin advertencia propia (los nombres ya advierten). Clave de identidad nula: ausente (AUD-C4).
     out = ref.curar('{"PRI_NOMBRE": "123"}', ARCHIVO, [], spec)
-    assert out["standardizedIdName"] is None
+    assert "standardizedIdName" not in out
     assert "primerNombre:NO_NORMALIZABLE" in out[adv]
     assert not any(a.startswith("standardizedIdName") for a in out[adv])
 
@@ -238,10 +302,48 @@ def test_numeros_json_sin_decimal(spec):
     assert out["tipoDocumento"] == 1
 
 
-def test_valores_json_no_texto_como_str_de_python():
-    reg = ref._parse_registro('{" a ": true, "b": [1, "x"], "c": {"k": 1.5}, "d": null}')
-    assert reg == {"A": "True", "B": "[1, 'x']", "C": "{'k': 1.5}"}
+def test_valores_json_no_texto_como_gson():
+    """AUD-C5: mismo texto que el lector Scala con Gson (comoTexto): booleanos en minúsculas, arreglos y objetos
+    como JSON compacto con los números tal como vinieron, números de primer nivel sin ceros finales."""
+    reg = ref._parse_registro('{" a ": true, "b": [1, "x", 1.50, null], "c": {"k": 1.5e3, "t": "q\\"z\\n"}, '
+                              '"d": null, "h": false, "u": ["ñ", "\\u2028"]}')
+    assert reg == {"A": "true", "B": '[1,"x",1.50,null]', "C": '{"k":1.5e3,"t":"q\\"z\\n"}', "H": "false",
+                   "U": '["ñ","\\u2028"]'}
     assert ref._parse_registro(None) is None
+
+
+def test_numeros_json_como_big_decimal_plano():
+    """AUD-C5: getAsBigDecimal.stripTrailingZeros.toPlainString, sin pasar por float."""
+    reg = ref._parse_registro('{"a": 2.0, "b": 0.10000000000000001, "c": 100, "d": -0.0, "e": 1.5e3, '
+                              '"f": -1.50E-2, "g": 12345678901234567890123456789012.50, "h": 0.00015, "i": NaN}')
+    assert reg == {"A": "2", "B": "0.10000000000000001", "C": "100", "D": "0", "E": "1500", "F": "-0.015",
+                   "G": "12345678901234567890123456789012.5", "H": "0.00015", "I": "NaN"}
+    assert ref._parse_registro('{"a": "x\ty"}') == {"A": "x\ty"}  # control sin escapar: Gson lo acepta
+
+
+def test_errores_nulos_se_toleran_igual_que_en_scala(spec, adv):
+    """AUD-C5: errores=None y un errorCode nulo no lanzan ni cambian el resultado (Scala: Option(errores))."""
+    reg = '{"TIP_DOCUMENTO": "3", "NUM_DOCUMENTO": "1"}'
+    base = ref.curar(reg, ARCHIVO, [], spec)
+    assert ref.curar(reg, ARCHIVO, None, spec) == base
+    assert ref.curar(reg, ARCHIVO, [None, {}], spec)[adv] == base[adv]
+    evento = {"eventId": "e", "lineage": {"fileName": ARCHIVO}, "validatedRecordJson": reg, "errorCodes": [None]}
+    assert ref.curar_evento(evento, spec)["curatedRecordJson"] == base
+    assert ref.curar_evento({"eventId": "e"}, spec) is None  # sin lineage: fuera del filePattern
+
+
+def test_nivel_nulo_conserva_el_campo_y_advierte(spec, adv):
+    """AUD-C7: un código conocido con nivel nulo no omite ni anula; deja <campo>:NIVEL_DESCONOCIDO."""
+    reg = '{"SEG_APELLIDO": "Ficticio", "TIP_DOCUMENTO": "3", "NUM_DOCUMENTO": "1"}'
+    out = ref.curar(reg, ARCHIVO, [{"codigo": "SISBEN_INC_011", "nivel": None}], spec)
+    assert out["segundoApellido"] == "FICTICIO"
+    assert out[adv] == ["SEG_APELLIDO:NIVEL_DESCONOCIDO"]
+    out = ref.curar(reg, ARCHIVO, [{"errorCodeValue": "SISBEN_INC_011"}], spec)  # sin nivel = nulo
+    assert out[adv] == ["SEG_APELLIDO:NIVEL_DESCONOCIDO"]
+    out = ref.curar(reg, ARCHIVO, [{"codigo": "NO_EXISTE", "nivel": None}], spec)  # código desconocido: nada
+    assert out[adv] == []
+    out = ref.curar("{no", ARCHIVO, [{"codigo": "SISBEN_INC_011", "nivel": None}], spec)
+    assert out[adv][:2] == ["registro:REGISTRO_ILEGIBLE", "SEG_APELLIDO:NIVEL_DESCONOCIDO"]
 
 
 def test_curar_evento_fuera_del_file_pattern(spec):

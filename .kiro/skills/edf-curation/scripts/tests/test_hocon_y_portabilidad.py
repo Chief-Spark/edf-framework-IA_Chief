@@ -47,7 +47,7 @@ def test_pyhocon_si_esta_disponible():
 
 
 def _archivos_texto():
-    # scripts/java/target es salida de Maven (ignorada por git): sus reportes llevan rutas de la máquina.
+    # target/ es salida de Maven (ignorada por git): sus reportes llevan rutas de la máquina.
     ignorar = {"__pycache__", ".pytest_cache", "target"}
     for f in SKILL.rglob("*"):
         if f.is_file() and not ignorar & set(f.parts) and f.suffix != ".pyc":

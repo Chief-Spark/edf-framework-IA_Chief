@@ -3,6 +3,8 @@
 // SISBENCurationProcessor.curar; requiere el JAR del framework en el classpath para compilar
 // (CuratedEvent, TaggedValidatedEvent): compilación NO CERTIFICADA (F-01).
 // Los JSON esperados salen de la implementación de referencia (scripts/curation_reference.py).
+// AUD-C9: estas pruebas llaman al núcleo (curar, relacion), no a curateEvent ni al gancho subscriberRelation,
+// que necesitan un TaggedValidatedEvent del JAR. Esa prueba se escribe en el fork (runbook-ejecucion.md §fork).
 package com.experian.edf.oxygen.curation.source.sisben
 
 import org.junit.runner.RunWith
@@ -56,6 +58,20 @@ class SISBENCurationProcessorSpec extends AnyFunSuite {
   // ---- subscriberRelation (extension_subscriber_relation, D14)
   // Sin extension_subscriber_relation: subscriberRelation se copia del evento aceptado.
 
+  // ---- Lector de validatedRecordJson (mismo texto que la referencia, AUD-C5)
+  test("lector: booleanos, números y JSON anidado como Gson (AUD-C5)") {
+    val r = SISBENAcceptedRecord.parse("""{" a ": true, "b": [1, "x", 1.50, null], "c": {"k": 1.5e3, "t": "q\"z"}, "d": null, "e": 2.0, "f": 0.10000000000000001, "g": 100, "h": false, "i": -0.0}""").toOption.get
+    assert(r.get("A") == Some("true"))
+    assert(r.get("B") == Some("[1,\"x\",1.50,null]"))
+    assert(r.get("C") == Some("{\"k\":1.5e3,\"t\":\"q\\\"z\"}"))
+    assert(r.get("D") == None)
+    assert(r.get("E") == Some("2"))
+    assert(r.get("F") == Some("0.10000000000000001"))
+    assert(r.get("G") == Some("100"))
+    assert(r.get("H") == Some("false"))
+    assert(r.get("I") == Some("0"))
+  }
+
   // ---- Propiedades fijas del contrato
   test("write/read: ida y vuelta conserva el JSON") {
     val ev = new SISBENCuratedEvent(curarJson("""{"ID_FICHA_ORIGEN":"0999000001","ID_HOGAR":"1","COD_DPTO":"5","NOM_DPTO":"Antioquia","COD_MPIO":"5001","NOM_MPIO":"Medellín","ID_CLASE":"1","ID_PERSONA_ORDEN":"1","ID_NACIONAL":"999000001","PRI_APELLIDO":"Pruebañez","SEG_APELLIDO":"Ficticio","PRI_NOMBRE":"Sintético","SEG_NOMBRE":"José-María","TIP_DOCUMENTO":"3","NUM_DOCUMENTO":" 0009990001 ","ID_GRUPO":"A","ID_NIVEL":"1","FECHA_DIGITACION":"15/01/2024","FECHA_ACTUALIZACION_PERSONA":"15/01/2024","ID_MARCA":"0","ID_ESTADO":"10","FECHA_ACTUALIZACION_CNS":"2024-01-15 10:30:00"}""", "SISBEN_EXPERIAN_202401.20240205103000-0500.txt"))
@@ -67,14 +83,18 @@ class SISBENCurationProcessorSpec extends AnyFunSuite {
     assert(record.advertenciasCuracion.contains("registro:REGISTRO_ILEGIBLE"))
   }
 
-  test("null y basura no lanzan") {
-    assert(SISBENCurationProcessor.curar(null, null, null, Map.empty).advertenciasCuracion.nonEmpty)
+  test("null y basura no lanzan; errores nulo = sin errores (AUD-C5)") {
+    val record = SISBENCurationProcessor.curar(null, null, null, Map.empty)
+    assert(record.advertenciasCuracion.contains("registro:REGISTRO_ILEGIBLE"))
+    assert(!record.advertenciasCuracion.contains("registro:ERROR_INTERNO"))
   }
 
-  test("claves del evento = domain dictionary (CUR-RC05)") {
+  test("claves del evento = domain dictionary (CUR-RC05); solo faltan claves de identidad nulas (AUD-C4)") {
     val record = SISBENCurationProcessor.curar("""{"ID_FICHA_ORIGEN":"0999000001","ID_HOGAR":"1","COD_DPTO":"5","NOM_DPTO":"Antioquia","COD_MPIO":"5001","NOM_MPIO":"Medellín","ID_CLASE":"1","ID_PERSONA_ORDEN":"1","ID_NACIONAL":"999000001","PRI_APELLIDO":"Pruebañez","SEG_APELLIDO":"Ficticio","PRI_NOMBRE":"Sintético","SEG_NOMBRE":"José-María","TIP_DOCUMENTO":"3","NUM_DOCUMENTO":" 0009990001 ","ID_GRUPO":"A","ID_NIVEL":"1","FECHA_DIGITACION":"15/01/2024","FECHA_ACTUALIZACION_PERSONA":"15/01/2024","ID_MARCA":"0","ID_ESTADO":"10","FECHA_ACTUALIZACION_CNS":"2024-01-15 10:30:00"}""", "SISBEN_EXPERIAN_202401.20240205103000-0500.txt", Nil, SISBENCurationSpec.Homologacion)
     import scala.collection.JavaConverters._
-    assert(record.toJavaMap.keySet.asScala.toSeq == SISBENCurationSpec.ClavesPublicadas)
+    val claves = record.toJavaMap.keySet.asScala.toSeq
+    assert(claves == SISBENCurationSpec.ClavesPublicadas.filter(claves.contains))
+    assert(SISBENCurationSpec.ClavesPublicadas.filterNot(claves.contains).forall(SISBENCurationSpec.OmitirSiNulas))
   }
 
   // TODO(manual): casos de enriquecimiento (IN-06) y de la derivación del tipo de archivo cuando

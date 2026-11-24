@@ -17,7 +17,16 @@ oxygen.stage.pinning {
   paths {
     # Lista de un solo elemento — el motor ignora silenciosamente cualquier
     # elemento adicional. [C] si identifying-attributes.json ya fue generado.
+    # Modo Colombia: NO redefinir; la lista compartida identifying-attributes-new.json
+    # ya está en el conf de Colombia (SKILL.md, Modo Colombia).
     identifyingAttributesFile = ["identifying-attributes.json"]
+
+    # Domain dictionary propio de Pinning (AUD-P1). SparkPinner lo lee de
+    # oxygen.stage.pinning.paths.domainDictionaryFile (SparkPinner.scala:192-198);
+    # si falta, captura NoSuchElementException, solo deja un warn y sigue con "".
+    # Fail-silent: confirmar en el fork si el conf del ambiente ya lo define.
+    # Modo Colombia: si la clave ya existe en el conf compartido, NO redefinir.
+    domainDictionaryFile = {{DOMAIN_DICTIONARY_FILE_O_PENDIENTE}}
   }
 
   # TODO(decisión de negocio pendiente, ver references/decisiones-pendientes.md
@@ -30,6 +39,10 @@ oxygen.stage.pinning {
   # Sin FQCN por defecto — solo completar si existe evidencia de que esta
   # ingesta requiere partir clusters que el grafo unió pero que reglas de
   # dominio dictan mantener separados.
+  # VERIFICAR EN EL FORK el nombre de la clave (AUD-P1): SparkPinner.scala:221
+  # lee oxygenConf.oxygen.CLUSTER_SPLITTER, una constante de oxygen-global que no
+  # está en la copia del motor; ningún .conf del repo trae "clusterSplitter".
+  # Si el nombre no coincide, el motor no aplica splitter y no avisa.
   clusterSplitter = {{CLUSTER_SPLITTER_FQCN_O_NULL}}
 
   # true = pinning estático (reusa pines de la generación de referencia).

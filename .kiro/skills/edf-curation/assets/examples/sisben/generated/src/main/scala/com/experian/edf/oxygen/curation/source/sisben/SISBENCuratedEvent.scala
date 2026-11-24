@@ -2,7 +2,8 @@
 // Evento curado de SISBEN (CUR-P15). Las claves del JSON de write son los nombres publicados
 // y coinciden exactamente con el domain dictionary (CUR-RC05, CUR-T05).
 // Campos con severidad de no almacenamiento (RF-CUR-10) se omiten del JSON; los nulos se
-// escriben como null (ASSUMPTION: C-CUR-05).
+// escriben como null (ASSUMPTION: C-CUR-05), salvo las claves de identidad de
+// parametros.omitir_si_nulas (por defecto standardizedId*), que se omiten si son nulas (AUD-C4).
 package com.experian.edf.oxygen.curation.source.sisben
 
 import com.experian.edf.oxygen.domain.internal.CuratedEvent

@@ -67,6 +67,7 @@ properties:
       convencion: {type: string}
       estado: {$ref: "#/$defs/estado"}
       file_pattern: {type: string, pattern: "^\\.\\*"}
+      # Grupo 1 = prefijo (tipo de archivo), grupo 2 = AAAAMM. El generador exige que compile y tenga 2 grupos (AUD-C2).
       regex_derivacion: {type: string}
       tipo_por_prefijo:
         type: object
@@ -100,6 +101,10 @@ properties:
       niveles_no_almacenar: {type: array, items: {type: string}}
       niveles_anular: {type: array, items: {type: string}}
       campo_advertencias: {$ref: "#/$defs/identificador_campo"}
+      # AUD-C4 (C-CUR-05). Opcional. Campos curados que se OMITEN del evento (clave ausente, nunca null) cuando su
+      # valor es nulo: Pinning lee estas claves como atributos de identidad. Si no se declara: todo destino que
+      # empieza por standardizedId. Cada entrada debe ser un campos_curados[].destino.
+      omitir_si_nulas: {type: array, uniqueItems: true, items: {$ref: "#/$defs/identificador_campo"}}
   campos_entrada:
     type: array
     minItems: 1
@@ -181,7 +186,8 @@ properties:
       type: object
       required: [destino, motivo]
   # Opcional (F-FW-11, decisión D14). Si se declara, el processor sobrescribe subscriberRelation con los campos
-  # curados indicados unidos por el separador; si falta alguno, conserva el del evento aceptado. Sin este bloque,
+  # curados indicados unidos por el separador; si falta alguno, conserva el del evento aceptado y el registro lleva
+  # la advertencia subscriberRelation:COMPONENTE_FALTANTE (AUD-C3). Sin este bloque,
   # subscriberRelation se copia del evento aceptado (D3). Las demás claves del bloque son documentales.
   extension_subscriber_relation:
     type: object
@@ -243,7 +249,10 @@ x-placeholders:
   mapeos_scala: {origen: "derivado: campos_curados (Capa B)"}
   claves_publicadas_scala: {origen: "derivado: campos_curados.destino + parametros.campo_advertencias"}
   campos_record_scala: {origen: "derivado: campos_curados (tipo Scala por tipo_salida)"}
-  campos_to_map_scala: {origen: "derivado: campos_curados"}
+  campos_to_map_scala: {origen: "derivado: campos_curados + parametros.omitir_si_nulas"}
+  omitir_si_nulas_scala: {origen: "derivado: parametros.omitir_si_nulas (o destinos standardizedId*)"}
+  casos_lector_scala: {origen: "derivado: implementación de referencia (lector Gson, AUD-C5)"}
+  casos_transformaciones_scala: {origen: "derivado: implementación de referencia (acciones de Capa A, AUD-C5)"}
   campos_from_map_scala: {origen: "derivado: campos_curados"}
   campos_abiertos_comentario: {origen: "derivado: campos_abiertos"}
   supuestos_comentario: {origen: "derivado: campos_curados.estado + estados de secciones"}

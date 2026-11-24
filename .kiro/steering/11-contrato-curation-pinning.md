@@ -57,11 +57,18 @@ Pinning compara **texto exacto**. No pasa a mayúsculas, no quita tildes ni espa
 
 Consecuencia operativa: un error aquí no falla en build ni en ejecución; falla en los datos. Riesgo **N3** (`06` §2).
 
+**Claves de identidad: ausentes, nunca `null` `[C]`** (auditoría 2026-11-24, `edf-curation` AUD-C4 y `edf-pinning` AUD-P2).
+
+- Curation omite del evento las claves de identidad cuyo valor es nulo: `parametros.omitir_si_nulas` del `source-spec`, por defecto todo `standardizedId*`. Las demás claves nulas siguen como `null`.
+- Por qué: el motor entrega `""` por un atributo que el evento no trae (comentario de `IdentityMatcher.scala:46-49` en la copia del motor), pero un `null` llega como valor y `ISIdentityMatcher` hace `.get.toString` (`ISIdentityMatcher.scala:46-54`): falla la ejecución.
+- Obligación de Pinning: los matchers leen atributos con `Option` / `getOrElse("")`, nunca con `.get`, y tratan `""` como dato faltante (no como coincidencia).
+- `subscriberRelation` nunca sale vacío de Curation: si falta un componente de `extension_subscriber_relation`, se conserva el aceptado y el registro lo advierte (`subscriberRelation:COMPONENTE_FALTANTE`). Un vacío uniría personas distintas en el `doesMatch` base (`IdentityMatcher.scala:55`).
+
 ## 4. Tabla del contrato por campo
 
 `edf-analisis` llena esta tabla por ingesta en `insumos/contrato-curation-pinning.md` y es la fuente para `yaml-skill-pinning.yaml` → `mapeo_identidad.atributos`.
 
-| Clave publicada en `curatedRecordJson` | Tipo publicado | ¿Puede ser `null`? | Normalización aplicada en Curation | PII | Slot del motor (`atributo_motor`) | Estado |
+| Clave publicada en `curatedRecordJson` | Tipo publicado | ¿Puede faltar? (nunca `null`, §3) | Normalización aplicada en Curation | PII | Slot del motor (`atributo_motor`) | Estado |
 |---|---|---|---|---|---|---|
 
 Reglas:

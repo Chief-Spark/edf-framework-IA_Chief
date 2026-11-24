@@ -41,7 +41,8 @@ spec SISBEN (`UTC`) aparece siempre mientras C-CUR-04 siga abierta (ADR-G4).
    `oxygen.stage.curation.configs` del inner (agregar el elemento; no reemplazar la lista).
 3. Fusionar `oxygen-lookup-inner.sisben.conf` en `oxygen.lookups` y subir
    `202_SISBEN_PROCESS_ID_TYPE_HO.csv` (real, no el sintético) a `lookupHome/sisben/`.
-4. Agregar las entradas de `colombia-domain-dictionary-inner.sisben.json` al dictionary del inner.
+4. Agregar las entradas de `fields[]` de `colombia-domain-dictionary-inner.sisben.json` al dictionary del
+   inner (solo `name` y `description`; `dataType` y `handler` los fija Synthesis, C-CUR-06).
 5. Verificar en el ambiente: `emitStockMetrics` y `consistency.paths.domainDictionaryFile` existen;
    `enable.defaultCurationProcessor` apagado; ningún `excludes` cubre SISBEN.
 
@@ -55,6 +56,13 @@ mvn test                            # TransformacionesSpec y SISBENCurationProce
 `TransformacionesSpec` (Capa A) solo necesita Scala + ScalaTest, con `org.scalatestplus:junit-4-13_2.12`
 y JUnit 4 por su `@RunWith(classOf[JUnitRunner])`; puede compilarse aparte como check
 parcial. `SISBENCurationProcessorSpec` necesita el framework.
+
+**Prueba del lado del fork (AUD-C9).** `SISBENCurationProcessorSpec` llama al núcleo (`curar`, `relacion`),
+nunca a `curateEvent` ni al gancho `subscriberRelation`: los dos reciben un `TaggedValidatedEvent` del JAR.
+En el fork, agregar una prueba que construya un `TaggedValidatedEvent` sintético y verifique:
+`curateEvent(ev).write` = `curarJson(...)` del mismo caso; `subscriberRelation(ev)` = `relacion(...)`
+(o el aceptado sin la extensión); un `errorCodes` nulo o con elementos nulos no lanza; `enrichEventWithPayload`
+devuelve `ev.payload`.
 
 ## 3. Local
 
@@ -108,4 +116,5 @@ spark-submit --master yarn --deploy-mode cluster \
 | Dataset éxito pero sin salida | `excludes` lo cubre, o `filePattern` no coincide con la ruta sin extensión | revisar `excludes`; probar el patrón con el nombre del directorio |
 | Menos eventos curados que aceptados | `lineage.fileName` no coincide con el patrón, o excepción por registro | comparar conteos; buscar `Curation of Event ... failed IGNORING` (no debería ocurrir con el processor generado) |
 | Salida con todos los campos del default | `defaultCurationProcessor` activo | apagar la feature |
-| `tipoDocumento` nulo en todos | lookup 202 vacío y tabla embebida desactualizada | revisar el CSV y el `warn` de arranque |
+| `tipoDocumento` nulo en todos | lookup 202 vacío y tabla embebida desactualizada | revisar el CSV y el `warn` de arranque (claves sin respuesta; se completan con la tabla embebida, AUD-C6) |
+| Registros con `registro:ERROR_INTERNO` | fallo inesperado en el núcleo | buscar `Error interno al curar el evento` en el log: trae `eventId` y la clase de la excepción (AUD-C2) |

@@ -31,7 +31,7 @@ Para ingestas del bureau de Colombia (`bureau.colombia_innersource`), **no gener
 
 Si `OQ-TR-6` se resuelve con una bandera **nueva**, el cambio toca tres piezas compartidas (`identifying-attributes-new.json`, `IdentityAttributesKey`, `doesMatch`): riesgo N3 fijo (steering `06` §2.2). Solo entregas el diff como propuesta en `propuestas/pinning/`; lo aplica una persona en el repo.
 
-En modo Colombia tu entrega es: el bloque HOCON de `pinning-application.conf` (con `reusePin = false` en ingesta nueva), la verificación de que las claves existen y la lista de bloqueos abiertos. Las secciones de `IdentityMatcher.scala.template` y de la aritmética del umbral **no aplican** (el matcher de Colombia es determinista: match / no match).
+En modo Colombia tu entrega es: el bloque HOCON de `pinning-application.conf` (con `reusePin = false` en ingesta nueva; sin redefinir las claves compartidas, como `identifyingAttributesFile` o `domainDictionaryFile` si ya existen), la verificación de que las claves existen y la lista de bloqueos abiertos. Las secciones de `IdentityMatcher.scala.template` y de la aritmética del umbral **no aplican** (el matcher de Colombia es determinista: match / no match).
 
 
 Este skill convierte un mapeo de identidad ya confirmado (normalmente ya resuelto en un YAML intermedio como `yaml-skill-pinning.yaml`) en un paquete de artefactos listos para revisión humana: un `IdentityMatcher` en Scala, su `identifying-attributes.json`, y el bloque HOCON de configuración que los conecta.
@@ -77,7 +77,7 @@ Un array plano de strings con los nombres de slot `[C]`, en el mismo orden que a
 
 ### 5. Genera el bloque HOCON desde `assets/pinning-application-block.conf.template`
 
-Completa solo las claves para las que tengas una fuente o una decisión explícita del usuario. Las claves con conflicto conocido entre defaults (como `groupSSR`, documentado en la plantilla) nunca se completan con uno de los dos valores en conflicto sin que el usuario lo decida explícitamente — preséntale el conflicto, no lo resuelvas tú.
+Completa solo las claves para las que tengas una fuente o una decisión explícita del usuario. `clusterSplitter` y `paths.domainDictionaryFile` llevan "verificar en el fork" (AUD-P1): el nombre de la primera no tiene evidencia en la copia del motor y la ausencia de la segunda solo deja un `warn`. Las claves con conflicto conocido entre defaults (como `groupSSR`, documentado en la plantilla) nunca se completan con uno de los dos valores en conflicto sin que el usuario lo decida explícitamente — preséntale el conflicto, no lo resuelvas tú.
 
 ### 6. Entrega los tres artefactos juntos, con un resumen de huecos
 

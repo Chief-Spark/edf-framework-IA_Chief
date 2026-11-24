@@ -28,6 +28,7 @@ object SISBENAcceptedRecord {
   val vacio: SISBENAcceptedRecord = new SISBENAcceptedRecord(Map.empty)
 
   def parse(json: String): Either[String, SISBENAcceptedRecord] =
+    // SILENCIO-INTENCIONAL CUR-RC03: un JSON ilegible no lanza; el registro sale con registro:REGISTRO_ILEGIBLE.
     Try(new JsonParser().parse(json)).toOption
       .filter(e => e != null && e.isJsonObject)
       .map(_.getAsJsonObject) match {
@@ -40,7 +41,10 @@ object SISBENAcceptedRecord {
         Right(new SISBENAcceptedRecord(campos))
     }
 
-  /** Números enteros sin ".0" (1.0 → "1"); el resto como texto. */
+  /**
+   * Números sin ceros finales (1.0 → "1", 1.5e3 → "1500"); booleanos "true"/"false"; arreglos y objetos como
+   * JSON compacto de Gson. La referencia Python (_parse_registro) da el mismo texto (AUD-C5).
+   */
   private def comoTexto(v: JsonElement): String =
     if (v.isJsonPrimitive && v.getAsJsonPrimitive.isNumber)
       v.getAsJsonPrimitive.getAsBigDecimal.stripTrailingZeros.toPlainString

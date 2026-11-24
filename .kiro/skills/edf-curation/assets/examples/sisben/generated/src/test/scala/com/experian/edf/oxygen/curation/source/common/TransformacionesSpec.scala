@@ -103,4 +103,39 @@ class TransformacionesSpec extends AnyFunSuite {
     assert(Transformaciones.infoArchivo("FUENTE_202413", rx, pref, utc) == (Some("REGULAR"), None))
     assert(Transformaciones.infoArchivo(null, rx, pref, utc) == (None, None))
   }
+
+  test("infoArchivo: regex con menos de 2 grupos o grupo 2 ausente no lanza (AUD-C2)") {
+    val pref = Map("RT_" -> "RT", "" -> "REGULAR")
+    assert(Transformaciones.infoArchivo("RT_FUENTE_202402", """(RT_)?FUENTE_\d{6}""".r, pref, utc) == (None, None))
+    assert(Transformaciones.infoArchivo("RT_FUENTE_X", """(RT_)?FUENTE_(\d{6})?""".r, pref, utc) == (Some("RT"), None))
+  }
+
+  test("acciones: mismo resultado que la implementación de referencia (AUD-C5)") {
+    assert(Transformaciones.nombre(Some(" José-María "), conservarEnie = false) == Resultado.ok("JOSE MARIA"))
+    assert(Transformaciones.nombre(Some(" José-María "), conservarEnie = true) == Resultado.ok("JOSE MARIA"))
+    assert(Transformaciones.nombre(Some("Pruebañez"), conservarEnie = false) == Resultado.ok("PRUEBANEZ"))
+    assert(Transformaciones.nombre(Some("Pruebañez"), conservarEnie = true) == Resultado.ok("PRUEBAÑEZ"))
+    assert(Transformaciones.nombre(Some("123"), conservarEnie = false) == Resultado.advertir("NO_NORMALIZABLE"))
+    assert(Transformaciones.nombre(Some("123"), conservarEnie = true) == Resultado.advertir("NO_NORMALIZABLE"))
+    assert(Transformaciones.nombre(Some("   "), conservarEnie = false) == Resultado.nulo)
+    assert(Transformaciones.nombre(Some("   "), conservarEnie = true) == Resultado.nulo)
+    assert(Transformaciones.paddingIzquierda(Some("5"), 2) == Resultado.ok("05"))
+    assert(Transformaciones.paddingIzquierda(Some("A1"), 2) == Resultado.advertir("FORMATO_INVALIDO"))
+    assert(Transformaciones.paddingIzquierda(Some("123"), 2) == Resultado.advertir("FORMATO_INVALIDO"))
+    assert(Transformaciones.paddingIzquierda(Some("5001"), 5) == Resultado.ok("05001"))
+    assert(Transformaciones.documento(Some(" 000 9990001 "), ReglaDocumento(quitarCerosIzquierda = true, soloDigitos = false, conservarOriginal = false, padding = None)) == Resultado.ok("9990001"))
+    assert(Transformaciones.documento(Some("PE0999A0003"), ReglaDocumento(quitarCerosIzquierda = true, soloDigitos = true, conservarOriginal = false, padding = None)) == Resultado.ok("9990003"))
+    assert(Transformaciones.documento(Some("42"), ReglaDocumento(quitarCerosIzquierda = true, soloDigitos = false, conservarOriginal = false, padding = Some(5))) == Resultado.ok("00042"))
+    assert(Transformaciones.documento(Some("000"), ReglaDocumento(quitarCerosIzquierda = true, soloDigitos = false, conservarOriginal = false, padding = None)) == Resultado.advertir("NO_NORMALIZABLE"))
+    assert(Transformaciones.concatenar(Seq(Some("ANA"), None, Some("PRUEBA"), Some(" ")), " ") == Resultado.ok("ANA PRUEBA"))
+    assert(Transformaciones.convertir(Some("12"), TipoSalida.Entero) == Resultado.ok(12))
+    assert(Transformaciones.convertir(Some("X1"), TipoSalida.Entero) == Resultado.advertir("FORMATO_INVALIDO"))
+    assert(Transformaciones.convertir(Some("2147483648"), TipoSalida.Entero) == Resultado.advertir("FORMATO_INVALIDO"))
+    assert(Transformaciones.convertir(Some("2147483648"), TipoSalida.Largo) == Resultado.ok(2147483648L))
+    assert(Transformaciones.convertir(Some("1.5"), TipoSalida.Decimal) == Resultado.ok(1.5))
+    assert(Transformaciones.convertir(Some("1,5"), TipoSalida.Decimal) == Resultado.advertir("FORMATO_INVALIDO"))
+    assert(Transformaciones.convertir(Some("TRUE"), TipoSalida.Booleano) == Resultado.ok(true))
+    assert(Transformaciones.convertir(Some("si"), TipoSalida.Booleano) == Resultado.advertir("FORMATO_INVALIDO"))
+    assert(Transformaciones.convertir(Some(" 7 "), TipoSalida.Texto) == Resultado.ok(" 7 "))
+  }
 }

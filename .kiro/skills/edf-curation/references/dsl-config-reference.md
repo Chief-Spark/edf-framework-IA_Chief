@@ -85,8 +85,10 @@ la extensión de referencia: SUPUESTO (CUR-PT02; `OxygenLookup` no está en las 
 ## Domain dictionary
 
 Archivo `colombia-domain-dictionary-inner.json`; lo consume Synthesis. El skill genera entradas
-`{name, type, nullable}` desde Capa B. **Formato SUPUESTO** (C-CUR-06): adaptar la envoltura al
-formato real conservando nombres y tipos. Entradas aditivas; nunca eliminar ni renombrar.
+`{name, description}` desde Capa B (AUD-C1). Formato verificado en la copia del motor (C-CUR-06):
+versión 2, `DomainDictionaryV2`. `dataType` y `handler` los fija Synthesis; `dataType` queda por
+verificar en el fork (enum fuera del repo). Se fusionan solo las entradas de `fields[]`. Entradas
+aditivas; nunca eliminar ni renombrar.
 
 ## Constructor y contexto
 

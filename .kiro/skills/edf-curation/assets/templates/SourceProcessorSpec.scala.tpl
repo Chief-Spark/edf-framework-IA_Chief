@@ -3,6 +3,8 @@
 // {{processor_clase}}.curar; requiere el JAR del framework en el classpath para compilar
 // (CuratedEvent, TaggedValidatedEvent): compilación NO CERTIFICADA (F-01).
 // Los JSON esperados salen de la implementación de referencia (scripts/curation_reference.py).
+// AUD-C9: estas pruebas llaman al núcleo (curar, relacion), no a curateEvent ni al gancho subscriberRelation,
+// que necesitan un TaggedValidatedEvent del JAR. Esa prueba se escribe en el fork (runbook-ejecucion.md §fork).
 package {{paquete_fuente}}
 
 import org.junit.runner.RunWith
@@ -23,6 +25,9 @@ class {{processor_clase}}Spec extends AnyFunSuite {
   // ---- subscriberRelation (extension_subscriber_relation, D14)
 {{casos_relacion_scala}}
 
+  // ---- Lector de validatedRecordJson (mismo texto que la referencia, AUD-C5)
+{{casos_lector_scala}}
+
   // ---- Propiedades fijas del contrato
   test("write/read: ida y vuelta conserva el JSON") {
     val ev = new {{Fuente}}CuratedEvent(curarJson({{evento_base_json_scala}}, "{{archivo_base}}"))
@@ -34,14 +39,18 @@ class {{processor_clase}}Spec extends AnyFunSuite {
     assert(record.{{campo_advertencias}}.contains("registro:REGISTRO_ILEGIBLE"))
   }
 
-  test("null y basura no lanzan") {
-    assert({{processor_clase}}.curar(null, null, null, Map.empty).{{campo_advertencias}}.nonEmpty)
+  test("null y basura no lanzan; errores nulo = sin errores (AUD-C5)") {
+    val record = {{processor_clase}}.curar(null, null, null, Map.empty)
+    assert(record.{{campo_advertencias}}.contains("registro:REGISTRO_ILEGIBLE"))
+    assert(!record.{{campo_advertencias}}.contains("registro:ERROR_INTERNO"))
   }
 
-  test("claves del evento = domain dictionary (CUR-RC05)") {
+  test("claves del evento = domain dictionary (CUR-RC05); solo faltan claves de identidad nulas (AUD-C4)") {
     val record = {{processor_clase}}.curar({{evento_base_json_scala}}, "{{archivo_base}}", Nil, {{Fuente}}CurationSpec.Homologacion)
     import scala.collection.JavaConverters._
-    assert(record.toJavaMap.keySet.asScala.toSeq == {{Fuente}}CurationSpec.ClavesPublicadas)
+    val claves = record.toJavaMap.keySet.asScala.toSeq
+    assert(claves == {{Fuente}}CurationSpec.ClavesPublicadas.filter(claves.contains))
+    assert({{Fuente}}CurationSpec.ClavesPublicadas.filterNot(claves.contains).forall({{Fuente}}CurationSpec.OmitirSiNulas))
   }
 
 {{pruebas_pendientes_comentario}}

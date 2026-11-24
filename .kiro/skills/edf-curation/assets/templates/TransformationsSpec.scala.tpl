@@ -103,4 +103,12 @@ class TransformacionesSpec extends AnyFunSuite {
     assert(Transformaciones.infoArchivo("FUENTE_202413", rx, pref, utc) == (Some("REGULAR"), None))
     assert(Transformaciones.infoArchivo(null, rx, pref, utc) == (None, None))
   }
+
+  test("infoArchivo: regex con menos de 2 grupos o grupo 2 ausente no lanza (AUD-C2)") {
+    val pref = Map("RT_" -> "RT", "" -> "REGULAR")
+    assert(Transformaciones.infoArchivo("RT_FUENTE_202402", """(RT_)?FUENTE_\d{6}""".r, pref, utc) == (None, None))
+    assert(Transformaciones.infoArchivo("RT_FUENTE_X", """(RT_)?FUENTE_(\d{6})?""".r, pref, utc) == (Some("RT"), None))
+  }
+
+{{casos_transformaciones_scala}}
 }

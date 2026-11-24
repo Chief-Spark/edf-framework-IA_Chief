@@ -53,7 +53,12 @@ ORIGEN_ZONA_POR_DEFECTO = "supuesto"
 HUECO = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
 SCALA_TIPO = {"texto": "String", "entero": "Int", "largo": "Long", "decimal": "Double", "booleano": "Boolean"}
 TIPO_SALIDA_SCALA = {"texto": "Texto", "entero": "Entero", "largo": "Largo", "decimal": "Decimal", "booleano": "Booleano"}
-DD_TIPO = {"texto": "string", "entero": "integer", "largo": "long", "decimal": "double", "booleano": "boolean"}
+# AUD-C1: el fragmento del domain dictionary lleva por campo solo name y description (texto libre con el tipo de
+# salida). dataType (versión 2) es un enum de oxygen-global que no está en la copia del motor: un valor inválido
+# rompe la lectura de todo el diccionario, así que no se emite (el motor usa STRING por defecto). handler lo fija
+# Synthesis (por defecto LFP). Ver C-CUR-06.
+DD_DESCRIPCION = "Curation: tipo de salida {tipo}; dataType y handler los fija Synthesis"
+DD_DESCRIPCION_ADVERTENCIAS = "Curation: lista de advertencias campo:MOTIVO, sin valores de dato (D13)"
 TRANSF_SCALA = {
     "texto": "Transformacion.Texto",
     "original": "Transformacion.Original",
@@ -65,7 +70,7 @@ TRANSF_SCALA = {
 # Transformaciones que no leen un campo de entrada: no llevan origen.
 SIN_ORIGEN = ("desde_archivo", "copia_de", "constante", "concatenacion")
 # Huecos que pueden quedar vacíos: representan una lista vacía legítima dentro de un Set(...) de Scala (F-FW-13).
-PUEDEN_QUEDAR_VACIOS = {"pendientes_scala", "niveles_no_almacenar_scala", "niveles_anular_scala"}
+PUEDEN_QUEDAR_VACIOS = {"pendientes_scala", "niveles_no_almacenar_scala", "niveles_anular_scala", "omitir_si_nulas_scala"}
 
 
 class RenderError(Exception):
@@ -172,6 +177,10 @@ def validar_coherencia(spec: dict[str, Any]) -> None:
         sin_publicar = sorted({c for c in ext.get("campos") or [] if c not in destinos})
         if sin_publicar:
             raise RenderError(f"extension_subscriber_relation: campos que no se publican: {sin_publicar}")
+    # AUD-C4: las claves que se omiten si son nulas deben ser campos curados publicados.
+    no_publicadas = sorted({c for c in spec["parametros"].get("omitir_si_nulas") or [] if c not in destinos})
+    if no_publicadas:
+        raise RenderError(f"parametros.omitir_si_nulas: campos que no se publican: {no_publicadas}")
     for codigo, campo in spec["codigos_error"].items():
         if campo not in entradas:
             raise RenderError(f"código {codigo}: campo {campo} no está en campos_entrada")
@@ -181,6 +190,13 @@ def validar_coherencia(spec: dict[str, Any]) -> None:
     except ValueError:
         raise RenderError(f"parametros.zona_asofdate_etapa_anterior: zona inválida {zona_asof}") from None
     archivo = spec["archivo"]
+    # AUD-C2: infoArchivo lee el grupo 1 (prefijo) y el grupo 2 (AAAAMM) de regex_derivacion.
+    try:
+        derivacion = re.compile(archivo["regex_derivacion"])
+    except re.error as e:
+        raise RenderError(f"archivo.regex_derivacion no compila: {e}") from None
+    if derivacion.groups < 2:
+        raise RenderError("archivo.regex_derivacion debe tener al menos 2 grupos: prefijo (1) y AAAAMM (2)")
     pat = re.compile(archivo["file_pattern"])
     for ej in archivo.get("ejemplos_sinteticos") or []:
         if not pat.fullmatch(ej):
@@ -449,9 +465,25 @@ def lookups_hocon(spec: dict[str, Any]) -> str:
 
 
 def domain_dictionary(spec: dict[str, Any]) -> str:
-    filas = [{"name": m["destino"], "type": DD_TIPO[m["tipo_salida"]], "nullable": True} for m in spec["campos_curados"]]
-    filas.append({"name": spec["parametros"]["campo_advertencias"], "type": "array<string>", "nullable": False})
+    """Entradas de fields[] en formato del motor (DomainDictionaryV2): name + description (AUD-C1, C-CUR-06)."""
+    filas = [{"name": m["destino"], "description": DD_DESCRIPCION.format(tipo=m["tipo_salida"])}
+             for m in spec["campos_curados"]]
+    filas.append({"name": spec["parametros"]["campo_advertencias"], "description": DD_DESCRIPCION_ADVERTENCIAS})
     return ",\n".join("    " + json.dumps(f, ensure_ascii=False) for f in filas)
+
+
+def campos_to_map(spec: dict[str, Any]) -> str:
+    """Cuerpo de toJavaMap: nulos como null (C-CUR-05) salvo las claves de omitir_si_nulas, que se omiten (AUD-C4)."""
+    nulas = set(ref.omitir_si_nulas(spec))
+    lineas = []
+    for m in spec["campos_curados"]:
+        d = m["destino"]
+        if d in nulas:
+            lineas.append(f"    if (!omitidos({q(d)})) {d}.foreach(v => m.put({q(d)}, v.asInstanceOf[AnyRef]))"
+                          "  // AUD-C4: clave de identidad, ausente si es nula")
+        else:
+            lineas.append(f"    if (!omitidos({q(d)})) m.put({q(d)}, {d}.map(_.asInstanceOf[AnyRef]).orNull)")
+    return "\n".join(lineas)
 
 
 # ---------------------------------------------------------------- subscriberRelation (F-FW-11, D14)
@@ -465,8 +497,10 @@ def relacion_override_scala(spec: dict[str, Any]) -> str:
     return "\n".join([
         "  /**",
         f"   * subscriberRelation = {componentes} (extension_subscriber_relation). Usa el mismo núcleo que",
-        "   * curateEvent; si falta algún componente conserva el del evento aceptado. Nunca lanza.",
-        "   * ASSUMPTION: D14 — firma del gancho CurationProcessor.subscriberRelation sin verificar contra el JAR (F-01).",
+        "   * curateEvent; si falta algún componente conserva el del evento aceptado y el registro curado lleva",
+        "   * subscriberRelation:COMPONENTE_FALTANTE (AUD-C3). Nunca lanza.",
+        "   * D14 (AUD-C8): firma del gancho verificada en la copia del motor (CurationProcessor.subscriberRelation(event): String;",
+        "   * Curator la invoca por evento). Falta compilar contra el JAR (F-01).",
         "   */",
         "  override def subscriberRelation(event: TaggedValidatedEvent): String = {",
         "    val errores = Option(event.errorCodes).map(_.toSeq).getOrElse(Seq.empty)",
@@ -481,20 +515,32 @@ def relacion_helper_scala(spec: dict[str, Any]) -> str:
     """Núcleo puro en el objeto del processor: se prueba sin Spark."""
     ext = spec.get("extension_subscriber_relation")
     if ext is None:
-        return "  // subscriberRelation: sin extension_subscriber_relation en la spec (D3)."
+        return "\n".join([
+            "  // subscriberRelation: sin extension_subscriber_relation en la spec (D3).",
+            "  private def advertenciaRelacion(valores: Map[String, Option[Any]]): Option[String] = None",
+        ])
     return "\n".join([
         "  /** Campos curados que forman subscriberRelation y su separador (extension_subscriber_relation, D14). */",
         f"  private val CamposRelacion: Seq[String] = Seq({lista_scala(ext['campos'])})",
         f"  private val SeparadorRelacion: String = {q(ext['separador'])}",
         "",
-        "  /** subscriberRelation = campos curados unidos; si falta alguno, el del evento aceptado (`copiado`). Nunca lanza. */",
+        "  /** AUD-C3: si falta algún componente, subscriberRelation conserva el aceptado y el registro lo advierte. */",
+        "  private def advertenciaRelacion(valores: Map[String, Option[Any]]): Option[String] =",
+        "    if (CamposRelacion.forall(c => valores.getOrElse(c, None).exists(_.toString.trim.nonEmpty))) None",
+        "    else Some(\"subscriberRelation:\" + Motivos.ComponenteFaltante)",
+        "",
+        "  /**",
+        "   * subscriberRelation = campos curados unidos; si falta alguno, el del evento aceptado (`copiado`). Nunca lanza.",
+        "   * No se devuelve \"\" (AUD-C3): el doesMatch base de Pinning une registros con igual subscriber y",
+        "   * subscriberRelation, y un valor vacío uniría personas distintas.",
+        "   */",
         "  def relacion(json: String, fileName: String, errores: Seq[(String, String)], homologacion: Map[String, String],",
         "               copiado: String): String =",
         "    try {",
         "      val m = curar(json, fileName, errores, homologacion).toJavaMap",
         "      val partes = CamposRelacion.map(c => Option(m.get(c)).map(_.toString.trim).filter(_.nonEmpty))",
         "      if (partes.forall(_.isDefined)) partes.flatten.mkString(SeparadorRelacion) else copiado",
-        "    } catch { case NonFatal(_) => copiado }",
+        "    } catch { case NonFatal(_) => copiado }  // SILENCIO-INTENCIONAL D14: curar ya registra el error; se conserva el aceptado",
     ])
 
 
@@ -508,17 +554,20 @@ def casos_relacion_scala(spec: dict[str, Any], eventos: list[dict], curados: lis
         return "  // Sin extension_subscriber_relation: subscriberRelation se copia del evento aceptado."
     clase = spec["processor"]["nombre_clase"]
     fuente = spec["fuente"]["Fuente"]
+    adv = spec["parametros"]["campo_advertencias"]
+    falta = f"subscriberRelation:{ref.COMPONENTE_FALTANTE}"
     por_id = {c["eventId"]: c for c in curados}
-    lineas = ['  test("subscriberRelation: campos curados unidos; si falta alguno, el del evento aceptado") {']
+    lineas = ['  test("subscriberRelation: campos curados unidos; si falta alguno, el del evento aceptado y una advertencia") {']
     for ev in eventos:
         c = por_id.get(ev["eventId"])
         if c is None:
             continue
         esperado = ref.subscriber_relation(c["curatedRecordJson"], spec, "COPIADO")
-        lineas.append(
-            f"    assert({clase}.relacion({tq(ev['validatedRecordJson'])}, {q(ev['lineage']['fileName'])}, "
-            f"Seq({_errores_scala(ev)}), {fuente}CurationSpec.Homologacion, \"COPIADO\") == {q(esperado)})"
-            f"  // {ev['eventId']}")
+        args = (f"{tq(ev['validatedRecordJson'])}, {q(ev['lineage']['fileName'])}, Seq({_errores_scala(ev)}), "
+                f"{fuente}CurationSpec.Homologacion")
+        lineas.append(f"    assert({clase}.relacion({args}, \"COPIADO\") == {q(esperado)})  // {ev['eventId']}")
+        advierte = "true" if falta in c["curatedRecordJson"][adv] else "false"
+        lineas.append(f"    assert({clase}.curar({args}).{adv}.contains({q(falta)}) == {advierte})  // {ev['eventId']}")
     lineas.append("  }")
     return "\n".join(lineas)
 
@@ -538,6 +587,74 @@ def casos_scala(eventos: list[dict[str, Any]], curados: list[dict[str, Any]]) ->
             "  }",
         ]))
     return "\n\n".join(bloques)
+
+
+# AUD-C5: valores JSON no textuales que el lector debe convertir igual que la referencia (Gson).
+JSON_LECTOR = ('{" a ": true, "b": [1, "x", 1.50, null], "c": {"k": 1.5e3, "t": "q\\"z"}, "d": null, '
+               '"e": 2.0, "f": 0.10000000000000001, "g": 100, "h": false, "i": -0.0}')
+
+
+def literal_scala(v: Any, tipo: str | None = None) -> str:
+    """Literal Scala de un valor de la referencia (texto, booleano, entero, largo o decimal)."""
+    if isinstance(v, bool):
+        return "true" if v else "false"
+    if isinstance(v, int):
+        return f"{v}L" if tipo == "largo" else str(v)
+    if isinstance(v, float):
+        return repr(v)
+    return q(v)
+
+
+def resultado_scala(r: tuple[Any, str | None], tipo: str | None = None) -> str:
+    valor, motivo = r
+    if motivo is not None:
+        return f"Resultado.advertir({q(motivo)})"
+    return "Resultado.nulo" if valor is None else f"Resultado.ok({literal_scala(valor, tipo)})"
+
+
+def _opcion_scala(v: str | None) -> str:
+    return "None" if v is None else f"Some({q(v)})"
+
+
+def casos_lector_scala(spec: dict[str, Any]) -> str:
+    """Pruebas del lector de validatedRecordJson; el esperado sale de la referencia (AUD-C5)."""
+    fuente = spec["fuente"]["Fuente"]
+    esperado = ref._parse_registro(JSON_LECTOR)
+    lineas = ['  test("lector: booleanos, números y JSON anidado como Gson (AUD-C5)") {',
+              f"    val r = {fuente}AcceptedRecord.parse({tq(JSON_LECTOR)}).toOption.get"]
+    for clave in ("A", "B", "C", "D", "E", "F", "G", "H", "I"):
+        v = esperado.get(clave)
+        v = None if v is None else (v.strip() or None)
+        lineas.append(f"    assert(r.get({q(clave)}) == {_opcion_scala(v)})")
+    lineas.append("  }")
+    return "\n".join(lineas)
+
+
+def casos_transformaciones_scala() -> str:
+    """Pruebas de Capa A cuyo esperado sale de la referencia Python (AUD-C5): mismo resultado en las dos."""
+    lineas = ['  test("acciones: mismo resultado que la implementación de referencia (AUD-C5)") {']
+    for valor in (" José-María ", "Pruebañez", "123", "   "):
+        for enie in (False, True):
+            lineas.append(f"    assert(Transformaciones.nombre({_opcion_scala(valor)}, conservarEnie = "
+                          f"{str(enie).lower()}) == {resultado_scala(ref.nombre(valor, enie))})")
+    for valor, n in (("5", 2), ("A1", 2), ("123", 2), ("5001", 5)):
+        lineas.append(f"    assert(Transformaciones.paddingIzquierda({_opcion_scala(valor)}, {n}) == "
+                      f"{resultado_scala(ref.padding_izquierda(valor, n))})")
+    defecto = {"quitar_ceros_izquierda": True, "solo_digitos": False, "conservar_original": False, "padding": None}
+    for regla, valor in ((defecto, " 000 9990001 "), ({**defecto, "solo_digitos": True}, "PE0999A0003"),
+                         ({**defecto, "padding": 5}, "42"), (defecto, "000")):
+        lineas.append(f"    assert(Transformaciones.documento({_opcion_scala(valor)}, {regla_scala(regla)}) == "
+                      f"{resultado_scala(ref.documento(valor, regla))})")
+    partes = ["ANA", None, "PRUEBA", " "]
+    lineas.append(f"    assert(Transformaciones.concatenar(Seq({', '.join(_opcion_scala(p) for p in partes)}), \" \") == "
+                  f"{resultado_scala(ref.concatenar(partes, ' '))})")
+    for valor, tipo in (("12", "entero"), ("X1", "entero"), (str(2**31), "entero"), (str(2**31), "largo"),
+                        ("1.5", "decimal"), ("1,5", "decimal"), ("TRUE", "booleano"), ("si", "booleano"),
+                        (" 7 ", "texto")):
+        lineas.append(f"    assert(Transformaciones.convertir({_opcion_scala(valor)}, TipoSalida.{TIPO_SALIDA_SCALA[tipo]}) == "
+                      f"{resultado_scala(ref.convertir(valor, tipo), tipo)})")
+    lineas.append("  }")
+    return "\n".join(lineas)
 
 
 def huecos(spec: dict[str, Any], fixture: dict[str, Any], eventos: list[dict],
@@ -580,9 +697,10 @@ def huecos(spec: dict[str, Any], fixture: dict[str, Any], eventos: list[dict],
         "mapeos_scala": lambda: "\n".join(mapeo_scala(m, i == len(cc) - 1) for i, m in enumerate(cc)),
         "claves_publicadas_scala": lambda: lista_scala([m["destino"] for m in cc] + [adv]),
         "campos_record_scala": lambda: ",\n".join(f"  {m['destino']}: Option[{SCALA_TIPO[m['tipo_salida']]}]" for m in cc),
-        "campos_to_map_scala": lambda: "\n".join(
-            f"    if (!omitidos({q(m['destino'])})) m.put({q(m['destino'])}, {m['destino']}.map(_.asInstanceOf[AnyRef]).orNull)"
-            for m in cc),
+        "campos_to_map_scala": lambda: campos_to_map(spec),
+        "omitir_si_nulas_scala": lambda: lista_scala(ref.omitir_si_nulas(spec)),
+        "casos_lector_scala": lambda: casos_lector_scala(spec),
+        "casos_transformaciones_scala": casos_transformaciones_scala,
         "campos_from_map_scala": lambda: ",\n".join(
             f"      {m['destino']} = valores.get({q(m['destino'])}).flatten.collect {{ case v: {SCALA_TIPO[m['tipo_salida']]} => v }}"
             for m in cc),
