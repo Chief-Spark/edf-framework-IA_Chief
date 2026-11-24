@@ -190,6 +190,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:47:50-05:00
 - **Pedido:** Decidir PA-006 (a, b, c) y cómo cubrir AUD-A-01.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** PA-006 la cierra SIM-DEV-01: (a) RQS_BAJO_UMBRAL_SISBEN/SISBFA00001 [P] con comprobación en el fork [PM]; (b) rechazo (solo header / todo filtrado); (c) false. Autoriza umbral alternativo de prueba (0.95: 19/20 aceptado, 47/50 rechazado; el desplegable sigue 0.90; la prueba toma el umbral de la configuración). Autoriza AUD-A-02 (ganador por fecha + empate explícito por eventId), -03 (marcadores como los emite Validation), -04, -06 (RT_ con debe_coincidir true), -07 ([C]). Pide RG para AUD-A-12.
+- **Decisión:** PA-006 resuelta; RG-017 y RG-018 abiertos. Ronda 2 del analista cuando el framework 1.9.5 publique la clave de umbrales alternativos.
 - **Bitácora:** —

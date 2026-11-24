@@ -1106,3 +1106,71 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0065 · `cierre_pregunta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-006 resuelta: [SIMULADO · aprobador SIM-DEV-01] La cierra el Desarrollador (N2; 06 §4: no cambia alcance). (a) RQS_BAJO_UMBRAL_SISBEN / SISBFA00001 como convención [P]; antes de pasar al fork, comprobar que no existen en el fileConditions[] global de acceptance-common-application-inner.conf [PM] (RG-017). (b) Se rechaza (aceptar_cuerpo_vacio false): solo header o todas las filas filtradas (errorInEmptyFileBody, SparkValidator.scala:615-627); deducido de HU R-22, spec RQ-03 y §10.3. (c) customReasonForAutomaticRejectionEnabled = false (default del motor, SparkAcceptor.scala:166; true no cambia decisiones y deja un error en el log, AUD-A-05). |
+| **Quién** | Desarrollador SIM-DEV-01 (SIMULADO, INT-024) |
+| **Cuándo** | 2026-11-24T18:49:09-05:00 |
+| **Por qué** | Respuesta del aprobador simulado con cita a las fuentes. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0066 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-017 (medio, acceptance): Las fileConditions son globales (SparkAcceptor.scala:46): si RQS_BAJO_UMBRAL_SISBEN o SISBFA00001 ya existen en el fork, la decisión cambiaría sin avisar (06 §6 #9) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:49:09-05:00 |
+| **Por qué** | Desarrollador SIM-DEV-01 (SIMULADO, INT-024), PA-006 (a) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0067 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-018 (medio, acceptance): Un archivo sin RQS queda pendiente en validated/ sin otra señal que un error en el log (AUD-A-12, motor) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:49:09-05:00 |
+| **Por qué** | Desarrollador SIM-DEV-01 (SIMULADO, INT-024), AUD-A-12 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0068 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:49:09-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
