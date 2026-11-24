@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Ingesta | `sisben` |
-| Versión / Fecha | 1.0.0 / 2026-11-24 |
+| Versión / Fecha | 1.0.1 / 2026-11-24 |
 | Estado | PROPUESTO |
 | Fuentes | `fuentes/hu-sisben.md` 1.0.2; `fuentes/spec-sisben.md` 1.0.2 (§3 layout, §4 a §8 reglas, §9 catálogos, §10 Curation, §11 Pinning, §12 Synthesis) |
 | Skill | `edf-analisis` (modo etapa 0, tipo T1) |

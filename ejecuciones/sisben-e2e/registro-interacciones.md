@@ -54,6 +54,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T17:26:12-05:00
 - **Pedido:** AUD-E0-16 (fila PA-001 con valores registrados) y AUD-E0-17 (mapeo-campos 1.0.1).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Fila PA-001 (contexto-ingesta.md:112) con los valores registrados (etapa analisis, bloqueante al abrirse y sin efecto al resolverse BIT-0009, RESUELTA); mapeo-campos.md 1.0.1 (sin historial de cambios en el documento).
+- **Decisión:** Cambios editoriales verificados por el Orquestador; AUD-E0-16/17 cerrados. Etapa 0 lista para aprobación cuando HF-01 esté corregido.
 - **Bitácora:** —

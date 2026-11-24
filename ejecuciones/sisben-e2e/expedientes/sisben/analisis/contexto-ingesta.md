@@ -109,7 +109,7 @@ IDs registrados por `edf-orquestador` en `preguntas_abiertas[]` del expediente.
 
 | ID | Pregunta | Etapa afectada | Bloqueante | Estado | Origen |
 |---|---|---|:-:|---|---|
-| PA-001 | ¿Qué etapa cumple R-26 (la sección `#sisben` solo para los PIN del archivo vigente)? | — (resuelta) | no | RESUELTA por las fuentes: State Calculation | HU R-26, §5.6, §6; spec §13, Anexo A, §12 |
+| PA-001 | ¿Qué etapa cumple R-26 (la sección `#sisben` solo para los PIN del archivo vigente)? | `analisis` (registrada al abrir) | sí al abrirse; sin efecto al resolverse (BIT-0009) | RESUELTA por las fuentes: State Calculation | HU R-26, §5.6, §6; spec §13, Anexo A, §12 |
 | PA-002 | ¿Cómo se determina el corte vigente de SISBEN y cómo se excluye `#sisben` de los PIN cuyo último evento SISBEN no pertenece a ese corte? | `state_calculation` | sí, solo para `state_calculation` | ABIERTA | Cierre de PA-001; HU R-26, §5.6; spec §13, §10.1 |
 
 ### PA-001 · ¿Qué etapa cumple R-26? — RESUELTA por las fuentes
