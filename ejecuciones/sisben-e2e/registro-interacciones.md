@@ -153,3 +153,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
+
+## INT-020 · Analista (edf-analisis) · insumo de Acceptance · `acceptance`
+
+- **Cuándo:** 2026-11-24T18:31:02-05:00
+- **Pedido:** Preparar insumos/source-spec-acceptance.yaml (ART-020) desde HU §5/§6 y spec 1.0.2, con verificaciones de edf-acceptance.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
