@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T17:32:03-05:00",
-    "vista_md_regenerada_en": "2026-11-24T17:32:03-05:00"
+    "actualizado_en": "2026-11-24T17:40:10-05:00",
+    "vista_md_regenerada_en": "2026-11-24T17:40:10-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -183,13 +183,14 @@
           "nombre": "SISBENValidationProcessor.scala + Spec, ValidatedEvent, FileMetadata",
           "ruta": "propuestas/validation/",
           "obligatorio": true,
-          "estado_artefacto": "ausente",
+          "estado_artefacto": "prevalidado",
           "prevalidacion": {
             "compila": null,
-            "linting": null,
-            "reportada_por": null,
-            "reportada_en": null
-          }
+            "linting": true,
+            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_en": "2026-11-24"
+          },
+          "riesgo": "medio"
         },
         {
           "id": "ART-012",
@@ -197,7 +198,14 @@
           "nombre": "Capa A: FieldSpec, FieldValidators, FieldValidatorsSpec",
           "ruta": "propuestas/validation/",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "riesgo": "medio",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_en": "2026-11-24"
+          }
         },
         {
           "id": "ART-013",
@@ -205,15 +213,29 @@
           "nombre": "SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv",
           "ruta": "propuestas/validation/",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "riesgo": "medio",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_en": "2026-11-24"
+          }
         },
         {
           "id": "ART-014",
           "tipo": "configuracion",
           "nombre": "HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf",
-          "ruta": "propuestas/validation/propuesta/",
+          "ruta": "propuestas/validation/env/application-conf/innersource/propuesta/",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "riesgo": "medio",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_en": "2026-11-24"
+          }
         },
         {
           "id": "ART-015",
@@ -221,7 +243,14 @@
           "nombre": "manifest.json",
           "ruta": "propuestas/validation/manifest.json",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "riesgo": "bajo",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_en": "2026-11-24"
+          }
         }
       ],
       "evidencia_pipeline": {
@@ -819,8 +848,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0029",
-    "eventos_totales": 29,
+    "ultimo_evento": "BIT-0031",
+    "eventos_totales": 31,
     "append_only": true,
     "retencion_meses": 24
   }

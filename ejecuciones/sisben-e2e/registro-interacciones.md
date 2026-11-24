@@ -70,6 +70,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T17:32:49-05:00
 - **Pedido:** Generar la propuesta de Validation desde el insumo aprobado ART-010 (render_templates.py --out propuestas/validation/), checklist, verificar_hocon, prevalidación de la muestra, revisión a mano de escenarios HU §5; reportar ART-011..015.
+- **Respuesta:** 18 archivos + manifest.json en propuestas/validation/ (17 supuestos con biyección ASSUMPTION↔manifest); --solo-verificar OK; verificar_hocon OK (con pyhocon en el scratchpad); suite de la skill 165 passed; fixture: 24 casos con su código; muestra = spec §15. Casos HU revisados: tipo 7 y municipio de otro dpto OK; duplicado con ceros OK en código pero no probado; **ERR_024 (periodo futuro / recepción fuera de rango) NO se cumple**; 23 columnas OK. Reporta 10 posibles defectos (principal: RA-02..04 sin implementar en esquema, plantilla y prevalidador). ART-014 vive en env/application-conf/innersource/propuesta/.
+- **Decisión:** Registrar ART-011..015 como prevalidados (BIT-0030) con la ruta real de ART-014; pasar a auditoría independiente con los 10 posibles defectos para confirmar o descartar.
+- **Bitácora:** BIT-0030
+
+## INT-010 · Auditor independiente (validation) · `validation`
+
+- **Cuándo:** 2026-11-24T17:39:37-05:00
+- **Pedido:** Auditar ART-011..015 de Validation contra HU/spec 1.0.2, insumo ART-010, SKILL.md, checklist de entrega y motor; confirmar o descartar los 10 posibles defectos del generador.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

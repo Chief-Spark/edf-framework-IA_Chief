@@ -511,3 +511,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0030 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Propuesta de Validation generada en propuestas/validation/ (18 archivos + manifest.json, 17 supuestos); registrados como prevalidados; ART-014 con la ruta real env/application-conf/innersource/propuesta/ |
+| **Quién** | Generador edf-validation (agente) · registra ORQ-E2E |
+| **Cuándo** | 2026-11-24T17:39:29-05:00 |
+| **Por qué** | Generación desde el insumo aprobado ART-010 (APR-003), INT-009; el generador reporta 10 posibles defectos, el principal: RA-02..04 (fechas del nombre de archivo) sin implementar |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-011, ART-012, ART-013, ART-014, ART-015 |
+| **Trazabilidad** | prompt 08 |
+| **Corrige** | — |
+
+---
+
+## BIT-0031 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:40:10-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

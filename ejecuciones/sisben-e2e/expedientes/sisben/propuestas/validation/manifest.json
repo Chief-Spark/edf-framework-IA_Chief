@@ -1,0 +1,106 @@
+{
+  "skill": "edf-validation-stage",
+  "spec_version": "sisben-iv-1.0.0",
+  "fuente": "SISBEN",
+  "estado": "PROPUESTA - requiere aprobación del técnico antes de copiar al fork (Human-in-the-Loop)",
+  "compilacion": "NO CERTIFICADA (F-01: sin acceso al JAR del framework)",
+  "archivos": [
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/common/FieldSpec.scala",
+      "sha256": "898b6c668e7071365df5c16bc021f9698ec01458ab388a2615f20563ab50532b"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/common/FieldValidators.scala",
+      "sha256": "041c9101e0d331f1e04a725c7f8205b4cf3bb54b1265bb21965975c05d78b701"
+    },
+    {
+      "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/common/FieldValidatorsSpec.scala",
+      "sha256": "7cde8b6acf2ff55234d631eb2625c317fbb1d5b4306285dbae01bdf69485cfaf"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/config/SISBENSpec.scala",
+      "sha256": "08f9b8f7d0f1bfc443371cbd71c55756fbfcc8b52ac71fc03151d5af0905be64"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/SISBENValidatedEvent.scala",
+      "sha256": "4ad5e50c444ebd3132560a349d8ebf4d86c60aa05c5ca4b70d718078bca3991e"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/validator/SISBENFileMetadata.scala",
+      "sha256": "37125550bd8125cd31b0587dc1b29e6e5a1b8bbe76d091e08c839a0b9a9248c9"
+    },
+    {
+      "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/processor/SISBENValidationProcessor.scala",
+      "sha256": "8099412ff59915589033101767c51134d0d3c7260821f4a95ffcfa79e0fd33bc"
+    },
+    {
+      "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/sisben/SISBENValidationProcessorSpec.scala",
+      "sha256": "aa7db12edde53e927386411f934f9ad78bd15b89deaf3b6bb910b919686d2c7e"
+    },
+    {
+      "ruta": "src/test/resources/sisben/SISBEN_EXPERIAN_202601.20260205093000-0500.txt",
+      "sha256": "c5b7d8159876e9bfa85618a2bd7cebedc4398ca4ef5aa13a3b82ea42ff73ad2f"
+    },
+    {
+      "ruta": "env/application-conf/innersource/propuesta/validation-configs-sisben.conf",
+      "sha256": "9287cbd61da0ace095f7c794ed98fac70fe76df1092a6c423bdcdc3fda398c9e"
+    },
+    {
+      "ruta": "env/application-conf/innersource/propuesta/lookups-sisben.conf",
+      "sha256": "43c115cb96b866a3e17463a96102290947fd883851d6c8fc7aeb9210c55fe163"
+    },
+    {
+      "ruta": "env/application-conf/innersource/propuesta/codigos-error-sisben.csv",
+      "sha256": "fd2d116411f472f3ca4d1e6c2c61ecd5cdb54ce20b4c9195a318c2792bf3a85c"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/102_DANE_DIVIPOLA_STATES_CODES_NH.csv",
+      "sha256": "48b805b8a64d2c300b9edc966b74b0c365fd89fcc4b6761abcb45d19e7280540"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/2_DANE_DIVIPOLA_CITIES_CODES_NH.csv",
+      "sha256": "96e2842dacf34e211f99e100dfc81f2f8677f0840c53255f765e81e61ab1ad5c"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/201_SISBEN_ZONES_NH.csv",
+      "sha256": "509421295d25533e9694d27935e224bb3ba2777f448c0372975d5110c51e2d90"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/202_SISBEN_PROCESS_ID_TYPE_HO.csv",
+      "sha256": "b365484f903dd63983b920fae3cb22a75f3b7c11bec2d2e71051bd713991ec61"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/234_SISBEN_GROUP_SUBGROUP_NH.csv",
+      "sha256": "7d3e179839779f4f06672a01b8d182413ffeab488aed95cf8ce0fd092a912a66"
+    },
+    {
+      "ruta": "src/test/resources/sisben/lookup/203_SISBEN_RECORD_STATUS_AND_MARK_NH.csv",
+      "sha256": "f2c7f4bc99bd5816ec3ced0eefe9265343385aa342bcab865f3be5624218be09"
+    }
+  ],
+  "requisitos_de_ambiente": {
+    "oxygen.application.lambda": "batch",
+    "oxygen.application.historicAttributes": false,
+    "oxygen.features.enable.defaultOutputStructure": true,
+    "oxygen.features.enable.emitStockMetrics": "debe existir (se lee con .get)"
+  },
+  "supuestos": [
+    "F-04",
+    "F-07",
+    "F-09",
+    "F-11",
+    "F-12",
+    "F-14",
+    "VAL-PA04",
+    "VAL-PT01",
+    "VAL-PT03",
+    "VAL-PT04",
+    "VAL-SP01",
+    "VAL-SP02",
+    "VAL-SP03",
+    "VAL-SP07",
+    "VAL-SP08",
+    "VAL-SP09",
+    "VAL-SP10"
+  ]
+}

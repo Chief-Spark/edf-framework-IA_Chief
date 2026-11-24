@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T17:32:03-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T17:40:10-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 29 eventos, último BIT-0029 |
+| Bitácora | 31 eventos, último BIT-0031 |
 
 ## Etapas
 
@@ -33,11 +33,11 @@
 | analisis | ART-003 | dependencias.md | `aprobado` | sha256:d4c111cc090d |
 | analisis | ART-004 | plan-de-ruta.md | `aprobado` | sha256:12aa223e4598 |
 | validation | ART-010 | insumo: source-spec-validation.yaml (edf-analisis) | `aprobado` | sha256:7a8d7a6e3d11 |
-| validation | ART-011 | SISBENValidationProcessor.scala + Spec, ValidatedEvent, FileMetadata | `ausente` | — |
-| validation | ART-012 | Capa A: FieldSpec, FieldValidators, FieldValidatorsSpec | `ausente` | — |
-| validation | ART-013 | SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv | `ausente` | — |
-| validation | ART-014 | HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf | `ausente` | — |
-| validation | ART-015 | manifest.json | `ausente` | — |
+| validation | ART-011 | SISBENValidationProcessor.scala + Spec, ValidatedEvent, FileMetadata | `prevalidado` | — |
+| validation | ART-012 | Capa A: FieldSpec, FieldValidators, FieldValidatorsSpec | `prevalidado` | — |
+| validation | ART-013 | SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv | `prevalidado` | — |
+| validation | ART-014 | HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf | `prevalidado` | — |
+| validation | ART-015 | manifest.json | `prevalidado` | — |
 | acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `ausente` | — |
 | acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `ausente` | — |
 | acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `ausente` | — |
