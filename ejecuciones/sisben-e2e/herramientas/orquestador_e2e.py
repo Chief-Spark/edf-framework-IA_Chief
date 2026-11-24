@@ -198,8 +198,13 @@ def cmd_etapa(a) -> None:
         et.setdefault("riesgos", []).append(a.agregar_riesgo)
     if a.etapa_actual:
         e["etapa_actual"] = a.id
+    bit = "—"
+    if a.porque:  # HC-03: un cambio de estado con motivo deja evento en la bitácora
+        bit = nuevo_evento(e, a.evento_tipo, f"Etapa `{a.id}` → estado `{et['estado']}`"
+                           f" · transicion_habilitada={et['transicion_habilitada']}", a.quien, a.porque, "aplicado",
+                           a.id, traza="R3.2 · prompt 02", corrige=a.corrige or "—")
     guardar(e)
-    print(a.id, et["estado"], et["transicion_habilitada"])
+    print(a.id, et["estado"], et["transicion_habilitada"], bit)
 
 
 def cmd_checklist(a) -> None:
@@ -346,6 +351,9 @@ def main() -> int:
     p.add_argument("--id", required=True); p.add_argument("--estado"); p.add_argument("--ref-aprobacion")
     p.add_argument("--transicion", choices=["true", "false"]); p.add_argument("--riesgo-evaluado")
     p.add_argument("--friccion"); p.add_argument("--agregar-riesgo"); p.add_argument("--etapa-actual", action="store_true")
+    p.add_argument("--porque"); p.add_argument("--corrige")
+    p.add_argument("--evento-tipo", default="propuesta")
+    p.add_argument("--quien", default="Orquestador (emulado) · `ORQ-E2E`")
     p = sub.add_parser("checklist")
     p.add_argument("--etapa", required=True); p.add_argument("--json", required=True)
     p = sub.add_parser("riesgo")

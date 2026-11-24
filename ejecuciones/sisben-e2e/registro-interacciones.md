@@ -57,3 +57,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** Fila PA-001 (contexto-ingesta.md:112) con los valores registrados (etapa analisis, bloqueante al abrirse y sin efecto al resolverse BIT-0009, RESUELTA); mapeo-campos.md 1.0.1 (sin historial de cambios en el documento).
 - **Decisión:** Cambios editoriales verificados por el Orquestador; AUD-E0-16/17 cerrados. Etapa 0 lista para aprobación cuando HF-01 esté corregido.
 - **Bitácora:** —
+
+## INT-008 · Aprobador simulado SIM-DEV-01 · `analisis`
+
+- **Cuándo:** 2026-11-24T17:30:11-05:00
+- **Pedido:** Aprobar ART-001..004, la etapa 0 (contexto), el insumo ART-010 y la transición analisis→validation con checklist c1..c6.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —

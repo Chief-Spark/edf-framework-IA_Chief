@@ -307,3 +307,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0018 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `analisis` → estado `en_progreso` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:30:03-05:00 |
+| **Por qué** | La etapa 0 empezó con la propuesta del analista (BIT-0005) y quedó en no_iniciada; se corrige (HC-03). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | BIT-0005 |
+
+---
+
+## BIT-0019 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `analisis` → estado `pendiente_aprobacion` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:30:04-05:00 |
+| **Por qué** | Re-auditoría APROBADO (INT-006) y rondas 2-3 aplicadas (INT-004, INT-007); se pide la aprobación al aprobador simulado. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
