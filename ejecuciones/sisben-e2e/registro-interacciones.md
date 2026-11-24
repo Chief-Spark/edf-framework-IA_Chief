@@ -86,8 +86,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T17:53:45-05:00
 - **Pedido:** Corregir AUD-V-01 (P0), -02, -03, -05, -06 (P1) y los P2 de framework con pruebas; framework 1.9.2.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Framework 1.9.2: filePattern obligatorio + chequeo (V-01); claves RA-02..04 (V-02); regla solo_ceros (V-03); Campos.crudo en validatedRecordJson (V-05); lookupHome (V-06); supuestos_resueltos, fixture multigrupo y nombres_invalidos, skill edf-validation, docs, 07, offset, docs/codigos-error, TaggedValidatedEvent con 17 argumentos (V-08..21). Suites: validation 208, tests 121, acceptance 127, curation 106; auditar-skills OK. Insumo actual sigue OK.
+- **Decisión:** Suites verificadas por el Orquestador; commit 872c07c. Pasar al analista el cambio del insumo con la sintaxis nueva.
 - **Bitácora:** —
 
 ## INT-012 · Aprobador simulado SIM-DEV-01 · `validation`
