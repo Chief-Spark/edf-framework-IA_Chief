@@ -62,6 +62,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T17:30:11-05:00
 - **Pedido:** Aprobar ART-001..004, la etapa 0 (contexto), el insumo ART-010 y la transición analisis→validation con checklist c1..c6.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
-- **Bitácora:** —
+- **Respuesta:** Aprueba ART-001..004 (bajo), la etapa 0 (contexto, bajo, con supuesto: cierre formal del PO pendiente no bloqueante), ART-010 (medio, diff limpio contra el Anexo A) y la transición analisis→validation (medio por la etapa afectada, supuesto del aprobador), con checklist c1..c6 (c5 y c6 no aplican). Pide el orden etapa → insumo → transición.
+- **Decisión:** Registradas APR-001..004 en ese orden (BIT-0020..0024); hashes sha256 de los cinco artefactos; transición habilitada; Validation en_progreso. Corrección BIT-0028: ref_aprobacion de analisis = APR-004 (regla 7a).
+- **Bitácora:** BIT-0020..BIT-0028

@@ -1,22 +1,22 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T17:22:16-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T17:32:03-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
 |---|---|
-| Etapa actual | `analisis` |
+| Etapa actual | `validation` |
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 17 eventos, último BIT-0017 |
+| Bitácora | 29 eventos, último BIT-0029 |
 
 ## Etapas
 
 | # | Etapa | Estado | Riesgo | Artefactos aprobados | Aprobación | Transición |
 |---|---|---|---|---|---|---|
-| 0 | Analisis de Requerimiento y Contexto | `no_iniciada` | bajo | 0/4 | — | 🔒 |
-| 1 | Validation | `no_iniciada` | medio | 0/6 | — | 🔒 |
+| 0 | Analisis de Requerimiento y Contexto | `aprobada` | bajo | 4/4 | APR-004 | ✅ |
+| 1 | Validation | `en_progreso` | medio | 1/6 | — | 🔒 |
 | 2 | Acceptance | `no_iniciada` | medio | 0/4 | — | 🔒 |
 | 3 | Curation - Flow | `no_iniciada` | medio | 0/5 | — | 🔒 |
 | 4 | Curation - Stock | `no_iniciada` | medio | 0/1 | — | 🔒 |
@@ -28,11 +28,11 @@
 
 | Etapa | ID | Nombre | Estado | Hash |
 |---|---|---|---|---|
-| analisis | ART-001 | contexto-ingesta.md | `prevalidado` | — |
-| analisis | ART-002 | mapeo-campos.md (todos los campos) | `prevalidado` | — |
-| analisis | ART-003 | dependencias.md | `prevalidado` | — |
-| analisis | ART-004 | plan-de-ruta.md | `prevalidado` | — |
-| validation | ART-010 | insumo: source-spec-validation.yaml (edf-analisis) | `prevalidado` | — |
+| analisis | ART-001 | contexto-ingesta.md | `aprobado` | sha256:c2b8b52c4a4b |
+| analisis | ART-002 | mapeo-campos.md (todos los campos) | `aprobado` | sha256:edbbebb7c179 |
+| analisis | ART-003 | dependencias.md | `aprobado` | sha256:d4c111cc090d |
+| analisis | ART-004 | plan-de-ruta.md | `aprobado` | sha256:12aa223e4598 |
+| validation | ART-010 | insumo: source-spec-validation.yaml (edf-analisis) | `aprobado` | sha256:7a8d7a6e3d11 |
 | validation | ART-011 | SISBENValidationProcessor.scala + Spec, ValidatedEvent, FileMetadata | `ausente` | — |
 | validation | ART-012 | Capa A: FieldSpec, FieldValidators, FieldValidatorsSpec | `ausente` | — |
 | validation | ART-013 | SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv | `ausente` | — |
@@ -64,6 +64,10 @@
 
 | ID | Tipo | Desde → hacia | Decisión | Actor | Riesgo | Bitácora |
 |---|---|---|---|---|---|---|
+| APR-001 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | bajo | BIT-0020 |
+| APR-002 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | bajo | BIT-0021 |
+| APR-003 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0023 |
+| APR-004 | transicion | analisis → validation | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0024 |
 
 ## Preguntas abiertas
 

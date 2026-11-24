@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T17:30:04-05:00",
-    "vista_md_regenerada_en": "2026-11-24T17:22:16-05:00"
+    "actualizado_en": "2026-11-24T17:32:03-05:00",
+    "vista_md_regenerada_en": "2026-11-24T17:32:03-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -40,7 +40,7 @@
       "joblogs": "s3://colombia-data/sisben/reports/logs/"
     }
   },
-  "etapa_actual": "analisis",
+  "etapa_actual": "validation",
   "etapas": [
     {
       "id": "analisis",
@@ -50,10 +50,10 @@
       "dag_airflow": null,
       "clasificacion_compromiso": "habilitador",
       "riesgo_tipico": "bajo",
-      "estado": "pendiente_aprobacion",
+      "estado": "aprobada",
       "depende_de": [],
       "iniciada_en": "2026-11-24T17:30:03-05:00",
-      "cerrada_en": null,
+      "cerrada_en": "2026-11-24T17:31:25-05:00",
       "artefactos": [
         {
           "id": "ART-001",
@@ -61,9 +61,9 @@
           "nombre": "contexto-ingesta.md",
           "ruta": "analisis/contexto-ingesta.md",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "bajo",
-          "hash": null,
+          "hash": "sha256:c2b8b52c4a4b0afbbf1fb396cc1972bc115c463514804dcfaac8d25384467a6c",
           "prevalidacion": {
             "compila": null,
             "linting": null,
@@ -77,9 +77,9 @@
           "nombre": "mapeo-campos.md (todos los campos)",
           "ruta": "analisis/mapeo-campos.md",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "bajo",
-          "hash": null,
+          "hash": "sha256:edbbebb7c179c6b88cd5609a41fa80de353fc7f8b4e9d1c18c701132aae1ef62",
           "prevalidacion": {
             "compila": null,
             "linting": null,
@@ -93,9 +93,9 @@
           "nombre": "dependencias.md",
           "ruta": "analisis/dependencias.md",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "bajo",
-          "hash": null,
+          "hash": "sha256:d4c111cc090d2245d048c0ff8cde4809a19420063f453220bbbc4fc21e533462",
           "prevalidacion": {
             "compila": null,
             "linting": null,
@@ -109,9 +109,9 @@
           "nombre": "plan-de-ruta.md",
           "ruta": "analisis/plan-de-ruta.md",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "bajo",
-          "hash": null,
+          "hash": "sha256:12aa223e45982d8a1c2805d05318ee5c25966a6c2d4170cf2c50d3a355b00716",
           "prevalidacion": {
             "compila": null,
             "linting": null,
@@ -125,17 +125,28 @@
         "observada": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": null,
-      "riesgo_evaluado": null,
-      "nivel_friccion": null,
+      "ref_aprobacion": "APR-004",
+      "riesgo_evaluado": "bajo",
+      "nivel_friccion": "ligera",
       "preguntas_abiertas": [
         "PA-001"
       ],
       "riesgos": [
         "RG-001"
       ],
-      "transicion_habilitada": false,
-      "nota_regla_de_corte": null
+      "transicion_habilitada": true,
+      "nota_regla_de_corte": null,
+      "checklist_bloqueo": {
+        "c1_etapa_previa_aprobada": true,
+        "c2_aprobacion_registrada": true,
+        "c3_dependencias_satisfechas": true,
+        "c4_sin_preguntas_bloqueantes": true,
+        "c5_evidencia_pipeline": true,
+        "c6_justificacion_si_riesgo_alto": true,
+        "resultado": "habilitada",
+        "condiciones_fallidas": [],
+        "evaluado_en": "2026-11-24T17:31:49-05:00"
+      }
     },
     {
       "id": "validation",
@@ -145,7 +156,7 @@
       "dag_airflow": "daily-validation",
       "clasificacion_compromiso": "aceptacion",
       "riesgo_tipico": "medio",
-      "estado": "no_iniciada",
+      "estado": "en_progreso",
       "depende_de": [
         "analisis"
       ],
@@ -156,14 +167,15 @@
           "nombre": "insumo: source-spec-validation.yaml (edf-analisis)",
           "ruta": "insumos/source-spec-validation.yaml",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Analista (agente): render_templates.py --solo-verificar = source-spec OK (22 campos, 29 codigos)",
             "reportada_en": "2026-11-24"
-          }
+          },
+          "hash": "sha256:7a8d7a6e3d11ab46f3e5bafc0923f28e1db42457962e608ae76854ac14dcbd8c"
         },
         {
           "id": "ART-011",
@@ -229,7 +241,8 @@
         "RG-006",
         "RG-009"
       ],
-      "transicion_habilitada": false
+      "transicion_habilitada": false,
+      "iniciada_en": "2026-11-24T17:31:49-05:00"
     },
     {
       "id": "acceptance",
@@ -585,7 +598,107 @@
       "nota_regla_de_corte": null
     }
   ],
-  "aprobaciones": [],
+  "aprobaciones": [
+    {
+      "id": "APR-001",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-001",
+        "ART-002",
+        "ART-003",
+        "ART-004"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T17:31:25-05:00",
+      "riesgo": "bajo",
+      "nivel_friccion": "ligera",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBADO de los cuatro (auditorias/analisis.md §6.4), AUD-E0-01..06 resueltos; contenido fiel a las fuentes (R-26 en State Calculation: HU R-26, §5.6, §6; spec §13; 22/22 campos de spec §3).",
+      "condiciones": [],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0020"
+    },
+    {
+      "id": "APR-002",
+      "tipo": "contexto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-001",
+        "ART-002",
+        "ART-003",
+        "ART-004"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T17:31:25-05:00",
+      "riesgo": "bajo",
+      "nivel_friccion": "ligera",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Artefactos obligatorios aprobados; checklist de cierre 04 §4.3 completo (13/13); ninguna pregunta bloqueante con etapa_afectada analisis o validation (PA-001 resuelta; PA-002 de state_calculation). La etapa 0 no corre en pipeline: sin evidencia ni evidencia diferida (01-flujo-etapas §1). Supuesto: el cierre formal del PO (06 §4) queda pendiente no bloqueante.",
+      "condiciones": [
+        "Registrar la etapa aprobada antes de la transición",
+        "Cierre formal del PO de la etapa 0 pendiente, no bloqueante (supuesto del aprobador simulado)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0021"
+    },
+    {
+      "id": "APR-003",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-010"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T17:31:49-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] YAML idéntico al Anexo A (diff limpio, auditorias/analisis.md §6.2); --solo-verificar OK (22 campos, 29 códigos); prevalidación de la muestra = spec §15 (20/1/1/0, RQS 0.95, 19 aceptados). Sin [A:*] ni [PM].",
+      "condiciones": [
+        "Se aprueba el contenido actual; la cabecera BORRADOR es solo comentario y no manda (el estado lo da el expediente)",
+        "spec_version 1.0.0 y la cita al JAR quedan para la próxima versión de la spec (HS-01, HS-02)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0023"
+    },
+    {
+      "id": "APR-004",
+      "tipo": "transicion",
+      "desde_etapa": "analisis",
+      "hacia_etapa": "validation",
+      "artefactos": [
+        "ART-010"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T17:31:49-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Análisis cerrado y auditado; el insumo de Validation es fiel al Anexo A; ninguna pregunta bloqueante tiene etapa_afectada en {analisis, validation}. Checklist: c1 cumple (APR-002); c2 cumple (esta aprobación); c3 cumple (analisis aprobada e insumo ART-010 aprobado; mapeo 22/22); c4 cumple (PA-001 resuelta; PA-002 es de state_calculation); c5 no aplica (la etapa 0 no corre en pipeline); c6 no aplica (riesgo medio). Riesgo medio por la etapa afectada (06 §2.1): supuesto del aprobador simulado.",
+      "condiciones": [
+        "PA-002 sigue bloqueante para el insumo de State Calculation y la transición synthesis → state_calculation",
+        "Esta transición no aprueba artefactos de Validation"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0024"
+    }
+  ],
   "preguntas_abiertas": [
     {
       "id": "PA-001",
@@ -706,8 +819,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0019",
-    "eventos_totales": 19,
+    "ultimo_evento": "BIT-0029",
+    "eventos_totales": 29,
     "append_only": true,
     "retencion_meses": 24
   }

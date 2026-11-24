@@ -341,3 +341,173 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0020 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-001 (artefacto): Artefactos de la etapa 0 (contexto 1.1.0, mapeo 1.0.1, dependencias 1.1.0, plan 1.1.0) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T17:31:25-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBADO de los cuatro (auditorias/analisis.md §6.4), AUD-E0-01..06 resueltos; contenido fiel a las fuentes (R-26 en State Calculation: HU R-26, §5.6, §6; spec §13; 22/22 campos de spec §3). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | bajo |
+| **Artefactos** | ART-001, ART-002, ART-003, ART-004 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0021 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-002 (contexto): Aprobación de la etapa 0 analisis |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T17:31:25-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Artefactos obligatorios aprobados; checklist de cierre 04 §4.3 completo (13/13); ninguna pregunta bloqueante con etapa_afectada analisis o validation (PA-001 resuelta; PA-002 de state_calculation). La etapa 0 no corre en pipeline: sin evidencia ni evidencia diferida (01-flujo-etapas §1). Supuesto: el cierre formal del PO (06 §4) queda pendiente no bloqueante. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | bajo |
+| **Artefactos** | ART-001, ART-002, ART-003, ART-004 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0022 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `analisis` → estado `aprobada` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:31:25-05:00 |
+| **Por qué** | Aplica APR-002 (SIMULADO, SIM-DEV-01, INT-008). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0023 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-003 (artefacto): Insumo de Validation insumos/source-spec-validation.yaml |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T17:31:49-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] YAML idéntico al Anexo A (diff limpio, auditorias/analisis.md §6.2); --solo-verificar OK (22 campos, 29 códigos); prevalidación de la muestra = spec §15 (20/1/1/0, RQS 0.95, 19 aceptados). Sin [A:*] ni [PM]. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-010 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0024 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-004 (transicion): Transición analisis → validation |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T17:31:49-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Análisis cerrado y auditado; el insumo de Validation es fiel al Anexo A; ninguna pregunta bloqueante tiene etapa_afectada en {analisis, validation}. Checklist: c1 cumple (APR-002); c2 cumple (esta aprobación); c3 cumple (analisis aprobada e insumo ART-010 aprobado; mapeo 22/22); c4 cumple (PA-001 resuelta; PA-002 es de state_calculation); c5 no aplica (la etapa 0 no corre en pipeline); c6 no aplica (riesgo medio). Riesgo medio por la etapa afectada (06 §2.1): supuesto del aprobador simulado. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-010 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0025 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `analisis` → estado `aprobada` · transicion_habilitada=True |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:31:49-05:00 |
+| **Por qué** | Transición habilitada por APR-004 (checklist c1..c6 sin fallas). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0026 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `validation` → estado `en_progreso` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:31:49-05:00 |
+| **Por qué** | Inicio de Validation tras APR-004; se encarga la generación a edf-validation. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0027 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:31:49-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0028 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `analisis` → estado `aprobada` · transicion_habilitada=True |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:32:03-05:00 |
+| **Por qué** | ref_aprobacion de una etapa con transición habilitada debe ser la aprobación tipo transicion (APR-004), no la de contexto (APR-002); regla 7a del validador. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | BIT-0025 |
+
+---
+
+## BIT-0029 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:32:03-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
