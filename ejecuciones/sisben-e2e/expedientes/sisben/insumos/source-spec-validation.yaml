@@ -1,0 +1,194 @@
+# Insumo de la etapa Validation (`edf-validation`) · ingesta `sisben` · producido por `edf-analisis` (modo técnico, tipo T2).
+# Versión 1.0.0 · 2026-11-24 · Estado: PROPUESTO (pendiente de aprobación registrada por `edf-orquestador`).
+# Etapa 0 (`analisis`) NO aprobada todavía: este insumo es un BORRADOR preparado en paralelo (edf-analisis SKILL.md, Modo 2).
+# Esquema: .kiro/skills/edf-validation/assets/schema/source-spec.schema.yaml
+#
+# Trazabilidad (steering 05 §3, §6):
+#   - Todos los valores son [C]: copiados literalmente de `fuentes/spec-sisben.md` 1.0.2 §Anexo A, que la spec declara
+#     verificado contra el esquema y el generador (spec-sisben.md §cabecera "Verificación"; HU-SISBEN §6, fila Validation).
+#   - fuente/archivo/guard_rails: spec-sisben.md §1, §2, §3 (guard-rails); HU-SISBEN §3, R-01 a R-03.
+#   - campos: spec-sisben.md §3 (posición, tipo, longitud, obligatoriedad, severidad, código); HU-SISBEN R-04 a R-18.
+#   - reglas_entre_campos: spec-sisben.md §4 (RV-SIS-01 a RV-SIS-05); HU-SISBEN R-13, R-17, R-18.
+#   - filtro_filas: spec-sisben.md §5 (RF-01, RF-02); HU-SISBEN R-16.
+#   - duplicados: spec-sisben.md §6; HU-SISBEN R-19.
+#   - quality_scores / metricas / handoff_acceptance: spec-sisben.md §7 (RQ-01 a RQ-05); HU-SISBEN R-20 a R-22.
+#   - codigos_especiales / diagnostico_archivo: spec-sisben.md §2 (RA-01 a RA-05), §7 RQ-05, §8.
+#   - catalogos: spec-sisben.md §9. `archivo` es solo el nombre del CSV: el generador escribe el CSV desde
+#     `filas_sinteticas` (render_templates.py, catálogos sintéticos); no se resuelve ninguna ruta en disco.
+#   - encoding: null = sin clave `encoding` en el HOCON, ruta textFile UTF-8 (esquema, `archivo.encoding`); spec §2 dice UTF-8.
+#   - fixture: spec-sisben.md §Anexo A (bloque `fixture`), sintético.
+# Sin `[A:*]` ni `[PM]` en este insumo. Ninguna pregunta abierta lo afecta: PA-001 está resuelta por las fuentes
+# (R-26 se cumple en State Calculation; el Anexo A no cambia) y PA-002 es solo de state_calculation (contexto-ingesta.md §6).
+# DATOS SINTÉTICOS: todo valor de `fixture` y `catalogos[].filas_sinteticas` es inventado (los códigos DIVIPOLA son los del DANE).
+#
+# source-spec de Validation derivado de spec-sisben.md y hu-sisben.md. DATOS SINTÉTICOS.
+spec_version: "sisben-iv-1.0.0"
+
+fuente:
+  Fuente: SISBEN
+  fuente: sisben
+  event_type: 30
+  datasource: DNP
+  subscriber: "999722"
+  zona_horaria: America/Bogota
+
+paquetes:
+  comun: com.experian.edf.oxygen.validation.source.common
+  base_fuente: com.experian.edf.oxygen.validation.source
+
+archivo:
+  formato: text
+  delimitador: ";"
+  filas_header: 1
+  filas_footer: 0
+  footer_regex: null
+  encoding: null
+  file_pattern: '.*SISBEN_EXPERIAN_\d{6}\.\d{14}[+-]\d{4}\.(txt|TXT)'
+  nombre:
+    descripcion: "SISBEN_EXPERIAN_AAAAMM.yyyyMMddHHmmss±ZZZZ.txt"
+    regex: '()SISBEN_EXPERIAN_(\d{6})\.(\d{14})([+-]\d{4})\.(txt|TXT)'
+    grupos: {prefijo: 1, periodo: 2, marca_tiempo: 3, offset: 4}
+    file_tag_por_prefijo: {"": REGULAR}
+    file_as_of_date: ultimo_dia_periodo
+
+guard_rails:
+  subscriber_relation: NUM_DOCUMENTO
+  as_of_date: FECHA_ACTUALIZACION_CNS
+  received_date: marca_tiempo_nombre
+
+campos:
+  - {posicion: 1, nombre: ID_FICHA_ORIGEN, alias: [ide_ficha_origen], obligatorio: false, severidad: "3", tipo: numerico, longitud_max: 20, codigo: SISBEN_INC_001, ejemplo_invalido: "AB12"}
+  - {posicion: 2, nombre: ID_HOGAR, alias: [ide_hogar], obligatorio: false, severidad: "3", tipo: numerico, longitud_max: 20, codigo: SISBEN_INC_002, ejemplo_invalido: "X1"}
+  - {posicion: 3, nombre: COD_DPTO, alias: [cod_dpto], obligatorio: true, severidad: "1", tipo: numerico, longitud_max: 2, catalogo: {tabla: 102_DANE_DIVIPOLA_STATES_CODES_NH, columna: cod_dpto}, codigo: SISBEN_ERR_003, ejemplo_invalido: "99"}
+  - {posicion: 4, nombre: NOM_DPTO, alias: [nom_dpto], obligatorio: true, severidad: "1", tipo: alfanumerico, longitud_max: 60, codigo: SISBEN_ERR_004, ejemplo_invalido: ""}
+  - {posicion: 5, nombre: COD_MPIO, alias: [cod_mpio], obligatorio: true, severidad: "1", tipo: numerico, longitud_max: 5, catalogo: {tabla: 2_DANE_DIVIPOLA_CITIES_CODES_NH, columna: cod_mpio}, codigo: SISBEN_ERR_005, ejemplo_invalido: "99999"}
+  - {posicion: 6, nombre: NOM_MPIO, alias: [nom_mpio], obligatorio: true, severidad: "1", tipo: alfanumerico, longitud_max: 60, codigo: SISBEN_ERR_006, ejemplo_invalido: ""}
+  - {posicion: 7, nombre: ID_CLASE, alias: [cod_clase], obligatorio: true, severidad: "1", tipo: numerico, longitud_max: 1, dominio: ["1", "2", "3"], catalogo: {tabla: 201_SISBEN_ZONES_NH, columna: cod_clase}, codigo: SISBEN_ERR_007, ejemplo_invalido: "4"}
+  - {posicion: 8, nombre: ID_PERSONA_ORDEN, alias: [ide_persona], obligatorio: false, severidad: "3", tipo: numerico, longitud_max: 20, codigo: SISBEN_INC_008, ejemplo_invalido: "X1"}
+  - {posicion: 9, nombre: ID_NACIONAL, alias: [ide_nacional], obligatorio: false, severidad: "3", tipo: numerico, longitud_max: 20, codigo: SISBEN_INC_009, ejemplo_invalido: "ABC"}
+  - {posicion: 10, nombre: PRI_APELLIDO, alias: [pri_apellido], obligatorio: true, severidad: "1", tipo: alfanumerico, longitud_max: 30, codigo: SISBEN_ERR_010, ejemplo_invalido: ""}
+  - {posicion: 11, nombre: SEG_APELLIDO, alias: [seg_apellido], obligatorio: false, severidad: "3", tipo: alfanumerico, longitud_max: 30, codigo: SISBEN_INC_011, ejemplo_invalido: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"}
+  - {posicion: 12, nombre: PRI_NOMBRE, alias: [pri_nombre], obligatorio: true, severidad: "1", tipo: alfanumerico, longitud_max: 30, codigo: SISBEN_ERR_012, ejemplo_invalido: ""}
+  - {posicion: 13, nombre: SEG_NOMBRE, alias: [seg_nombre], obligatorio: false, severidad: "3", tipo: alfanumerico, longitud_max: 30, codigo: SISBEN_INC_013, ejemplo_invalido: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"}
+  - {posicion: 14, nombre: TIP_DOCUMENTO, alias: [tip_documento], obligatorio: true, severidad: "1", tipo: alfanumerico, longitud_max: 3, dominio: ["1", "2", "3", "4", "5", "6", "7", "8", "PPT"], catalogo: {tabla: 202_SISBEN_PROCESS_ID_TYPE_HO, columna: cod_sisben}, codigo: SISBEN_ERR_014, ejemplo_invalido: "9"}
+  - {posicion: 15, nombre: NUM_DOCUMENTO, alias: [num_documento], obligatorio: true, severidad: "1", tipo: alfanumerico, longitud_max: 15, normalizacion: [quitar_espacios, quitar_ceros_izquierda], codigo: SISBEN_ERR_015, ejemplo_invalido: ""}
+  - {posicion: 16, nombre: ID_GRUPO, alias: [grupo], obligatorio: true, severidad: "1", tipo: alfanumerico, longitud_max: 1, dominio: [A, B, C, D], catalogo: {tabla: 234_SISBEN_GROUP_SUBGROUP_NH, columna: grupo}, codigo: SISBEN_ERR_016, ejemplo_invalido: "E"}
+  - {posicion: 17, nombre: ID_NIVEL, alias: [nivel], obligatorio: true, severidad: "1", tipo: numerico, longitud_max: 2, rango: [1, 21], codigo: SISBEN_ERR_017, ejemplo_invalido: "22"}
+  - {posicion: 18, nombre: FECHA_DIGITACION, alias: [fec_digitacion], obligatorio: false, severidad: "3", tipo: fecha, formatos_fecha: ["yyyy-MM-dd", "dd/MM/yyyy"], no_futura: true, codigo: SISBEN_INC_018, ejemplo_invalido: "2099-01-01"}
+  - {posicion: 19, nombre: FECHA_ACTUALIZACION_PERSONA, alias: [fec_actualizacion_persona], obligatorio: false, severidad: "3", tipo: fecha, formatos_fecha: ["yyyy-MM-dd", "dd/MM/yyyy"], codigo: SISBEN_INC_019, ejemplo_invalido: "31/02/2025"}
+  - {posicion: 20, nombre: ID_MARCA, alias: [marca], obligatorio: false, severidad: "3", tipo: numerico, dominio: ["0", "1", "10", "20"], catalogo: {tabla: 203_SISBEN_RECORD_STATUS_AND_MARK_NH, columna: codigo}, codigo: SISBEN_INC_020, ejemplo_invalido: "5"}
+  - {posicion: 21, nombre: ID_ESTADO, alias: [estado], obligatorio: true, severidad: "1", tipo: numerico, dominio: ["0", "10", "40", "41", "42", "43", "60", "61", "69", "70", "90", "91"], catalogo: {tabla: 203_SISBEN_RECORD_STATUS_AND_MARK_NH, columna: codigo}, codigo: SISBEN_ERR_021, ejemplo_invalido: "50"}
+  - {posicion: 22, nombre: FECHA_ACTUALIZACION_CNS, alias: [fec_actualizacion_cns], obligatorio: true, severidad: "1", tipo: fecha, formatos_fecha: ["yyyy-MM-dd", "dd/MM/yyyy"], no_futura: true, codigo: SISBEN_ERR_022, ejemplo_invalido: "31/02/2025"}
+
+reglas_entre_campos:
+  - {id: RV-SIS-01, tipo: correspondencia_catalogo, campo_codigo: COD_DPTO, campo_nombre: NOM_DPTO, tabla: 102_DANE_DIVIPOLA_STATES_CODES_NH, columna_clave: cod_dpto, columna_nombre: nom_dpto, codigo: SISBEN_ERR_004, severidad: "1"}
+  - {id: RV-SIS-02, tipo: correspondencia_catalogo, campo_codigo: COD_MPIO, campo_nombre: NOM_MPIO, tabla: 2_DANE_DIVIPOLA_CITIES_CODES_NH, columna_clave: cod_mpio, columna_nombre: nom_mpio, codigo: SISBEN_ERR_006, severidad: "1"}
+  - {id: RV-SIS-03, tipo: correspondencia_catalogo, campo_codigo: COD_MPIO, campo_nombre: COD_DPTO, tabla: 2_DANE_DIVIPOLA_CITIES_CODES_NH, columna_clave: cod_mpio, columna_nombre: cod_dpto, codigo: SISBEN_ERR_028, severidad: "1"}
+  - {id: RV-SIS-04, tipo: valor_con_codigo_propio, campo: TIP_DOCUMENTO, valores: ["7"], codigo: SISBEN_ERR_023, severidad: "1", causa: TIPO_PENDIENTE_CREACION}
+  - {id: RV-SIS-05, tipo: valor_con_codigo_propio, campo: NUM_DOCUMENTO, valores: ["0", "00", "000", "0000", "00000", "000000", "0000000", "00000000", "000000000", "0000000000", "00000000000", "000000000000", "0000000000000", "00000000000000", "000000000000000"], codigo: SISBEN_ERR_029, severidad: "1", causa: DOCUMENTO_CERO}
+
+filtro_filas:
+  lineas_vacias: true
+  campo: TIP_DOCUMENTO
+  valores: ["1", "2"]
+
+quality_scores:
+  - {nombre: RQS, anulan_niveles: ["1"]}
+
+metricas:
+  - {id: AverageRQS, expr: 'average("qs.RQS")'}
+  - {id: TotalRegistros, expr: 'count(*)'}
+
+duplicados:
+  habilitado: true
+  clave: [TIP_DOCUMENTO, NUM_DOCUMENTO]
+  modo: EXTN
+  campo_fecha: FECHA_ACTUALIZACION_CNS
+  umbral: null
+
+codigos_especiales:
+  nombre_archivo: SISBEN_ERR_024
+  header: SISBEN_ERR_025
+  estructura: SISBEN_ERR_026
+  interno: SISBEN_ERR_027
+
+diagnostico_archivo:
+  fileName: 'errorlevelNotIn("1")'
+  header: 'errorlevelNotIn("1")'
+
+ambiente:
+  default_output_structure: true
+  historic_attributes: false
+  lambda: batch
+
+catalogos:
+  - tabla: 102_DANE_DIVIPOLA_STATES_CODES_NH
+    archivo: 102_DANE_DIVIPOLA_STATES_CODES_NH.csv
+    delimitador: ";"
+    columnas: [cod_dpto, nom_dpto]
+    keys: [cod_dpto]
+    filas_sinteticas: [["05","ANTIOQUIA"],["08","ATLANTICO"],["11","BOGOTA D.C."],["13","BOLIVAR"],["68","SANTANDER"],["76","VALLE DEL CAUCA"]]
+  - tabla: 2_DANE_DIVIPOLA_CITIES_CODES_NH
+    archivo: 2_DANE_DIVIPOLA_CITIES_CODES_NH.csv
+    delimitador: ";"
+    columnas: [cod_mpio, nom_mpio, cod_dpto]
+    keys: [cod_mpio]
+    filas_sinteticas: [["05001","MEDELLIN","05"],["08001","BARRANQUILLA","08"],["11001","BOGOTA D.C.","11"],["13001","CARTAGENA","13"],["68001","BUCARAMANGA","68"],["76001","CALI","76"]]
+  - tabla: 201_SISBEN_ZONES_NH
+    archivo: 201_SISBEN_ZONES_NH.csv
+    delimitador: ";"
+    columnas: [cod_clase, descripcion]
+    keys: [cod_clase]
+    filas_sinteticas: [["1","CABECERA"],["2","CENTRO POBLADO"],["3","RURAL DISPERSO"]]
+  - tabla: 202_SISBEN_PROCESS_ID_TYPE_HO
+    archivo: 202_SISBEN_PROCESS_ID_TYPE_HO.csv
+    delimitador: ";"
+    columnas: [cod_sisben, cod_experian, descripcion]
+    keys: [cod_sisben]
+    filas_sinteticas: [["1","10","REGISTRO CIVIL"],["2","7","TARJETA DE IDENTIDAD"],["3","1","CEDULA DE CIUDADANIA"],["4","4","CEDULA DE EXTRANJERIA"],["5","8","DNI PAIS DE ORIGEN"],["6","5","PASAPORTE"],["7","","SALVOCONDUCTO PARA REFUGIADO"],["8","9","PERMISO ESPECIAL DE PERMANENCIA"],["PPT","11","PERMISO DE PROTECCION TEMPORAL"]]
+  - tabla: 234_SISBEN_GROUP_SUBGROUP_NH
+    archivo: 234_SISBEN_GROUP_SUBGROUP_NH.csv
+    delimitador: ";"
+    columnas: [grupo, nivel_max, descripcion]
+    keys: [grupo]
+    filas_sinteticas: [["A","5","POBREZA EXTREMA"],["B","7","POBREZA MODERADA"],["C","18","VULNERABLE"],["D","21","NO POBRE NO VULNERABLE"]]
+  - tabla: 203_SISBEN_RECORD_STATUS_AND_MARK_NH
+    archivo: 203_SISBEN_RECORD_STATUS_AND_MARK_NH.csv
+    delimitador: ";"
+    columnas: [codigo, tipo, descripcion]
+    keys: [codigo]
+    filas_sinteticas: [["0","AMBOS","REGISTRO VALIDO"],["1","MARCA","EXCLUIDO DE PUBLICACION"],["10","AMBOS","ESTADO EXCLUIDO FALLECIDO / MARCA EN VERIFICACION"],["20","MARCA","VERIFICACION POR DISTANCIA"],["40","ESTADO","VERIFICACION DESACTUALIZACION SECCION E"],["41","ESTADO","VERIFICACION DESACTUALIZACION SECCION G NIVEL EDUCATIVO"],["42","ESTADO","VERIFICACION DESACTUALIZACION SECCION G FONDO PENSIONES"],["43","ESTADO","VERIFICACION DESACTUALIZACION SECCION H"],["60","ESTADO","CALIDAD ENCUESTA DATOS NO VALIDOS"],["61","ESTADO","CALIDAD ENCUESTA PARENTESCOS INCONSISTENTES"],["69","ESTADO","VERIFICACION POR DISTANCIA MAYOR A 600 M"],["70","ESTADO","CALIDAD ENCUESTA DOCUMENTO NO VALIDO"],["90","ESTADO","DESMEJORAMIENTO VARIABLES DE VIVIENDA"],["91","ESTADO","DESMEJORAMIENTO VARIABLES DE NIVEL EDUCATIVO"]]
+
+handoff_acceptance:
+  umbral_rqs: 0.90
+  record_acceptance: 'errorlevelNotIn("1") and errorcodeNotIn("OxygenDuplicate")'
+
+fixture:
+  nombre_archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+  fecha_referencia: "2026-02-05"
+  registro_base: ["0900000101","1","05","ANTIOQUIA","05001","MEDELLIN","1","1","9300000101","PRUEBAUNO","APELLIDOUNO","NOMBREUNO","SEGUNDOUNO","3","1000000101","A","1","15/11/2025","20/12/2025","0","0","10/01/2026"]
+  casos:
+    - {id: BASE, descripcion: "registro válido", cambios: {}, esperado: {codigos: []}}
+    - {id: FECHA_ISO, descripcion: "fechas en yyyy-MM-dd", cambios: {NUM_DOCUMENTO: "1000000102", FECHA_DIGITACION: "2025-11-15", FECHA_ACTUALIZACION_CNS: "2026-01-10"}, esperado: {codigos: []}}
+    - {id: MENOR_RC, descripcion: "registro civil: se filtra", cambios: {TIP_DOCUMENTO: "1", NUM_DOCUMENTO: "1000000103"}, esperado: {filtrado: true}}
+    - {id: MENOR_TI, descripcion: "tarjeta de identidad: se filtra", cambios: {TIP_DOCUMENTO: "2", NUM_DOCUMENTO: "1000000104"}, esperado: {filtrado: true}}
+    - {id: LINEA_VACIA, descripcion: "línea vacía: se filtra", linea: "", esperado: {filtrado: true}}
+    - {id: CE_ADULTO, descripcion: "cédula de extranjería es válida", cambios: {TIP_DOCUMENTO: "4", NUM_DOCUMENTO: "1000000105"}, esperado: {codigos: []}}
+    - {id: PASAPORTE_ALFA, descripcion: "pasaporte alfanumérico válido", cambios: {TIP_DOCUMENTO: "6", NUM_DOCUMENTO: "PA1000106"}, esperado: {codigos: []}}
+    - {id: PPT, descripcion: "PPT válido", cambios: {TIP_DOCUMENTO: "PPT", NUM_DOCUMENTO: "1000000107"}, esperado: {codigos: []}}
+    - {id: SALVOCONDUCTO, descripcion: "tipo 7 sin homologación", cambios: {TIP_DOCUMENTO: "7", NUM_DOCUMENTO: "1000000108"}, esperado: {codigos: [SISBEN_ERR_023]}}
+    - {id: TIPO_INEXISTENTE, descripcion: "tipo 9", cambios: {TIP_DOCUMENTO: "9", NUM_DOCUMENTO: "1000000109"}, esperado: {codigos: [SISBEN_ERR_014]}}
+    - {id: DOC_CERO, descripcion: "número de documento en ceros", cambios: {NUM_DOCUMENTO: "0000"}, esperado: {codigos: [SISBEN_ERR_029]}}
+    - {id: GRUPO_INVALIDO, descripcion: "grupo Z", cambios: {ID_GRUPO: "Z", NUM_DOCUMENTO: "1000000110"}, esperado: {codigos: [SISBEN_ERR_016]}}
+    - {id: NIVEL_FUERA, descripcion: "nivel 22", cambios: {ID_NIVEL: "22", NUM_DOCUMENTO: "1000000111"}, esperado: {codigos: [SISBEN_ERR_017]}}
+    - {id: MPIO_OTRO_DPTO, descripcion: "municipio de otro departamento", cambios: {COD_DPTO: "11", NOM_DPTO: "BOGOTA D.C.", NUM_DOCUMENTO: "1000000112"}, esperado: {codigos: [SISBEN_ERR_028]}}
+    - {id: NOM_DPTO_NO_CORRESPONDE, descripcion: "nombre de departamento no corresponde", cambios: {NOM_DPTO: "BOLIVAR", NUM_DOCUMENTO: "1000000113"}, esperado: {codigos: [SISBEN_ERR_004]}}
+    - {id: CNS_VACIA, descripcion: "fecha de actualización CNS vacía", cambios: {FECHA_ACTUALIZACION_CNS: "", NUM_DOCUMENTO: "1000000114"}, esperado: {codigos: [SISBEN_ERR_022]}}
+    - {id: DIGITACION_VACIA, descripcion: "fecha de digitación vacía es válida", cambios: {FECHA_DIGITACION: "", NUM_DOCUMENTO: "1000000115"}, esperado: {codigos: []}}
+    - {id: FECHA_FUTURA, descripcion: "fecha de digitación futura", cambios: {FECHA_DIGITACION: "01/01/2099", NUM_DOCUMENTO: "1000000116"}, esperado: {codigos: [SISBEN_INC_018]}}
+    - {id: ESTADO_TEXTO, descripcion: "estado textual", cambios: {ID_ESTADO: "ACTIVO", NUM_DOCUMENTO: "1000000117"}, esperado: {codigos: [SISBEN_ERR_021]}}
+    - {id: MARCA_TEXTO, descripcion: "marca textual: inconsistencia", cambios: {ID_MARCA: "N", NUM_DOCUMENTO: "1000000118"}, esperado: {codigos: [SISBEN_INC_020]}}
+    - {id: NOMBRE_TILDES, descripcion: "nombres con Ñ y tildes válidos", cambios: {PRI_APELLIDO: "MUÑOZ", PRI_NOMBRE: "JOSÉ", NUM_DOCUMENTO: "1000000119"}, esperado: {codigos: []}}
+    - {id: TRUNCADA, descripcion: "fila con 10 columnas", cambios: {NUM_DOCUMENTO: "1000000120"}, columnas: 10, esperado: {codigos: [SISBEN_ERR_026]}}
+    - {id: DUP_ANTIGUO, descripcion: "duplicado más antiguo: se marca", cambios: {NUM_DOCUMENTO: "1000000199", FECHA_ACTUALIZACION_CNS: "01/01/2026"}, esperado: {codigos: [], duplicado: true}}
+    - {id: DUP_RECIENTE, descripcion: "duplicado más reciente: se conserva", cambios: {NUM_DOCUMENTO: "1000000199", FECHA_ACTUALIZACION_CNS: "15/01/2026"}, esperado: {codigos: [], duplicado: false}}

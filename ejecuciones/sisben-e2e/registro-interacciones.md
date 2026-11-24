@@ -30,14 +30,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T17:21:44-05:00
 - **Pedido:** Aplicar ajustes AUD-E0-01..06 y condiciones del aprobador (INT-003) a ART-001/003/004 (y nota en ART-002 fila 19); alinear IDs RG-001..011 con el expediente; PA-001 resuelta y PA-002 solo state_calculation.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Ajustes aplicados: ART-001 1.1.0 (§3 regla 25, §4 sin la reference, §6 PA-001 resuelta y ficha PA-002, §7 RG-001..011 con IDs del expediente, RG-003 crítico), ART-003 1.1.0 (C-09, C-10, P-01, P-02, E-05), ART-004 1.1.0 (filas 21-26, §2, §4). ART-002: nota fila 19 y, para coherencia, RG-005→RG-007 (l.82) y la nota de PA-001 (l.85). ART-010: solo la cabecera de comentarios; YAML sin cambios. verificar-insumos-etapa0 rc=0.
+- **Decisión:** Se aceptan los dos cambios extra de ART-002 (evitan IDs inconsistentes). Re-auditoría por diff con el mismo auditor.
 - **Bitácora:** —
 
 ## INT-005 · Corrector del framework · `analisis`
 
 - **Cuándo:** 2026-11-24T17:21:44-05:00
 - **Pedido:** Corregir AUD-E0-10/11/13/14/15 en .kiro/ con pruebas de regresión; CHANGELOG 1.9.1.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-006 · Auditor independiente · re-auditoría · `analisis`
+
+- **Cuándo:** 2026-11-24T17:24:34-05:00
+- **Pedido:** Re-auditar ART-001..004 y ART-010 tras la ronda 2 (AUD-E0-01..06, coherencia RG/PA con el expediente, YAML = Anexo A).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
