@@ -4,6 +4,7 @@
 Uso:
     python tools/validar-expedientes.py            # todos los expedientes/<id>/
     python tools/validar-expedientes.py sisben     # solo expedientes/sisben/
+    python tools/validar-expedientes.py --permisivo # jsonschema ausente o PII como aviso
 
 Para cada `expedientes/<id>/estado-ingesta.json` ejecuta `validar-expediente.py`
 (con `--cruzado bitacora.md` si la bitacora existe).
@@ -22,7 +23,8 @@ def main():
     if not base.is_dir():
         print("No hay carpeta expedientes/: nada que validar.")
         return 0
-    filtro = set(sys.argv[1:])
+    opciones = [a for a in sys.argv[1:] if a.startswith("--")]
+    filtro = {a for a in sys.argv[1:] if not a.startswith("--")}
     estados = sorted(base.glob("*/estado-ingesta.json"))
     if filtro:
         estados = [e for e in estados if e.parent.name in filtro]
@@ -32,7 +34,7 @@ def main():
 
     con_hallazgos = []
     for estado in estados:
-        cmd = [sys.executable, str(VALIDADOR), str(estado)]
+        cmd = [sys.executable, str(VALIDADOR), str(estado)] + opciones
         bitacora = estado.parent / "bitacora.md"
         if bitacora.is_file():
             cmd += ["--cruzado", str(bitacora)]

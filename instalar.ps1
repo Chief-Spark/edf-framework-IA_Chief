@@ -3,13 +3,13 @@
   Instala el framework edf-framework-IA en el workspace donde el ingeniero de datos va a trabajar con Kiro.
 
 .DESCRIPTION
-  En este repo la configuracion vive en `kiro/` (visible, para navegarla y versionarla).
-  Kiro solo la lee como `.kiro/` en la RAIZ del workspace abierto, asi que el instalador copia:
+  Kiro lee la configuracion como `.kiro/` en la RAIZ del workspace abierto. El instalador copia (desde
+  `.kiro/` del repo, o desde `kiro/` si una copia antigua la tiene visible):
 
-    kiro/steering/*      -> <destino>/.kiro/steering/
-    kiro/skills/*        -> <destino>/.kiro/skills/
-    kiro/hooks/*         -> <destino>/.kiro/hooks/
-    kiro/specs/*         -> <destino>/.kiro/specs/
+    .kiro/steering/*     -> <destino>/.kiro/steering/
+    .kiro/skills/*       -> <destino>/.kiro/skills/
+    .kiro/hooks/*        -> <destino>/.kiro/hooks/   (con el interprete de Python detectado en este equipo)
+    .kiro/specs/*        -> <destino>/.kiro/specs/
     tools/*              -> <destino>/tools/
     docs/*               -> <destino>/docs/edf-framework/
     (crea)               -> <destino>/expedientes/   (nunca toca expedientes existentes)
@@ -61,14 +61,49 @@ function Copiar-Contenido([string]$desde, [string]$hacia) {
   Copy-Item -Path (Join-Path $desde '*') -Destination $hacia -Recurse -Force
 }
 
-Copiar-Contenido (Join-Path $Origen 'kiro\steering') (Join-Path $kiroDest 'steering')
-Copiar-Contenido (Join-Path $Origen 'kiro\skills')   (Join-Path $kiroDest 'skills')
-Copiar-Contenido (Join-Path $Origen 'kiro\hooks')    (Join-Path $kiroDest 'hooks')
-Copiar-Contenido (Join-Path $Origen 'kiro\specs')    (Join-Path $kiroDest 'specs')
+# Origen de la configuracion: `.kiro/` (actual) o `kiro/` (copias antiguas). Antes solo se leia `kiro/`
+# y, como el repo usa `.kiro/`, no se copiaba nada (AUD-O5).
+$conf = Join-Path $Origen '.kiro'
+if (-not (Test-Path -LiteralPath (Join-Path $conf 'skills'))) { $conf = Join-Path $Origen 'kiro' }
+if (-not (Test-Path -LiteralPath (Join-Path $conf 'skills'))) {
+  Write-Error "No se encontro la configuracion del framework (.kiro/ ni kiro/) en $Origen"
+  exit 1
+}
+
+Copiar-Contenido (Join-Path $conf 'steering') (Join-Path $kiroDest 'steering')
+Copiar-Contenido (Join-Path $conf 'skills')   (Join-Path $kiroDest 'skills')
+Copiar-Contenido (Join-Path $conf 'hooks')    (Join-Path $kiroDest 'hooks')
+Copiar-Contenido (Join-Path $conf 'specs')    (Join-Path $kiroDest 'specs')
 Copiar-Contenido (Join-Path $Origen 'tools')         (Join-Path $Destino 'tools')
 Copiar-Contenido (Join-Path $Origen 'docs')          (Join-Path $Destino 'docs\edf-framework')
 New-Item -ItemType Directory -Force -Path (Join-Path $Destino 'expedientes') | Out-Null
 Set-Content -LiteralPath (Join-Path $kiroDest 'edf-framework.version') -Value $version -Encoding ASCII
+
+# Interprete de Python para los hooks (AUD-O2). En Windows `python` suele ser el acceso directo a la
+# Microsoft Store: el hook no devuelve 2 y la compuerta de la etapa 0 falla abierta. Se prueba cada
+# candidato ejecutando Python de verdad.
+$py = $null
+foreach ($c in @('py -3', 'python', 'python3')) {
+  $partes = $c.Split(' ')
+  try {
+    $args2 = @($partes | Select-Object -Skip 1) + @('-c', 'import sys; sys.exit(0 if sys.version_info[0] == 3 else 1)')
+    & $partes[0] @args2 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) { $py = $c; break }
+  } catch { }
+}
+if ($py) {
+  foreach ($h in @('compuerta-etapa0.json', 'validar-expediente.json')) {
+    $ruta = Join-Path $kiroDest "hooks\$h"
+    if (Test-Path -LiteralPath $ruta) {
+      $txt = Get-Content -LiteralPath $ruta -Raw -Encoding UTF8
+      $txt = $txt.Replace('"python tools/', ('"' + $py + ' tools/')).Replace('`python tools/', ('`' + $py + ' tools/'))
+      [System.IO.File]::WriteAllText($ruta, $txt, (New-Object System.Text.UTF8Encoding($false)))
+    }
+  }
+  $pyMsg = "hooks configurados con '$py'"
+} else {
+  $pyMsg = "ATENCION: no se encontro Python 3; los hooks quedan con 'python' y la compuerta de la etapa 0 NO bloqueara"
+}
 
 $nSteering = (Get-ChildItem -LiteralPath (Join-Path $kiroDest 'steering') -Filter '*.md' | Measure-Object).Count
 $skills = (Get-ChildItem -LiteralPath (Join-Path $kiroDest 'skills') -Directory -Filter 'edf-*' | ForEach-Object { $_.Name }) -join ', '
@@ -77,14 +112,14 @@ Write-Host ''
 Write-Host "edf-framework-IA $version instalado en: $Destino"
 Write-Host "  .kiro/steering/     $nSteering archivos"
 Write-Host "  .kiro/skills/       $skills"
-Write-Host "  .kiro/hooks/        validar-expediente.json, compuerta-etapa0.json"
+Write-Host "  .kiro/hooks/        validar-expediente.json, compuerta-etapa0.json ($pyMsg)"
 Write-Host "  .kiro/specs/        orquestador (diseno, certificacion, tareas, trazabilidad)"
 Write-Host "  tools/              validar-expediente.py, validar-expedientes.py, verificar-claves.py, verificar-insumos-etapa0.py"
 Write-Host "  docs/edf-framework/ arquitectura y contratos (para personas)"
 Write-Host "  expedientes/        aqui vive el expediente de cada ingesta"
 Write-Host ''
-Write-Host 'Requisitos: Python 3 con `pip install jsonschema` (validador del expediente).'
-Write-Host '            Java 17 + Maven 3.9 solo para los generadores de Validation, Acceptance y Curation.'
+Write-Host 'Requisitos: Python 3 con `pip install pyyaml jsonschema` (generadores, validador del expediente).'
+Write-Host '            No se necesita Java ni Maven: ninguna skill compila.'
 Write-Host ''
 Write-Host "Abre Kiro en $Destino y arranca con:"
 Write-Host '  "Orquestador: inicia el expediente de la ingesta <NOMBRE>"'

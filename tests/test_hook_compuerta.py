@@ -36,6 +36,12 @@ class TestEsquemaDelHook(unittest.TestCase):
             self.assertIn("verificar-insumos-etapa0.py", h["action"]["command"])
             self.assertGreater(h["timeout"], 0)
 
+    def test_el_lanzador_es_un_interprete_de_python_conocido(self):
+        # El repo trae `python`; los instaladores lo cambian por el intérprete que existe en el equipo
+        # (AUD-O2, ver tests/test_instalador.py). Un lanzador desconocido dejaría la compuerta abierta.
+        for h in self.datos["hooks"]:
+            self.assertIn(h["action"]["command"].split()[0], {"python", "python3", "py"})
+
     def test_pretool_cubre_las_herramientas_de_escritura(self):
         h = next(h for h in self.datos["hooks"] if h["trigger"] == "PreToolUse")
         for herramienta in ("fs_write", "str_replace", "fs_append"):
@@ -52,6 +58,8 @@ class TestComandosDelHook(unittest.TestCase):
         self.cmd = {h["trigger"]: h["action"]["command"] for h in datos["hooks"]}
 
     def ejecutar(self, trigger, entrada=None, prompt=None):
+        # Aquí se aísla la lógica del script con el Python de la prueba; que el comando instalado use un
+        # intérprete que existe lo prueba tests/test_instalador.py con el hook tal como queda escrito.
         partes = shlex.split(self.cmd[trigger])
         partes[0] = sys.executable
         partes += ["--raiz", str(self.raiz)]
