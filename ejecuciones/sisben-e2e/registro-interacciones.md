@@ -38,8 +38,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T17:21:44-05:00
 - **Pedido:** Corregir AUD-E0-10/11/13/14/15 en .kiro/ con pruebas de regresión; CHANGELOG 1.9.1.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** 5 defectos corregidos (bloqueo por etapa_afectada también en la regla 5 del validador, que contaba por lista de la etapa; ejemplos SISBEN marcados «solo forma» en validation, acceptance, curation y analisis; excepción de la tabla de mapeo; 3 efectos nuevos en 07; casilla de insumos). Pruebas: tests 114 (antes 85), validation 160, acceptance 127, curation 106; auditar-skills OK.
+- **Decisión:** Revisado el diff del validador; commit aparte 7da4ca4 (framework 1.9.1). La condición AUD-E0-18 queda atendida.
 - **Bitácora:** —
 
 ## INT-006 · Auditor independiente · re-auditoría · `analisis`
