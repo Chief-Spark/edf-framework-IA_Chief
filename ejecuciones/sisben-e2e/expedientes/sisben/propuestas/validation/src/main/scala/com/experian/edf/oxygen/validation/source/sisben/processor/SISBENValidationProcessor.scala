@@ -1,10 +1,10 @@
 // VAL-TPL-06 · Capa C · plantilla (esqueleto convertido en parametrizada: las reglas entre campos,
 // el filtro, los duplicados y la normalización vienen como datos del source-spec).
-// Generado por el skill edf-validation-stage desde source-spec (sisben-iv-1.0.0). No editar a mano.
+// Generado por la skill edf-validation desde source-spec (sisben-iv-1.0.0). No editar a mano.
 // Imports de la versión 2404 del framework (no mezclar con 2306).
 package com.experian.edf.oxygen.validation.source.sisben.processor
 
-import java.time.{LocalDate, ZoneId}
+import java.time.{Instant, LocalDate, ZoneId}
 
 import scala.util.control.NonFatal
 
@@ -53,7 +53,7 @@ class SISBENValidationProcessor(processorContext: ProcessorContext) extends Vali
   private val MarcaDuplicado = ObjectError(
     errorCodeName = "OxygenDuplicateError", errorCodeValue = "OxygenDuplicate", errorLevel = "", messageKey = "")
 
-  // ASSUMPTION VAL-PA04: outputEventType inferido (fuente.event_type del source-spec).
+  // RESUELTO VAL-PA04 (spec-sisben.md §1 (event type 30)): outputEventType = fuente.event_type del source-spec.
   override val outputEventType: Int = 30
 
   private def hoy: LocalDate = LocalDate.now(ZoneId.of(spec.zonaHoraria))
@@ -77,8 +77,9 @@ class SISBENValidationProcessor(processorContext: ProcessorContext) extends Vali
   /** Filtro silencioso, fuera de todo quality score (líneas vacías; TIP_DOCUMENTO en {1, 2}). */
   override def shouldFilterRow(row: String): Boolean = RecordValidator.debeFiltrar(spec, row)
 
+  /** Nombre de archivo, con las reglas de fecha de la spec respecto del reloj del sistema (AUD-V-02). */
   override def validateFilename(validationContext: ValidationContext): ValidationResult =
-    resultado(RecordValidator.validarNombre(spec, nombreArchivo))
+    resultado(RecordValidator.validarNombre(spec, nombreArchivo, Instant.now()))
 
   override def validateHeader(validationContext: ValidationContext): ValidationResult =
     resultado(RecordValidator.validarHeader(spec, headers.toSeq))
@@ -118,7 +119,7 @@ class SISBENValidationProcessor(processorContext: ProcessorContext) extends Vali
   }
 
   /** deDupVersion = EXTN: el motor delega aquí y NO agrega la marca; se conserva uno y se marca el resto.
-    * ASSUMPTION F-14: "más reciente" = mayor asOfDate (FECHA_ACTUALIZACION_CNS); desempate por mayor eventId
+    * RESUELTO F-14 (spec-sisben.md §6 (mayor fec_actualizacion_cns; empate por mayor eventId)): "más reciente" = mayor asOfDate (FECHA_ACTUALIZACION_CNS); desempate por mayor eventId
     * (el orden de la lista no refleja el orden de las líneas). */
   override def listDuplicateEvents(events: List[TaggedValidatedEvent]): List[TaggedValidatedEvent] =
     if (events.size < 2) events
@@ -127,11 +128,12 @@ class SISBENValidationProcessor(processorContext: ProcessorContext) extends Vali
       events.zipWithIndex.map {
         case (tve, i) if i == conservar => tve
         case (tve, _) =>
-          // Misma construcción que usa el motor 2404 para marcar duplicados.
+          // Mismos 17 argumentos con los que el motor 2404 crea el evento (Validator.createTaggedValidatedEvent):
+          // se copian también inferredAsDeleted y fileTag, que el motor llena y Curation lee (AUD-V-17).
           new TaggedValidatedEvent(tve.lineage, tve.eventId, tve.validatedRecordJson, tve.payload,
             tve.qualityScores, tve.errorCodes :+ MarcaDuplicado, tve.eventType, tve.minFrequency,
             tve.asOfDate, tve.didCreateAsOfDateFromReceivedDate, tve.subscriberRelation, tve.subscriber,
-            tve.headerErrors, tve.footerErrors, tve.keys)
+            tve.headerErrors, tve.footerErrors, tve.keys, tve.inferredAsDeleted, tve.fileTag)
       }
     }
 }

@@ -1,5 +1,5 @@
 // VAL-TPL-02 · Capa A · plantilla fija (solo se rellena el paquete).
-// Generado por el skill edf-validation-stage. No editar a mano: regenerar desde el source-spec.
+// Generado por la skill edf-validation. No editar a mano: regenerar desde el source-spec.
 // Funciones puras sin Spark ni framework Oxygen. RecordValidator.validarRegistro nunca lanza (VAL-RC04):
 // una excepción del catálogo sale de FieldValidators.catalogo y validarRegistro la convierte en el código
 // interno de nivel 1 (ADR-01, 2026-10-21).
@@ -7,7 +7,7 @@ package com.experian.edf.oxygen.validation.source.common
 
 import java.text.Normalizer
 import java.time.format.{DateTimeFormatter, ResolverStyle}
-import java.time.{LocalDate, LocalDateTime, YearMonth, ZoneId, ZoneOffset}
+import java.time.{Instant, LocalDate, LocalDateTime, YearMonth, ZoneId, ZoneOffset}
 import java.util.regex.Pattern
 
 import scala.util.Try
@@ -50,9 +50,13 @@ object Campos {
     Option(delimitador).filter(_.nonEmpty).map(d => texto.split(Pattern.quote(d), -1)).getOrElse(Array(texto))
   }
 
-  /** Acceso seguro: posición fuera de rango devuelve vacío (VAL-TPL-04). Posiciones 1-based. */
-  def valor(valores: Array[String], posicion: Int): String =
-    if (posicion >= 1 && posicion <= valores.length) Option(valores(posicion - 1)).getOrElse("").trim else ""
+  /** Valor tal como llegó, sin trim: es el que se publica en validatedRecordJson, porque Curation necesita el
+    * valor recibido (AUD-V-05). Posición fuera de rango devuelve vacío. Posiciones 1-based. */
+  def crudo(valores: Array[String], posicion: Int): String =
+    if (posicion >= 1 && posicion <= valores.length) Option(valores(posicion - 1)).getOrElse("") else ""
+
+  /** Valor con trim, para validar (VAL-TPL-04). Posición fuera de rango devuelve vacío. Posiciones 1-based. */
+  def valor(valores: Array[String], posicion: Int): String = crudo(valores, posicion).trim
 }
 
 object Fechas {
@@ -206,9 +210,24 @@ object RecordValidator {
     }.toOption
   }
 
+  /** Nombre de archivo con el reloj del sistema. */
   def validarNombre(spec: SourceSpec, rutaOArchivo: String): Seq[FieldError] =
-    if (parsearNombre(spec, rutaOArchivo).isDefined) Seq.empty
+    validarNombre(spec, rutaOArchivo, Instant.now())
+
+  /** Nombre de archivo: regex, fechas y offset legibles (parsearNombre) y, si la spec las activa, las reglas de
+    * fecha respecto de `ahora` (AUD-V-02). Sin reglas activas el resultado no depende de `ahora`. Nunca lanza. */
+  def validarNombre(spec: SourceSpec, rutaOArchivo: String, ahora: Instant): Seq[FieldError] = {
+    val n = spec.nombreArchivo
+    val valido = parsearNombre(spec, rutaOArchivo).exists { i =>
+      // SILENCIO-INTENCIONAL VAL-RC03: zona horaria inválida con periodoNoFuturo → nombre inválido (su código), sin excepción.
+      def mesActual: Option[YearMonth] = Try(YearMonth.from(ahora.atZone(ZoneId.of(spec.zonaHoraria)))).toOption
+      (!n.periodoNoFuturo || mesActual.exists(m => !i.periodo.isAfter(m))) &&
+        (!n.recepcionNoFutura || !i.recibido.atOffset(i.offset).toInstant.isAfter(ahora)) &&
+        (!n.recepcionDesdeInicioPeriodo || !i.recibido.toLocalDate.isBefore(i.periodo.atDay(1)))
+    }
+    if (valido) Seq.empty
     else Seq(FieldError("FILENAME", spec.codigos.nombreArchivo, Severidad.Error.nivel, Causa.NombreArchivo))
+  }
 
   private def aplicarRegla(regla: ReglaEntreCampos, spec: SourceSpec, valores: Array[String],
                            conError: Set[String], cat: Catalogo): Option[FieldError] = {
@@ -223,6 +242,11 @@ object RecordValidator {
         }
       case r: ReglaEntreCampos.ValorConCodigoPropio =>
         if (r.valores.map(Texto.comparable).contains(Texto.comparable(v(r.campo))))
+          Some(FieldError(r.campo, r.codigo, r.severidad.nivel, r.causa))
+        else None
+      case r: ReglaEntreCampos.SoloCeros =>
+        val sinEspacios = FieldValidators.normalizar(v(r.campo), Seq(Normalizacion.QuitarEspacios))
+        if (sinEspacios.nonEmpty && sinEspacios.forall(_ == '0'))
           Some(FieldError(r.campo, r.codigo, r.severidad.nivel, r.causa))
         else None
     }
@@ -256,7 +280,7 @@ object RecordValidator {
   }
 
   /** Clave de duplicado: valores normalizados de los campos clave. Nunca devuelve un arreglo vacío (VAL-AP03).
-    * ASSUMPTION VAL-SP03: si algún campo de la clave está vacío, la clave se vuelve única por contenido de la fila
+    * RESUELTO VAL-SP03 (spec-sisben.md §6 (un registro sin tipo o sin número no se agrupa)): si algún campo de la clave está vacío, la clave se vuelve única por contenido de la fila
     * para no agrupar como duplicados registros que solo comparten la ausencia de documento. */
   def claveDuplicado(spec: SourceSpec, valores: Array[String]): Array[Any] = {
     val partes = spec.duplicados.clave.map { nombre =>
@@ -275,7 +299,7 @@ object RecordValidator {
         .flatMap(f => Fechas.epochMs(f, spec.zonaHoraria))
     }
 
-  /** ASSUMPTION F-14: índice del elemento a conservar = mayor fecha; empate → mayor desempate. */
+  /** RESUELTO F-14 (spec-sisben.md §6 (mayor fec_actualizacion_cns; empate por mayor eventId)): índice del elemento a conservar = mayor fecha; empate → mayor desempate. */
   def indiceAConservar(candidatos: Seq[(Long, String)]): Int =
     if (candidatos.isEmpty) -1
     else candidatos.zipWithIndex.maxBy { case ((fecha, desempate), _) => (fecha, desempate) }._2

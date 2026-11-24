@@ -1,5 +1,5 @@
 // VAL-TPL-04 · plantilla parametrizada.
-// Generado por el skill edf-validation-stage desde source-spec (sisben-iv-1.0.0). No editar a mano.
+// Generado por la skill edf-validation desde source-spec (sisben-iv-1.0.0). No editar a mano.
 // Evento tipado de SISBEN construido desde la línea cruda. Ningún accesor lanza excepción (VAL-P11).
 package com.experian.edf.oxygen.validation.source.sisben
 
@@ -14,7 +14,7 @@ class SISBENValidatedEvent(rec: String) extends ValidatedEvent(rec) {
   /** split(";", -1) una sola vez; serializable (no depende de rawRecord transitorio). */
   val valores: Array[String] = Campos.separar(rec, ";")
 
-  // Un accesor por campo, en el orden del layout. Posición fuera de rango → "".
+  // Un accesor por campo, en el orden del layout, con trim (para validar). Posición fuera de rango → "".
   val idFichaOrigen: String = Campos.valor(valores, 1)
   val idHogar: String = Campos.valor(valores, 2)
   val codDpto: String = Campos.valor(valores, 3)
@@ -38,31 +38,32 @@ class SISBENValidatedEvent(rec: String) extends ValidatedEvent(rec) {
   val idEstado: String = Campos.valor(valores, 21)
   val fechaActualizacionCns: String = Campos.valor(valores, 22)
 
-  /** Mapa ordenado nombre de dominio → valor (es el validatedRecordJson que leen Acceptance y Curation). */
+  /** Mapa ordenado nombre de dominio → valor RECIBIDO, sin trim (es el validatedRecordJson que leen Acceptance y
+    * Curation; Curation necesita el valor original, p. ej. un documento con espacios, AUD-V-05). */
   def comoMapa: java.util.LinkedHashMap[String, String] = {
     val m = new java.util.LinkedHashMap[String, String]()
-    m.put("ID_FICHA_ORIGEN", idFichaOrigen)
-    m.put("ID_HOGAR", idHogar)
-    m.put("COD_DPTO", codDpto)
-    m.put("NOM_DPTO", nomDpto)
-    m.put("COD_MPIO", codMpio)
-    m.put("NOM_MPIO", nomMpio)
-    m.put("ID_CLASE", idClase)
-    m.put("ID_PERSONA_ORDEN", idPersonaOrden)
-    m.put("ID_NACIONAL", idNacional)
-    m.put("PRI_APELLIDO", priApellido)
-    m.put("SEG_APELLIDO", segApellido)
-    m.put("PRI_NOMBRE", priNombre)
-    m.put("SEG_NOMBRE", segNombre)
-    m.put("TIP_DOCUMENTO", tipDocumento)
-    m.put("NUM_DOCUMENTO", numDocumento)
-    m.put("ID_GRUPO", idGrupo)
-    m.put("ID_NIVEL", idNivel)
-    m.put("FECHA_DIGITACION", fechaDigitacion)
-    m.put("FECHA_ACTUALIZACION_PERSONA", fechaActualizacionPersona)
-    m.put("ID_MARCA", idMarca)
-    m.put("ID_ESTADO", idEstado)
-    m.put("FECHA_ACTUALIZACION_CNS", fechaActualizacionCns)
+    m.put("ID_FICHA_ORIGEN", Campos.crudo(valores, 1))
+    m.put("ID_HOGAR", Campos.crudo(valores, 2))
+    m.put("COD_DPTO", Campos.crudo(valores, 3))
+    m.put("NOM_DPTO", Campos.crudo(valores, 4))
+    m.put("COD_MPIO", Campos.crudo(valores, 5))
+    m.put("NOM_MPIO", Campos.crudo(valores, 6))
+    m.put("ID_CLASE", Campos.crudo(valores, 7))
+    m.put("ID_PERSONA_ORDEN", Campos.crudo(valores, 8))
+    m.put("ID_NACIONAL", Campos.crudo(valores, 9))
+    m.put("PRI_APELLIDO", Campos.crudo(valores, 10))
+    m.put("SEG_APELLIDO", Campos.crudo(valores, 11))
+    m.put("PRI_NOMBRE", Campos.crudo(valores, 12))
+    m.put("SEG_NOMBRE", Campos.crudo(valores, 13))
+    m.put("TIP_DOCUMENTO", Campos.crudo(valores, 14))
+    m.put("NUM_DOCUMENTO", Campos.crudo(valores, 15))
+    m.put("ID_GRUPO", Campos.crudo(valores, 16))
+    m.put("ID_NIVEL", Campos.crudo(valores, 17))
+    m.put("FECHA_DIGITACION", Campos.crudo(valores, 18))
+    m.put("FECHA_ACTUALIZACION_PERSONA", Campos.crudo(valores, 19))
+    m.put("ID_MARCA", Campos.crudo(valores, 20))
+    m.put("ID_ESTADO", Campos.crudo(valores, 21))
+    m.put("FECHA_ACTUALIZACION_CNS", Campos.crudo(valores, 22))
     m
   }
 

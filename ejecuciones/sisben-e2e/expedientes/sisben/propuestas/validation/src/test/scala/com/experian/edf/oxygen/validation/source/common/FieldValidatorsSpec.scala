@@ -1,5 +1,5 @@
 // VAL-TPL-09 · Capa A · plantilla fija (solo se rellena el paquete).
-// Generado por el skill edf-validation-stage. Tests puros: corren sin clúster y sin el JAR de Oxygen.
+// Generado por la skill edf-validation. Tests puros: corren sin clúster y sin el JAR de Oxygen.
 // DATOS SINTÉTICOS: ningún valor proviene de una fuente real.
 package com.experian.edf.oxygen.validation.source.common
 
@@ -182,6 +182,47 @@ class FieldValidatorsSpec extends AnyFunSuite {
     assert(RecordValidator.validarFooter(Seq.empty, 1, esFooter, "TEST_ERR_0097") == error)
     assert(RecordValidator.validarFooter(null, 1, esFooter, "TEST_ERR_0097") == error)
     assert(RecordValidator.validarFooter(Seq("TOTAL;1", "TOTAL;2"), 1, esFooter, "TEST_ERR_0097") == error)
+  }
+
+  test("SoloCeros evalúa el valor sin espacios: 16 ceros y \"00 00\" emiten el código; vacío o con otro dígito no (AUD-V-03)") {
+    val regla = ReglaEntreCampos.SoloCeros("RV-00", "CAMPO_X", "TEST_ERR_0029", Severidad.Error, "DOCUMENTO_CERO")
+    val s = fuente(Seq(campo(obligatorio = false)), Seq(regla))
+    val error = Seq(FieldError("CAMPO_X", "TEST_ERR_0029", "1", "DOCUMENTO_CERO"))
+    for (v <- Seq("0", "0000000000000000", "00 00", " 0000 ")) assert(RecordValidator.validarRegistro(s, v, CatalogoVacio, hoy).errores == error, v)
+    for (v <- Seq("", "   ", "0001", "10", "0O")) assert(RecordValidator.validarRegistro(s, v, CatalogoVacio, hoy).errores.isEmpty, v)
+  }
+
+  test("ValorConCodigoPropio sigue comparando contra la lista literal (sin la normalización del campo)") {
+    val regla = ReglaEntreCampos.ValorConCodigoPropio("RV-01", "CAMPO_X", Set("0000"), "TEST_ERR_0029", Severidad.Error, "DOCUMENTO_CERO")
+    val s = fuente(Seq(campo(obligatorio = false)), Seq(regla))
+    assert(RecordValidator.validarRegistro(s, " 0000", CatalogoVacio, hoy).errores.map(_.codigo) == Seq("TEST_ERR_0029"))
+    assert(RecordValidator.validarRegistro(s, "00000", CatalogoVacio, hoy).errores.isEmpty)
+  }
+
+  test("Campos.crudo conserva los espacios del valor recibido; Campos.valor los quita (AUD-V-05)") {
+    val valores = Campos.separar("a; 0001000000101 ;b", ";")
+    assert(Campos.crudo(valores, 2) == " 0001000000101 ")
+    assert(Campos.valor(valores, 2) == "0001000000101")
+    assert(Campos.crudo(valores, 9) == "")
+  }
+
+  test("reglas de fecha del nombre: apagadas no cambian nada; encendidas rechazan periodo futuro y recepción fuera de rango (AUD-V-02)") {
+    val ahora = java.time.ZonedDateTime.of(2024, 6, 30, 23, 59, 59, 0, java.time.ZoneId.of("America/Bogota")).toInstant
+    val base = fuente(Seq(campo()))
+    val reglas = base.copy(nombreArchivo = base.nombreArchivo.copy(periodoNoFuturo = true, recepcionNoFutura = true,
+      recepcionDesdeInicioPeriodo = true))
+    val codigo = Seq("TEST_ERR_0091")
+    val valido = "X20240620240630120000-0500"
+    val invalidos = Seq(
+      "X20990120240630120000-0500", // periodo futuro
+      "X20240620240703120000-0500", // recepción futura
+      "X20240620240531120000-0500") // recepción anterior al primer día del periodo
+    for (n <- valido +: invalidos) assert(RecordValidator.validarNombre(base, n, ahora).isEmpty, n)
+    assert(RecordValidator.validarNombre(reglas, valido, ahora).isEmpty)
+    for (n <- invalidos) assert(RecordValidator.validarNombre(reglas, n, ahora).map(_.codigo) == codigo, n)
+    assert(RecordValidator.validarNombre(base, "X20240620240630120000-2500", ahora).map(_.codigo) == codigo) // offset fuera de ±18:00
+    val zonaMala = reglas.copy(zonaHoraria = "Zona/Inexistente")
+    assert(RecordValidator.validarNombre(zonaMala, valido, ahora).map(_.codigo) == codigo)
   }
 
   test("desempate de duplicados: mayor fecha y luego mayor desempate") {

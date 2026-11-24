@@ -1,5 +1,5 @@
 {
-  "skill": "edf-validation-stage",
+  "skill": "edf-validation",
   "spec_version": "sisben-iv-1.0.0",
   "fuente": "SISBEN",
   "estado": "PROPUESTA - requiere aprobación del técnico antes de copiar al fork (Human-in-the-Loop)",
@@ -7,51 +7,51 @@
   "archivos": [
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/common/FieldSpec.scala",
-      "sha256": "898b6c668e7071365df5c16bc021f9698ec01458ab388a2615f20563ab50532b"
+      "sha256": "a49b90c11cac96221a4309b3f08c8cf8c94f2899cbd41e81bb6e9cf581068111"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/common/FieldValidators.scala",
-      "sha256": "041c9101e0d331f1e04a725c7f8205b4cf3bb54b1265bb21965975c05d78b701"
+      "sha256": "eb03cff87f88ca198caa88d350514077b1077ad41493c78f987124ef6a252d25"
     },
     {
       "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/common/FieldValidatorsSpec.scala",
-      "sha256": "7cde8b6acf2ff55234d631eb2625c317fbb1d5b4306285dbae01bdf69485cfaf"
+      "sha256": "2ac49d91692d45161ec419ed75e86eeab1207ba6ef3b51a8b4e0d95e509f755e"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/config/SISBENSpec.scala",
-      "sha256": "08f9b8f7d0f1bfc443371cbd71c55756fbfcc8b52ac71fc03151d5af0905be64"
+      "sha256": "326eb3fa32c51f0bb19f5f502300f3ae26338ce98d1d286cbd2cb34f530e6d41"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/SISBENValidatedEvent.scala",
-      "sha256": "4ad5e50c444ebd3132560a349d8ebf4d86c60aa05c5ca4b70d718078bca3991e"
+      "sha256": "cf66285418b3e24018f9654c848e4d147a6b8e192faf13c7bf6d865fbed18def"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/validator/SISBENFileMetadata.scala",
-      "sha256": "37125550bd8125cd31b0587dc1b29e6e5a1b8bbe76d091e08c839a0b9a9248c9"
+      "sha256": "41d5de3eb5c221b6badf1ab1ebd578f58b878f76474a2cbe6da0ea6e0fb4fab9"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/processor/SISBENValidationProcessor.scala",
-      "sha256": "8099412ff59915589033101767c51134d0d3c7260821f4a95ffcfa79e0fd33bc"
+      "sha256": "3ffceb3e14e76786abc3fa6e918c2a438b129309fade00f3f527516cdd598a1d"
     },
     {
       "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/sisben/SISBENValidationProcessorSpec.scala",
-      "sha256": "aa7db12edde53e927386411f934f9ad78bd15b89deaf3b6bb910b919686d2c7e"
+      "sha256": "afb318a084950158d8f66cb8988c172c239aa62d257701b3eaaf0300966cbfc6"
     },
     {
       "ruta": "src/test/resources/sisben/SISBEN_EXPERIAN_202601.20260205093000-0500.txt",
-      "sha256": "c5b7d8159876e9bfa85618a2bd7cebedc4398ca4ef5aa13a3b82ea42ff73ad2f"
+      "sha256": "02061a54564798862a9ff350504ca8dfaf39189d6a0038f7efa93f5e0c43f6da"
     },
     {
       "ruta": "env/application-conf/innersource/propuesta/validation-configs-sisben.conf",
-      "sha256": "9287cbd61da0ace095f7c794ed98fac70fe76df1092a6c423bdcdc3fda398c9e"
+      "sha256": "58e467890738e9e0753174297d0eec92d70efe23be41c7a49cd1debe9b675ef5"
     },
     {
       "ruta": "env/application-conf/innersource/propuesta/lookups-sisben.conf",
-      "sha256": "43c115cb96b866a3e17463a96102290947fd883851d6c8fc7aeb9210c55fe163"
+      "sha256": "2aa0a7270f7e3cf79ecd69d48c016bdb334a0f13b4365dcd347d15b0593f1fac"
     },
     {
-      "ruta": "env/application-conf/innersource/propuesta/codigos-error-sisben.csv",
-      "sha256": "fd2d116411f472f3ca4d1e6c2c61ecd5cdb54ce20b4c9195a318c2792bf3a85c"
+      "ruta": "docs/codigos-error-sisben.csv",
+      "sha256": "7cf216511c94d023109473bde19190f5c9b83cdced0bdb687632b2ad4459635c"
     },
     {
       "ruta": "src/test/resources/sisben/lookup/102_DANE_DIVIPOLA_STATES_CODES_NH.csv",
@@ -86,21 +86,50 @@
   },
   "supuestos": [
     "F-04",
-    "F-07",
-    "F-09",
-    "F-11",
-    "F-12",
-    "F-14",
-    "VAL-PA04",
     "VAL-PT01",
     "VAL-PT03",
     "VAL-PT04",
-    "VAL-SP01",
     "VAL-SP02",
-    "VAL-SP03",
-    "VAL-SP07",
     "VAL-SP08",
     "VAL-SP09",
     "VAL-SP10"
+  ],
+  "supuestos_resueltos": [
+    {
+      "id": "F-07",
+      "fuente": "spec-sisben.md §2 (filePattern con .* y tipo siempre REGULAR; RT_ y EP_ se rechazan)"
+    },
+    {
+      "id": "F-09",
+      "fuente": "spec-sisben.md §2 (22 columnas) y §8 (SISBEN_ERR_026)"
+    },
+    {
+      "id": "F-11",
+      "fuente": "spec-sisben.md §2 RA-01 a RA-05, §7 RQ-05 y §8 (SISBEN_ERR_024 y SISBEN_ERR_025)"
+    },
+    {
+      "id": "F-12",
+      "fuente": "spec-sisben.md §9 (seis catálogos: nombres, columnas, llave y delimitador) y Anexo A (catalogos)"
+    },
+    {
+      "id": "F-14",
+      "fuente": "spec-sisben.md §6 (mayor fec_actualizacion_cns; empate por mayor eventId)"
+    },
+    {
+      "id": "VAL-PA04",
+      "fuente": "spec-sisben.md §1 (event type 30)"
+    },
+    {
+      "id": "VAL-SP01",
+      "fuente": "spec-sisben.md §8 (SISBEN_ERR_027 error interno al validar un registro)"
+    },
+    {
+      "id": "VAL-SP03",
+      "fuente": "spec-sisben.md §6 (un registro sin tipo o sin número no se agrupa)"
+    },
+    {
+      "id": "VAL-SP07",
+      "fuente": "spec-sisben.md §2 (fecha de corte = último día del periodo AAAAMM)"
+    }
   ]
 }

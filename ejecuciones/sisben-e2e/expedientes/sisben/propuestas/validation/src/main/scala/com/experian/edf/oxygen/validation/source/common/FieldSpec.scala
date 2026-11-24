@@ -1,5 +1,5 @@
 // VAL-TPL-01 · Capa A · plantilla fija (solo se rellena el paquete).
-// Generado por el skill edf-validation-stage. No editar a mano: regenerar desde el source-spec.
+// Generado por la skill edf-validation. No editar a mano: regenerar desde el source-spec.
 // Tipos con los que se declara una fuente. Sin Spark ni framework Oxygen: compila solo con Scala 2.12.
 // ASSUMPTION VAL-PT01: el código compartido (Capa A) vive en el paquete com.experian.edf.oxygen.validation.source.common.
 package com.experian.edf.oxygen.validation.source.common
@@ -76,11 +76,22 @@ object ReglaEntreCampos {
     severidad: Severidad
   ) extends ReglaEntreCampos
 
-  /** Valores aceptados por el catálogo pero que requieren un código propio (p. ej. salvoconducto). */
+  /** Valores aceptados por el catálogo pero que requieren un código propio (p. ej. salvoconducto). Compara contra
+    * la lista literal, sin la normalización del campo (solo trim, mayúsculas y tildes). */
   final case class ValorConCodigoPropio(
     id: String,
     campo: String,
     valores: Set[String],
+    codigo: String,
+    severidad: Severidad,
+    causa: String
+  ) extends ReglaEntreCampos
+
+  /** El valor del campo, sin ningún espacio (extremos ni internos), no está vacío y es solo ceros: "0",
+    * "0000000000000000", "00 00". Se evalúa sobre ese valor normalizado, no sobre una lista literal (AUD-V-03). */
+  final case class SoloCeros(
+    id: String,
+    campo: String,
     codigo: String,
     severidad: Severidad,
     causa: String
@@ -93,14 +104,20 @@ final case class FiltroFilas(lineasVacias: Boolean, posicionCampo: Option[Int], 
 /** Quality score de registro: vale 0.0 si el registro tiene algún error con un nivel de `anulanNiveles`. */
 final case class QualityScoreSpec(nombre: String, anulanNiveles: Set[String])
 
-/** Contrato del nombre de archivo: regex anclado sobre el nombre (sin ruta) y sus grupos. */
+/** Contrato del nombre de archivo: regex anclado sobre el nombre (sin ruta) y sus grupos. Las reglas de fecha
+  * (archivo.nombre del source-spec, AUD-V-02) son opcionales y vienen apagadas por defecto:
+  * periodoNoFuturo (periodo ≤ mes actual en la zona de la fuente), recepcionNoFutura (marca de tiempo con su
+  * offset ≤ ahora) y recepcionDesdeInicioPeriodo (fecha de la marca ≥ primer día del periodo). */
 final case class NombreArchivoSpec(
   regex: String,
   grupoPrefijo: Int,
   grupoPeriodo: Int,
   grupoMarcaTiempo: Int,
   grupoOffset: Int,
-  fileTagPorPrefijo: Map[String, String]
+  fileTagPorPrefijo: Map[String, String],
+  periodoNoFuturo: Boolean = false,
+  recepcionNoFutura: Boolean = false,
+  recepcionDesdeInicioPeriodo: Boolean = false
 )
 
 /** Duplicados dentro del archivo (E12). */

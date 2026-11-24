@@ -1,5 +1,5 @@
 // VAL-TPL-03 · Capa B · plantilla parametrizada.
-// Generado por el skill edf-validation-stage desde source-spec (sisben-iv-1.0.0). No editar a mano.
+// Generado por la skill edf-validation desde source-spec (sisben-iv-1.0.0). No editar a mano.
 // Especificación de SISBEN como datos: es la fuente de verdad del evento, del header y de los tests.
 package com.experian.edf.oxygen.validation.source.sisben.config
 
@@ -157,8 +157,7 @@ object SISBENSpec {
       codigo = "SISBEN_ERR_028", severidad = Severidad.Error),
     ValorConCodigoPropio(id = "RV-SIS-04", campo = TIP_DOCUMENTO, valores = Set("7"),
       codigo = "SISBEN_ERR_023", severidad = Severidad.Error, causa = "TIPO_PENDIENTE_CREACION"),
-    ValorConCodigoPropio(id = "RV-SIS-05", campo = NUM_DOCUMENTO, valores = Set("0", "00", "000", "0000", "00000", "000000", "0000000", "00000000", "000000000", "0000000000", "00000000000", "000000000000", "0000000000000", "00000000000000", "000000000000000"),
-      codigo = "SISBEN_ERR_029", severidad = Severidad.Error, causa = "DOCUMENTO_CERO")
+    SoloCeros(id = "RV-SIS-05", campo = NUM_DOCUMENTO, codigo = "SISBEN_ERR_029", severidad = Severidad.Error, causa = "DOCUMENTO_CERO")
   )
 
   val Spec: SourceSpec = SourceSpec(
@@ -172,7 +171,11 @@ object SISBENSpec {
       grupoPeriodo = 2,
       grupoMarcaTiempo = 3,
       grupoOffset = 4,
-      fileTagPorPrefijo = Map("" -> "REGULAR")
+      fileTagPorPrefijo = Map("" -> "REGULAR"),
+      // Reglas de fecha del nombre (archivo.nombre del source-spec; false = no se aplican, AUD-V-02).
+      periodoNoFuturo = true,
+      recepcionNoFutura = true,
+      recepcionDesdeInicioPeriodo = true
     ),
     subscriber = "999722",
     dataSource = "DNP",
@@ -185,12 +188,12 @@ object SISBENSpec {
     campoSubscriberRelation = NUM_DOCUMENTO,
     campoAsOfDate = FECHA_ACTUALIZACION_CNS,
     codigos = CodigosEspeciales(
-      // ASSUMPTION F-11: códigos provisionales del nombre de archivo y del header.
+      // RESUELTO F-11 (spec-sisben.md §2 RA-01 a RA-05, §7 RQ-05 y §8 (SISBEN_ERR_024 y SISBEN_ERR_025)): códigos del nombre de archivo y del header (codigos_especiales del source-spec).
       nombreArchivo = "SISBEN_ERR_024",
       header = "SISBEN_ERR_025",
-      // ASSUMPTION F-09: fila con un número de columnas distinto al layout → error de nivel 1, sin excepción.
+      // RESUELTO F-09 (spec-sisben.md §2 (22 columnas) y §8 (SISBEN_ERR_026)): fila con un número de columnas distinto al layout → error de nivel 1, sin excepción.
       estructura = "SISBEN_ERR_026",
-      // ASSUMPTION VAL-SP01: código para un error interno inesperado al validar un registro (red de seguridad).
+      // RESUELTO VAL-SP01 (spec-sisben.md §8 (SISBEN_ERR_027 error interno al validar un registro)): código para un error interno inesperado al validar un registro (red de seguridad).
       interno = "SISBEN_ERR_027"
     )
   )

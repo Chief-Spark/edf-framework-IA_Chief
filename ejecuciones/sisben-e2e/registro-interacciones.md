@@ -134,6 +134,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:25:01-05:00
 - **Pedido:** Regenerar la propuesta de Validation con el insumo v2 (APR-005) y el framework 1.9.2; repetir verificaciones.
+- **Respuesta:** Regenerada (18 archivos + manifest; codigos-error en docs/). Verificaciones V1-V6 OK (HOCON OK con filePattern y lookupHome; muestra = spec §15; fixture 26 casos). Supuestos abiertos 8, resueltos 9. Casos HU: ERR_024 por fechas ahora sí; duplicado con ceros OK; header con nombres fuente OK; solo ceros y 23 columnas OK. V7: 1 prueba del framework falla (D1). Posibles defectos: D1 (prueba acoplada al insumo E2E), D2 (RA-02 no aislable), D3 (RESUELTO F-12 que pide confirmar), D4 (SUP-APR-01 sin marca = HF-13).
+- **Decisión:** D1 y D3 corregidos en el framework 1.9.4 (HF-14, HF-15, commit 5ae3380); D2 a la re-auditoría y al PO; regenerar una vez más.
+- **Bitácora:** —
+
+## INT-018 · Generador (edf-validation) · regeneración 1.9.4 · `validation`
+
+- **Cuándo:** 2026-11-24T18:29:45-05:00
+- **Pedido:** Regenerar tras framework 1.9.4 y repetir V1-V7.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

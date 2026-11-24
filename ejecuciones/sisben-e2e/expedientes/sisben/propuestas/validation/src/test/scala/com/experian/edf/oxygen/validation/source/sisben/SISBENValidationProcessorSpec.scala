@@ -1,5 +1,5 @@
 // VAL-TPL-10 · tests de la fuente SISBEN (parametrizada desde source-spec sisben-iv-1.0.0).
-// Generado por el skill edf-validation-stage. No editar a mano: agregar casos en el source-spec.
+// Generado por la skill edf-validation. No editar a mano: agregar casos en el source-spec.
 // Prueba la especificación + Capa A, que es exactamente la lógica que ejecuta SISBENValidationProcessor.
 // ASSUMPTION VAL-SP10: no importa clases del framework Oxygen; compila y corre con Scala 2.12 + ScalaTest, sin clúster ni JAR.
 // La prueba de integración del processor (ProcessorContext, lookup real) requiere el JAR (F-01).
@@ -19,6 +19,9 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
 
   private val spec = SISBENSpec.Spec
   private val hoy = LocalDate.of(2026, 2, 5)
+  /** Reloj de las pruebas del nombre: fin del día de referencia en la zona de la fuente (igual que --hoy en
+    * prevalidar_archivo.py, AUD-V-02). */
+  private val ahora = hoy.atTime(23, 59, 59).atZone(java.time.ZoneId.of(spec.zonaHoraria)).toInstant
 
   /** Filas sintéticas del source-spec y una consulta con la semántica de Util.getLookup del motor (VAL-PT03):
     * devuelve los valores de la columna pedida en las filas que cumplen el filtro, o List("") si no hay coincidencia. */
@@ -101,6 +104,9 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
     RecordValidator.validarRegistro(spec, fila, CatalogoSintetico, hoy).errores.map(_.codigo)
 
   private val HeaderCorrecto: String = "ID_FICHA_ORIGEN;ID_HOGAR;COD_DPTO;NOM_DPTO;COD_MPIO;NOM_MPIO;ID_CLASE;ID_PERSONA_ORDEN;ID_NACIONAL;PRI_APELLIDO;SEG_APELLIDO;PRI_NOMBRE;SEG_NOMBRE;TIP_DOCUMENTO;NUM_DOCUMENTO;ID_GRUPO;ID_NIVEL;FECHA_DIGITACION;FECHA_ACTUALIZACION_PERSONA;ID_MARCA;ID_ESTADO;FECHA_ACTUALIZACION_CNS"
+
+  /** Header con los nombres fuente (primer alias de cada campo) (AUD-V-09). */
+  private val HeaderFuente: String = "ide_ficha_origen;ide_hogar;cod_dpto;nom_dpto;cod_mpio;nom_mpio;cod_clase;ide_persona;ide_nacional;pri_apellido;seg_apellido;pri_nombre;seg_nombre;tip_documento;num_documento;grupo;nivel;fec_digitacion;fec_actualizacion_persona;marca;estado;fec_actualizacion_cns"
 
   test("la especificación declara 22 campos con posiciones consecutivas") {
     assert(spec.numeroCampos == 22)
@@ -243,6 +249,11 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
     assert(!RecordValidator.esHeader(spec, linea(RegistroBase)))
   }
 
+  test("header con los nombres fuente (alias) se acepta y se reconoce como fila de header") {
+    assert(RecordValidator.validarHeader(spec, Seq(HeaderFuente)).isEmpty)
+    assert(RecordValidator.esHeader(spec, HeaderFuente))
+  }
+
   test("header con una columna distinta, con columnas de menos o vacío produce el código de header") {
     val cols = HeaderCorrecto.split(java.util.regex.Pattern.quote(";"), -1)
     assert(RecordValidator.validarHeader(spec, Seq(cols.updated(1, "OTRA").mkString(";"))).map(_.codigo) == Seq(spec.codigos.header))
@@ -251,8 +262,25 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
   }
 
   test("nombre de archivo del fixture es válido y uno distinto no") {
-    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202601.20260205093000-0500.txt").isEmpty)
-    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/OTRO_ARCHIVO.txt").map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202601.20260205093000-0500.txt", ahora).isEmpty)
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/OTRO_ARCHIVO.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+  }
+
+  test("nombre de archivo con periodo posterior al mes de referencia produce el código de nombre (periodo_no_futuro)") {
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202702.20260205093000-0500.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+  }
+
+  test("nombre de archivo con recepción posterior a la fecha de referencia produce el código de nombre (recepcion_no_futura)") {
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202601.20260208120000-0500.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+  }
+
+  test("nombre de archivo con recepción anterior al primer día del periodo produce el código de nombre (recepcion_desde_inicio_periodo)") {
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202601.20251231120000-0500.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+  }
+
+  test("nombres de archivo inválidos declarados en el fixture producen el código de nombre") {
+    for (nombre <- Seq("RT_SISBEN_EXPERIAN_202601.20260205093000-0500.txt", "EP_SISBEN_EXPERIAN_202601.20260205093000-0500.txt", "SISBEN_EXPERIAN_202603.20260205093000-0500.txt", "SISBEN_EXPERIAN_202601.20251231093000-0500.txt", "SISBEN_EXPERIAN_202601.20260206093000-0500.txt", "SISBEN_EXPERIAN_202601.txt"))
+      assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/" + nombre, ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo), nombre)
   }
 
   test("la clave de duplicado nunca es vacía") {
@@ -378,8 +406,27 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
     assert(codigos("0900000101;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;9300000101;PRUEBAUNO;APELLIDOUNO;NOMBREUNO;SEGUNDOUNO;3;1000000199;A;1;15/11/2025;20/12/2025;0;0;15/01/2026") == Seq())
   }
 
-  test("fixture duplicados: misma clave y se conserva el más reciente (ASSUMPTION F-14)") {
+  test("fixture DUP_CEROS_ANTIGUO: duplicado con ceros a la izquierda, más antiguo: se marca") {
+    assert(!RecordValidator.debeFiltrar(spec, "0900000101;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;9300000101;PRUEBAUNO;APELLIDOUNO;NOMBREUNO;SEGUNDOUNO;3;1000000198;A;1;15/11/2025;20/12/2025;0;0;01/01/2026"))
+    assert(codigos("0900000101;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;9300000101;PRUEBAUNO;APELLIDOUNO;NOMBREUNO;SEGUNDOUNO;3;1000000198;A;1;15/11/2025;20/12/2025;0;0;01/01/2026") == Seq())
+  }
+
+  test("fixture DUP_CEROS_RECIENTE: duplicado con ceros a la izquierda, más reciente: se conserva") {
+    assert(!RecordValidator.debeFiltrar(spec, "0900000101;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;9300000101;PRUEBAUNO;APELLIDOUNO;NOMBREUNO;SEGUNDOUNO;3;0001000000198;A;1;15/11/2025;20/12/2025;0;0;15/01/2026"))
+    assert(codigos("0900000101;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;9300000101;PRUEBAUNO;APELLIDOUNO;NOMBREUNO;SEGUNDOUNO;3;0001000000198;A;1;15/11/2025;20/12/2025;0;0;15/01/2026") == Seq())
+  }
+
+  test("fixture duplicados: misma clave y se conserva el más reciente (RESUELTO F-14 (spec-sisben.md §6 (mayor fec_actualizacion_cns; empate por mayor eventId)))") {
     val grupo = Seq("0900000101;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;9300000101;PRUEBAUNO;APELLIDOUNO;NOMBREUNO;SEGUNDOUNO;3;1000000199;A;1;15/11/2025;20/12/2025;0;0;01/01/2026", "0900000101;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;9300000101;PRUEBAUNO;APELLIDOUNO;NOMBREUNO;SEGUNDOUNO;3;1000000199;A;1;15/11/2025;20/12/2025;0;0;15/01/2026")
+    val claves = grupo.map(l => RecordValidator.claveDuplicado(spec, Campos.separar(l, ";")).toSeq)
+    assert(claves.distinct.size == 1)
+    val fechas = grupo.map(l => RecordValidator.asOfDate(spec, l).getOrElse(0L))
+    val candidatos = fechas.zipWithIndex.map { case (f, i) => (f, "%05d".format(i)) }
+    assert(RecordValidator.indiceAConservar(candidatos) == 1)
+  }
+
+  test("fixture duplicados (grupo DUP_CEROS): misma clave y se conserva el más reciente (RESUELTO F-14 (spec-sisben.md §6 (mayor fec_actualizacion_cns; empate por mayor eventId)))") {
+    val grupo = Seq("0900000101;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;9300000101;PRUEBAUNO;APELLIDOUNO;NOMBREUNO;SEGUNDOUNO;3;1000000198;A;1;15/11/2025;20/12/2025;0;0;01/01/2026", "0900000101;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;9300000101;PRUEBAUNO;APELLIDOUNO;NOMBREUNO;SEGUNDOUNO;3;0001000000198;A;1;15/11/2025;20/12/2025;0;0;15/01/2026")
     val claves = grupo.map(l => RecordValidator.claveDuplicado(spec, Campos.separar(l, ";")).toSeq)
     assert(claves.distinct.size == 1)
     val fechas = grupo.map(l => RecordValidator.asOfDate(spec, l).getOrElse(0L))
