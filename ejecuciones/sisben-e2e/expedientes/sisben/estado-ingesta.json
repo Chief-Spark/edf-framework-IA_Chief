@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T18:19:34-05:00",
-    "vista_md_regenerada_en": "2026-11-24T18:19:34-05:00"
+    "actualizado_en": "2026-11-24T18:24:43-05:00",
+    "vista_md_regenerada_en": "2026-11-24T18:24:43-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -125,7 +125,7 @@
         "observada": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": "APR-004",
+      "ref_aprobacion": "APR-006",
       "riesgo_evaluado": "bajo",
       "nivel_friccion": "ligera",
       "preguntas_abiertas": [
@@ -134,7 +134,7 @@
       "riesgos": [
         "RG-001"
       ],
-      "transicion_habilitada": false,
+      "transicion_habilitada": true,
       "nota_regla_de_corte": null,
       "checklist_bloqueo": {
         "c1_etapa_previa_aprobada": true,
@@ -145,7 +145,7 @@
         "c6_justificacion_si_riesgo_alto": true,
         "resultado": "habilitada",
         "condiciones_fallidas": [],
-        "evaluado_en": "2026-11-24T17:31:49-05:00"
+        "evaluado_en": "2026-11-24T18:24:43-05:00"
       }
     },
     {
@@ -156,7 +156,7 @@
       "dag_airflow": "daily-validation",
       "clasificacion_compromiso": "aceptacion",
       "riesgo_tipico": "medio",
-      "estado": "no_iniciada",
+      "estado": "en_progreso",
       "depende_de": [
         "analisis"
       ],
@@ -167,7 +167,7 @@
           "nombre": "insumo: source-spec-validation.yaml (edf-analisis)",
           "ruta": "insumos/source-spec-validation.yaml",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
@@ -175,7 +175,7 @@
             "reportada_por": "Analista (INT-013): v2, --solo-verificar OK (22 campos, 29 codigos); muestra = spec §15; RA-02..04 rechazan con ERR_024 en el prevalidador",
             "reportada_en": "2026-11-24"
           },
-          "hash": "sha256:7a8d7a6e3d11ab46f3e5bafc0923f28e1db42457962e608ae76854ac14dcbd8c"
+          "hash": "sha256:dd707688bc927ef471e06ada54cf13b9670ddbb5bb72690ab06e08354f92aa65"
         },
         {
           "id": "ART-011",
@@ -729,6 +729,54 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0024"
+    },
+    {
+      "id": "APR-005",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-010"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T18:24:43-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBADO (auditorias/validation.md §6): cambios aditivos autorizados en INT-012 con cita (RA-02..04 spec §2; RV-SIS-05 solo_ceros spec §4, §3 fila 15, HU R-18; casos DUP_CEROS_* y nombres_invalidos HU §5.1); 9 supuestos_resueltos verificados; muestra = spec §15. Supuesto SUP-APR-01 [PM]: el «mes actual» de RA-02 es el mes en America/Bogota; dueño el PO para la próxima versión de la spec; si es falso, rechazo o aceptación equivocados solo en el borde del mes, reversible; sin huella en el código (HF-13).",
+      "condiciones": [
+        "AUD-V-26: confirmar al desplegar que los CSV quedan en la raíz de lookupHome [PM]",
+        "AUD-V-27 se revisa en la propuesta regenerada"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0047"
+    },
+    {
+      "id": "APR-006",
+      "tipo": "transicion",
+      "desde_etapa": "analisis",
+      "hacia_etapa": "validation",
+      "artefactos": [
+        "ART-010"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T18:24:43-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Insumo v2 re-auditado y re-aprobado con hash dd707688…; ninguna pregunta bloqueante en analisis ni en validation (PA-003..005 no bloqueantes; PA-002 de state_calculation); se reabre la transición suspendida en BIT-0042. c1 cumple (APR-002, no se repite); c2 cumple; c3 cumple (ART-010 aprobado); c4 cumple; c5 no aplica (etapa 0 sin pipeline); c6 no aplica (medio).",
+      "condiciones": [
+        "No cubre ART-011..015: se regeneran y re-auditan (AUD-V-01, -05, -06, HeaderFuente, AUD-V-27)",
+        "PA-003..005 figuran como desviaciones declaradas en la aprobación de Validation"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0048"
     }
   ],
   "preguntas_abiertas": [
@@ -911,8 +959,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0045",
-    "eventos_totales": 45,
+    "ultimo_evento": "BIT-0051",
+    "eventos_totales": 51,
     "append_only": true,
     "retencion_meses": 24
   }

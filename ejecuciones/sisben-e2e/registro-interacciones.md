@@ -126,6 +126,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:23:08-05:00
 - **Pedido:** Re-aprobar ART-010 v2 y aprobar de nuevo la transición analisis→validation (references/03 §3c).
+- **Respuesta:** Re-aprueba ART-010 v2 (medio; hash dd707688…; SUP-APR-01 en la justificación con formato 04 §6) y aprueba de nuevo la transición analisis→validation (medio; c1..c4 cumplen, c5 y c6 no aplican), en ese orden. No cubre ART-011..015.
+- **Decisión:** Registradas BIT-0046 (corrección del hash), APR-005 (insumo v2), APR-006 (transición); ref_aprobacion de analisis = APR-006; validation en_progreso (BIT-0050). Regenerar la propuesta.
+- **Bitácora:** BIT-0046..BIT-0050
+
+## INT-017 · Generador (edf-validation) · regeneración · `validation`
+
+- **Cuándo:** 2026-11-24T18:25:01-05:00
+- **Pedido:** Regenerar la propuesta de Validation con el insumo v2 (APR-005) y el framework 1.9.2; repetir verificaciones.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

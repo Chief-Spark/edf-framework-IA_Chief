@@ -783,3 +783,105 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0046 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Hash de ART-010 v2 = sha256:dd707688…92aa65 (reemplaza el de la v1 7a8d7a6e… aprobado en APR-003); difiere del hash auditado 46dfbdef… solo en comentarios (AUD-V-22/23) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:24:43-05:00 |
+| **Por qué** | Condición 1 del aprobador (INT-016); AUD-V-24 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-010 |
+| **Trazabilidad** | prompt 08 · references/03 §3c |
+| **Corrige** | BIT-0023 |
+
+---
+
+## BIT-0047 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-005 (artefacto): Re-aprobación del insumo de Validation v2 (references/03 §3c paso 3) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T18:24:43-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBADO (auditorias/validation.md §6): cambios aditivos autorizados en INT-012 con cita (RA-02..04 spec §2; RV-SIS-05 solo_ceros spec §4, §3 fila 15, HU R-18; casos DUP_CEROS_* y nombres_invalidos HU §5.1); 9 supuestos_resueltos verificados; muestra = spec §15. Supuesto SUP-APR-01 [PM]: el «mes actual» de RA-02 es el mes en America/Bogota; dueño el PO para la próxima versión de la spec; si es falso, rechazo o aceptación equivocados solo en el borde del mes, reversible; sin huella en el código (HF-13). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-010 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0048 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-006 (transicion): Nueva aprobación de la transición analisis → validation (references/03 §3c paso 4) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T18:24:43-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Insumo v2 re-auditado y re-aprobado con hash dd707688…; ninguna pregunta bloqueante en analisis ni en validation (PA-003..005 no bloqueantes; PA-002 de state_calculation); se reabre la transición suspendida en BIT-0042. c1 cumple (APR-002, no se repite); c2 cumple; c3 cumple (ART-010 aprobado); c4 cumple; c5 no aplica (etapa 0 sin pipeline); c6 no aplica (medio). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-010 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0049 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `analisis` → estado `aprobada` · transicion_habilitada=True |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:24:43-05:00 |
+| **Por qué** | Transición reabierta por APR-006 (references/03 §3c paso 4). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0050 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `validation` → estado `en_progreso` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:24:43-05:00 |
+| **Por qué** | Validation vuelve a en_progreso tras APR-006; se regenera la propuesta con el insumo v2 y el framework 1.9.2. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0051 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:24:43-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
