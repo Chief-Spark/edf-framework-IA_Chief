@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.9.0 — 2026-11-24
+
+Auditoría de defectos del framework en todas las skills, las herramientas, los hooks y los instaladores. Detalle completo en `auditoria/informe-auditoria.md`: 37 hallazgos, 35 corregidos con prueba de regresión, 1 descartado tras verificarlo y 1 conocido y documentado.
+
+### Nuevo
+- `tools/auditar-skills.py`: auditoría repetible. Reporta errores silenciados sin la marca `SILENCIO-INTENCIONAL <ID>` y referencias al generador Java deprecado. Línea base: 19 y 11; al final, 0 y 0.
+- `tools/verificar-artefactos-etapa.py`: reglas del motor para los artefactos de Synthesis (GDD v2, `customRulesFile`) y State Calculation (AGGREGATES).
+- `auditoria/prompt-comparacion-manual.md`: revisión contra las implementaciones manuales, para hacer en el workspace con acceso a Bitbucket.
+
+### Corregido (P0)
+- Validation: un filtro que fallaba validaba menores de edad; `asOfDate` caía a 1970 sin avisar al motor.
+- Curation: el domain dictionary usaba claves que el motor ignora; la red de seguridad tragaba errores sin log; `subscriberRelation` mezclaba formatos sin aviso; claves de identidad nulas que Pinning no tolera.
+- Synthesis y State Calculation: nombres de campo errados que el motor no reporta (`verificar-claves.py` los cruza).
+- Orquestador: el validador del expediente no exigía dependencias, insumo aprobado, evidencia o evidencia diferida, ni State Calculation crítico.
+- Hooks: con un intérprete inexistente la compuerta de la etapa 0 fallaba abierta; los instaladores ahora configuran el que existe (y copian desde `.kiro/`, antes no copiaban nada).
+
+### Corregido (P1 y P2)
+- Footer de Validation, severidades y `manualReview` de Acceptance, lookup parcial y nivel nulo en Curation, claves de Pinning, `customRulesFile` de Synthesis, reglas AGGREGATES, validador más estricto (`--permisivo` para jsonschema ausente o PII), contadores de la bitácora, pruebas y documentación.
+
+### Pruebas
+- Validation 160 (antes 148), Acceptance 127 (116), Curation 106 (88), herramientas 85 (42).
+
+### Sin verificar aquí
+- Compilación y pruebas Scala, `instalar.ps1` y los verificadores `.ps1` (no hay JAR del framework ni PowerShell en este entorno).
+
 ## 1.8.0 — 2026-11-24
 
 Dos defectos de `edf-validation` encontrados al comparar lo generado con la implementación manual de `oxygen-validation` (rama `feature/colombia_ifr_java17`).

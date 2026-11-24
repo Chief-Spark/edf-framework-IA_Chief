@@ -27,10 +27,14 @@ edf-framework-IA/
 │   │   └── edf-pinning/  edf-synthesis/  edf-statecalc/
 │   ├── hooks/validar-expediente.json
 │   └── specs/orquestador/        diseño, certificación, tareas, trazabilidad
-└── tools/
-    ├── validar-expediente.py     valida un expediente (esquema + invariantes de gobierno)
-    ├── validar-expedientes.py    valida todos (lo usa el hook)
-    └── verificar-claves.py       cruza los nombres de campo curado entre los insumos de una ingesta
+├── tools/
+│   ├── validar-expediente.py     valida un expediente (esquema + reglas de gobierno de references/03)
+│   ├── validar-expedientes.py    valida todos (lo usa el hook)
+│   ├── verificar-claves.py       cruza los nombres de campo curado entre los insumos de una ingesta
+│   ├── verificar-insumos-etapa0.py  compuerta de la etapa 0 (lo usa el hook)
+│   ├── verificar-artefactos-etapa.py  reglas del motor para los artefactos de Synthesis y State Calculation
+│   └── auditar-skills.py         auditoría repetible de las skills (silencios, referencias obsoletas)
+└── auditoria/                    informe de la auditoría 1.9.0 y prompt de la revisión con implementaciones manuales
 ```
 
 Estado frente a las pruebas E2E: `docs/estado-e2e.md`.
@@ -56,7 +60,7 @@ cd <ruta>/edf-framework-IA
 ./instalar.sh /ruta/de/tu/workspace
 ```
 
-El instalador copia `kiro/` → `.kiro/`, `tools/` → `tools/`, `docs/` → `docs/edf-framework/` y crea `expedientes/`. Si el workspace ya tiene `.kiro/`, avisa y pide confirmación; solo sobrescribe archivos del framework con el mismo nombre.
+El instalador copia `.kiro/` → `.kiro/`, `tools/` → `tools/`, `docs/` → `docs/edf-framework/` y crea `expedientes/`. Además configura los hooks con el intérprete de Python que encuentra en el equipo (`py -3`, `python` o `python3`): con uno inexistente la compuerta de la etapa 0 no bloquearía. Si el workspace ya tiene `.kiro/`, avisa y pide confirmación; solo sobrescribe archivos del framework con el mismo nombre.
 
 4. Abre el workspace en Kiro. Los steering `00`, `01` y `05` se cargan siempre; el resto según su tipo de inclusión. Las skills se activan solas según lo que pidas.
 
