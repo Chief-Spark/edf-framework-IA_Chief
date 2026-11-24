@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T17:53:45-05:00",
-    "vista_md_regenerada_en": "2026-11-24T17:53:45-05:00"
+    "actualizado_en": "2026-11-24T17:56:04-05:00",
+    "vista_md_regenerada_en": "2026-11-24T17:56:04-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -268,7 +268,10 @@
       "riesgos": [
         "RG-004",
         "RG-006",
-        "RG-009"
+        "RG-009",
+        "RG-012",
+        "RG-013",
+        "RG-014"
       ],
       "transicion_habilitada": false,
       "iniciada_en": "2026-11-24T17:31:49-05:00"
@@ -752,6 +755,42 @@
       "resuelta_en": null,
       "respuesta": null,
       "ref_bitacora": "BIT-0010"
+    },
+    {
+      "id": "PA-003",
+      "pregunta": "¿Se amplía el filePattern de spec §2/Anexo A (p. ej. .*SISBEN_EXPERIAN_.*\\.(txt|TXT)) para que validateFilename rechace con SISBEN_ERR_024 el archivo sin marca de tiempo, o se ajusta el escenario de HU §5.1 a «no se procesa y queda registrado 'No validation configuration found'»?",
+      "origen": "AUD-V-04; HU §5.1, R-01; spec §2 RA-01; SparkValidator.scala:176-190. Dirigida al PO y negocio para la próxima versión de HU/spec.",
+      "etapa_afectada": "validation",
+      "bloqueante": false,
+      "estado": "abierta",
+      "abierta_en": "2026-11-24T17:55:52-05:00",
+      "resuelta_en": null,
+      "respuesta": null,
+      "ref_bitacora": "BIT-0034"
+    },
+    {
+      "id": "PA-004",
+      "pregunta": "¿Se excluyen del agrupamiento de duplicados los registros con error sev. 1 (incluida la fila de 23 columnas con ERR_026), o no pueden ser los que se conservan? Hoy (spec §6, HU R-19) gana el de mayor fec_actualizacion_cns aunque tenga error.",
+      "origen": "AUD-V-07; spec §6; HU R-19. Dirigida al PO para la próxima versión de la spec.",
+      "etapa_afectada": "validation",
+      "bloqueante": false,
+      "estado": "abierta",
+      "abierta_en": "2026-11-24T17:55:53-05:00",
+      "resuelta_en": null,
+      "respuesta": null,
+      "ref_bitacora": "BIT-0035"
+    },
+    {
+      "id": "PA-005",
+      "pregunta": "¿De dónde obtiene el reporting estándar el contador REGISTROS MENORES DE EDAD (HU §5.1, spec §5 RF-02) si el filtro de Validation no deja contador (SparkValidator.scala:1128-1130)?",
+      "origen": "AUD-V-18; spec §5, §14; HU R-27. Dirigida al PO y al dueño del reporting estándar.",
+      "etapa_afectada": "validation",
+      "bloqueante": false,
+      "estado": "abierta",
+      "abierta_en": "2026-11-24T17:55:53-05:00",
+      "resuelta_en": null,
+      "respuesta": null,
+      "ref_bitacora": "BIT-0036"
     }
   ],
   "riesgos": [
@@ -842,14 +881,38 @@
       "etapa_afectada": "state_calculation",
       "mitigacion": "Registrarlo en el insumo de State Calculation y escalar al PO antes de producción",
       "estado": "abierto"
+    },
+    {
+      "id": "RG-012",
+      "descripcion": "Un archivo sin marca de tiempo no coincide con el filePattern: no deja marcador ni reporte de rechazo ERR_024 (HU §5.1 cumplido en parte)",
+      "nivel": "medio",
+      "etapa_afectada": "validation",
+      "mitigacion": "[PM] Operación vigila la línea «No validation configuration found»; PA-003 para la próxima versión de HU/spec",
+      "estado": "abierto"
+    },
+    {
+      "id": "RG-013",
+      "descripcion": "En duplicados gana el de mayor fec_actualizacion_cns aunque tenga error sev. 1; el registro válido queda sin aceptar (dato incompleto)",
+      "nivel": "medio",
+      "etapa_afectada": "validation",
+      "mitigacion": "Se sigue la spec §6; prueba que documenta el comportamiento; PA-004",
+      "estado": "abierto"
+    },
+    {
+      "id": "RG-014",
+      "descripcion": "El contador REGISTROS MENORES DE EDAD del Log_Sisben no tiene origen: el filtro de Validation no deja rastro",
+      "nivel": "medio",
+      "etapa_afectada": "validation",
+      "mitigacion": "No se genera lógica de conteo ni se toca el motor; se declara no certificable por la skill (spec §14); PA-005",
+      "estado": "abierto"
     }
   ],
   "backlog_evolutivo": [],
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0033",
-    "eventos_totales": 33,
+    "ultimo_evento": "BIT-0040",
+    "eventos_totales": 40,
     "append_only": true,
     "retencion_meses": 24
   }

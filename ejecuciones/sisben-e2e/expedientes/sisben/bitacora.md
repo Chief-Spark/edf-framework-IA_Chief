@@ -579,3 +579,122 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0034 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-003: ¿Se amplía el filePattern de spec §2/Anexo A (p. ej. .*SISBEN_EXPERIAN_.*\.(txt/TXT)) para que validateFilename rechace con SISBEN_ERR_024 el archivo sin marca de tiempo, o se ajusta el escenario de HU §5.1 a «no se procesa y queda registrado 'No validation configuration found'»? |
+| **Quién** | Aprobador simulado SIM-PO-01/SIM-DEV-01 (SIMULADO, INT-012) |
+| **Cuándo** | 2026-11-24T17:55:52-05:00 |
+| **Por qué** | AUD-V-04; HU §5.1, R-01; spec §2 RA-01; SparkValidator.scala:176-190. Dirigida al PO y negocio para la próxima versión de HU/spec. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0035 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-004: ¿Se excluyen del agrupamiento de duplicados los registros con error sev. 1 (incluida la fila de 23 columnas con ERR_026), o no pueden ser los que se conservan? Hoy (spec §6, HU R-19) gana el de mayor fec_actualizacion_cns aunque tenga error. |
+| **Quién** | Aprobador simulado SIM-PO-01/SIM-DEV-01 (SIMULADO, INT-012) |
+| **Cuándo** | 2026-11-24T17:55:53-05:00 |
+| **Por qué** | AUD-V-07; spec §6; HU R-19. Dirigida al PO para la próxima versión de la spec. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0036 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-005: ¿De dónde obtiene el reporting estándar el contador REGISTROS MENORES DE EDAD (HU §5.1, spec §5 RF-02) si el filtro de Validation no deja contador (SparkValidator.scala:1128-1130)? |
+| **Quién** | Aprobador simulado SIM-PO-01/SIM-DEV-01 (SIMULADO, INT-012) |
+| **Cuándo** | 2026-11-24T17:55:53-05:00 |
+| **Por qué** | AUD-V-18; spec §5, §14; HU R-27. Dirigida al PO y al dueño del reporting estándar. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0037 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-012 (medio, validation): Un archivo sin marca de tiempo no coincide con el filePattern: no deja marcador ni reporte de rechazo ERR_024 (HU §5.1 cumplido en parte) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:55:53-05:00 |
+| **Por qué** | Aprobador simulado SIM-PO-01/SIM-DEV-01 (SIMULADO, INT-012), punto 1 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0038 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-013 (medio, validation): En duplicados gana el de mayor fec_actualizacion_cns aunque tenga error sev. 1; el registro válido queda sin aceptar (dato incompleto) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:55:53-05:00 |
+| **Por qué** | Aprobador simulado SIM-PO-01/SIM-DEV-01 (SIMULADO, INT-012), punto 3 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0039 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-014 (medio, validation): El contador REGISTROS MENORES DE EDAD del Log_Sisben no tiene origen: el filtro de Validation no deja rastro |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:55:53-05:00 |
+| **Por qué** | Aprobador simulado SIM-PO-01/SIM-DEV-01 (SIMULADO, INT-012), punto 4 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0040 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:56:04-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

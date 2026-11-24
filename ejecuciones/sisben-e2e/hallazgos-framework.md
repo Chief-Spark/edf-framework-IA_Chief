@@ -23,6 +23,8 @@ Hallazgos de la spec (no del framework; se dejan para la próxima versión de la
 |---|---|---|
 | HS-01 (AUD-E0-08) | La spec cita `render-templates.jar --solo-verificar`; el generador vigente es Python | `spec-sisben.md:11` |
 | HS-02 (AUD-E0-09) | `spec_version: "sisben-iv-1.0.0"` en el Anexo A frente a la spec 1.0.2 | `spec-sisben.md:390`, `:6-7` |
+| HS-03 (AUD-V-04) | El escenario HU §5.1 «sin marca de tiempo → ERR_024» es inalcanzable con el `filePattern` de spec §2 (PA-003) | `spec-sisben.md:37`; `hu-sisben.md:120-123`; `SparkValidator.scala:176-190` |
+| HS-04 (AUD-V-02/03) | Para la próxima versión de la spec: incorporar al Anexo A las claves de RA-02..04 y la regla de solo ceros sobre valor normalizado (decisión del aprobador, INT-012) | `spec-sisben.md` §2, §4 |
 
 Hallazgos de la herramienta de la corrida (`herramientas/orquestador_e2e.py`):
 

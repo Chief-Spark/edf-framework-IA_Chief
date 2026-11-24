@@ -94,6 +94,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T17:53:45-05:00
 - **Pedido:** Decidir AUD-V-04 (escenario sin marca de tiempo inalcanzable), el cambio del insumo para RA-02..04 / RV-SIS-05 / fixture, AUD-V-07, AUD-V-18 y AUD-V-20.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
-- **Bitácora:** —
+- **Respuesta:** No aprueba artefactos. (1, como SIM-PO-01) AUD-V-04: no se cambia el filePattern ni el Anexo A; desviación documentada no bloqueante (PA-003, RG-012). (2) Autoriza claves aditivas en el insumo para RA-02..04 (mes actual en America/Bogota: supuesto), RV-SIS-05 sobre valor normalizado (1-15 ceros igual; 16 ceros y «00 00» → ERR_029) y casos nuevos del fixture con IDs nuevos; ART-010 vuelve a propuesto con re-auditoría y re-aprobación N2; la transición no se reabre. (3) AUD-V-07: spec tal cual, PA-004 y RG-013, prueba que documente. (4) AUD-V-18: PA-005 y RG-014, no certificable por la skill. (5) Cabecera del insumo se corrige con el punto 2 (sin tocar spec_version).
+- **Decisión:** Registradas PA-003..005 (no bloqueantes, validation) y RG-012..014 (BIT-0034..0039). Cambio del insumo al analista cuando el framework 1.9.2 publique las claves.
+- **Bitácora:** BIT-0034..BIT-0039
