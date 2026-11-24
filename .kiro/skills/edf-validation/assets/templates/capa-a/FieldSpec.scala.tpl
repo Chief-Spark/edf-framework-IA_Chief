@@ -145,3 +145,15 @@ trait Catalogo extends Serializable {
   def existe(tabla: String, columna: String, valor: String): Boolean
   def buscar(tabla: String, columnaClave: String, clave: String, columnaSalida: String): Option[String]
 }
+
+/** Catálogo sobre una consulta de lookup: (tabla, filtro columna -> valor, columna a leer) => valores
+  * ("" = sin coincidencia, como Util.getLookup del motor). Capa C lo usa con el lookup real.
+  * ADR-01: NO captura excepciones de la consulta. Una falla del lookup se propaga para que
+  * RecordValidator.validarRegistro la convierta en el código interno (nivel 1), en vez de tratarla como
+  * "valor fuera de catálogo". */
+class CatalogoDeConsulta(consultar: (String, Map[String, String], String) => Seq[String]) extends Catalogo {
+  def existe(tabla: String, columna: String, valor: String): Boolean =
+    consultar(tabla, Map(columna -> valor), columna).exists(_.nonEmpty)
+  def buscar(tabla: String, columnaClave: String, clave: String, columnaSalida: String): Option[String] =
+    consultar(tabla, Map(columnaClave -> clave), columnaSalida).find(_.nonEmpty)
+}

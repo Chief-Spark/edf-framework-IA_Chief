@@ -8,7 +8,7 @@ import java.time.ZoneId
 
 import {{paquete_comun}}.RecordValidator
 import {{paquete_fuente}}.config.{{Fuente}}Spec
-import com.experian.edf.oxygen.domain.internal.FileMetadata
+import com.experian.edf.oxygen.domain.internal.FileMetadata{{imports_metadata}}
 
 // ASSUMPTION VAL-PT04: los miembros que se sobrescriben son los que usa el ejemplo del framework
 // (headerRowCount, dataSource, subscriber, receivedDate, fileAsOfDate, fileTag); la clase base no está
@@ -34,5 +34,5 @@ class {{Fuente}}FileMetadata(fileName: String, headers: Array[String]) extends F
   /** ASSUMPTION F-07: tipo de archivo según el prefijo del nombre. */
   override val fileTag: String = RecordValidator.parsearNombre({{Fuente}}Spec.Spec, fileName)
     .map(_.fileTag)
-    .getOrElse("")
+    .getOrElse(""){{bloque_metadata_adicional}}
 }

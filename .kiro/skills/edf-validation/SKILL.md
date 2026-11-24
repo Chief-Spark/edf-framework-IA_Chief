@@ -109,7 +109,7 @@ Genera (VAL-TPL-01..11, detalle en `references/inventario-plantillas.md`):
 |---|---|
 | A (una vez) | `FieldSpec.scala`, `FieldValidators.scala`, `FieldValidatorsSpec.scala` |
 | B | `config/<Fuente>Spec.scala` |
-| — | `<Fuente>ValidatedEvent.scala`, `validator/<Fuente>FileMetadata.scala` |
+| — | `<Fuente>ValidatedEvent.scala`, `validator/<Fuente>FileMetadata.scala` (con los miembros de `archivo.metadata` si la spec los declara: `minFrequency`, `subSubscriber`, `additionalInformation` y otros como `fileLoadType`, tomados de la implementación de referencia; ADR-05) |
 | C | `processor/<Fuente>ValidationProcessor.scala` |
 | Tests | `<Fuente>ValidationProcessorSpec.scala` (sin clases del framework) |
 | Datos | fixture sintético, CSV de catálogos sintéticos, `codigos-error-<fuente>.csv` |

@@ -503,3 +503,74 @@ def test_cli_error_inesperado(tmp_path, capsys, monkeypatch):
     monkeypatch.setattr(rt, "render_all", lambda *a, **k: 1 / 0)
     assert rt.main(["--spec", str(SPEC_PATH), "--out", str(tmp_path)]) == 1
     assert "ERROR inesperado" in capsys.readouterr().err
+
+
+# ------------------------------------------------------------------ 1.8.0: catálogo y FileMetadata
+def _archivo(out: Path, sufijo: str) -> str:
+    return next(p for p in out.rglob(f"*{sufijo}")).read_text(encoding="utf-8")
+
+
+def test_oxygen_catalogo_no_oculta_fallas_del_lookup(spec, tmp_path):
+    """ADR-01: el catálogo del processor ya no envuelve la consulta en Try(...).getOrElse(false)."""
+    rt.render_all(spec, tmp_path)
+    processor = _archivo(tmp_path, "ValidationProcessor.scala")
+    clase = processor[processor.index("final class OxygenCatalogo"):processor.index("/** Processor de")]
+    assert "Try(" not in clase and "getOrElse" not in clase
+    assert "extends CatalogoDeConsulta(" in clase and "Util.getLookup(tabla, filtro, columna, lookup())" in clase
+    comun = _archivo(tmp_path, "FieldSpec.scala")
+    adaptador = comun[comun.index("class CatalogoDeConsulta"):]
+    assert "Try" not in adaptador[:adaptador.index("\n}") ]
+    pruebas = _archivo(tmp_path, "FieldValidatorsSpec.scala")
+    assert "CatalogoDeConsulta no oculta la falla del lookup" in pruebas
+
+
+def test_file_metadata_sin_bloque_no_cambia(spec, tmp_path):
+    rt.render_all(spec, tmp_path)
+    fm = _archivo(tmp_path, "FileMetadata.scala")
+    assert "archivo.metadata" not in fm and "Frequency" not in fm
+    assert fm == _archivo(GEN_PATH, "FileMetadata.scala")
+
+
+def test_file_metadata_con_miembros_declarados(spec, tmp_path):
+    spec["archivo"]["metadata"] = {
+        "min_frequency": "onceEveryMonth",
+        "sub_subscriber": "SINTETICO",
+        "additional_information": {"fileType": "SISBEN", "nota": 'con "comillas"'},
+        "miembros_adicionales": [
+            {"miembro": "fileLoadType", "tipo": "String", "valor": {"texto": "FULLLOAD"},
+             "fuente": "implementación manual, rama de referencia (sintético)"},
+            {"miembro": "cargaCompleta", "tipo": "FileLoadType", "valor": {"expresion": "FileLoadType.FULLLOAD"},
+             "importar": ["com.ejemplo.sintetico.FileLoadType"], "fuente": "sintético"},
+        ],
+    }
+    assert rt.verify_spec(spec) == []
+    manifest = rt.render_all(spec, tmp_path)
+    fm = _archivo(tmp_path, "FileMetadata.scala")
+    assert "import com.experian.edf.oxygen.domain.internal.Frequency\n" in fm
+    assert "import com.ejemplo.sintetico.FileLoadType\n" in fm
+    assert "  override val minFrequency: Frequency = Frequency.onceEveryMonth\n" in fm
+    assert '  override val subSubscriber: String = "SINTETICO"\n' in fm
+    assert ('  override val additionalInformation: Map[String, String] = '
+            'Map("fileType" -> "SISBEN", "nota" -> "con \\"comillas\\"")\n') in fm
+    assert '  override val fileLoadType: String = "FULLLOAD"\n' in fm
+    assert "  override val cargaCompleta: FileLoadType = FileLoadType.FULLLOAD\n" in fm
+    assert "ASSUMPTION VAL-PT04: se sobrescriben sin poder confirmar" in fm
+    assert fm.rstrip().endswith("}") and fm.count("{{") == 0
+    assert "VAL-PT04" in manifest["supuestos"]
+
+
+@pytest.mark.parametrize("cambio,mensaje", [
+    ({"miembros_adicionales": [{"miembro": "subscriber", "tipo": "String", "valor": {"texto": "x"}, "fuente": "f"}]},
+     "ya existe en FileMetadata"),
+    ({"miembros_adicionales": [{"miembro": "fileLoadType", "tipo": "String", "valor": {"texto": "x"}, "fuente": "f"}] * 2},
+     "repetido"),
+    ({"miembros_adicionales": [{"miembro": "fileLoadType", "tipo": "String", "valor": {"texto": "x", "expresion": "y"},
+                                "fuente": "f"}]}, "valor"),
+    ({"miembros_adicionales": [{"miembro": "fileLoadType", "tipo": "String", "valor": {"expresion": "a\nb"},
+                                "fuente": "f"}]}, "expresion"),
+    ({"miembros_adicionales": [{"miembro": "fileLoadType", "tipo": "String", "valor": {"texto": "x"}}]}, "fuente"),
+    ({"min_frequency": "once every month"}, "min_frequency"),
+])
+def test_file_metadata_invalida_se_rechaza(spec, cambio, mensaje):
+    spec["archivo"]["metadata"] = cambio
+    assert contiene(rt.verify_spec(spec), mensaje), rt.verify_spec(spec)

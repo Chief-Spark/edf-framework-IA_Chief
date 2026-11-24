@@ -118,6 +118,22 @@ class FieldValidatorsSpec extends AnyFunSuite {
     assert(RecordValidator.validarRegistro(conRegla, "1;NOMBRE", CatalogoQueFallaAlBuscar, hoy).errores == interno)
   }
 
+  test("CatalogoDeConsulta lee la respuesta del lookup (\"\" = sin coincidencia)") {
+    val cat = new CatalogoDeConsulta((_, filtro, _) => if (filtro.values.toSeq == Seq("1")) List("UNO") else List(""))
+    assert(cat.existe("TABLA_SINTETICA", "codigo", "1"))
+    assert(!cat.existe("TABLA_SINTETICA", "codigo", "2"))
+    assert(cat.buscar("TABLA_SINTETICA", "codigo", "1", "nombre").contains("UNO"))
+    assert(cat.buscar("TABLA_SINTETICA", "codigo", "2", "nombre").isEmpty)
+  }
+
+  test("CatalogoDeConsulta no oculta la falla del lookup: el registro sale con el código interno (ADR-01)") {
+    val caido = new CatalogoDeConsulta((_, _, _) => throw new IllegalStateException("lookup no disponible (sintético)"))
+    intercept[IllegalStateException](caido.existe("TABLA_SINTETICA", "codigo", "1"))
+    val opcional = campo(obligatorio = false, catalogo = Some(CatalogoRef("TABLA_SINTETICA", "codigo")))
+    val r = RecordValidator.validarRegistro(fuente(Seq(opcional)), "1", caido, hoy)
+    assert(r.errores == Seq(FieldError("REGISTRO", "TEST_ERR_0099", "1", Causa.Interno)))
+  }
+
   test("normalización en memoria quita espacios y ceros a la izquierda") {
     assert(FieldValidators.normalizar(" 00 12 3 ", Seq(Normalizacion.QuitarEspacios, Normalizacion.QuitarCerosIzquierda)) == "123")
     assert(FieldValidators.normalizar("000", Seq(Normalizacion.QuitarCerosIzquierda)) == "0")

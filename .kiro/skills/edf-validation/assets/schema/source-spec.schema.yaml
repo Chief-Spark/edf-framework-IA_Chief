@@ -76,6 +76,46 @@ properties:
         type: [string, "null"]
         description: null → no se emite la clave `encoding` (ruta textFile UTF-8).
         x-placeholders: [linea_encoding]
+      metadata:
+        type: object
+        additionalProperties: false
+        description: >-
+          Opcional (1.8.0). Miembros adicionales del FileMetadata de la fuente, tomados de la implementación de
+          referencia o de lo que leen las etapas siguientes (p. ej. una carga completa que Synthesis filtra). Sin
+          este bloque el FileMetadata generado no cambia. Las firmas de min_frequency, sub_subscriber y
+          additional_information son las de la clase base del motor; las de miembros_adicionales las declara la spec.
+        x-placeholders: [bloque_metadata_adicional, imports_metadata]
+        properties:
+          min_frequency:
+            type: string
+            pattern: "^[A-Za-z][A-Za-z0-9]*$"
+            description: Valor de com.experian.edf.oxygen.domain.internal.Frequency (p. ej. onceEveryMonth, unique).
+          sub_subscriber: {type: string}
+          additional_information:
+            type: object
+            additionalProperties: {type: string}
+          miembros_adicionales:
+            type: array
+            description: Miembros que la clase base conocida no tiene (p. ej. fileLoadType), con su tipo y valor exactos.
+            items:
+              type: object
+              additionalProperties: false
+              required: [miembro, tipo, valor, fuente]
+              properties:
+                miembro: {type: string, pattern: "^[a-z][A-Za-z0-9]*$"}
+                tipo: {type: string, pattern: "^[A-Z][A-Za-z0-9_.]*(\\[[A-Za-z0-9_., \\[\\]]+\\])?$"}
+                valor:
+                  type: object
+                  additionalProperties: false
+                  minProperties: 1
+                  maxProperties: 1
+                  properties:
+                    texto: {type: string, description: Literal de cadena (se escribe entre comillas).}
+                    expresion: {type: string, pattern: "^[^\\n\\r]+$", description: Expresión Scala de una línea.}
+                importar:
+                  type: array
+                  items: {type: string, pattern: "^[a-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)*\\.[A-Z][A-Za-z0-9_]*$"}
+                fuente: {type: string, minLength: 1, description: De dónde sale el miembro (archivo y rama de referencia).}
       file_pattern:
         type: string
         pattern: "^\\.\\*"

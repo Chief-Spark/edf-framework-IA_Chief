@@ -319,6 +319,23 @@ def check_file_contract(spec: dict) -> list[str]:
     return errors
 
 
+MIEMBROS_FILE_METADATA = {"fileName", "headerRowCount", "dataSource", "subscriber", "receivedDate", "fileAsOfDate",
+                          "fileTag", "fileType", "minFrequency", "subSubscriber", "additionalInformation"}
+
+
+def check_metadata(spec: dict) -> list[str]:
+    """archivo.metadata: miembros_adicionales sin repetir ni pisar los que ya genera la plantilla."""
+    errors = []
+    nombres = [m["miembro"] for m in (spec["archivo"].get("metadata") or {}).get("miembros_adicionales") or []]
+    for nombre in sorted(set(nombres)):
+        if nombres.count(nombre) > 1:
+            errors.append(f"archivo.metadata.miembros_adicionales: {nombre} repetido")
+        if nombre in MIEMBROS_FILE_METADATA:
+            errors.append(f"archivo.metadata.miembros_adicionales: {nombre} ya existe en FileMetadata; "
+                          "use la clave propia de archivo.metadata o no lo declare")
+    return errors
+
+
 def check_fixture(spec: dict) -> list[str]:
     errors = []
     fields = field_by_name(spec)
@@ -344,7 +361,7 @@ def verify_spec(spec: dict, schema_path: Path = SCHEMA_PATH) -> list[str]:
     if errors:
         return errors  # sin forma válida, las reglas semánticas no son confiables
     for check in (check_fields, check_codes, check_quality_scores, check_metrics, check_references,
-                  check_file_contract, check_fixture):
+                  check_file_contract, check_metadata, check_fixture):
         errors += check(spec)
     return errors
 
@@ -457,6 +474,33 @@ def render_fixture_tests(spec: dict) -> str:
     return "\n\n".join(blocks)
 
 
+def render_metadata(spec: dict) -> tuple[str, str]:
+    """(imports, bloque) de los miembros adicionales de FileMetadata. Sin archivo.metadata: ("", "")."""
+    meta = spec["archivo"].get("metadata") or {}
+    imports: list[str] = []
+    lineas: list[str] = []
+    if meta.get("min_frequency"):
+        imports.append("com.experian.edf.oxygen.domain.internal.Frequency")
+        lineas.append(f"  override val minFrequency: Frequency = Frequency.{meta['min_frequency']}")
+    if "sub_subscriber" in meta:
+        lineas.append(f'  override val subSubscriber: String = "{scala_str(meta["sub_subscriber"])}"')
+    if meta.get("additional_information"):
+        pares = ", ".join(f'"{scala_str(k)}" -> "{scala_str(v)}"' for k, v in meta["additional_information"].items())
+        lineas.append(f"  override val additionalInformation: Map[String, String] = Map({pares})")
+    for m in meta.get("miembros_adicionales") or []:
+        valor = m["valor"]
+        expr = f'"{scala_str(valor["texto"])}"' if "texto" in valor else valor["expresion"]
+        imports += m.get("importar") or []
+        lineas.append(f"  /** Fuente: {m['fuente'].replace('*/', '* /')} */")
+        lineas.append(f"  override val {m['miembro']}: {m['tipo']} = {expr}")
+    if not lineas:
+        return "", ""
+    unicos = sorted(set(imports) - {"com.experian.edf.oxygen.domain.internal.FileMetadata"})
+    cabecera = ["", "", "  // Miembros declarados en el source-spec (archivo.metadata).",
+                "  // ASSUMPTION VAL-PT04: se sobrescriben sin poder confirmar la clase base contra el JAR del framework."]
+    return "".join(f"\nimport {i}" for i in unicos), "\n".join(cabecera + lineas)
+
+
 def render_catalog_scala(spec: dict) -> str:
     tables = []
     for cat in spec["catalogos"]:
@@ -512,6 +556,7 @@ def build_context(spec: dict) -> dict[str, str]:
     if filtro_pos:
         filtro_desc.append(f"{filtro['campo']} en {{{', '.join(filtro.get('valores') or [])}}}")
     clave = list(dup.get("clave") or [])
+    imports_metadata, bloque_metadata = render_metadata(spec)
     return {
         "spec_version": str(spec["spec_version"]),
         "Fuente": f["Fuente"],
@@ -543,6 +588,8 @@ def build_context(spec: dict) -> dict[str, str]:
         "expr_file_as_of_date": "i.periodo.atEndOfMonth" if ultimo_dia else "i.periodo.atDay(1)",
         "file_as_of_date_desc": "último día del periodo AAAAMM" if ultimo_dia else "primer día del periodo AAAAMM",
         "received_date_desc": "marca de tiempo del nombre con su offset",
+        "imports_metadata": imports_metadata,
+        "bloque_metadata_adicional": bloque_metadata,
         "campo_subscriber_relation": str(spec["guard_rails"].get("subscriber_relation")),
         "campo_as_of_date": str(spec["guard_rails"].get("as_of_date")),
         "bloque_constantes_campos": "\n".join(f'  val {c["nombre"]}: String = "{c["nombre"]}"' for c in campos),

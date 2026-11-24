@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.8.0 — 2026-11-24
+
+Dos defectos de `edf-validation` encontrados al comparar lo generado con la implementación manual de `oxygen-validation` (rama `feature/colombia_ifr_java17`).
+
+### Corregido
+- **El catálogo ocultaba las fallas del lookup.** `OxygenCatalogo` envolvía la consulta en `Try(...).getOrElse(false)`: si el lookup real fallaba, el registro salía como "valor fuera de catálogo" y nunca con el código interno de ADR-01. Ahora la lógica está en `CatalogoDeConsulta` (Capa A, sin `Try`), que propaga la falla a `validarRegistro`; `OxygenCatalogo` solo le pasa `Util.getLookup`. Dos pruebas nuevas en `FieldValidatorsSpec` usan ese adaptador con una consulta que responde y con una que lanza (antes las pruebas usaban catálogos en memoria y no pasaban por este código). ADR-01b.
+
+### Nuevo
+- **`archivo.metadata` en el source-spec (opcional)** para los miembros de `FileMetadata` que la plantilla no generaba: `min_frequency`, `sub_subscriber` y `additional_information` (firmas de la clase base del motor) y `miembros_adicionales` (miembro, tipo, valor y fuente) para lo que la clase base conocida no tiene, como `fileLoadType = FULLLOAD`. El framework no inventa firmas: las declara la spec, tomadas de la implementación de referencia. Sin el bloque, `FileMetadata` sale igual que antes. Validación de coherencia: un miembro no puede repetirse ni pisar los que ya genera la plantilla. ADR-05.
+- Pruebas de la skill: 148 en verde, 4 omitidas sin `pyhocon` (antes 139). En el ejemplo SISBEN cambian `FieldSpec.scala`, el processor, `FieldValidatorsSpec.scala` y los hashes de `manifest.json`.
+
 ## 1.7.2 — 2026-11-18
 
 ### Corregido (`edf-curation`)

@@ -9,7 +9,7 @@ import java.time.{LocalDate, ZoneId}
 import scala.util.Try
 import scala.util.control.NonFatal
 
-import com.experian.edf.oxygen.validation.source.common.{Catalogo, FieldError, RecordValidator}
+import com.experian.edf.oxygen.validation.source.common.{Catalogo, CatalogoDeConsulta, FieldError, RecordValidator}
 import com.experian.edf.oxygen.validation.source.sisben.SISBENValidatedEvent
 import com.experian.edf.oxygen.validation.source.sisben.config.SISBENSpec
 import com.experian.edf.oxygen.validation.source.sisben.validator.SISBENFileMetadata
@@ -30,14 +30,12 @@ import org.slf4j.LoggerFactory.getLogger
   * ASSUMPTION VAL-PT03: se usa Util.getLookup del motor 2404, que devuelve "" si no hay coincidencia;
   * la columna consultada debe estar declarada en keys[].index del registro oxygen.lookups[].
   * ASSUMPTION VAL-SP09: el valor (ya con trim) se compara exacto contra el catálogo; no se normalizan
-  * mayúsculas ni tildes porque no está verificado cómo lo hace el lookup real. */
-final class OxygenCatalogo(lookup: () => OxygenLookup) extends Catalogo {
-  override def existe(tabla: String, columna: String, valor: String): Boolean =
-    Try(Util.getLookup(tabla, Map(columna -> valor), columna, lookup()).exists(_.nonEmpty)).getOrElse(false)
-
-  override def buscar(tabla: String, columnaClave: String, clave: String, columnaSalida: String): Option[String] =
-    Try(Util.getLookup(tabla, Map(columnaClave -> clave), columnaSalida, lookup()).find(_.nonEmpty)).toOption.flatten
-}
+  * mayúsculas ni tildes porque no está verificado cómo lo hace el lookup real.
+  * ADR-01: no envuelve la consulta en Try. Una falla del lookup se propaga y validarRegistro la convierte en el
+  * código interno de nivel 1 (antes se tragaba como "valor fuera de catálogo"). La lógica está en
+  * CatalogoDeConsulta (Capa A), que se prueba sin el JAR. */
+final class OxygenCatalogo(lookup: () => OxygenLookup)
+  extends CatalogoDeConsulta((tabla, filtro, columna) => Util.getLookup(tabla, filtro, columna, lookup()))
 
 /** Processor de SISBEN. Constructor exacto (ProcessorContext) (VAL-RC01). Serializable: el motor lo
   * difunde por broadcast; logger y catálogo son @transient lazy val (VAL-RC02). No accede a fileMetadata
