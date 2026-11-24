@@ -21,6 +21,8 @@ Reglas verificadas que debes respetar al generar:
 
 - **`handler` y `synthesizer` son ortogonales.** Un campo puede tener `handler` y `synthesizer` a la vez (el fixture real confirma esto con `accountInformationLAP` y `accountInformationEUC`, ambos con el mismo `synthesizer`). Esto no te habilita a asignar `synthesizer` por tu cuenta — solo significa que si el usuario ya confirmó uno, no entra en conflicto con el `handler`.
 - **Tres campos de sistema se inyectan automáticamente** por el motor (`inferredAsDeleted`, `shouldDelete`, `fileTag`, todos `LAP`) — **nunca los declares tú** en el array `fields[]` que generas; ya existen sin que el usuario los pida.
+- **Tres campos EUC más los agrega el motor** al calcular los EUC: `subscriberRelationStartDate`, `subscriberRelationEndDate` y `firstEventDate` (`DomainDictionaryInternal.scala`, `getAllEUCFields`). Tampoco se declaran (AUD-S3).
+- **Claves de un campo en la versión 2** (`DomainDictionaryV2.java`): `name`, `handler` (LFP por defecto), `periodicity` (true por defecto), `complexTypeDefinition`, `dataType` (enum `Datatype` de oxygen-global, `STRING` por defecto; sus valores no están en el repo, así que no se escribe sin confirmación), `synthesizer`, `description`, `section` y `enabled`. `fieldType` es del lector de la versión 1 y la versión 2 lo ignora.
 - El motor soporta versión 1 (deprecated, con warning) y versión 2 del formato. Usa siempre `"version": 2` salvo que el usuario pida explícitamente compatibilidad con sistemas que todavía leen versión 1.
 - Si el GDD no declara ningún `"version"`, el motor real lanza `OxygenException` — nunca generes un GDD sin ese campo.
 

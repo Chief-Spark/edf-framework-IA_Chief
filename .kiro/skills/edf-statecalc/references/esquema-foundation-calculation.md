@@ -55,6 +55,13 @@ Cada elemento de `calculations[]` (DTO `CalculationSection`):
 
 **Este skill solo genera secciones `type=MOST_RECENT_VALUE`, `AGGREGATES` o `DISTINCT`/`ALL` sin `handler`.** Nunca genera `CUSTOM_ON_SECTION` — requiere una clase Scala que este skill no produce.
 
+**Reglas de `AGGREGATES` que valida el motor** (`CalculationConfiguationValidator.scala`, AUD-SC2):
+- `type` va en MAYÚSCULAS exactas: el validador compara `"AGGREGATES"` literal; en minúsculas la sección se procesa sin validar.
+- `aggregates[]` no vacío (OXY-SC-1).
+- `select` solo si hay `groupBy` (OXY-SC-2), y todo campo de `select` debe estar en `groupBy` (OXY-SC-3).
+
+Verificación en Python, además del `.ps1`: `python tools/verificar-artefactos-etapa.py statecalc --calculation <calc.json> --foundation <foundation.json>`.
+
 ### 2.1 Regla dura: `groupBy` siempre plano, nunca `grouping.groupBy`
 
 **El DTO Java real (`CalculationSection.java`) solo declara el campo plano `groupBy`.** No existe ningún campo `grouping` en esa clase — verificado por lectura directa del código (`Diseño/logica-statecalc.md` §5.4).

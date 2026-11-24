@@ -37,9 +37,12 @@ oxygen.stage.consistencyCheck {
     # mismo skill (domaindictionary.json), salvo que el usuario indique otro.
     domainDictionaryFile = ["{{DOMAIN_DICTIONARY_FILENAME}}"]
 
-    # null salvo evidencia de que esta ingesta use el diccionario de reglas
-    # custom de filtrado/visibilidad (ver references/diccionarios-oxygen-synthesis.md §3).
-    customRulesFile = {{CUSTOM_RULES_FILE_O_NULL}}
+    # NUNCA null: el motor hace customRulesFile.head (SparkConsistencyChecker.scala:245)
+    # y un null tumba la etapa. Sin reglas custom de filtrado/visibilidad, usar el
+    # archivo vacío que referencia el conf local del motor: ["custom-rules-empty.json"]
+    # (debe existir en los resources del fork; verificarlo allá). Reglas propias
+    # solo con evidencia (ver references/diccionarios-oxygen-synthesis.md §3). AUD-S1.
+    customRulesFile = {{CUSTOM_RULES_FILE}}
   }
 
   # false es el default del fixture local y coincide con la mayoría de casos

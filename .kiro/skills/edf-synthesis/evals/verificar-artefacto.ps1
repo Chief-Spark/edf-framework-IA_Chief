@@ -192,6 +192,11 @@ if ($HoconPath) {
             Write-Host "PASS - eventTypeList no copia los 3 valores de ejemplo del repo en bloque" -ForegroundColor Green
         }
 
+        # AUD-S1 — customRulesFile nunca null: el motor hace .head sobre la lista
+        Test-Contains -Content $hocon -Pattern 'customRulesFile\s*=\s*null' `
+            -Description "customRulesFile no es null (AUD-S1; el motor hace customRulesFile.head)" `
+            -ShouldNotMatch
+
         # EVAL-SYN-07 — periodType nunca debe aparecer en el bloque
         Test-Contains -Content $hocon -Pattern '(?i)\bperiodType\b' `
             -Description "no se declara 'periodType' en el bloque HOCON (EVAL-SYN-07, sin ubicación confirmada en el motor real)" `

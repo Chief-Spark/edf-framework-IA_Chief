@@ -306,6 +306,11 @@ function Test-Calculation {
         } elseif ($tiposSeccionOk -notcontains $tipoU) {
             Add-Fail 'C03' "sección '$sn' usa type '$tipo' fuera del vocabulario generable {AGGREGATES, MOST_RECENT_VALUE, DISTINCT, ALL}"
             $nTipo++
+        } elseif ($tipo -cne $tipoU -and $tipoU -eq 'AGGREGATES') {
+            # AUD-SC2: el validador del motor compara 'AGGREGATES' exacto (CalculationConfiguationValidator.scala:31);
+            # en minúsculas la sección se salta su validación.
+            Add-Fail 'C03' "sección '$sn': type '$tipo' debe ir en MAYÚSCULAS exactas (AGGREGATES); en minúsculas el motor no la valida"
+            $nTipo++
         } elseif ($tipo -cne $tipoU) {
             Add-Warn "sección '$sn': type '$tipo' no está en mayúsculas (el motor lo resuelve case-insensitive; convención: $tipoU)"
         }
@@ -351,6 +356,19 @@ function Test-Calculation {
         } elseif ($refs.Count -gt 0 -and -not $avisoFoundation) {
             Add-Warn "C06 omitida: no se suministró Foundation, no se puede comprobar que select/groupBy/aggregates[].field existan en fields[]"
             $avisoFoundation = $true
+        }
+
+        # C10 select y groupBy en AGGREGATES (AUD-SC2; OXY-SC-2 y OXY-SC-3 del motor)
+        if ($tipoU -eq 'AGGREGATES') {
+            $sel = @(Get-Lista $s 'select'); $gb = @(Get-Lista $s 'groupBy')
+            if ($gb.Count -eq 0 -and $sel.Count -gt 0) {
+                Add-Fail 'C10' "sección '$sn': AGGREGATES con 'select' y sin 'groupBy' (OXY-SC-2 del motor)"
+            }
+            foreach ($x in $sel) {
+                if ($gb.Count -gt 0 -and -not ($gb -ccontains [string]$x)) {
+                    Add-Fail 'C10' "sección '$sn': '$x' está en select pero no en groupBy (OXY-SC-3 del motor)"
+                }
+            }
         }
 
         # C07 where
