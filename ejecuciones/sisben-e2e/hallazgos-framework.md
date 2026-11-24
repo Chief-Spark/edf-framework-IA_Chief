@@ -23,6 +23,13 @@ acordada: se registran, se corrigen con su prueba de regresión (commit aparte e
 | HF-16 (AUD-V-27) | validation | P2. Dos filas idénticas sin número de documento se agrupan como duplicadas aunque VAL-SP03 sale RESUELTO | `auditorias/validation.md` §7 | Lote de correcciones al cierre | pendiente |
 | HF-17 (AUD-V-28) | validation | P2. Ninguna prueba generada aísla RA-02 (todas violan también RA-04); una regresión que ignore RA-02 no se detectaría | §7; RA-02 es aislable con offset adelantado (`…202612.20261201000000+1400.txt`, hoy 2026-11-30) | Lote de correcciones al cierre | pendiente |
 | HF-18 (AUD-V-29) | validation | P2. `Campos.crudo` no recorta el `\r` final de una línea CRLF; Curation lo recibiría en el último campo | §7 | Lote de correcciones al cierre | pendiente |
+| HF-19 (AUD-A defecto 1) | acceptance | P2. `edf-acceptance/SKILL.md:139-147` y `references/especificacion-sisben.md` describen otra versión de SISBEN (RT_/EP_, sin TXT, inferDelete) | `auditorias/acceptance.md` §3 | Corrector 1.9.5 | pendiente |
+| HF-20 (AUD-A defecto 2) | acceptance | P2. Plantillas, manifiesto, esquema y `render_templates.py` firman «edf-acceptance-stage» | §3 | Corrector 1.9.5 | pendiente |
+| HF-21 (AUD-A defecto 3) | acceptance | P2. El esquema genérico exige la clave `expresiones_propuestas_sisben` | `source-spec.schema.yaml:10,200` | Corrector 1.9.5 | pendiente |
+| HF-22 (AUD-A defecto 4) | acceptance | P2. `severidades` exige todos sus campos aunque `habilitado: false` | `source-spec.schema.yaml:164` | Corrector 1.9.5 | pendiente |
+| HF-23 (AUD-A-01, defecto 5) | acceptance | P2 (framework) → P1 en la ingesta. No hay forma de declarar y probar un umbral alternativo (HU §5.2 «umbral parametrizable») | `render_templates.py:367`; §2 AUD-A-01 | Corrector 1.9.5 | pendiente |
+| HF-24 (AUD-A-08..10) | acceptance | P2. El simulador no compara con lo esperado; comentario inexacto del reasonCode en la plantilla del Spec | §2 | Corrector 1.9.5 | pendiente |
+| HC-04 (AUD-A-11) | — | Herramienta de la corrida: `etapa --agregar-riesgo` duplicaba RG-015 | Corregido en `orquestador_e2e.py` (BIT-0063) | — |
 
 Hallazgos de la spec (no del framework; se dejan para la próxima versión de la spec, no se corrigen en la corrida):
 

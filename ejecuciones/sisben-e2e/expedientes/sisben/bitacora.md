@@ -1072,3 +1072,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0063 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Se quita el RG-015 duplicado en etapas[validation].riesgos (AUD-A-11; HC-04: --agregar-riesgo ya no duplica) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:47:06-05:00 |
+| **Por qué** | Hallazgo AUD-A-11 del auditor de Acceptance |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | prompt 08 |
+| **Corrige** | BIT-0059 |
+
+---
+
+## BIT-0064 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:47:55-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

@@ -194,8 +194,8 @@ def cmd_etapa(a) -> None:
         et["riesgo_evaluado"] = a.riesgo_evaluado
     if a.friccion:
         et["nivel_friccion"] = a.friccion
-    if a.agregar_riesgo:
-        et.setdefault("riesgos", []).append(a.agregar_riesgo)
+    if a.agregar_riesgo and a.agregar_riesgo not in et.setdefault("riesgos", []):  # HC-04: sin duplicados
+        et["riesgos"].append(a.agregar_riesgo)
     if a.etapa_actual:
         e["etapa_actual"] = a.id
     bit = "—"

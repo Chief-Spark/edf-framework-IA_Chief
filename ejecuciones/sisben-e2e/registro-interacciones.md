@@ -174,6 +174,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:36:23-05:00
 - **Pedido:** Auditar el insumo ART-020, el contrato con la Validation aprobada, PA-006 y los 5 posibles defectos del framework.
+- **Respuesta:** Insumo ART-020 AJUSTES (sin P0). Valores de negocio fieles y citados; contrato de entrada = Validation aprobada; herramientas OK (render --audit, hocon_check, simulador 9/9 con script propio, muestra acepta 19, suite 127). P1 AUD-A-01: escenario «umbral parametrizable» (HU §5.2, DoD §6) sin cobertura. P2: AUD-A-02 (desempate del fixture 900005), -03 (marcadores del fixture distintos de los de Validation), -04 (cabecera), -05 (customReason true sin efecto y error en log), -06 (RT_/EP_), -07 (errorInEmptyFileBody es [C]), -08..10 (framework: simulador no compara, comentario reasonCode, especificacion-sisben.md), -11 (RG-015 duplicado), -12 (motor). Los 5 posibles defectos: reales (5 reclasificado). PA-006: bien planteada pero la cierra el Desarrollador (N2); (b) se deduce de R-22/RQ-03 y §10.3; (c) recomienda false.
+- **Decisión:** AUD-A-11 corregido (BIT-0063, HC-04). Framework: defectos 1-5 y AUD-A-08..10 + HF-16..18 a un corrector (1.9.5). PA-006 y AUD-A-01 al aprobador. Luego ronda 2 del analista.
+- **Bitácora:** —
+
+## INT-023 · Corrector del framework (acceptance + lote validation) · `acceptance`
+
+- **Cuándo:** 2026-11-24T18:47:50-05:00
+- **Pedido:** Corregir HF-16..24 con pruebas; framework 1.9.5.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-024 · Aprobador simulado SIM-DEV-01 · `acceptance`
+
+- **Cuándo:** 2026-11-24T18:47:50-05:00
+- **Pedido:** Decidir PA-006 (a, b, c) y cómo cubrir AUD-A-01.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
