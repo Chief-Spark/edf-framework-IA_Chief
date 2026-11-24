@@ -78,6 +78,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T17:39:37-05:00
 - **Pedido:** Auditar ART-011..015 de Validation contra HU/spec 1.0.2, insumo ART-010, SKILL.md, checklist de entrega y motor; confirmar o descartar los 10 posibles defectos del generador.
+- **Respuesta:** RECHAZADO. Propuesta reproducible byte a byte y fiel al insumo; muestra = spec §15. ART-014 RECHAZADO por P0 AUD-V-01 (validate[]/metrics[] sin filePattern: el motor hace data.filePattern.get en SparkValidator:1417-1446 y fallaría en cada archivo). ART-011/012/013/015 AJUSTES. P1: AUD-V-02 (RA-02..04 sin implementar), -03 (RV-SIS-05 sin normalizar), -04 (spec: escenario «sin marca de tiempo» inalcanzable), -05 (ValidatedEvent recorta el valor original que Curation necesita), -06 (lookups sin lookupHome). 15 P2 (AUD-V-07..21). Defectos del generador: 1,2,4,5,6,8,10 reales; 3 más amplio; 7 y 9 en parte.
+- **Decisión:** Verificado el P0 en el motor (SparkValidator.scala:1417-1446 y los confs del motor declaran filePattern). Corregir el framework (P0 + P1 + P2 de framework) con pruebas; consultar al aprobador AUD-V-04, -07, -18 y el cambio del insumo; luego analista, regeneración y re-auditoría.
+- **Bitácora:** —
+
+## INT-011 · Corrector del framework (validation) · `validation`
+
+- **Cuándo:** 2026-11-24T17:53:45-05:00
+- **Pedido:** Corregir AUD-V-01 (P0), -02, -03, -05, -06 (P1) y los P2 de framework con pruebas; framework 1.9.2.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-012 · Aprobador simulado SIM-DEV-01 · `validation`
+
+- **Cuándo:** 2026-11-24T17:53:45-05:00
+- **Pedido:** Decidir AUD-V-04 (escenario sin marca de tiempo inalcanzable), el cambio del insumo para RA-02..04 / RV-SIS-05 / fixture, AUD-V-07, AUD-V-18 y AUD-V-20.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

@@ -545,3 +545,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0032 · `rechazo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Dictamen del auditor independiente: propuesta de Validation RECHAZADA (ART-014 RECHAZADO por P0 AUD-V-01; resto AJUSTES) |
+| **Quién** | Auditor independiente (agente) · registra ORQ-E2E |
+| **Cuándo** | 2026-11-24T17:53:45-05:00 |
+| **Por qué** | auditorias/validation.md: validate[]/metrics[] sin filePattern (SparkValidator.scala:1417-1446) y P1 AUD-V-02..06; se corrige el framework y se regenera (regla de la corrida: registrar, corregir y seguir) |
+| **Resultado** | `bloqueado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-011, ART-012, ART-013, ART-014, ART-015 |
+| **Trazabilidad** | prompt 08 · auditoría |
+| **Corrige** | — |
+
+---
+
+## BIT-0033 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T17:53:45-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
