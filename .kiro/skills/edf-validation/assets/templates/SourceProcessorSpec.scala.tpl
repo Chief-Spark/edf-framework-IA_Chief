@@ -20,16 +20,23 @@ class {{Fuente}}ValidationProcessorSpec extends AnyFunSuite {
   private val spec = {{Fuente}}Spec.Spec
   private val hoy = {{fecha_referencia_scala}}
 
-  /** Catálogo en memoria con las filas sintéticas del source-spec. */
-  private object CatalogoSintetico extends Catalogo {
-    private val tablas: Map[String, Seq[Map[String, String]]] = Map(
+  /** Filas sintéticas del source-spec y una consulta con la semántica de Util.getLookup del motor (VAL-PT03):
+    * devuelve los valores de la columna pedida en las filas que cumplen el filtro, o List("") si no hay coincidencia. */
+  private object TablasSinteticas {
+    val tablas: Map[String, Seq[Map[String, String]]] = Map(
 {{bloque_catalogo_sintetico}}
     )
-    def existe(tabla: String, columna: String, valor: String): Boolean =
-      tablas.getOrElse(tabla, Seq.empty).exists(_.get(columna).contains(valor))
-    def buscar(tabla: String, columnaClave: String, clave: String, columnaSalida: String): Option[String] =
-      tablas.getOrElse(tabla, Seq.empty).find(_.get(columnaClave).contains(clave)).flatMap(_.get(columnaSalida))
+    def consultar(tabla: String, filtro: Map[String, String], columna: String): Seq[String] = {
+      val valores = tablas.getOrElse(tabla, Seq.empty)
+        .filter(fila => filtro.forall { case (k, v) => fila.get(k).contains(v) })
+        .flatMap(_.get(columna))
+      if (valores.isEmpty) List("") else valores
+    }
   }
+
+  /** Catálogo de las pruebas sobre CatalogoDeConsulta: el mismo adaptador que OxygenCatalogo usa con el lookup
+    * real, así que estas pruebas también ejercitan su lectura de la respuesta ("" = sin coincidencia) (AUD-V5). */
+  private val CatalogoSintetico: Catalogo = new CatalogoDeConsulta(TablasSinteticas.consultar _)
 
   private val RegistroBase: Seq[String] = Seq({{registro_base_scala}})
 
@@ -67,6 +74,28 @@ class {{Fuente}}ValidationProcessorSpec extends AnyFunSuite {
     assert(codigos(linea(RegistroBase :+ "EXTRA")) == Seq(spec.codigos.estructura))
     assert(codigos("") == Seq(spec.codigos.estructura))
     assert(codigos(null) == Seq(spec.codigos.estructura))
+  }
+
+  test("filtro y header con filas degeneradas no lanzan (AUD-V1)") {
+    for (fila <- Seq(null, "", "   ", "{{delimitador_scala}}", linea(RegistroBase.take(1)))) {
+      assert(!RecordValidator.esHeader(spec, fila))
+      RecordValidator.debeFiltrar(spec, fila)
+    }
+    assert(RecordValidator.debeFiltrar(spec, null) == spec.filtro.lineasVacias)
+    assert(RecordValidator.debeFiltrar(spec, "") == spec.filtro.lineasVacias)
+    spec.filtro.posicionCampo.filter(_ > 1).foreach { pos =>
+      assert(!RecordValidator.debeFiltrar(spec, linea(RegistroBase.take(pos - 1))), "fila truncada sin el campo del filtro")
+    }
+    assert(!RecordValidator.debeFiltrar(spec, linea(RegistroBase)))
+  }
+
+  test("catálogo sintético sobre CatalogoDeConsulta: List(\"\") es sin coincidencia (AUD-V5)") {
+    assert(TablasSinteticas.consultar("TABLA_INEXISTENTE_SINTETICA", Map("c" -> "v"), "c") == List(""))
+    for ((tabla, filas) <- TablasSinteticas.tablas; fila <- filas.headOption; (columna, valor) <- fila.headOption) {
+      assert(CatalogoSintetico.existe(tabla, columna, valor))
+      assert(!CatalogoSintetico.existe(tabla, columna, "VALOR_INEXISTENTE_SINTETICO"))
+      assert(CatalogoSintetico.buscar(tabla, columna, "VALOR_INEXISTENTE_SINTETICO", columna).isEmpty)
+    }
   }
 
   test("header correcto se acepta y se reconoce como fila de header") {

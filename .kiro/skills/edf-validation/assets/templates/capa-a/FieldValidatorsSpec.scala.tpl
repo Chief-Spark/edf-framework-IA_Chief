@@ -142,10 +142,46 @@ class FieldValidatorsSpec extends AnyFunSuite {
   test("acceso por posición fuera de rango devuelve vacío") {
     assert(Campos.valor(Campos.separar("a;b", ";"), 5) == "")
     assert(Campos.valor(Campos.separar(null, ";"), 1) == "")
+    assert(Campos.separar("a;b", null).toSeq == Seq("a;b"))
+    assert(Campos.separar(null, "").toSeq == Seq(""))
   }
 
   test("valores nulos no lanzan excepción") {
     assert(causa(campo(), null).contains(Causa.Obligatorio))
+  }
+
+  test("debeFiltrar y esHeader son totales: fila nula, vacía, truncada o sin el campo no lanzan (AUD-V1)") {
+    val conFiltro = fuente(Seq(campo(), campo().copy(nombre = "CAMPO_N", posicion = 2, aliasHeader = Seq("CAMPO_N"))))
+      .copy(filtro = FiltroFilas(lineasVacias = true, Some(2), Set("MENOR")))
+    assert(RecordValidator.debeFiltrar(conFiltro, null))
+    assert(RecordValidator.debeFiltrar(conFiltro, "   "))
+    assert(RecordValidator.debeFiltrar(conFiltro, "1;MENOR"))
+    assert(!RecordValidator.debeFiltrar(conFiltro, "1"))       // truncada: sin el campo del filtro
+    assert(!RecordValidator.debeFiltrar(conFiltro, "1;OTRO"))
+    assert(!RecordValidator.debeFiltrar(conFiltro.copy(filtro = FiltroFilas(lineasVacias = false, Some(0), Set(""))), "1;2"))
+    assert(!RecordValidator.debeFiltrar(conFiltro.copy(filtro = FiltroFilas(lineasVacias = false, None, Set.empty)), null))
+    assert(!RecordValidator.debeFiltrar(conFiltro.copy(delimitador = null), "1;MENOR"))
+    assert(RecordValidator.esHeader(conFiltro, "\uFEFFcampo_x;CAMPO_N"))
+    for (fila <- Seq(null, "", ";", "1")) assert(!RecordValidator.esHeader(conFiltro, fila))
+    assert(!RecordValidator.esHeader(conFiltro.copy(delimitador = ""), "1;2"))
+  }
+
+  test("asOfDate es total: fecha inválida, fila nula o truncada dan None (AUD-V2)") {
+    val f = campo(tipo = TipoDato.Fecha, formatos = Seq("dd/MM/yyyy"))
+    val s = fuente(Seq(f))
+    assert(RecordValidator.asOfDate(s, "30/06/2024").isDefined)
+    for (fila <- Seq(null, "", "31/02/2024", "x")) assert(RecordValidator.asOfDate(s, fila).isEmpty)
+    assert(RecordValidator.asOfDate(s.copy(zonaHoraria = "Zona/Inexistente"), "30/06/2024").isEmpty)
+  }
+
+  test("validarFooter: cantidad exacta de filas y todas reconocidas; si no, el código de footer (AUD-V3)") {
+    val esFooter = (r: String) => Option(r).exists(_.trim.startsWith("TOTAL"))
+    val error = Seq(FieldError("FOOTER", "TEST_ERR_0097", "1", Causa.Footer))
+    assert(RecordValidator.validarFooter(Seq("TOTAL;1"), 1, esFooter, "TEST_ERR_0097").isEmpty)
+    assert(RecordValidator.validarFooter(Seq("1;2"), 1, esFooter, "TEST_ERR_0097") == error)
+    assert(RecordValidator.validarFooter(Seq.empty, 1, esFooter, "TEST_ERR_0097") == error)
+    assert(RecordValidator.validarFooter(null, 1, esFooter, "TEST_ERR_0097") == error)
+    assert(RecordValidator.validarFooter(Seq("TOTAL;1", "TOTAL;2"), 1, esFooter, "TEST_ERR_0097") == error)
   }
 
   test("desempate de duplicados: mayor fecha y luego mayor desempate") {

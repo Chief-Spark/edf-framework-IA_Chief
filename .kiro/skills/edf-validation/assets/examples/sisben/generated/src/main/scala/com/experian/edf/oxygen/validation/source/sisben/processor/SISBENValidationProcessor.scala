@@ -6,7 +6,6 @@ package com.experian.edf.oxygen.validation.source.sisben.processor
 
 import java.time.{LocalDate, ZoneId}
 
-import scala.util.Try
 import scala.util.control.NonFatal
 
 import com.experian.edf.oxygen.validation.source.common.{Catalogo, CatalogoDeConsulta, FieldError, RecordValidator}
@@ -69,12 +68,14 @@ class SISBENValidationProcessor(processorContext: ProcessorContext) extends Vali
   @throws(classOf[MalformedFileException])
   override def createFileMetadata: FileMetadata = new SISBENFileMetadata(nombreArchivo, headers)
 
-  override def isHeaderRow(row: String): Boolean = Try(RecordValidator.esHeader(spec, row)).getOrElse(false)
+  // esHeader y debeFiltrar son totales (fila nula, vacía o truncada no lanzan): sin Try, una falla no se disfraza
+  // de "no es header" o de "no se filtra" (AUD-V1).
+  override def isHeaderRow(row: String): Boolean = RecordValidator.esHeader(spec, row)
 
   override def isFooterRow(row: String): Boolean = false
 
   /** Filtro silencioso, fuera de todo quality score (líneas vacías; TIP_DOCUMENTO en {1, 2}). */
-  override def shouldFilterRow(row: String): Boolean = Try(RecordValidator.debeFiltrar(spec, row)).getOrElse(false)
+  override def shouldFilterRow(row: String): Boolean = RecordValidator.debeFiltrar(spec, row)
 
   override def validateFilename(validationContext: ValidationContext): ValidationResult =
     resultado(RecordValidator.validarNombre(spec, nombreArchivo))
@@ -89,21 +90,23 @@ class SISBENValidationProcessor(processorContext: ProcessorContext) extends Vali
       val r = RecordValidator.validarRegistro(spec, linea, catalogo, hoy)
       (r.errores, r.qualityScores)
     } catch {
+      // SILENCIO-INTENCIONAL VAL-RC04: segunda barrera (validarRegistro ya no lanza, ADR-01); el registro sale con el código interno.
       case NonFatal(_) =>
         // Sin PII: solo el código. El registro sale con error severidad 1, no se pierde ni tumba el job.
         logger.warn("Error interno al validar un registro; codigo={}", spec.codigos.interno)
         val interno = Seq(FieldError("REGISTRO", spec.codigos.interno, "1", "INTERNO"))
         (interno, RecordValidator.qualityScores(spec, interno))
     }
-    // Guard-rails explícitos (VAL-P13): nunca depender del fallback del motor.
-    // ASSUMPTION VAL-SP02: si el campo de as-of-date es inválido (ya diagnosticado), se usa la fecha de recepción.
-    val asOfDate: Long = Try(RecordValidator.asOfDate(spec, linea)).toOption.flatten
-      .getOrElse(Try(fileMetadata.receivedDate).getOrElse(0L))
+    // Guard-rails explícitos (VAL-P13): subscriberRelation siempre presente.
+    // ASSUMPTION VAL-SP02: si el campo de as-of-date es inválido (ya diagnosticado), asOfDate = None. El motor usa
+    // entonces la fecha de recepción del lineage y marca didCreateAsOfDateFromReceivedDate = true
+    // (Validator.createTaggedValidatedEvent). Nunca se inventa 0L (1970) sin avisar al motor (AUD-V2).
+    val asOfDate: Option[Long] = RecordValidator.asOfDate(spec, linea)
     val relacion: String = spec.campo(spec.campoSubscriberRelation)
       .map(c => evento.valores.lift(c.posicion - 1).map(_.trim).getOrElse("")).getOrElse("")
     Array(new ValidatedEventValueObject(
       evento,
-      Some(DomainData(Some(asOfDate), relacion)),
+      Some(DomainData(asOfDate, relacion)),
       scores.map { case (n, s) => QualityScore(name = n, score = s) }.toArray,
       errores.map(aObjectError).toArray))
   }

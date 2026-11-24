@@ -54,12 +54,13 @@ trait ReglaEntreCampos` (Capa A) y al esquema; no se escribe lógica a mano en e
 - Paquetes y rutas: `paquete_comun`, `paquete_fuente`, `ruta_comun`, `ruta_fuente`, `processor_fqcn`.
 - Archivo: `delimitador_scala`, `filas_header`, `filas_footer`, `file_format`, `linea_encoding`,
   `file_pattern_hocon`, `regex_nombre_scala`, `grupo_*`, `bloque_file_tags`, `expr_file_as_of_date`,
-  `is_footer_row_expr`.
+  `is_footer_row_expr`, `bloque_validate_footer` (vacío sin footer, AUD-V3).
 - Campos y reglas: `bloque_constantes_campos`, `bloque_fieldspecs`, `bloque_reglas`, `bloque_accesores`,
   `bloque_mapa_json`, `header_linea`, `numero_campos`.
 - Filtro, QS, duplicados: `filtro_*`, `bloque_quality_scores`, `dup_*`, `dedup_version`,
   `linea_duplicate_threshold`.
-- Archivo/HOCON: `codigo_*`, `validate_file_name_hocon`, `validate_header_hocon`, `bloque_metricas`,
+- Archivo/HOCON: `codigo_*`, `validate_file_name_hocon`, `validate_header_hocon`, `linea_validate_footer`
+  (vacío sin footer), `bloque_metricas`,
   `bloque_lookups`, `bloque_codigos_error`.
 - Tests y fixture: `bloque_catalogo_sintetico`, `registro_base_scala`, `bloque_casos_campo`,
   `bloque_casos_fixture`, `bloque_registros_fixture`, `fecha_referencia_scala`, `fixture_nombre_archivo`.

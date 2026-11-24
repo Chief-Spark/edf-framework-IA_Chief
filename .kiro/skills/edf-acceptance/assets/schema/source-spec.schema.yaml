@@ -108,6 +108,13 @@ properties:
     properties:
       reject: {type: string, minLength: 1}
       accept: {type: string, minLength: 1}
+      manualReview:
+        type: string
+        minLength: 1
+        description: >-
+          Opcional (AUD-A4). Expresión en la sintaxis nueva (anyOf/allOf de condiciones definidas). La lee
+          SparkDatasetAcceptor (dsl/acceptance/SparkDatasetAcceptor.scala:71); en SparkAcceptor está comentada.
+          Sin la clave no se emite nada.
   registro:
     description: IN-04
     type: object

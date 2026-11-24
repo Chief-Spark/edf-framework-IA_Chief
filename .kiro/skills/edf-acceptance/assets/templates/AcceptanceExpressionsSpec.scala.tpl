@@ -27,14 +27,29 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
   private val RecordAcceptance = "{{registro.recordAcceptance|scala}}"
   private val FileReject = "{{fileActions.reject|scala}}"
   private val FileAccept = "{{fileActions.accept|scala}}"
+{{#si fileActions.manualReview?}}
+  private val ManualReview = "{{fileActions.manualReview|scala}}"
+{{/si}}
   private val QualityScoreNames = Seq("{{calidad.quality_score}}")
   private val AutomaticMarkers = Seq("errorInHeader", "errorInFooter", "errorInFileName", "errorInHistoricAttribute")
+  private val CustomReasonForAutomaticRejection = {{rechazo_automatico.customReasonForAutomaticRejectionEnabled}}
 
   private val conditions: Map[String, AcceptanceCondition] = Map(
 {{#cada condiciones}}
     "{{nombre}}" -> AcceptanceCondition("{{nombre}}", "{{expresion|scala}}", "{{reasonCode}}", {{isLogged}}),
 {{/cada}}
   )
+
+  // AUD-A1: el motor pasa buildReasonCodeSeverityMap(config.lookupMapping, conditions) (SparkAcceptor.scala:208 y
+  // :224): reasonCode → severidad, solo de los reasonCode de las condiciones y solo si hay lookupMapping. Aquí sale
+  // de severidades.filas cuando severidades.habilitado; sin lookupMapping el motor pasa un mapa vacío.
+  private val ReasonSeverities: Map[String, Int] = Map[String, Int](
+{{#si severidades.habilitado}}
+{{#cada severidades.filas}}
+    "{{reasonCode}}" -> {{severidad}},
+{{/cada}}
+{{/si}}
+  ).filter { case (code, _) => conditions.values.exists(_.reasonCode == code) }
 
   // (directorio, eventId, resultado esperado de recordAcceptance)
   private val expectedRecords: Seq[(String, String, Boolean)] = Seq(
@@ -66,6 +81,19 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
     finally src.close()
   }
 
+  /** AUD-A2: misma regla que SparkAcceptor.shouldAutomaticReject (SparkAcceptor.scala:190-198) sobre el nombre del
+    * directorio de validados: marcador de header, footer, nombre o atributos históricos; cuerpo vacío si accept no
+    * contiene isEmptyBodyFile. */
+  private def automaticReject(dir: String): Boolean =
+    AutomaticMarkers.exists(m => dir.contains(m)) ||
+      (dir.contains("errorInEmptyFileBody") && !FileAccept.contains("isEmptyBodyFile"))
+
+  private def aggregatesParser(dir: String): AggregatesParserDF = {
+    import spark.implicits._
+    val ds: Dataset[TaggedValidatedEvent] = spark.createDataset(loadEvents(dir))
+    new AggregatesParserDF(spark.sqlContext, AggregatesParserDF.createQSDataFrame(spark, ds))
+  }
+
   private def recordAccepted(event: TaggedValidatedEvent): Boolean = {
     val parser = new RecordValidationParser(Left(event))
     parser.parseAll(parser.boolExpr, RecordAcceptance).get
@@ -78,7 +106,7 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
   test("reject compila en la sintaxis nueva y solo cita condiciones definidas (ACC-P09)") {
     assert(AcceptanceLexer(FileReject).isDefined, "reject cae a la sintaxis antigua y no registra reasonCode")
     val evaluator = new AcceptanceEvaluator
-    evaluator.apply(conditions, Map.empty[String, Int])
+    evaluator.apply(conditions, ReasonSeverities)
     assert(evaluator.compile(FileReject).isDefined)
     val cited = "[A-Za-z_][A-Za-z0-9_]*".r.findAllIn(FileReject).toSet -- Set("anyOf", "allOf", "hasErrorlevelIn", "hasErrorlevelNotIn")
     assert(cited.subsetOf(conditions.keySet), "condiciones no definidas: " + (cited -- conditions.keySet))
@@ -87,6 +115,33 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
   test("accept usa la sintaxis antigua y no acepta cuerpos vacíos (RF-ACC-02)") {
     assert(AcceptanceLexer(FileAccept).isEmpty)
     assert(!FileAccept.contains("isEmptyBodyFile"))
+  }
+
+{{#si fileActions.manualReview?}}
+  test("manualReview compila en la sintaxis nueva (AUD-A4; lo lee SparkDatasetAcceptor)") {
+    val evaluator = new AcceptanceEvaluator
+    evaluator.apply(conditions, ReasonSeverities)
+    assert(evaluator.compile(ManualReview).isDefined, "manualReview no compila: el motor lo evalúa como false")
+  }
+
+{{/si}}
+  test("toda expresión de archivo declarada parsea: accept y cada condición (AUD-A3)") {
+    // En el motor nada de esto falla en ejecución: un accept que lanza vale false y deja el archivo pendiente
+    // (SparkAcceptor.isFileActionValid) y una condición que lanza vale false (AcceptanceAST.evaluateNamedInternal).
+    // Aquí se exige que parseen sobre los archivos que cumplen el contrato con Validation (traen el QS declarado):
+    // si una lanza o no parsea, la prueba falla. Los archivos sin QS (S-ACC-03) se excluyen a propósito.
+    val conContrato = expectedFiles.map(_._1).distinct.filterNot(automaticReject).filter { dir =>
+      val events = loadEvents(dir)
+      events.nonEmpty && events.forall(e => QualityScoreNames.forall(qs => Option(e.qualityScores).exists(_.exists(_.name == qs))))
+    }
+    assert(conContrato.nonEmpty, "el fixture no tiene archivos con el QS declarado que lleguen a evaluar accept")
+    conContrato.foreach { dir =>
+      val parser = aggregatesParser(dir)
+      (("accept" -> FileAccept) +: conditions.values.toSeq.map(c => c.name -> c.expression)).foreach { case (name, expr) =>
+        val parsed = parser.parseAll(parser.boolExpr, expr)
+        assert(parsed.successful, name + " no parsea en " + dir + ": " + parsed)
+      }
+    }
   }
 
   test("regla de registro: un caso por fila de la tabla de IN-04") {
@@ -101,17 +156,20 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
   }
 
   test("decisión de archivo: se acepta, se rechaza con reasonCode, automático y pendiente") {
-    import spark.implicits._
     val evaluator = new AcceptanceEvaluator
-    evaluator.apply(conditions, Map.empty[String, Int])
+    evaluator.apply(conditions, ReasonSeverities)
     val rejectStatement = evaluator.compile(FileReject).get
     expectedFiles.foreach { case (dir, marker, expected, reasonCode) =>
-      if (AutomaticMarkers.contains(marker) || marker == "errorInEmptyFileBody") {
-        assert(expected == "rechazo_automatico", dir)
+      // AUD-A2: el rechazo automático se decide con la regla del motor, no se da por hecho.
+      assert(marker.isEmpty || dir.contains(marker), "el marcador " + marker + " no está en el directorio " + dir)
+      assert(automaticReject(dir) == (expected == "rechazo_automatico"), dir)
+      if (automaticReject(dir)) {
+        // Con customReasonForAutomaticRejectionEnabled el motor además registra el reasonCode (E4).
+        assert(CustomReasonForAutomaticRejection || reasonCode.isEmpty, dir)
       } else {
-        val ds: Dataset[TaggedValidatedEvent] = spark.createDataset(loadEvents(dir))
-        val parser = new AggregatesParserDF(spark.sqlContext, AggregatesParserDF.createQSDataFrame(spark, ds))
+        val parser = aggregatesParser(dir)
         val (rejected, partials) = evaluator.execute(rejectStatement, conditions.values.toList, parser)
+        // SILENCIO-INTENCIONAL AUD-A3: igual que el motor (SparkAcceptor.isFileActionValid), un accept que lanza vale false.
         val accepted = !rejected && Try(parser.parseAll(parser.boolExpr, FileAccept).get).getOrElse(false)
         val decision = if (rejected) "rechazado" else if (accepted) "aceptado" else "pendiente"
         assert(decision == expected, dir)

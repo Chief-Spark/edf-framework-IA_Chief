@@ -67,7 +67,7 @@ cp1252) o usar `--salida`, que siempre escribe UTF-8.
 
 ## 5. Compilar y probar (requiere JAR)
 
-Prerrequisitos del repo (`Motor-Oxigen/oxygen-validation`: `pom.xml`, `Dockerfile`, `README.MD`, `migrate.md`): **JDK 11**, Maven, Scala 2.12.15, Spark 3.3.1, Hadoop 3. El motor "opera exclusivamente" con esa combinación (`maven.compiler.source/target = 11`). Java 17 es solo del generador del skill (`scripts/java/`), no del motor.
+Prerrequisitos del repo (`Motor-Oxigen/oxygen-validation`: `pom.xml`, `Dockerfile`, `README.MD`, `migrate.md`): **JDK 11**, Maven, Scala 2.12.15, Spark 3.3.1, Hadoop 3. El motor "opera exclusivamente" con esa combinación (`maven.compiler.source/target = 11`). El skill no necesita Java: el generador vigente es Python (`scripts/render_templates.py`); el generador Java (`scripts/java/`) está deprecado y no se ejecuta.
 
 ```bash
 mvn -DskipTests clean package       # JAR: target/oxygen-validation-innersource-1.0-jar-with-dependencies.jar

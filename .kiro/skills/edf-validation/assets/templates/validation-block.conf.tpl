@@ -25,7 +25,7 @@
   validate = [
     {
       fileName = "{{validate_file_name_hocon}}"
-      header = "{{validate_header_hocon}}"
+      header = "{{validate_header_hocon}}"{{linea_validate_footer}}
       contexual {
         enabled = false
       }

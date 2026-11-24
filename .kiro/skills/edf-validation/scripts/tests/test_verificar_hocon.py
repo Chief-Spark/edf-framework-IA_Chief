@@ -3,9 +3,10 @@
 Las pruebas del parseo real se omiten si pyhocon no está disponible; las de las reglas (evaluar_reglas) y
 del CLI con un parser inyectado corren sin pyhocon (plan de corrección #5, P-1 a).
 
-Trabajan sobre una copia del ejemplo persistido (assets/examples/sisben/generated), que la prueba Java
-ejemploPersistidoIgualARegeneracion mantiene igual a una regeneración. El parse con el parser real del
-motor (Typesafe Config) está en la prueba Java hoconGeneradoParseaConElParserDelMotor.
+Trabajan sobre una copia del ejemplo persistido (assets/examples/sisben/generated), que la prueba
+test_ejemplo_persistido_igual_a_regeneracion (test_render_templates.py) mantiene igual a una regeneración. El
+parse del HOCON generado con pyhocon está en test_hocon_generado_parsea. El parse con el parser real del motor
+(Typesafe Config) era de la suite del generador Java deprecado: es histórico y hoy no se ejecuta.
 """
 from __future__ import annotations
 

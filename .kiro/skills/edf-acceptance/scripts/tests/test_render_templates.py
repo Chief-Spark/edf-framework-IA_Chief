@@ -1,7 +1,7 @@
 """Pruebas del generador vigente render_templates.py (sin Java ni compilación).
 
-Incluyen los casos de la suite Java que lo acompañaba hasta la versión 1.5.x
-(scripts/java/src/test/.../RenderTemplatesTest.java). Las del simulador están en test_simulador.py.
+Son la suite vigente del generador; incluyen los casos de la suite del generador Java deprecado (histórico,
+ver scripts/DEPRECADOS.md), que ya no se ejecuta. Las del simulador están en test_simulador.py.
 Pruebas del renderizador, de las verificaciones de la spec y del fixture sintético SISBEN.
 
 Ejecutar desde la raíz del skill:  python -m pytest scripts/tests -q
@@ -111,7 +111,8 @@ def test_todo_hueco_definido_en_schema(spec, schema):
 
 
 def test_huecos_de_ramas_activas_llenos_en_spec(spec, schema):
-    disabled = ("intervencion_manual.manual", "contextual_override.")
+    # Ramas deshabilitadas en SISBEN; fileActions.manualReview es opcional y no se declara (AUD-A4).
+    disabled = ("intervencion_manual.manual", "contextual_override.", "fileActions.manualReview")
     rows = rt.audit(spec, schema)
     empty = [r for r in rows if r["en_spec"] != "lleno" and not r["hueco"].startswith(disabled)]
     assert empty == []
@@ -523,3 +524,101 @@ def test_marcas_assumption_citan_un_supuesto_del_documento():
             assert m.group(1) in ids
             citados.add(m.group(1))
     assert citados == {"S-ACC-02", "S-ACC-04"}
+
+
+# ------------------------------------------------------------------ auditoría 2026-11-24 (AUD-A1..AUD-A6)
+SILENCIO = re.compile(r"\bTry\s*[({].*\.(getOrElse\s*\(|toOption\b)|case\s+NonFatal\s*\(")
+MARCA_SILENCIO = re.compile(r"SILENCIO-INTENCIONAL\s+[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*")
+
+
+def _scala(out: Path) -> str:
+    return next(out.rglob("*AcceptanceExpressionsSpec.scala")).read_text(encoding="utf-8")
+
+
+def _bloque(out: Path) -> str:
+    return (out / "hocon/sisben-acc-tpl-01-acceptance-block.conf").read_text(encoding="utf-8")
+
+
+def test_mapa_de_severidades_como_el_motor(spec, tmp_path):
+    """AUD-A1: el evaluador recibe el mismo mapa reasonCode → severidad que buildReasonCodeSeverityMap."""
+    rt.generate(spec, tmp_path / "off")
+    off = _scala(tmp_path / "off")
+    assert off.count("evaluator.apply(conditions, ReasonSeverities)") == 2
+    assert "evaluator.apply(conditions, Map.empty" not in off
+    assert "private val ReasonSeverities: Map[String, Int] = Map[String, Int](\n  ).filter" in off
+    rt.generate(mutated(spec, "severidades.habilitado", True), tmp_path / "on")
+    on = _scala(tmp_path / "on")
+    assert '    "SISBFA00001" -> 1,\n' in on
+
+
+def test_marcadores_automaticos_se_comprueban_con_la_regla_del_motor(spec, tmp_path):
+    """AUD-A2: el caso automático ya no es assert(expected == "rechazo_automatico")."""
+    rt.generate(spec, tmp_path)
+    texto = _scala(tmp_path)
+    assert 'assert(expected == "rechazo_automatico", dir)' not in texto
+    assert "private def automaticReject(dir: String): Boolean" in texto
+    assert 'assert(automaticReject(dir) == (expected == "rechazo_automatico"), dir)' in texto
+    assert "CustomReasonForAutomaticRejection" in texto
+
+
+@pytest.mark.parametrize("path,value,expected", [
+    ("fixture.archivos.2.decision_esperada", "aceptado", "rechazo automático"),
+    ("fixture.archivos.0.decision_esperada", "rechazo_automatico", "rechazo automático"),
+    ("fixture.archivos.2.directorio", "EP_SISBEN_EXPERIAN_202401.20240131140000-0500.txt.900003", "no aparece en el directorio"),
+])
+def test_fixture_de_marcadores_coherente_con_el_motor(spec, path, value, expected):
+    problems = rt.verify_spec(mutated(spec, path, value))
+    assert any(expected in p for p in problems), problems
+
+
+def test_toda_expresion_declarada_parsea(spec, tmp_path):
+    """AUD-A3: un accept que no parsea ya no se disfraza de "pendiente": prueba explícita de parseo; la decisión
+    conserva el Try del motor (SparkAcceptor.isFileActionValid), marcado como silencio intencional."""
+    rt.generate(spec, tmp_path)
+    texto = _scala(tmp_path)
+    assert "toda expresión de archivo declarada parsea" in texto
+    assert 'assert(parsed.successful, name + " no parsea en " + dir' in texto
+    linea = next(l for l in texto.splitlines() if "getOrElse(false)" in l)
+    previa = texto.splitlines()[texto.splitlines().index(linea) - 1]
+    assert "SILENCIO-INTENCIONAL AUD-A3" in previa
+
+
+def test_manual_review_opcional(spec, tmp_path):
+    """AUD-A4: fileActions.manualReview (SparkDatasetAcceptor) se puede declarar; sin él la salida no cambia."""
+    rt.generate(spec, tmp_path / "sin")
+    assert "manualReview" not in _bloque(tmp_path / "sin") and "ManualReview" not in _scala(tmp_path / "sin")
+    con = mutated(spec, "fileActions.manualReview", "anyOf(RQS_BAJO_UMBRAL_SISBEN)")
+    pytest.importorskip("jsonschema")
+    assert rt.validate_schema(con, rt.load_yaml(SCHEMA_PATH)) == [] and rt.verify_spec(con) == []
+    rt.generate(con, tmp_path / "con")
+    cfg = hocon_check.parse_hocon(_bloque(tmp_path / "con"))["oxygen"]["stage"]["acceptance"]["configs"][0]
+    assert cfg["fileActions"]["manualReview"] == "anyOf(RQS_BAJO_UMBRAL_SISBEN)"
+    assert "assert(evaluator.compile(ManualReview).isDefined" in _scala(tmp_path / "con")
+
+
+@pytest.mark.parametrize("value,expected", [
+    ('average("qs.RQS") < 0.90', "manualReview no está en la sintaxis nueva"),
+    ("anyOf(NO_DEFINIDA)", "manualReview cita condiciones no definidas"),
+])
+def test_manual_review_invalido_rechazado(spec, value, expected):
+    problems = rt.verify_spec(mutated(spec, "fileActions.manualReview", value))
+    assert any(expected in p for p in problems), problems
+
+
+def test_bloque_si_opcional_con_interrogacion():
+    """AUD-A4: {{#si ruta?}} trata la clave ausente como falsa; sin "?" sigue fallando."""
+    assert rt.render_string("{{#si a.b?}}x{{/si}}", {"a": {}}) == ""
+    assert rt.render_string("{{#si a.b?}}x{{/si}}", {"a": {"b": "v"}}) == "x"
+    with pytest.raises(rt.TemplateError):
+        rt.render_string("{{#si a.b}}x{{/si}}", {"a": {}})
+
+
+def test_silencios_intencionales_marcados():
+    """Todo Try(...).getOrElse/toOption o NonFatal de plantillas y scripts lleva SILENCIO-INTENCIONAL <ID>."""
+    sin_marca = []
+    for f in sorted(rt.DEFAULT_TEMPLATES.rglob("*.tpl")) + sorted(SCRIPTS.glob("*.py")):
+        lineas = f.read_text(encoding="utf-8").splitlines()
+        for i, linea in enumerate(lineas):
+            if SILENCIO.search(linea) and not MARCA_SILENCIO.search(linea + "\n" + (lineas[i - 1] if i else "")):
+                sin_marca.append(f"{f.name}:{i + 1}")
+    assert sin_marca == []

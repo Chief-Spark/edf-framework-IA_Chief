@@ -51,7 +51,8 @@ Verificaciones del inventario (las aplica el generador `scripts/render_templates
 
 Sintaxis propia (ver el docstring de `scripts/render_templates.py`): `{{ruta}}`,
 filtros `|hocon`, `|scala` (escapan `\` y `"`), `|json`; bloques `{{#cada lista}}…{{/cada}}`,
-`{{#si flag}}…{{/si}}`; parciales `{{> archivo.tpl}}`. Un hueco ausente o nulo es error; tras
+`{{#si flag}}…{{/si}}` (con `{{#si ruta?}}` una clave opcional ausente cuenta como falsa, AUD-A4); parciales
+`{{> archivo.tpl}}`. Un hueco ausente o nulo es error; tras
 renderizar no puede quedar `{{`. `--audit` lista cada hueco con `en_schema` y `en_spec` y, después,
 los supuestos del bloque opcional `supuestos` de la spec (`supuesto  S-ACC-xx  impacto=…  donde=…`,
 AC-27). Ese bloque no es un hueco: ninguna plantilla lo usa y no cambia la salida generada.

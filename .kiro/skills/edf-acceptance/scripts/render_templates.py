@@ -2,8 +2,9 @@
 """Renderiza las plantillas del skill edf-acceptance-stage a partir de una source-spec.
 
 Generador VIGENTE de la skill (desde la versión 1.6.0 del framework, 2026-11-18). No requiere compilar nada:
-solo Python 3 con PyYAML y jsonschema. Equivale al generador Java que se usó hasta la 1.5.x (scripts/java,
-conservado como referencia): mismos archivos byte a byte y mismo reporte.
+solo Python 3 con PyYAML y jsonschema. Equivale al generador Java deprecado que se usó hasta la 1.5.x
+(scripts/java, conservado como referencia histórica, no se ejecuta): mismos archivos byte a byte y mismo reporte.
+Desde la auditoría 2026-11-24 (AUD-A1..AUD-A6) la salida evoluciona solo aquí.
 
 Uso:
     python render_templates.py --spec <source-spec.yaml> --out <dir> [--schema <schema.yaml>]
@@ -15,6 +16,7 @@ Sintaxis de plantilla (subconjunto propio, sin dependencias):
     {{ruta|json}}                serializa el valor como JSON
     {{#cada ruta}}...{{/cada}}   repite el bloque por cada elemento (objeto) de la lista
     {{#si ruta}}...{{/si}}       incluye el bloque si el valor es verdadero
+    {{#si ruta?}}...{{/si}}      igual, pero una clave ausente cuenta como falsa (claves opcionales, AUD-A4)
     {{> archivo.tpl}}            incluye otra plantilla (parcial)
 Las etiquetas de bloque solas en su línea no dejan línea en blanco. Las rutas se buscan primero en
 el elemento actual del bucle y después en los ámbitos exteriores, hasta la raíz de la spec.
@@ -176,6 +178,16 @@ def format_value(value: Any, filt: str | None, path: str) -> str:
     return text
 
 
+def condition_value(path: str, scopes: tuple) -> Any:
+    """Valor de un {{#si}}. Con sufijo "?" la clave es opcional: ausente = falso (AUD-A4). Sin él, falla."""
+    if not path.endswith("?"):
+        return lookup(path, scopes)
+    try:
+        return lookup(path[:-1], scopes)
+    except TemplateError:
+        return None
+
+
 def render_nodes(nodes: tuple, scopes: tuple) -> str:
     out: list[str] = []
     for node in nodes:
@@ -184,7 +196,7 @@ def render_nodes(nodes: tuple, scopes: tuple) -> str:
         elif isinstance(node, Var):
             out.append(format_value(lookup(node.path, scopes), node.filter, node.path))
         elif node.kind == "si":
-            if lookup(node.path, scopes):
+            if condition_value(node.path, scopes):
                 out.append(render_nodes(node.children, scopes))
         else:
             items = lookup(node.path, scopes)
@@ -211,7 +223,7 @@ def _schema_child(node: dict, part: str) -> dict | None:
 
 
 def _schema_lookup(path: str, scopes: tuple) -> dict | None:
-    parts = path.split(".")
+    parts = path.rstrip("?").split(".")
     for scope in reversed(scopes):
         if _schema_child(scope, parts[0]) is None:
             continue
@@ -231,7 +243,7 @@ def audit_nodes(nodes: tuple, schema_scopes: tuple, data_scopes: tuple, template
             continue
         schema_node = _schema_lookup(node.path, schema_scopes)
         try:
-            value = lookup(node.path, data_scopes) if data_scopes else _MISSING
+            value = lookup(node.path.rstrip("?"), data_scopes) if data_scopes else _MISSING
         except TemplateError:
             value = _MISSING
         if value is _MISSING:
@@ -307,6 +319,10 @@ def linea_supuesto(s: dict) -> str:
 NUM_RE = re.compile(r"(?<![\w.])\d+\.\d+|(?<![\w.])\d+(?![\w.])")
 LITERAL_RE = re.compile(r'"([^"]*)"')
 DSL_WORDS = {"anyOf", "allOf", "hasErrorlevelIn", "hasErrorlevelNotIn"}
+NEW_SYNTAX_RE = re.compile(r"(anyOf|allOf)\([A-Za-z0-9_, ]+\)( hasErrorlevel(Not)?In\([0-9, ]+\))?")
+# Marcadores que el motor rechaza siempre (SparkAcceptor.shouldAutomaticReject); errorInEmptyFileBody solo si
+# accept no contiene isEmptyBodyFile.
+AUTOMATIC_MARKERS = ("errorInHeader", "errorInFooter", "errorInFileName", "errorInHistoricAttribute")
 
 
 def remove_extension(path: str) -> str:
@@ -362,14 +378,18 @@ def verify_spec(spec: dict) -> list[str]:
     for name in names:
         if fuente not in name:
             errors.append(f"la condición {name} no lleva el nombre de la fuente (unicidad global)")
-    cited = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", spec["fileActions"]["reject"])) - DSL_WORDS
-    if not cited or not cited <= set(names):
-        errors.append(f"reject cita condiciones no definidas: {sorted(cited - set(names))}")
-    if not re.fullmatch(r"(anyOf|allOf)\([A-Za-z0-9_, ]+\)( hasErrorlevel(Not)?In\([0-9, ]+\))?",
-                        spec["fileActions"]["reject"]):
-        errors.append("reject no está en la sintaxis nueva: caería en silencio a la antigua (ACC-P09)")
-    if "hasErrorlevel" in spec["fileActions"]["reject"] and not spec["severidades"]["habilitado"]:
-        errors.append("reject usa hasErrorlevel* sin tabla de severidades (ACC-TPL-03)")
+    # manualReview es opcional (AUD-A4): SparkDatasetAcceptor lo compila con la sintaxis nueva, como reject.
+    nuevas = {"reject": spec["fileActions"]["reject"]}
+    if spec["fileActions"].get("manualReview"):
+        nuevas["manualReview"] = spec["fileActions"]["manualReview"]
+    for key, expr in nuevas.items():
+        cited = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", expr)) - DSL_WORDS
+        if not cited or not cited <= set(names):
+            errors.append(f"{key} cita condiciones no definidas: {sorted(cited - set(names))}")
+        if not NEW_SYNTAX_RE.fullmatch(expr):
+            errors.append(f"{key} no está en la sintaxis nueva: caería en silencio a la antigua (ACC-P09)")
+        if "hasErrorlevel" in expr and not spec["severidades"]["habilitado"]:
+            errors.append(f"{key} usa hasErrorlevel* sin tabla de severidades (ACC-TPL-03)")
 
     record = spec["registro"]["recordAcceptance"]
     diag = spec["diagnostico_validation"]
@@ -400,6 +420,24 @@ def verify_spec(spec: dict) -> list[str]:
             if not isinstance(expr, str) or "externalAction(" not in expr:
                 errors.append(f"{key} solo admite expresiones con externalAction(...) (IN-07)")
     errors += qs_no_binarios(spec)
+    errors += marcadores_coherentes(spec)
+    return errors
+
+
+def marcadores_coherentes(spec: dict) -> list[str]:
+    """AUD-A2: en el fixture, el marcador está en el directorio y "rechazo_automatico" coincide con la regla del
+    motor (SparkAcceptor.shouldAutomaticReject, que mira el nombre del directorio de validados)."""
+    errors: list[str] = []
+    accept = spec["fileActions"]["accept"]
+    for i, archivo in enumerate(spec["fixture"]["archivos"]):
+        directorio, marcador = archivo["directorio"], archivo["marcador"]
+        if marcador and marcador not in directorio:
+            errors.append(f"fixture/archivos/{i}: el marcador {marcador} no aparece en el directorio {directorio}")
+        automatico = (any(m in directorio for m in AUTOMATIC_MARKERS)
+                      or ("errorInEmptyFileBody" in directorio and "isEmptyBodyFile" not in accept))
+        if automatico != (archivo["decision_esperada"] == "rechazo_automatico"):
+            errors.append(f"fixture/archivos/{i}: decision_esperada {archivo['decision_esperada']!r} no coincide con "
+                          f"la regla de rechazo automático del motor (automático = {automatico})")
     return errors
 
 

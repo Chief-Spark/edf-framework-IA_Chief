@@ -28,6 +28,7 @@ object Causa {
   val Interno = "INTERNO"
   val NombreArchivo = "NOMBRE_ARCHIVO"
   val Header = "HEADER"
+  val Footer = "FOOTER"
 }
 
 object Texto {
@@ -42,9 +43,12 @@ object Texto {
 }
 
 object Campos {
-  /** split(delimitador, -1) una sola vez; delimitador literal (no regex). */
-  def separar(fila: String, delimitador: String): Array[String] =
-    Option(fila).getOrElse("").split(Pattern.quote(delimitador), -1)
+  /** split(delimitador, -1) una sola vez; delimitador literal (no regex). Total: fila nula → Array(""),
+    * delimitador nulo o vacío → la fila entera como un solo campo (AUD-V1). */
+  def separar(fila: String, delimitador: String): Array[String] = {
+    val texto = Option(fila).getOrElse("")
+    Option(delimitador).filter(_.nonEmpty).map(d => texto.split(Pattern.quote(d), -1)).getOrElse(Array(texto))
+  }
 
   /** Acceso seguro: posición fuera de rango devuelve vacío (VAL-TPL-04). Posiciones 1-based. */
   def valor(valores: Array[String], posicion: Int): String =
@@ -55,16 +59,19 @@ object Fechas {
   private def formateador(patron: String): DateTimeFormatter =
     DateTimeFormatter.ofPattern(patron.replace("yyyy", "uuuu")).withResolverStyle(ResolverStyle.STRICT)
 
-  /** Intenta cada formato en orden; nunca lanza. */
+  /** Intenta cada formato en orden; nunca lanza. Los patrones los valida el generador (solo dd, MM, yyyy, HH,
+    * mm, ss y separadores sin significado en DateTimeFormatter), así que ofPattern no lanza (AUD-V2). */
   def parsear(valor: String, formatos: Seq[String]): Option[LocalDateTime] =
     formatos.view.flatMap { patron =>
       val f = formateador(patron)
+      // SILENCIO-INTENCIONAL VAL-RC04: un valor que no parsea es un error de campo (FORMATO_FECHA), no una excepción.
       if (patron.contains("HH")) Try(LocalDateTime.parse(valor, f)).toOption
-      else Try(LocalDate.parse(valor, f).atStartOfDay()).toOption
+      else Try(LocalDate.parse(valor, f).atStartOfDay()).toOption // SILENCIO-INTENCIONAL VAL-RC04: ídem
     }.headOption
 
   /** Epoch en milisegundos del inicio del día en la zona dada. */
   def epochMs(fecha: LocalDateTime, zona: String): Option[Long] =
+    // SILENCIO-INTENCIONAL VAL-SP02: sin epoch válido, asOfDate = None y el motor usa la fecha de recepción.
     Try(fecha.toLocalDate.atStartOfDay(ZoneId.of(zona)).toInstant.toEpochMilli).toOption
 }
 
@@ -94,6 +101,7 @@ object FieldValidators {
     spec.longitudMax.filter(max => v.length > max).flatMap(_ => error(spec, Causa.Longitud))
 
   def rango(spec: FieldSpec, v: String): Option[FieldError] = spec.rango.flatMap { r =>
+    // SILENCIO-INTENCIONAL VAL-RC04: un valor que no es entero (o desborda Long) es un error de campo (TIPO).
     Try(v.toLong).toOption match {
       case None                                => error(spec, Causa.Tipo)
       case Some(n) if n < r.min || n > r.max   => error(spec, Causa.Rango)
@@ -141,17 +149,21 @@ final case class InfoNombre(prefijo: String, periodo: YearMonth, recibido: Local
 /** Orquestación pura de un registro, del header y del nombre (usada por la Capa C). */
 object RecordValidator {
 
+  /** ¿Es la fila de header? Total (AUD-V1): fila nula, vacía o truncada → false, sin excepción. */
   def esHeader(spec: SourceSpec, fila: String): Boolean = {
     val primero = Texto.comparable(Texto.sinBom(Campos.valor(Campos.separar(fila, spec.delimitador), 1)))
     spec.campos.find(_.posicion == 1).exists(_.aliasHeader.map(Texto.comparable).contains(primero))
   }
 
+  /** Filtro silencioso (D6.a/D14). Total (AUD-V1): fila nula o vacía → `lineasVacias`; fila truncada o sin el
+    * campo del filtro → false (no se filtra: el registro sale con el código de estructura). Nunca lanza, así que
+    * el processor no lo envuelve en Try: una excepción tragada como false validaría una fila que debía filtrarse. */
   def debeFiltrar(spec: SourceSpec, fila: String): Boolean = {
     val vacia = Option(fila).forall(_.trim.isEmpty)
     if (vacia) spec.filtro.lineasVacias
     else spec.filtro.posicionCampo.exists { pos =>
       val valores = Campos.separar(fila, spec.delimitador)
-      pos <= valores.length && spec.filtro.valores.contains(Campos.valor(valores, pos))
+      pos >= 1 && pos <= valores.length && spec.filtro.valores.contains(Campos.valor(valores, pos))
     }
   }
 
@@ -169,12 +181,21 @@ object RecordValidator {
     }
   }
 
+  /** Footer (E8): exactamente `filas` filas y todas reconocidas por `esFooter` (el isFooterRow del processor).
+    * Total: lista nula, vacía o con otra cantidad → un error con el código de footer (AUD-V3). */
+  def validarFooter(footers: Seq[String], filas: Int, esFooter: String => Boolean, codigo: String): Seq[FieldError] = {
+    val lista = Option(footers).getOrElse(Seq.empty)
+    if (lista.size == filas && lista.forall(esFooter)) Seq.empty
+    else Seq(FieldError("FOOTER", codigo, Severidad.Error.nivel, Causa.Footer))
+  }
+
   /** Nombre de archivo (sin ruta). Nunca lanza: None si no coincide o la fecha es inválida. */
   def parsearNombre(spec: SourceSpec, rutaOArchivo: String): Option[InfoNombre] = {
     val nombre = Option(rutaOArchivo).getOrElse("").split("[/\\\\]").lastOption.getOrElse("")
     val n = spec.nombreArchivo
     val m = Pattern.compile(n.regex).matcher(nombre)
     if (!m.matches()) None
+    // SILENCIO-INTENCIONAL VAL-RC03: fecha u offset inválidos en el nombre → None; lo diagnostica validateFilename.
     else Try {
       val prefijo = Option(m.group(n.grupoPrefijo)).getOrElse("")
       val periodo = YearMonth.parse(m.group(n.grupoPeriodo), DateTimeFormatter.ofPattern("uuuuMM"))
@@ -228,6 +249,7 @@ object RecordValidator {
         val todos = deCampo ++ entreCampos
         todos.zipWithIndex.filter { case (e, i) => todos.indexWhere(_.codigo == e.codigo) == i }.map(_._1)
       } catch {
+        // SILENCIO-INTENCIONAL ADR-01: la falla (p. ej. del catálogo) no se pierde: sale como el código interno de nivel 1.
         case NonFatal(_) => Seq(FieldError("REGISTRO", spec.codigos.interno, Severidad.Error.nivel, Causa.Interno))
       }
     ResultadoRegistro(errores, qualityScores(spec, errores))
@@ -245,7 +267,8 @@ object RecordValidator {
     else partes.toArray[Any]
   }
 
-  /** As-of-date del registro en epoch ms; None si el campo no es una fecha válida. */
+  /** As-of-date del registro en epoch ms; None si el campo no es una fecha válida. Total: fila nula o truncada →
+    * None. Con None el motor usa la fecha de recepción y marca didCreateAsOfDateFromReceivedDate (AUD-V2). */
   def asOfDate(spec: SourceSpec, fila: String): Option[Long] =
     spec.campo(spec.campoAsOfDate).flatMap { c =>
       Fechas.parsear(Campos.valor(Campos.separar(fila, spec.delimitador), c.posicion), c.formatosFecha)

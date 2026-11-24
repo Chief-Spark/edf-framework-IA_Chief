@@ -70,8 +70,11 @@ properties:
       filas_footer: {type: integer, minimum: 0, x-placeholders: [filas_footer]}
       footer_regex:
         type: [string, "null"]
-        description: Obligatorio si filas_footer > 0.
-        x-placeholders: [is_footer_row_expr]
+        description: >-
+          Obligatorio si filas_footer > 0. Se compila con java.util.regex.Pattern: se rechaza la sintaxis solo de
+          Python ((?P<, (?P=, (?#, (?( ). Con filas_footer > 0 también son obligatorios codigos_especiales.footer,
+          diagnostico_archivo.footer y fixture.footer (AUD-V3, AUD-V4).
+        x-placeholders: [is_footer_row_expr, bloque_validate_footer]
       encoding:
         type: [string, "null"]
         description: null → no se emite la clave `encoding` (ruta textFile UTF-8).
@@ -271,6 +274,9 @@ properties:
       header: {$ref: "#/$defs/codigo", x-placeholders: [codigo_header]}
       estructura: {$ref: "#/$defs/codigo", x-placeholders: [codigo_estructura]}
       interno: {$ref: "#/$defs/codigo", x-placeholders: [codigo_interno]}
+      footer:
+        $ref: "#/$defs/codigo"
+        description: Código del footer inválido (validateFooter). Obligatorio si archivo.filas_footer > 0 (AUD-V3).
 
   diagnostico_archivo:
     type: object
@@ -279,6 +285,11 @@ properties:
     properties:
       fileName: {type: string, minLength: 1, x-placeholders: [validate_file_name_hocon]}
       header: {type: string, minLength: 1, x-placeholders: [validate_header_hocon]}
+      footer:
+        type: string
+        minLength: 1
+        description: Expresión validate[].footer. Obligatoria si archivo.filas_footer > 0; sin ella no se emite (AUD-V3).
+        x-placeholders: [linea_validate_footer]
 
   ambiente:
     type: object
@@ -324,6 +335,12 @@ properties:
       nombre_archivo: {type: string, x-placeholders: [fixture_nombre_archivo]}
       fecha_referencia: {type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$", x-placeholders: [fecha_referencia_scala]}
       registro_base: {type: array, items: {type: string}, x-placeholders: [registro_base_scala]}
+      footer:
+        type: array
+        items: {type: string}
+        description: >-
+          Filas de footer de ejemplo (sintéticas), una por archivo.filas_footer; cada una cumple footer_regex. Se
+          agregan al final del fixture y a la prueba del footer. Obligatorio si filas_footer > 0 (AUD-V3).
       casos:
         type: array
         x-placeholders: [bloque_registros_fixture, bloque_casos_fixture]

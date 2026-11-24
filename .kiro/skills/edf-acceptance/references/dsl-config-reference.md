@@ -18,6 +18,7 @@ oxygen.stage.acceptance {
         accept = "..."                     # obligatorio
         manualReject = "..."               # opcional, solo externalAction(...)
         manualAccept = "..."               # opcional, solo externalAction(...)
+        manualReview = "..."               # opcional (spec fileActions.manualReview), sintaxis nueva; solo SparkDatasetAcceptor (AUD-A4)
       }                                    # si falta una clave queda None (no hay default "true")
       recordAcceptance = "..."             # opcional; sin ella se aceptan todos los registros
       customReasonForAutomaticRejectionEnabled = true   # default false

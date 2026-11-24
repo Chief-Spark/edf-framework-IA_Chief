@@ -2,8 +2,9 @@
 """Genera los artefactos de la etapa Validation (EDF/Oxygen) desde un source-spec.
 
 Generador VIGENTE de la skill (desde la versión 1.4.0 del framework, 2026-11-18). No requiere compilar nada:
-solo Python 3 con PyYAML y jsonschema. Es la traducción fiel del generador Java que se usó hasta la 1.3.x
-(scripts/java, conservado como referencia): misma salida byte a byte, incluido manifest.json.
+solo Python 3 con PyYAML y jsonschema. Es la traducción fiel del generador Java deprecado que se usó hasta la
+1.3.x (scripts/java, conservado como referencia histórica, no se ejecuta): misma salida byte a byte, incluido
+manifest.json. Desde la auditoría 2026-11-24 (AUD-V1..AUD-V8) la salida evoluciona solo aquí.
 
 Uso:
     python render_templates.py --spec source-spec.yaml --out carpeta_salida
@@ -53,6 +54,17 @@ FORBIDDEN_PATTERNS = (
     re.compile(r"AKIA[0-9A-Z]{16}"),
 )
 JAVA_DATE_TOKENS = {"dd": "%d", "MM": "%m", "yyyy": "%Y", "HH": "%H", "mm": "%M", "ss": "%S"}
+# Caracteres con significado en DateTimeFormatter.ofPattern (sección opcional, reservados, literal): con ellos
+# ofPattern lanza o cambia el sentido del patrón. Se rechazan al generar para que Fechas.parsear sea total (AUD-V2).
+JAVA_DATE_RESERVADOS = set("[]{}#'")
+# Sintaxis que acepta `re` de Python y que java.util.regex.Pattern rechaza (AUD-V4). Lista corta, no exhaustiva:
+# los regex del contrato de archivo se compilan en Java (Capa A, processor y motor).
+REGEX_SOLO_PYTHON = (
+    ("(?P<", "grupo con nombre de Python; en Java es (?<nombre>...)"),
+    ("(?P=", "referencia a grupo con nombre de Python; en Java es \\k<nombre>"),
+    ("(?#", "comentario en línea"),
+    ("(?(", "grupo condicional"),
+)
 QS_REF = re.compile(r"qs\.([A-Za-z0-9_]+)")
 
 # Plantilla → ruta destino (relativa a --out). Los {{huecos}} de la ruta se rellenan con el contexto.
@@ -142,7 +154,7 @@ def java_to_py_date(pattern: str) -> str:
                 i += len(token)
                 break
         else:
-            if pattern[i].isalpha():
+            if pattern[i].isalpha() or pattern[i] in JAVA_DATE_RESERVADOS:
                 raise SpecError(f"formato de fecha no soportado: {pattern!r}")
             out += pattern[i]
             i += 1
@@ -197,8 +209,8 @@ def check_codes(spec: dict) -> list[str]:
 
 def check_quality_scores(spec: dict) -> list[str]:
     errors = []
-    texts = [spec["diagnostico_archivo"]["fileName"], spec["diagnostico_archivo"]["header"],
-             spec["handoff_acceptance"]["record_acceptance"]]
+    diag = spec["diagnostico_archivo"]
+    texts = [diag["fileName"], diag["header"], diag.get("footer") or "", spec["handoff_acceptance"]["record_acceptance"]]
     codes = all_codes(spec)
     for qs in spec["quality_scores"]:
         name = qs["nombre"]
@@ -296,19 +308,56 @@ def check_references(spec: dict) -> list[str]:
     return errors
 
 
+def regex_solo_python(regex: str, donde: str) -> list[str]:
+    """AUD-V4: sintaxis de REGEX_SOLO_PYTHON en un regex que se compilará con java.util.regex.Pattern."""
+    return [f"{donde}: sintaxis que Java no acepta ({descripcion}): {token}"
+            for token, descripcion in REGEX_SOLO_PYTHON if token in regex]
+
+
+def check_footer(spec: dict, footer_re: re.Pattern | None) -> list[str]:
+    """AUD-V3: con filas_footer > 0, código, expresión validate[].footer y filas de ejemplo que cumplen el regex."""
+    archivo, fixture = spec["archivo"], spec["fixture"]
+    filas = archivo["filas_footer"]
+    if filas == 0:
+        return []
+    errors = []
+    if not archivo.get("footer_regex"):
+        errors.append("filas_footer > 0 exige footer_regex")
+    if not spec["codigos_especiales"].get("footer"):
+        errors.append("filas_footer > 0 exige codigos_especiales.footer (código del footer)")
+    if not spec["diagnostico_archivo"].get("footer"):
+        errors.append("filas_footer > 0 exige diagnostico_archivo.footer (expresión validate[].footer, F-11)")
+    ejemplo = fixture.get("footer") or []
+    if not ejemplo:
+        errors.append("filas_footer > 0 exige fixture.footer (filas de footer de ejemplo)")
+    elif len(ejemplo) != filas:
+        errors.append(f"fixture.footer tiene {len(ejemplo)} filas (filas_footer = {filas})")
+    if footer_re is not None:
+        errors += [f"fixture.footer: {fila!r} no cumple archivo.footer_regex"
+                   for fila in ejemplo if not footer_re.fullmatch(fila.strip())]
+        if footer_re.fullmatch(archivo["delimitador"].join(fixture["registro_base"]).strip()):
+            errors.append("fixture.registro_base cumple archivo.footer_regex: el motor lo tomaría como footer")
+    return errors
+
+
 def check_file_contract(spec: dict) -> list[str]:
     errors = []
     archivo = spec["archivo"]
-    if archivo["filas_footer"] > 0 and not archivo.get("footer_regex"):
-        errors.append("filas_footer > 0 exige footer_regex")
+    footer_regex = archivo.get("footer_regex") if archivo["filas_footer"] > 0 else None
+    regexes = {"archivo.nombre.regex": archivo["nombre"]["regex"], "archivo.file_pattern": archivo["file_pattern"],
+               "archivo.footer_regex": footer_regex or ""}
+    for donde, regex in regexes.items():
+        errors += regex_solo_python(regex, donde)
     try:
         name_re = re.compile(archivo["nombre"]["regex"])
         for group, idx in archivo["nombre"]["grupos"].items():
             if idx > name_re.groups:
                 errors.append(f"archivo.nombre.grupos.{group} = {idx} excede los grupos del regex")
         pattern_re = re.compile(archivo["file_pattern"])
+        footer_re = re.compile(footer_regex) if footer_regex else None
     except re.error as exc:
         return errors + [f"regex inválido: {exc}"]
+    errors += check_footer(spec, footer_re)
     fixture_name = spec["fixture"]["nombre_archivo"]
     if not name_re.fullmatch(fixture_name):
         errors.append("fixture.nombre_archivo no cumple archivo.nombre.regex")
@@ -471,7 +520,53 @@ def render_fixture_tests(spec: dict) -> str:
             "    val candidatos = fechas.zipWithIndex.map { case (f, i) => (f, \"%05d\".format(i)) }\n"
             f"    assert(RecordValidator.indiceAConservar(candidatos) == {kept})\n"
             "  }")
-    return "\n\n".join(blocks)
+    return "\n\n".join(blocks) + render_footer_test(spec)
+
+
+def render_footer(spec: dict) -> dict[str, str]:
+    """AUD-V3/AUD-V4: piezas del footer (E8). Con filas_footer = 0 no se emite nada (la salida no cambia).
+
+    El patrón se compila una vez al crear el processor (java.util.regex.Pattern, validado al generar con
+    REGEX_SOLO_PYTHON): isFooterRow no necesita Try y un patrón inválido falla en voz alta, no fila por fila."""
+    archivo = spec["archivo"]
+    filas = archivo["filas_footer"]
+    if filas == 0:
+        return {"is_footer_row_expr": "false", "bloque_validate_footer": "", "linea_validate_footer": ""}
+    regex = scala_str(archivo.get("footer_regex") or "")
+    codigo = scala_str(spec["codigos_especiales"].get("footer") or "")
+    expresion = hocon_str(spec["diagnostico_archivo"].get("footer") or "")
+    bloque = (
+        "\n\n"
+        f"  // Footer (E8): {filas} fila(s); cada una cumple archivo.footer_regex. El patrón se compila al crear el\n"
+        "  // processor: si fuera inválido, falla al instanciarlo y no fila por fila (AUD-V3, AUD-V4).\n"
+        "  private val footers: Array[String] = Option(processorContext.footers).getOrElse(Array.empty[String])\n"
+        f"  private val patronFooter: java.util.regex.Pattern = java.util.regex.Pattern.compile(\"{regex}\")\n"
+        "\n"
+        "  override def validateFooter(validationContext: ValidationContext): ValidationResult =\n"
+        f"    resultado(RecordValidator.validarFooter(footers.toSeq, {filas}, isFooterRow, \"{codigo}\"))")
+    return {"is_footer_row_expr": "Option(row).exists(r => patronFooter.matcher(r.trim).matches())",
+            "bloque_validate_footer": bloque,
+            "linea_validate_footer": f'\n      footer = "{expresion}"'}
+
+
+def render_footer_test(spec: dict) -> str:
+    """Prueba Capa A del footer (VAL-SP10: sin clases del framework). Vacía si filas_footer = 0."""
+    archivo = spec["archivo"]
+    filas = archivo["filas_footer"]
+    if filas == 0:
+        return ""
+    regex = scala_str(archivo.get("footer_regex") or "")
+    codigo = scala_str(spec["codigos_especiales"].get("footer") or "")
+    ejemplo = scala_list(spec["fixture"].get("footer") or [])
+    return (
+        "\n\n  test(\"footer: filas que cumplen footer_regex se aceptan; otra cosa produce el código de footer (AUD-V3)\") {\n"
+        f"    val patron = java.util.regex.Pattern.compile(\"{regex}\")\n"
+        "    val esFooter = (r: String) => Option(r).exists(f => patron.matcher(f.trim).matches())\n"
+        f"    assert(RecordValidator.validarFooter(Seq({ejemplo}), {filas}, esFooter, \"{codigo}\").isEmpty)\n"
+        f"    assert(RecordValidator.validarFooter(Seq(linea(RegistroBase)), {filas}, esFooter, \"{codigo}\").map(_.codigo) == Seq(\"{codigo}\"))\n"
+        f"    assert(RecordValidator.validarFooter(Seq.empty, {filas}, esFooter, \"{codigo}\").map(_.codigo) == Seq(\"{codigo}\"))\n"
+        f"    assert(!esFooter(linea(RegistroBase)))\n"
+        "  }")
 
 
 def render_metadata(spec: dict) -> tuple[str, str]:
@@ -520,6 +615,7 @@ def render_error_codes(spec: dict) -> str:
     especiales = spec["codigos_especiales"]
     rows += [f"{especiales['nombre_archivo']};1;FILENAME;Nombre de archivo inválido",
              f"{especiales['header']};1;HEADER;Header inválido",
+             *([f"{especiales['footer']};1;FOOTER;Footer inválido"] if especiales.get("footer") else []),
              f"{especiales['estructura']};1;REGISTRO;Número de columnas distinto al layout",
              f"{especiales['interno']};1;REGISTRO;Error interno al validar el registro"]
     seen, unique = set(), []
@@ -545,8 +641,7 @@ def build_context(spec: dict) -> dict[str, str]:
     filtro_pos = fields[filtro["campo"]]["posicion"] if filtro.get("campo") else None
     header = delim.join(c["nombre"] for c in campos)
     ref = fixture["fecha_referencia"].split("-")
-    footer_expr = ("false" if archivo["filas_footer"] == 0 else
-                   f'Try(Option(row).exists(_.trim.matches("{scala_str(archivo["footer_regex"])}"))).getOrElse(false)')
+    footer = render_footer(spec)
     ultimo_dia = nombre["file_as_of_date"] == "ultimo_dia_periodo"
     if dup["modo"] not in DEDUP_VERSION:
         raise SpecError(f"duplicados.modo desconocido: {dup['modo']}")
@@ -574,7 +669,9 @@ def build_context(spec: dict) -> dict[str, str]:
         "delimitador_scala": scala_str(delim),
         "filas_header": str(archivo["filas_header"]),
         "filas_footer": str(archivo["filas_footer"]),
-        "is_footer_row_expr": footer_expr,
+        "is_footer_row_expr": footer["is_footer_row_expr"],
+        "bloque_validate_footer": footer["bloque_validate_footer"],
+        "linea_validate_footer": footer["linea_validate_footer"],
         "linea_encoding": (f'  encoding = "{hocon_str(archivo["encoding"])}"' if archivo.get("encoding")
                            else "  # sin clave encoding: ruta textFile UTF-8 (D5, F-17)"),
         "file_pattern_hocon": hocon_str(archivo["file_pattern"]),
@@ -629,7 +726,8 @@ def build_context(spec: dict) -> dict[str, str]:
         "numero_campos": str(len(campos)),
         "fecha_referencia_scala": f"LocalDate.of({int(ref[0])}, {int(ref[1])}, {int(ref[2])})",
         "fixture_nombre_archivo": fixture["nombre_archivo"],
-        "bloque_registros_fixture": "\n".join(build_fixture_line(spec, c) for c in fixture["casos"]),
+        "bloque_registros_fixture": "\n".join([build_fixture_line(spec, c) for c in fixture["casos"]]
+                                              + list(fixture.get("footer") or [])),
         "bloque_casos_campo": render_field_tests(spec),
         "bloque_casos_fixture": render_fixture_tests(spec),
     }

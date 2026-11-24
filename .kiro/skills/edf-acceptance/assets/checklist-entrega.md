@@ -13,7 +13,8 @@ Marque cada punto antes de presentar la propuesta. Un punto en rojo bloquea la e
 - [ ] Códigos y niveles de `recordAcceptance` existen en IN-05; niveles de un carácter; ningún código subcadena de otro (ACC-R01).
 - [ ] Ningún nombre de quality score dentro de `recordAcceptance` (ACC-R02).
 - [ ] Cada quality score declarado vale 0 o 1 en cada evento del fixture (regla "QS por registro binario", AC-ACC-05).
-- [ ] HOCON generado parsea con Typesafe Config 1.3.4 (pruebas Java) y con el subconjunto local (`hocon_check.py`).
+- [ ] HOCON generado parsea con el subconjunto local (`hocon_check.py`) y, si está instalado, con pyhocon. (El parse con
+      Typesafe Config 1.3.4 era de las pruebas del generador Java deprecado: histórico.)
 - [ ] El simulador reproduce `expected-output.yaml` / las decisiones esperadas del fixture.
 - [ ] `--audit` lista una línea `supuesto  S-ACC-xx  impacto=…` por cada supuesto del bloque `supuestos` de la spec, y son los mismos de `decisiones-y-abiertos.md` (AC-27; `supuestosDeLaSpecIgualesALosDelDocumento`).
 

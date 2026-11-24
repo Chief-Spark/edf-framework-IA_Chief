@@ -19,7 +19,7 @@ Se conservan los ids `VAL-*` para trazabilidad. Uso: **escribe** (código propio
 | VAL-P10 | Value Object `ValidatedEventValueObject` | escribe | Un evento por registro | VAL-TPL-06 |
 | VAL-P11 | Evento desde texto crudo | escribe | `split(d, -1)` una vez; accesores que nunca lanzan | VAL-TPL-04 |
 | VAL-P12 | Parameter object `ValidationContext` | consume | Firmas con contexto; BATCH | VAL-TPL-06 |
-| VAL-P13 | `Option` en `DomainData` | escribe | Guard-rails explícitos; no depender del fallback | VAL-TPL-06 |
+| VAL-P13 | `Option` en `DomainData` | escribe | Guard-rails explícitos (`subscriberRelation` siempre presente). `asOfDate = None` solo con fecha inválida: el motor pone la fecha de recepción y lo marca (AUD-V2) | VAL-TPL-06 |
 | VAL-P14 | `@tailrec` + `Try` | consume | — | — |
 | VAL-P15 | Cadena de deprecación | no usar | Implementar solo `createValidatedEvents(rawRecord, ctx)` | VAL-TPL-06 |
 

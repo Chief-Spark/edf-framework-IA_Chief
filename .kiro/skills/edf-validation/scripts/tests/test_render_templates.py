@@ -1,7 +1,7 @@
 """Pruebas del generador vigente render_templates.py (sin Java ni compilación).
 
-Traducen la suite Java que lo acompañaba hasta la versión 1.3.x (scripts/java/src/test/.../RenderTemplatesTest.java).
-Datos SINTÉTICOS (source-spec de ejemplo de SISBEN)."""
+Son la suite vigente del generador. Reemplazan a la suite del generador Java deprecado (histórico, ver
+scripts/DEPRECADOS.md); no dependen de él. Datos SINTÉTICOS (source-spec de ejemplo de SISBEN)."""
 from __future__ import annotations
 
 import copy
@@ -270,7 +270,8 @@ def test_contexto_con_valores_opcionales(spec):
     alt["filtro_filas"] = {"lineas_vacias": False}
     ctx = rt.build_context(alt)
     assert ctx["linea_encoding"] == '  encoding = "ISO-8859-1"'
-    assert ctx["is_footer_row_expr"].startswith("Try(Option(row).exists(")
+    assert ctx["is_footer_row_expr"] == "Option(row).exists(r => patronFooter.matcher(r.trim).matches())"
+    assert "override def validateFooter" in ctx["bloque_validate_footer"]
     assert ctx["expr_file_as_of_date"] == "i.periodo.atDay(1)"
     assert ctx["linea_duplicate_threshold"] == "  duplicateThreshold = 5"
     assert ctx["dup_campo_fecha_scala"] == "None" and ctx["dup_campo_fecha_desc"] == "sin fecha"
@@ -511,7 +512,11 @@ def _archivo(out: Path, sufijo: str) -> str:
 
 
 def test_oxygen_catalogo_no_oculta_fallas_del_lookup(spec, tmp_path):
-    """ADR-01: el catálogo del processor ya no envuelve la consulta en Try(...).getOrElse(false)."""
+    """ADR-01/ADR-01b: el catálogo del processor ya no envuelve la consulta en Try(...).getOrElse(false).
+
+    Esta prueba solo revisa el TEXTO generado (no compila Scala). El COMPORTAMIENTO (una consulta que lanza produce
+    el código interno de nivel 1) lo cubren FieldValidatorsSpec ("CatalogoDeConsulta no oculta la falla del
+    lookup") y, desde AUD-V5, las pruebas de la fuente, que usan CatalogoDeConsulta."""
     rt.render_all(spec, tmp_path)
     processor = _archivo(tmp_path, "ValidationProcessor.scala")
     clase = processor[processor.index("final class OxygenCatalogo"):processor.index("/** Processor de")]
@@ -574,3 +579,142 @@ def test_file_metadata_con_miembros_declarados(spec, tmp_path):
 def test_file_metadata_invalida_se_rechaza(spec, cambio, mensaje):
     spec["archivo"]["metadata"] = cambio
     assert contiene(rt.verify_spec(spec), mensaje), rt.verify_spec(spec)
+
+
+# ------------------------------------------------------------------ auditoría 2026-11-24 (AUD-V1..AUD-V8)
+SILENCIO = re.compile(r"\bTry\s*[({].*\.(getOrElse\s*\(|toOption\b)|case\s+NonFatal\s*\(")
+MARCA_SILENCIO = re.compile(r"SILENCIO-INTENCIONAL\s+[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*")
+
+
+def spec_con_footer(spec: dict) -> dict:
+    """Variante SINTÉTICA de SISBEN con una fila de footer (E8)."""
+    alt = copy.deepcopy(spec)
+    alt["archivo"]["filas_footer"] = 1
+    alt["archivo"]["footer_regex"] = "^TOTAL;[0-9]+$"
+    alt["codigos_especiales"]["footer"] = "SISBEN_ERR_028"
+    alt["diagnostico_archivo"]["footer"] = 'errorlevelNotIn("1")'
+    alt["fixture"]["footer"] = ["TOTAL;12"]
+    return alt
+
+
+def test_filtro_y_header_sin_try_en_el_processor(spec, tmp_path):
+    """AUD-V1: debeFiltrar y esHeader son totales; el processor ya no los envuelve en Try(...).getOrElse(false)."""
+    rt.render_all(spec, tmp_path)
+    processor = _archivo(tmp_path, "ValidationProcessor.scala")
+    assert "override def shouldFilterRow(row: String): Boolean = RecordValidator.debeFiltrar(spec, row)" in processor
+    assert "override def isHeaderRow(row: String): Boolean = RecordValidator.esHeader(spec, row)" in processor
+    assert "Try(RecordValidator" not in processor
+    assert "debeFiltrar y esHeader son totales" in _archivo(tmp_path, "FieldValidatorsSpec.scala")
+    assert "filtro y header con filas degeneradas no lanzan" in _archivo(tmp_path, "SISBENValidationProcessorSpec.scala")
+
+
+def test_as_of_date_invalida_va_como_none(spec, tmp_path):
+    """AUD-V2: sin asOfDate válida se pasa None; el motor usa receivedDate y marca didCreateAsOfDateFromReceivedDate."""
+    rt.render_all(spec, tmp_path)
+    processor = _archivo(tmp_path, "ValidationProcessor.scala")
+    assert "val asOfDate: Option[Long] = RecordValidator.asOfDate(spec, linea)" in processor
+    assert "DomainData(asOfDate, relacion)" in processor
+    assert "getOrElse(0L)" not in processor and "fileMetadata.receivedDate" not in processor
+    assert "didCreateAsOfDateFromReceivedDate = true" in processor
+
+
+def test_formato_de_fecha_con_caracteres_reservados_de_java_falla(spec):
+    """AUD-V2: DateTimeFormatter.ofPattern lanza con [ ] { } # '; se rechaza al generar para que parsear sea total."""
+    for fmt in ("dd#MM#yyyy", "dd/MM/yyyy[ HH]", "dd'x'MM"):
+        with pytest.raises(rt.SpecError, match="no soportado"):
+            rt.java_to_py_date(fmt)
+
+
+def test_sin_footer_no_se_emite_validacion_de_footer(spec, tmp_path):
+    """AUD-V3: la salida de SISBEN (filas_footer = 0) no cambia."""
+    rt.render_all(spec, tmp_path)
+    assert "validateFooter" not in _archivo(tmp_path, "ValidationProcessor.scala")
+    assert "footer =" not in (tmp_path / PROPUESTA / "validation-configs-sisben.conf").read_text(encoding="utf-8")
+
+
+def test_footer_se_valida_cuando_hay_filas_footer(spec, tmp_path):
+    """AUD-V3: con filas_footer > 0 se emiten validateFooter, validate[].footer, el código y la prueba."""
+    alt = spec_con_footer(spec)
+    assert rt.verify_spec(alt) == []
+    rt.render_all(alt, tmp_path)
+    processor = _archivo(tmp_path, "ValidationProcessor.scala")
+    assert "override def validateFooter(validationContext: ValidationContext): ValidationResult =" in processor
+    assert "Option(processorContext.footers).getOrElse(Array.empty[String])" in processor
+    assert 'java.util.regex.Pattern.compile("^TOTAL;[0-9]+$")' in processor
+    assert 'RecordValidator.validarFooter(footers.toSeq, 1, isFooterRow, "SISBEN_ERR_028")' in processor
+    assert "override def isFooterRow(row: String): Boolean = Option(row).exists(r => patronFooter.matcher(r.trim).matches())" in processor
+    assert "Try(" not in processor.split("override def isFooterRow", 1)[1].split("\n", 1)[0]
+    conf = (tmp_path / PROPUESTA / "validation-configs-sisben.conf").read_text(encoding="utf-8")
+    assert "footerRows = 1" in conf
+    assert '      footer = "errorlevelNotIn(\\"1\\")"\n' in conf
+    csv = (tmp_path / PROPUESTA / "codigos-error-sisben.csv").read_text(encoding="utf-8")
+    assert "SISBEN_ERR_028;1;FOOTER;Footer inválido" in csv
+    pruebas = _archivo(tmp_path, "SISBENValidationProcessorSpec.scala")
+    assert "footer: filas que cumplen footer_regex se aceptan" in pruebas
+    assert 'Seq("TOTAL;12")' in pruebas
+    fixture = _archivo(tmp_path, ".txt")
+    assert fixture.endswith("\nTOTAL;12\n")
+    assert "def validarFooter(" in _archivo(tmp_path, "FieldValidators.scala")
+
+
+def test_footer_hocon_parsea(spec, tmp_path):
+    pyhocon = pytest.importorskip("pyhocon")
+    rt.render_all(spec_con_footer(spec), tmp_path)
+    texto = (tmp_path / PROPUESTA / "validation-configs-sisben.conf").read_text(encoding="utf-8")
+    block = pyhocon.ConfigFactory.parse_string("configs = [\n" + texto + "\n]")["configs"][0]
+    assert block["validate"][0]["footer"] == 'errorlevelNotIn("1")'
+
+
+@pytest.mark.parametrize("quitar,mensaje", [
+    (("codigos_especiales", "footer"), "codigos_especiales.footer"),
+    (("diagnostico_archivo", "footer"), "diagnostico_archivo.footer"),
+    (("fixture", "footer"), "fixture.footer"),
+])
+def test_footer_exige_codigo_expresion_y_fixture(spec, quitar, mensaje):
+    alt = spec_con_footer(spec)
+    del alt[quitar[0]][quitar[1]]
+    assert contiene(rt.verify_spec(alt), mensaje), rt.verify_spec(alt)
+
+
+def test_fixture_de_footer_debe_cumplir_el_regex_y_el_numero_de_filas(spec):
+    alt = spec_con_footer(spec)
+    alt["fixture"]["footer"] = ["TOTAL;X", "TOTAL;1"]
+    errores = rt.verify_spec(alt)
+    assert contiene(errores, "fixture.footer tiene 2 filas"), errores
+    assert contiene(errores, "no cumple archivo.footer_regex"), errores
+
+
+def test_footer_regex_invalido_o_con_sintaxis_solo_de_python_falla(spec):
+    """AUD-V4: el regex se compila en Java (Pattern); se rechaza lo que Python acepta y Java no."""
+    alt = spec_con_footer(spec)
+    alt["archivo"]["footer_regex"] = "("
+    assert contiene(rt.check_file_contract(alt), "regex inválido")
+    for python_solo in ("^(?P<t>TOTAL);[0-9]+$", "^(?P<t>T)(?P=t)$", "^TOTAL(?#comentario)$", "^(T)?(?(1)A|B)$"):
+        alt["archivo"]["footer_regex"] = python_solo
+        assert contiene(rt.check_file_contract(alt), "sintaxis que Java no acepta"), python_solo
+    alt["archivo"]["footer_regex"] = "^TOTAL;[0-9]+$"
+    alt["archivo"]["nombre"]["regex"] = "^(?P<p>RT_|EP_)?" + spec["archivo"]["nombre"]["regex"].lstrip("^")
+    assert contiene(rt.check_file_contract(alt), "archivo.nombre.regex: sintaxis que Java no acepta")
+
+
+def test_catalogo_de_pruebas_sobre_catalogo_de_consulta(spec, tmp_path):
+    """AUD-V5: las pruebas de la fuente ejercitan CatalogoDeConsulta (List("") = sin coincidencia)."""
+    rt.render_all(spec, tmp_path)
+    pruebas = _archivo(tmp_path, "SISBENValidationProcessorSpec.scala")
+    assert "new CatalogoDeConsulta(TablasSinteticas.consultar _)" in pruebas
+    assert "extends Catalogo {" not in pruebas
+    assert 'if (valores.isEmpty) List("") else valores' in pruebas
+    assert "catálogo sintético sobre CatalogoDeConsulta" in pruebas
+
+
+def test_silencios_intencionales_marcados():
+    """Todo Try(...).getOrElse/toOption o NonFatal de las plantillas y del generador lleva SILENCIO-INTENCIONAL <ID>."""
+    sin_marca = []
+    for f in sorted(rt.TEMPLATES_DIR.rglob("*.tpl")) + [SCRIPTS / "render_templates.py"]:
+        lineas = f.read_text(encoding="utf-8").splitlines()
+        for i, linea in enumerate(lineas):
+            if SILENCIO.search(linea):
+                previa = lineas[i - 1] if i else ""
+                if not MARCA_SILENCIO.search(linea + "\n" + previa):
+                    sin_marca.append(f"{f.name}:{i + 1}")
+    assert sin_marca == []

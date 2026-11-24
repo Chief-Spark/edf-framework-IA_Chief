@@ -8,6 +8,7 @@ from datetime import date
 from pathlib import Path
 
 import pytest
+import yaml
 
 SCRIPTS = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SCRIPTS))
@@ -20,8 +21,8 @@ SPEC_PATH = EXAMPLE / "source-spec.sisben.yaml"
 GEN = EXAMPLE / "generated"
 HOY = date(2024, 6, 30)
 CASOS = su.load_spec(SPEC_PATH)["fixture"]["casos"]
-# El generador Java escribe una línea por caso, en orden, después del header; la prueba Java
-# ejemploPersistidoIgualARegeneracion garantiza que GEN es igual a una regeneración.
+# render_templates.py escribe una línea por caso, en orden, después del header; la prueba
+# test_ejemplo_persistido_igual_a_regeneracion (test_render_templates.py) garantiza que GEN es igual a una regeneración.
 FIXTURE_LINES = (GEN / "src" / "test" / "resources" / "sisben" / su.load_spec(SPEC_PATH)["fixture"]["nombre_archivo"]
                  ).read_text(encoding="utf-8").split("\n")[1:1 + len(CASOS)]
 
@@ -215,8 +216,13 @@ def test_cli_spec_con_footer_sale_con_2(tmp_path, capsys):
     con_footer = tmp_path / "con-footer.yaml"
     texto = SPEC_PATH.read_text(encoding="utf-8-sig")
     assert "filas_footer: 0" in texto and "footer_regex: null" in texto
-    con_footer.write_text(texto.replace("filas_footer: 0", "filas_footer: 1")
-                          .replace("footer_regex: null", 'footer_regex: "^TOTAL;.*"'), encoding="utf-8")
+    datos = su.load_spec(SPEC_PATH)  # spec con footer completa y válida (AUD-V3): la guarda E8 es la que la detiene
+    datos["archivo"].update(filas_footer=1, footer_regex="^TOTAL;.*")
+    datos["codigos_especiales"]["footer"] = "SISBEN_ERR_028"
+    datos["diagnostico_archivo"]["footer"] = 'errorlevelNotIn("1")'
+    datos["fixture"]["footer"] = ["TOTAL;12"]
+    con_footer.write_text(yaml.safe_dump(datos, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    assert su.verify_spec(con_footer) == []
     archivo = EXAMPLE / "input" / "SISBEN_EXPERIAN_202406.20240630120000-0500.txt"
     assert pv.main(["--spec", str(con_footer), "--archivo", str(archivo), "--hoy", "2024-06-30"]) == 2
     assert "no modela E8 (footer)" in capsys.readouterr().err

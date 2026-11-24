@@ -24,7 +24,8 @@ Kafka. No hay `rejected/`. Cada línea es un `TaggedValidatedEvent`:
    - `errorInFileName` (-1002): el nombre no cumple el regex o la marca de tiempo es imposible. Código
      `SISBEN_ERR_024`.
    - `errorInHeader` (-1003): header con ≠ 22 columnas o nombres no reconocidos. `SISBEN_ERR_025`.
-   - `errorInFooter` (-1004): no aplica a SISBEN (`footerRows = 0`).
+   - `errorInFooter` (-1004): no aplica a SISBEN (`footerRows = 0`). Con `filas_footer > 0` el processor
+     valida el footer (`validateFooter`, código `codigos_especiales.footer`) y lo decide `validate[].footer` (AUD-V3).
    - `errorInEmptyFileBody` (-1005): header presente pero **ningún registro tras filtros**; ocurre
      también si todas las filas son de menores o vacías.
    Acceptance rechaza automáticamente estos marcadores.

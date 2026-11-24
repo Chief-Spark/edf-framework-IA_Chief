@@ -15,6 +15,10 @@ oxygen {
             reject = "{{fileActions.reject|hocon}}"
             # E9 · sintaxis antigua: misma escala que el rechazo ({{calidad.umbral}}).
             accept = "{{fileActions.accept|hocon}}"
+{{#si fileActions.manualReview?}}
+            # Opcional (AUD-A4): lo lee SparkDatasetAcceptor (sintaxis nueva); en SparkAcceptor está comentado.
+            manualReview = "{{fileActions.manualReview|hocon}}"
+{{/si}}
 {{#si intervencion_manual.habilitada}}
             manualReject = "{{intervencion_manual.manualReject|hocon}}"
             manualAccept = "{{intervencion_manual.manualAccept|hocon}}"

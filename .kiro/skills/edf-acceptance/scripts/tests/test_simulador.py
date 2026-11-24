@@ -1,6 +1,6 @@
 """Pruebas del simulador de decisiones y del verificador HOCON (scripts Python que siguen en Python).
 
-El renderizador y sus pruebas están en Java: scripts/java (mvn -q -f scripts/java/pom.xml verify).
+El renderizador vigente es Python (scripts/render_templates.py) y sus pruebas están en test_render_templates.py.
 Ejecutar desde la raíz del skill:  python -m pytest scripts/tests -q
 """
 from __future__ import annotations
@@ -31,7 +31,7 @@ def spec() -> dict:
 
 
 # ------------------------------------------------------------------ hocon_check sobre el ejemplo persistido
-# (la prueba Java ejemploPersistidoIgualARegeneracion garantiza que GEN es igual a una regeneración)
+# (test_ejemplo_persistido_igual_a_regeneracion, en test_render_templates.py, garantiza que GEN es igual a una regeneración)
 
 def test_hocon_check_parsea_el_hocon_del_ejemplo(spec):
     block = hocon_check.parse_hocon((GEN / "hocon/sisben-acc-tpl-01-acceptance-block.conf").read_text(encoding="utf-8"))

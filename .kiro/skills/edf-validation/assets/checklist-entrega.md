@@ -25,7 +25,9 @@ Marcar cada punto antes de pedir la aprobación del técnico. Un punto sin marca
 - [ ] Solo `createValidatedEvents(rawRecord, ctx)`; ninguna firma deprecada; sin `decodeErrorObject`,
       contextual ni atributos históricos.
 - [ ] Ningún camino lanza por registro; errores como `ObjectError` con argumentos con nombre.
-- [ ] `domainData` siempre `Some(DomainData(Some(asOfDate), subscriberRelation))`.
+- [ ] `domainData` siempre `Some(DomainData(asOfDate, subscriberRelation))`; `asOfDate = None` si la fecha es
+      inválida (el motor usa la fecha de recepción y lo marca, AUD-V2). Nunca `0L` inventado.
+- [ ] Sin `Try(...).getOrElse`/`toOption` ni `NonFatal` sin la marca `SILENCIO-INTENCIONAL <ID>` (auditoría 2026-11-24).
 - [ ] `keysForDuplicate` nunca vacío; `listDuplicateEvents` agrega `OxygenDuplicate` a los no conservados.
 - [ ] Sin `println`; logs sin PII (solo códigos y conteos).
 - [ ] Imports de la versión 2404 del framework (no mezclar con 2306).
@@ -34,7 +36,8 @@ Marcar cada punto antes de pedir la aprobación del técnico. Un punto sin marca
 
 - [ ] Bloque nuevo en `oxygen.stage.validation.configs[]` del inner; base `*-common-application.conf` intacto.
 - [ ] `filePattern` empieza con `.*`; `processor` = FQCN generado.
-- [ ] `headerRows`/`footerRows` (no `numberOf*`); `footerRows = 0` si no hay footer.
+- [ ] `headerRows`/`footerRows` (no `numberOf*`); `footerRows = 0` si no hay footer. Con footer: `validate[].footer`
+      y `validateFooter` en el processor (AUD-V3).
 - [ ] `computeMetrics = true` y `dupKeyCheckEnabled = true` con `deDupVersion = "EXTN"`.
 - [ ] Sin clave `encoding` (UTF-8, D5); `contexual.enabled = false`.
 - [ ] Lookups nuevos en `oxygen.lookups[]` con `tableName`, `file`, `delimiter`, `keys[].index`.
@@ -65,7 +68,7 @@ Marcar cada punto antes de pedir la aprobación del técnico. Un punto sin marca
 | # | Verificación | Comando | Resultado |
 |---|---|---|---|
 | j1 | Equivalencia con el generador Python | ambos con la spec SISBEN, `--solo-verificar` y las 24 specs negativas de los casos de prueba | 26/26 iguales: mismo código de salida y mismos archivos byte a byte (incluido `manifest.json`); solo cambia la redacción de los mensajes del JSON Schema |
-| j2 | Pruebas del generador | `mvn -q -f scripts/java/pom.xml verify` | 28 pruebas JUnit en verde; cobertura de líneas 91 % |
+| j2 | Pruebas del generador (histórico: generador Java deprecado, ya no se ejecuta; hoy `python3 -m pytest scripts/tests -q`) | `mvn -q -f scripts/java/pom.xml verify` | 28 pruebas JUnit en verde; cobertura de líneas 91 % |
 | j3 | HOCON parsea con el parser del motor | prueba `hoconGeneradoParseaConElParserDelMotor` (Typesafe Config 1.3.4) | OK: claves requeridas, sin claves ignoradas, `filePattern` acepta rutas con y sin `RT_` |
 | j4 | Ejemplo versionado = regeneración | prueba `ejemploPersistidoIgualARegeneracion` | OK |
 | j5 | Pruebas Python | `python -m pytest scripts/tests` | 82 passed, 3 skipped (sin pyhocon): 61 de los scripts vigentes, más las 21 deprecadas de `test_render_templates.py` |
@@ -78,7 +81,7 @@ suite y de la cobertura) y plan #5/#6. El ejemplo `assets/examples/sisben/genera
 
 | # | Verificación | Comando (desde la raíz del skill) | Resultado |
 |---|---|---|---|
-| k1 | Pruebas del generador | `mvn -q -f scripts/java/pom.xml verify` | 28 pruebas JUnit en verde (incluye `ejemploPersistidoIgualARegeneracion`); cobertura de líneas 91 % |
+| k1 | Pruebas del generador (histórico: generador Java deprecado; hoy `test_ejemplo_persistido_igual_a_regeneracion`) | `mvn -q -f scripts/java/pom.xml verify` | 28 pruebas JUnit en verde (incluye `ejemploPersistidoIgualARegeneracion`); cobertura de líneas 91 % |
 | k2 | Pruebas Python vigentes | `python -m pytest scripts/tests` | 88 passed, 3 skipped (sin pyhocon). `test_render_templates.py` ya no se recoge (`tests/conftest.py`) |
 | k3 | Cobertura por script (P-5) | `coverage run -m pytest scripts/tests` y, por script, `coverage report --include=scripts/<script>.py --fail-under=80` (`.coveragerc` omite tests y `render_templates.py`) | `prevalidar_archivo.py` 96,45 %, `spec_utils.py` 88,68 %, `verificar_hocon.py` 96,88 %: los tres con código 0, sin pyhocon |
 | k4 | Capa A con Scala 2.12.15 | `FieldValidatorsSpec` generado | 14 pruebas en verde (antes 13) |

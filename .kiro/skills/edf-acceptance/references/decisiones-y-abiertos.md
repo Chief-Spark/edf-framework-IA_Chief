@@ -74,3 +74,20 @@ pendiente de revisión humana (hallazgo de `CORRECCION_G_2026-10-21.md`, Accepta
 | ACC-PT06 | Herramienta de pruebas de integración (OQ-T-1) | Ejecución de ACC-TPL-05 |
 | O-ACC-01 | Requisitos dicen que un duplicado "cuenta en el FQS", pero su `RQS` no baja (la marca se añade tras calcular el QS) | Señalado; no se resuelve aquí |
 | O-ACC-02 | `ID_FICHA_ORIGEN` obligatorio vs opcional; `ID_GRUPO` admite null vs A-D | Validation; afecta qué llega como sev. 1 |
+
+## Auditoría de silencios y referencias obsoletas (2026-11-24)
+
+Convención: todo error tragado a propósito en el código generado (`Try(...).getOrElse(...)`,
+`Try(...).toOption`, `case NonFatal(_) =>`) lleva `SILENCIO-INTENCIONAL <ID>` en la misma línea o en el
+comentario de arriba. Los no intencionales se corrigen. Lo revisan `tools/auditar-skills.py` y la prueba
+`test_silencios_intencionales_marcados`.
+
+| Id | Fecha | Qué estaba mal | Qué cambió | Dónde |
+|---|---|---|---|---|
+| AUD-A1 | 2026-11-24 | El Spec llamaba `evaluator.apply(conditions, Map.empty)`, pero el motor pasa `buildReasonCodeSeverityMap(config.lookupMapping, conditions)` (`Motor-Oxigen/oxygen-acceptance/.../engines/SparkAcceptor.scala:208`, `:224`, `:840-865`): con severidades, `hasErrorlevelIn/NotIn` se evaluaba distinto en la prueba | `ReasonSeverities` se arma con `severidades.filas` cuando `severidades.habilitado` (solo los `reasonCode` de las condiciones, como el motor); si no, queda vacío, igual que el motor sin `lookupMapping` | `AcceptanceExpressionsSpec.scala.tpl`; `test_mapa_de_severidades_como_el_motor` |
+| AUD-A2 | 2026-11-24 | Los casos de marcador automático solo afirmaban `expected == "rechazo_automatico"`: no podían fallar | El Spec aplica la regla del motor (`SparkAcceptor.shouldAutomaticReject`, `:190-198`) al nombre del directorio y la compara con la decisión esperada; el marcador debe estar en el directorio; sin `customReasonForAutomaticRejectionEnabled` no se espera `reasonCode`. `verify_spec` hace la misma comprobación sobre el fixture (`marcadores_coherentes`) | `AcceptanceExpressionsSpec.scala.tpl`, `render_templates.py`; `test_marcadores_automaticos_*`, `test_fixture_de_marcadores_coherente_con_el_motor` |
+| AUD-A3 | 2026-11-24 | `Try(parse FileAccept).getOrElse(false)` hacía pasar un `accept` roto por "pendiente" | Prueba nueva: `accept` y cada condición deben parsear sobre los archivos del fixture que traen el QS declarado (falla si lanzan). La decisión conserva el `Try` porque así decide el motor (`SparkAcceptor.isFileActionValid`, `:649-654`) y el fixture 900005 (S-ACC-03) lo necesita; queda marcado `SILENCIO-INTENCIONAL AUD-A3` | `AcceptanceExpressionsSpec.scala.tpl`; `test_toda_expresion_declarada_parsea` |
+| AUD-A4 | 2026-11-24 | `fileActions.manualReview` no se podía declarar, aunque el motor lo lee (`dsl/acceptance/SparkDatasetAcceptor.scala:71`; en `SparkAcceptor.scala:345-362` está comentado) | Clave opcional en el schema. Si está, se emite en `fileActions`, `verify_spec` exige sintaxis nueva y condiciones definidas, y el Spec prueba que compila. Sin la clave la salida no cambia. El motor de plantillas acepta `{{#si ruta?}}` (clave ausente = falsa) | schema, `acceptance-block.conf.tpl`, `AcceptanceExpressionsSpec.scala.tpl`, `condition_value` en `render_templates.py`; `test_manual_review_*`, `test_bloque_si_opcional_con_interrogacion` |
+| AUD-A5 | 2026-11-24 | Referencias al generador Java deprecado como si fuera vigente (`test_simulador.py` decía que el renderizador y sus pruebas estaban en Java) | Apuntan a `render_templates.py` y a `test_render_templates.py`, o quedan marcadas como históricas | cabeceras de `test_render_templates.py`, `test_simulador.py` y `render_templates.py`; `assets/checklist-entrega.md` |
+| AUD-A6 | 2026-11-24 | Silencio intencional sin marca | El único (`accept` en la decisión de archivo) queda marcado `SILENCIO-INTENCIONAL AUD-A3` | `AcceptanceExpressionsSpec.scala.tpl` |
+
