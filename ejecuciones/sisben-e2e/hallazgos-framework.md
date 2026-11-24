@@ -20,6 +20,9 @@ acordada: se registran, se corrigen con su prueba de regresión (commit aparte e
 | HF-13 (AUD-V-22) | validation | P2. El esquema del source-spec no admite `supuestos` en `archivo.nombre`: un supuesto sobre las reglas del nombre no deja marca con ID en el código | `source-spec.schema.yaml` (bloque `archivo.nombre`) | Registrado; se corrige al cierre de la corrida si no bloquea | pendiente |
 | HF-14 (D1 generador) | validation | P2. Una prueba de la suite de la skill dependía del insumo del expediente E2E y falló al pasar a v2 | `test_render_templates.py:951` `KeyError: 'valores'` | Prueba válida para v1 y v2 | 5ae3380 |
 | HF-15 (D3 generador) | validation | P2. `RESUELTO F-12` seguía diciendo «confirmar con el dueño del catálogo» | `lookups-sisben.conf:7`; `lookups.conf.tpl:7` | `resolver_supuestos` quita el pedido de confirmación al resolver | 5ae3380 |
+| HF-16 (AUD-V-27) | validation | P2. Dos filas idénticas sin número de documento se agrupan como duplicadas aunque VAL-SP03 sale RESUELTO | `auditorias/validation.md` §7 | Lote de correcciones al cierre | pendiente |
+| HF-17 (AUD-V-28) | validation | P2. Ninguna prueba generada aísla RA-02 (todas violan también RA-04); una regresión que ignore RA-02 no se detectaría | §7; RA-02 es aislable con offset adelantado (`…202612.20261201000000+1400.txt`, hoy 2026-11-30) | Lote de correcciones al cierre | pendiente |
+| HF-18 (AUD-V-29) | validation | P2. `Campos.crudo` no recorta el `\r` final de una línea CRLF; Curation lo recibiría en el último campo | §7 | Lote de correcciones al cierre | pendiente |
 
 Hallazgos de la spec (no del framework; se dejan para la próxima versión de la spec, no se corrigen en la corrida):
 

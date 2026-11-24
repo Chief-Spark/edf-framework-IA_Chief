@@ -150,14 +150,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:30:48-05:00
 - **Pedido:** Re-auditar ART-011..015 regenerados (insumo v2, framework 1.9.4).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** APROBADO ART-011..015. Reproducible (diff -r vacío, 18/18 hashes); muestra = spec §15; fixture OK; 7 nombres v7 → ERR_024; RV-SIS-05 → ERR_029; verificar_hocon OK; suite 216. Cerrados AUD-V-01/02/03/05/06/08/09/10/16/17/19. P2 abiertos: AUD-V-27 (dos filas sin número se agrupan aunque VAL-SP03 figura RESUELTO), AUD-V-28 (D2: ninguna prueba aísla RA-02; sí es aislable con offset +1400), AUD-V-29 (Campos.crudo deja \r con CRLF). Riesgos residuales: F-01/RG-006; confirmación contra oxygen-core pendiente; PA-003..005.
+- **Decisión:** Registrar AUD-V-27/28/29 como HF-16..18 (P2, lote de correcciones al cierre); pedir al aprobador ART-011..015 y la etapa con evidencia diferida.
 - **Bitácora:** —
 
 ## INT-020 · Analista (edf-analisis) · insumo de Acceptance · `acceptance`
 
 - **Cuándo:** 2026-11-24T18:31:02-05:00
 - **Pedido:** Preparar insumos/source-spec-acceptance.yaml (ART-020) desde HU §5/§6 y spec 1.0.2, con verificaciones de edf-acceptance.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-021 · Aprobador simulado SIM-DEV-01 · `validation`
+
+- **Cuándo:** 2026-11-24T18:34:06-05:00
+- **Pedido:** Aprobar ART-011..015 y la etapa validation con evidencia diferida (references/03 §3b paso 1).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

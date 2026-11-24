@@ -162,3 +162,72 @@ Quedan bien fuera de la lista F-13 (DIVIPOLA sintético), F-04, VAL-SP02, VAL-SP
 
 - Re-aprobación N2 de ART-010 v2. Se recomienda corregir antes AUD-V-22 y AUD-V-23 (solo comentarios) y actualizar el hash (AUD-V-24).
 - Regenerar la propuesta con el framework 1.9.2 y volver a auditarla: AUD-V-01, -05, -06 y la prueba `HeaderFuente` (AUD-V-09 b) solo se pueden verificar en la salida generada.
+
+## 7. Re-auditoría de la propuesta
+
+| Campo | Valor |
+|---|---|
+| Alcance | Propuesta regenerada en `expedientes/sisben/propuestas/validation/` (18 archivos + `manifest.json`), generada desde el insumo v2 aprobado (APR-005, sha256 `dd707688…54f92aa65`, verificado) con el framework 1.9.4. Transición reabierta (APR-006) |
+| **Dictamen global** | **APROBADO, con observaciones P2 no bloqueantes.** Se cerraron los hallazgos que bloqueaban: AUD-V-01 (P0) y AUD-V-02, -03, -05 y -06 (P1). También los P2 de framework que cambian la salida (AUD-V-08, -09, -10, -16, -17 y -19). AUD-V-04, -07 y -18 quedan como desviaciones documentadas (PA-003, PA-004 y PA-005). Riesgos residuales: compilación no certificada (F-01, RG-006); los cierres de AUD-V-01 y AUD-V-06 se apoyan en el código del motor y en sus confs, pero la confirmación contra `ValidationConfigs` y `OxygenLookupService` (oxygen-core) sigue pendiente; AUD-V-27, -28 y -29 (P2) |
+
+### 7.1 Dictamen por artefacto
+
+| Artefacto | Dictamen | Razones |
+|---|---|---|
+| ART-011 processor, Spec, ValidatedEvent, FileMetadata | **APROBADO** | `validateFilename` usa `validarNombre(spec, nombre, Instant.now())` (`SISBENValidationProcessor.scala:80-82`), y `SISBENSpec.scala:176-178` activa las tres reglas de fecha (AUD-V-02). RV-SIS-05 es `SoloCeros` (`SISBENSpec.scala:160`). `comoMapa` publica `Campos.crudo` (`SISBENValidatedEvent.scala:43-66`), y por eso `validatedRecordJson` conserva el valor recibido (AUD-V-05). `listDuplicateEvents` copia los 17 argumentos, incluidos `inferredAsDeleted` y `fileTag` (`:131-136`, AUD-V-17); esos campos existen y Curation los lee (`oxygen-curation/.../Curator.scala:103,182-183`). Las marcas dicen `RESUELTO` donde la spec fija el valor (AUD-V-08). Observaciones: AUD-V-29 |
+| ART-012 Capa A | **APROBADO** | `validarNombre(…, ahora)` implementa RA-02 a RA-04 de forma total (`FieldValidators.scala:213-230`). `SoloCeros` quita los espacios y exige solo `0` (`:247-251`). `Campos.crudo` y `Campos.valor` están separados (`:55-59`). `FieldValidatorsSpec` prueba SoloCeros (`:187-193`), crudo (`:202-207`) y las reglas del nombre con offset fuera de rango (`:209-226`). Observaciones: AUD-V-27 y AUD-V-28 |
+| ART-013 pruebas, fixture, catálogos, `docs/codigos-error-sisben.csv` | **APROBADO** | Agrega `HeaderFuente` con los nombres de spec §3 (`SISBENValidationProcessorSpec.scala:109,252-255`), una prueba por regla del nombre más los `nombres_invalidos` (`:269-284`), y `DUP_CEROS_*` con su prueba de grupo (`:409-436`). El fixture tiene 27 líneas. `codigos-error-sisben.csv` pasó a `docs/` y tiene la fila `OxygenDuplicate` (AUD-V-19). Observación: AUD-V-28 |
+| ART-014 HOCON | **APROBADO** | `validate[0]` y `metrics[0]` llevan `filePattern` (`validation-configs-sisben.conf:29,39`; AUD-V-01). Cada lookup usa `file = ${oxygen.application.paths.lookupHome}"/<archivo>"` (`lookups-sisben.conf:11` y siguientes; AUD-V-06). `verificar_hocon.py` ahora controla ambas cosas y da `HOCON OK`. Queda pendiente la confirmación contra oxygen-core |
+| ART-015 `manifest.json` | **APROBADO** | `skill: "edf-validation"`, sin ninguna cabecera con `edf-validation-stage` (AUD-V-10). Hay 8 `supuestos` abiertos (F-04, VAL-PT01, VAL-PT03, VAL-PT04, VAL-SP02, VAL-SP08, VAL-SP09, VAL-SP10) y 9 `supuestos_resueltos` con su fuente. Las marcas `ASSUMPTION`/`RESUELTO` del código coinciden 1:1 con esas listas. Los 18 sha256 coinciden |
+
+### 7.2 Cierre de los hallazgos anteriores (sobre la salida generada)
+
+| Hallazgo | Estado | Evidencia |
+|---|---|---|
+| AUD-V-01 | Cerrado (falta confirmar en oxygen-core) | `validation-configs-sisben.conf:27-52`; `verificar_hocon.py:16-18` |
+| AUD-V-02 | Cerrado | Capa A, processor y pruebas (ver 7.1). v7 de nombres: los 7 dan `MARCADOR` `SISBEN_ERR_024` (x3) |
+| AUD-V-03 | Cerrado | `SoloCeros`. Con 16 ceros, `00 00` y `" 0000"` sale `SISBEN_ERR_029` (x5) |
+| AUD-V-05 | Cerrado | `Campos.crudo` en `comoMapa`; prueba en `FieldValidatorsSpec.scala:202-207`. `write` no tiene prueba propia porque depende del framework (F-01) |
+| AUD-V-06 | Cerrado (falta confirmar en oxygen-core) | `lookups-sisben.conf`, 6 tablas con `lookupHome` |
+| AUD-V-08 | Cerrado | 8 abiertos y 9 resueltos. Ningún `RESUELTO` dice todavía "confirmar", "provisional" ni "inferido" (HF-15) |
+| AUD-V-09 | Cerrado | `HeaderFuente`, `DUP_CEROS_*` y los nombres inválidos |
+| AUD-V-10 | Cerrado | `manifest.json` y cabeceras |
+| AUD-V-16 | Cerrado | El offset `-2500` se rechaza en Scala (`FieldValidatorsSpec.scala:223`) y en la réplica Python (x3) |
+| AUD-V-17 | Cerrado | 17 argumentos |
+| AUD-V-19 | Cerrado | `docs/codigos-error-sisben.csv` |
+| AUD-V-27 | **Abierto (P2)** | `claveDuplicado` sigue con `valores.mkString("\u0001").hashCode` (`FieldValidators.scala:290`) y la réplica con `("SIN_CLAVE", row)` (`prevalidar_archivo.py:227`, que comenta «nunca agrupa registros sin documento»). Prueba x6: dos filas idénticas sin número se agrupan y una queda `OxygenDuplicate`, en contra de spec §6 (`spec-sisben.md:124`), aunque el código marca VAL-SP03 como `RESUELTO`. Impacto bajo: las dos tienen ERR_015 |
+| AUD-V-04, -07, -18 | Documentados | PA-003, PA-004 y PA-005 (INT-012), no bloqueantes |
+
+### 7.3 Verificaciones repetidas
+
+| # | Comando | Resultado |
+|:-:|---|---|
+| x1 | `render_templates.py --spec EXP/insumos/source-spec-validation.yaml --solo-verificar` | `source-spec OK (22 campos, 29 códigos).` |
+| x2 | `render_templates.py … --out <scratchpad>/aud-val/gen3` + `diff -r EXP/propuestas/validation <scratchpad>/aud-val/gen3` | 18 archivos. `diff` sin diferencias (rc 0): **reproducible** |
+| x3 | `prevalidar_archivo.py` sobre la muestra (`--hoy 2026-11-24`) | 20 validados, 1 filtrado, 1 sev. 1 (`SISBEN_ERR_016`), 0 duplicados, RQS 0.95, `ACEPTARIA` 19. **Igual a spec §15** |
+| x4 | `prevalidar_archivo.py` sobre el fixture generado (`--lookups` de la propuesta, `--hoy 2026-02-05`) | Nombre válido. 23 validados, 3 filtrados, 2 duplicados marcados (líneas 24 y 26: `DUP_ANTIGUO` y `DUP_CEROS_ANTIGUO`; se conservan 25 y 27). Cada caso da el código esperado. RQS 0.565217 |
+| x5 | Casos v7 de nombres y de RV-SIS-05 (`<scratchpad>/aud-val/casos/`, `--hoy 2026-11-24`) | Los 7 nombres dan `MARCADOR` `SISBEN_ERR_024`. 16 ceros, `00 00` y `" 0000"` dan `SISBEN_ERR_029`. El duplicado con ceros marca el más antiguo |
+| x6 | Filas idénticas sin número (`<scratchpad>/aud-val/casos5/`) | Línea 2 `ERR_015` + duplicado; línea 3 `ERR_015` (AUD-V-27) |
+| x7 | D2: `reglas_nombre_violadas` (`python3 -I`) y prevalidación de `SISBEN_EXPERIAN_202612.20261201000000+1400.txt` con `--hoy 2026-11-30` (`<scratchpad>/aud-val/casos4/`) | Viola **solo** `periodo_no_futuro` → `MARCADOR` `SISBEN_ERR_024`. El caso del fixture `202603.20260205…-0500` viola `periodo_no_futuro` y `recepcion_desde_inicio_periodo` |
+| x8 | `PYTHONPATH=<scratchpad>/py python3 .kiro/skills/edf-validation/scripts/verificar_hocon.py --generado EXP/propuestas/validation --fuente sisben --archivo-ejemplo SISBEN_EXPERIAN_202601.20260205093000-0500.txt` | `HOCON OK` (rc 0), con pyhocon 0.3.63 desde el scratchpad |
+| x9 | `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratchpad>/py python3 -m pytest scripts/tests -q -p no:cacheprovider` (desde la skill) | **216 passed** |
+| x10 | Hashes de `manifest.json`; conteo de marcas `ASSUMPTION`/`RESUELTO`; búsqueda de `edf-validation-stage` | 18/18 OK; 8 abiertos y 9 resueltos (F-11 en 2 lugares, F-14 en 3); 0 apariciones |
+
+### 7.4 Dictamen sobre D2 y hallazgos nuevos
+
+**D2: es un hallazgo P2 del framework, en las pruebas; no es de la spec.** La premisa del generador («RA-02 no se puede aislar con RA-03 y RA-04 activas») es falsa, y con ella también mi AUD-V-25 de la §6, que queda **rectificado**. Las tres reglas comparan en marcos distintos: RA-02 compara el mes en America/Bogota, RA-03 el instante con el offset del nombre y RA-04 la fecha local del nombre. Por eso un nombre con un offset adelantado a fin de mes viola solo RA-02 (x7). El defecto real es que **ninguna prueba aísla RA-02**:
+
+- el caso del fixture (`202603…`) y la prueba generada (`SISBEN_EXPERIAN_202702.20260205093000-0500.txt`, `SISBENValidationProcessorSpec.scala:270`) violan también RA-04;
+- `FieldValidatorsSpec.scala:209-222` activa las tres reglas a la vez, y `X20990120240630…` también viola RA-04.
+
+Una regresión que ignore `periodoNoFuturo` no se detectaría.
+
+| ID | Artefacto | Clasificación | Sev. | Evidencia | Corrección sugerida |
+|---|---|---|:-:|---|---|
+| AUD-V-28 | ART-012/013 (pruebas de RA-02) | framework (`capa-a/FieldValidatorsSpec.scala.tpl`, `nombres_de_prueba` en `render_templates.py:296-321`) | P2 | Lo de arriba; x7 | En `FieldValidatorsSpec`, agregar una aserción con solo `periodoNoFuturo = true` (por ejemplo `X202407…` con `ahora` 2024-06-30), o un nombre con offset `+1400` del último día del mes. En `nombres_de_prueba`, derivar el caso de RA-02 con un offset adelantado o documentar que no aísla. Rectificar AUD-V-25 |
+| AUD-V-29 | ART-011 (`Campos.crudo` en `validatedRecordJson`) | framework / contrato Validation → Curation | P2 | `Campos.crudo` no recorta nada (`FieldValidators.scala:55-56`). Con un archivo CRLF, Spark `textFile` deja `\r` al final de la línea, y `FECHA_ACTUALIZACION_CNS` (último campo) llega a Curation como `"10/01/2026\r"`. La validación no se ve afectada porque usa `valor` (trim). La spec no fija el fin de línea (§2); la muestra es LF | Quitar solo el `\r` final de la línea en `Campos.separar` (sin tocar los espacios), o declarar en el contrato que Curation recorta el último campo. Agregar una prueba con CRLF |
+
+### 7.5 Qué sigue
+
+- La propuesta se puede aprobar en N2 (`06:73`). Al registrarla, citar: los riesgos residuales (F-01; confirmación pendiente en oxygen-core de AUD-V-01 y AUD-V-06), PA-003, PA-004 y PA-005, y los P2 abiertos AUD-V-27, -28 y -29 para la próxima versión del framework.
+- Pasos del ingeniero, fuera de la skill: compilar y probar en el fork (`FieldValidatorsSpec`, `SISBENValidationProcessorSpec`), confirmar `ValidationConfigs`/`LookupElements` y la ubicación de los CSV en `lookupHome`.
