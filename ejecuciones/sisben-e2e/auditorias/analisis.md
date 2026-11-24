@@ -90,3 +90,47 @@ Con esa respuesta, más los ajustes AUD-E0-01, -03, -04 y -05, la etapa 0 queda 
 | Código del motor (PA-001) | `grep` en `Motor-Oxigen/` de `checkFileTag`, `fileTag`, `voidIndicator`, `inferDelete` | El borrado inferido V2 está en Synthesis (desactivado por defecto) y `inferDelete` en Acceptance (contextual override). En State Calculation no hay filtro por `voidIndicator` | Sustenta §3 y AUD-E0-07 |
 
 No se ejecutaron git, mvn, java ni PowerShell. Este es el único archivo que escribió la auditoría.
+
+## 6. Re-auditoría (ronda 2)
+
+Fecha: 2026-11-24. Revisé ART-001 1.1.0, ART-002, ART-003 1.1.0, ART-004 1.1.0, ART-010 y `estado-ingesta.json` (`preguntas_abiertas[]`, `riesgos[]`).
+
+### 6.1 Estado de los hallazgos de la ronda 1
+
+| Hallazgo | Estado | Evidencia |
+|---|---|---|
+| AUD-E0-01 | **Resuelto** | PA-001 está resuelta en el expediente (BIT-0009) con la respuesta recomendada. La ficha cita R-26, §5.6 y HU §6 de forma literal. Las alternativas (a) y (b) quedan descartadas «sin versión nueva de HU/spec» (`contexto-ingesta.md` §6). Se abrió PA-002 con `etapa_afectada: state_calculation` y alternativas compatibles con las fuentes (c1 y d) |
+| AUD-E0-02 | **Resuelto** | PA-002 ya no invoca el patrón 6; se plantea como decisión de la etapa 6 y apunta a `[A:CQ-006]` |
+| AUD-E0-03 | **Resuelto** | `dependencias.md`: C-09 queda `[A:PA-002]`, bloqueante solo para `state_calculation`; C-10 y E-05 pasan a «No aplica»; P-01 tiene fecha «antes de aprobar `yaml-skill-statecalc.yaml`»; P-02 queda sin bloqueo. `plan-de-ruta.md`: las filas 1 a 5 dicen «Ninguna» y la fila 6 dice PA-002; §2 y §4 están alineados |
+| AUD-E0-04 | **Resuelto** | `contexto-ingesta.md` §4 dice «Ninguna contradicción». La reference queda solo como RG-010, con la aclaración de que no es fuente |
+| AUD-E0-05 | **Resuelto** | RG-001 a RG-011 tienen el mismo contenido, nivel y etapa en `contexto-ingesta.md` §7, en `plan-de-ruta.md` §4 y en `riesgos[]`. Las referencias cruzadas también coinciden: `mapeo-campos.md:82` remite a RG-007 (Fec_digitacion futura), D-11 y P-04 a RG-004, y RG-009 a D-07. PA-002 coincide en pregunta, etapa y bloqueo |
+| AUD-E0-06 | **Resuelto** | `mapeo-campos.md` fila 19 de las notas: «Lectura conjunta de HU R-08 y spec §10.1…» |
+
+### 6.2 Verificaciones repetidas
+
+- **ART-010:** el `diff` contra el bloque YAML del Anexo A (`spec-sisben.md:388-560`) solo muestra líneas de comentario de la cabecera; el YAML es idéntico. La cabecera nueva (l.20-21) es correcta.
+- **`--solo-verificar`:** `source-spec OK (22 campos, 29 códigos)`.
+- **`prevalidar_archivo.py --hoy 2026-11-17`:** 20 validados, 1 filtrado, 1 con sev. 1 (`SISBEN_ERR_016`), 0 duplicados, RQS 0.95, aceptaría 19. Es igual a spec §15.
+- **ART-002:** las 22 filas de campo siguen completas (15 separadores por fila, sin celdas perdidas). Los cambios se limitan a las notas de las líneas 82, 83 y 85.
+
+### 6.3 Observaciones nuevas (no bloquean)
+
+| ID | Artefacto | Clasificación | Sev. | Evidencia | Corrección sugerida |
+|---|---|---|:-:|---|---|
+| AUD-E0-16 | ART-001 §6 | artefacto | P2 | La fila de PA-001 dice «Etapa afectada: — (resuelta)» y «Bloqueante: no». En `estado-ingesta.json`, PA-001 tiene `etapa_afectada: analisis`, `bloqueante: true` y `estado: resuelta` | Mostrar los valores registrados («`analisis` · sí · resuelta»), para que el ID signifique lo mismo en los dos lugares |
+| AUD-E0-17 | ART-002 | artefacto | P2 | `mapeo-campos.md:6` sigue en «1.0.0», aunque las líneas 82, 83 y 85 cambiaron en la ronda 2 | Subir a 1.0.1 o 1.1.0, como los demás artefactos |
+| AUD-E0-18 | Gate de la etapa 0 | framework | P1 (condición) | PA-002 tiene `bloqueante: true`. La letra de `04-contratos-por-skill.md:30` y de `01-flujo-etapas.md:35` («sin preguntas bloqueantes») bloquearía `validation`. Solo la condición 4 de `03-gobierno-riesgo-aprobacion.md:50` («en la etapa N») la limita a la etapa 6. El artefacto lo declara bien (`contexto-ingesta.md`, nota final del checklist) | El Orquestador debe aplicar la condición 4 por `etapa_afectada`, y dejar constancia en la bitácora de que el gate se evalúa así mientras AUD-E0-10 no se corrija en el framework |
+
+No se introdujo nada incorrecto en el contenido factual. Las citas nuevas que revisé son correctas: R-26, §5.6, §6, §10.1, §13, Anexo A y la condición 4.
+
+### 6.4 Dictamen de la ronda 2
+
+| Artefacto | Dictamen |
+|---|---|
+| ART-001 `contexto-ingesta.md` 1.1.0 | **APROBADO** (corregir AUD-E0-16 de paso) |
+| ART-002 `mapeo-campos.md` | **APROBADO** (AUD-E0-17 es cosmético) |
+| ART-003 `dependencias.md` 1.1.0 | **APROBADO** |
+| ART-004 `plan-de-ruta.md` 1.1.0 | **APROBADO** |
+| ART-010 `source-spec-validation.yaml` | **APROBADO** (YAML idéntico al Anexo A) |
+
+**Dictamen global (ronda 2): APROBADO, con una condición.** La etapa 0 puede aprobarse y la transición `analisis` → `validation` puede habilitarse si el Orquestador evalúa el bloqueo de PA-002 por `etapa_afectada` (AUD-E0-18). PA-002 sigue bloqueando la aprobación de `yaml-skill-statecalc.yaml` y la transición `synthesis` → `state_calculation`.

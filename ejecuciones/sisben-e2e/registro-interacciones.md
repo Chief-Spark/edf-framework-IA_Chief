@@ -46,6 +46,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T17:24:34-05:00
 - **Pedido:** Re-auditar ART-001..004 y ART-010 tras la ronda 2 (AUD-E0-01..06, coherencia RG/PA con el expediente, YAML = Anexo A).
+- **Respuesta:** Ronda 2 APROBADO para los cinco artefactos; AUD-E0-01..06 resueltos; RG/PA coherentes con el expediente; YAML de ART-010 igual al Anexo A (--solo-verificar OK, prevalidación = spec §15). Observaciones nuevas: AUD-E0-16 (P2, fila PA-001 no muestra los valores registrados), AUD-E0-17 (P2, versión de mapeo-campos sin subir), AUD-E0-18 (P1, condición: la transición analisis→validation debe evaluar el bloqueo por etapa_afectada mientras HF-01 no esté corregido).
+- **Decisión:** AUD-E0-16/17 al analista (ronda 3 editorial); AUD-E0-18 se atiende con la corrección HF-01 del framework antes de la transición.
+- **Bitácora:** —
+
+## INT-007 · Analista (edf-analisis) · ronda 3 · `analisis`
+
+- **Cuándo:** 2026-11-24T17:26:12-05:00
+- **Pedido:** AUD-E0-16 (fila PA-001 con valores registrados) y AUD-E0-17 (mapeo-campos 1.0.1).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
