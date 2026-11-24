@@ -102,6 +102,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:15:59-05:00
 - **Pedido:** Versión 2 de source-spec-validation.yaml con las claves 1.9.2 autorizadas (INT-012) y verificaciones.
+- **Respuesta:** Insumo v2: cabecera (v2, PROPUESTO, 7 líneas que se apartan del Anexo A con cita), supuestos_resueltos (9 IDs con su sección de la spec; F-13 queda abierto), RA-02..04 en true, RV-SIS-05 tipo solo_ceros, casos DUP_CEROS_ANTIGUO/RECIENTE y 6 nombres_invalidos. No aplicado: header con nombres fuente (el esquema no lo admite; el generador ya prueba HeaderFuente desde alias). --solo-verificar OK; muestra = spec §15; los nombres inválidos dan ERR_024 y el control sale VALIDADO.
+- **Decisión:** ART-010 v2 prevalidado; re-auditoría del insumo antes de re-aprobarlo.
+- **Bitácora:** —
+
+## INT-014 · Auditor independiente (validation) · insumo v2 · `validation`
+
+- **Cuándo:** 2026-11-24T18:19:27-05:00
+- **Pedido:** Auditar el insumo ART-010 v2 contra la spec, el Anexo A y la autorización INT-012.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

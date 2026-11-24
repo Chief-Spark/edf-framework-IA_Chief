@@ -1,10 +1,27 @@
 # Insumo de la etapa Validation (`edf-validation`) · ingesta `sisben` · producido por `edf-analisis` (modo técnico, tipo T2).
-# Versión 1.0.0 · 2026-11-24 · Estado: PROPUESTO (pendiente de aprobación registrada por `edf-orquestador`).
-# Etapa 0 (`analisis`) NO aprobada todavía: este insumo es un BORRADOR preparado en paralelo (edf-analisis SKILL.md, Modo 2).
+# Versión 2 · 2026-11-24 · Estado: PROPUESTO hasta su re-aprobación registrada por `edf-orquestador`.
+# La versión 1 (copia literal del Anexo A) fue aprobada con APR-003 (artefacto) y APR-004 (transición analisis → validation).
+# La versión 2 responde a la auditoría de Validation (auditorias/validation.md: AUD-V-02, -03, -08, -09, -20) con cambios
+# ADITIVOS autorizados por el aprobador simulado (INT-012) y admitidos por el esquema del framework 1.9.2.
 # Esquema: .kiro/skills/edf-validation/assets/schema/source-spec.schema.yaml
 #
+# Líneas que se apartan del Anexo A de spec-sisben.md 1.0.2 (todo lo demás es copia literal):
+#   1. supuestos_resueltos (raíz, nuevo): F-09, F-11, VAL-SP01, VAL-PA04, VAL-SP07, F-07, F-14, VAL-SP03, F-12; cada uno con
+#      la sección de la spec que fija su valor (AUD-V-08).
+#   2. archivo.nombre.periodo_no_futuro: true (nuevo) - spec §2 RA-02; HU §5.1 «Periodo futuro ... se rechaza».
+#   3. archivo.nombre.recepcion_no_futura: true (nuevo) - spec §2 RA-03; HU §5.1 «posterior a hoy».
+#   4. archivo.nombre.recepcion_desde_inicio_periodo: true (nuevo) - spec §2 RA-04; HU §5.1 «anterior al primer día del periodo».
+#   5. reglas_entre_campos RV-SIS-05 (MODIFICADA, única línea del Anexo A que cambia): tipo solo_ceros en lugar de la lista
+#      literal de 1 a 15 ceros - spec §4 RV-SIS-05 («formado solo por ceros»), spec §3 fila 15 (longitud sobre el valor
+#      normalizado), HU R-18 (AUD-V-03).
+#   6. fixture.casos DUP_CEROS_ANTIGUO / DUP_CEROS_RECIENTE (nuevos, grupo_duplicado DUP_CEROS) - HU §5.1 «Duplicados por tipo
+#      y número» (AUD-V-09 a). Los 24 casos del Anexo A no cambian.
+#   7. fixture.nombres_invalidos (nuevo) - HU §5.1 escenarios de nombre; spec §2 RA-01 a RA-04 (AUD-V-09 c).
+#   Sin cambio: header con los nombres fuente (RA-05, AUD-V-09 b). El esquema no tiene clave de fixture para el header; el
+#   generador 1.9.2 arma la prueba `HeaderFuente` desde campos[].alias, que ya son los nombres de spec §3.
+#
 # Trazabilidad (steering 05 §3, §6):
-#   - Todos los valores son [C]: copiados literalmente de `fuentes/spec-sisben.md` 1.0.2 §Anexo A, que la spec declara
+#   - Todos los valores son [C]: copiados del Anexo A de `fuentes/spec-sisben.md` 1.0.2 (salvo las líneas listadas arriba), que la spec declara
 #     verificado contra el esquema y el generador (spec-sisben.md §cabecera "Verificación"; HU-SISBEN §6, fila Validation).
 #   - fuente/archivo/guard_rails: spec-sisben.md §1, §2, §3 (guard-rails); HU-SISBEN §3, R-01 a R-03.
 #   - campos: spec-sisben.md §3 (posición, tipo, longitud, obligatoriedad, severidad, código); HU-SISBEN R-04 a R-18.
@@ -23,6 +40,19 @@
 #
 # source-spec de Validation derivado de spec-sisben.md y hu-sisben.md. DATOS SINTÉTICOS.
 spec_version: "sisben-iv-1.0.0"
+
+# v2 (AUD-V-08): supuestos de las plantillas cuyo valor ya fija la spec definitiva. No está F-13 (DIVIPOLA de prueba
+# sintético): la spec no fija las filas de producción.
+supuestos_resueltos:
+  - {id: F-07, fuente: "spec-sisben.md §2 (filePattern con .* y tipo siempre REGULAR; RT_ y EP_ se rechazan)"}
+  - {id: F-09, fuente: "spec-sisben.md §2 (22 columnas) y §8 (SISBEN_ERR_026)"}
+  - {id: F-11, fuente: "spec-sisben.md §2 RA-01 a RA-05, §7 RQ-05 y §8 (SISBEN_ERR_024 y SISBEN_ERR_025)"}
+  - {id: F-12, fuente: "spec-sisben.md §9 (seis catálogos: nombres, columnas, llave y delimitador) y Anexo A (catalogos)"}
+  - {id: F-14, fuente: "spec-sisben.md §6 (mayor fec_actualizacion_cns; empate por mayor eventId)"}
+  - {id: VAL-PA04, fuente: "spec-sisben.md §1 (event type 30)"}
+  - {id: VAL-SP01, fuente: "spec-sisben.md §8 (SISBEN_ERR_027 error interno al validar un registro)"}
+  - {id: VAL-SP03, fuente: "spec-sisben.md §6 (un registro sin tipo o sin número no se agrupa)"}
+  - {id: VAL-SP07, fuente: "spec-sisben.md §2 (fecha de corte = último día del periodo AAAAMM)"}
 
 fuente:
   Fuente: SISBEN
@@ -50,6 +80,11 @@ archivo:
     grupos: {prefijo: 1, periodo: 2, marca_tiempo: 3, offset: 4}
     file_tag_por_prefijo: {"": REGULAR}
     file_as_of_date: ultimo_dia_periodo
+    # v2 (AUD-V-02), aditivo. «Mes actual» = mes calendario en fuente.zona_horaria (America/Bogota): supuesto del aprobador
+    # simulado (INT-012); la spec RA-02 no dice la zona.
+    periodo_no_futuro: true               # spec §2 RA-02
+    recepcion_no_futura: true             # spec §2 RA-03
+    recepcion_desde_inicio_periodo: true  # spec §2 RA-04
 
 guard_rails:
   subscriber_relation: NUM_DOCUMENTO
@@ -85,7 +120,8 @@ reglas_entre_campos:
   - {id: RV-SIS-02, tipo: correspondencia_catalogo, campo_codigo: COD_MPIO, campo_nombre: NOM_MPIO, tabla: 2_DANE_DIVIPOLA_CITIES_CODES_NH, columna_clave: cod_mpio, columna_nombre: nom_mpio, codigo: SISBEN_ERR_006, severidad: "1"}
   - {id: RV-SIS-03, tipo: correspondencia_catalogo, campo_codigo: COD_MPIO, campo_nombre: COD_DPTO, tabla: 2_DANE_DIVIPOLA_CITIES_CODES_NH, columna_clave: cod_mpio, columna_nombre: cod_dpto, codigo: SISBEN_ERR_028, severidad: "1"}
   - {id: RV-SIS-04, tipo: valor_con_codigo_propio, campo: TIP_DOCUMENTO, valores: ["7"], codigo: SISBEN_ERR_023, severidad: "1", causa: TIPO_PENDIENTE_CREACION}
-  - {id: RV-SIS-05, tipo: valor_con_codigo_propio, campo: NUM_DOCUMENTO, valores: ["0", "00", "000", "0000", "00000", "000000", "0000000", "00000000", "000000000", "0000000000", "00000000000", "000000000000", "0000000000000", "00000000000000", "000000000000000"], codigo: SISBEN_ERR_029, severidad: "1", causa: DOCUMENTO_CERO}
+  # v2 (AUD-V-03): única línea del Anexo A que cambia. spec §4 RV-SIS-05; spec §3 fila 15; HU R-18.
+  - {id: RV-SIS-05, tipo: solo_ceros, campo: NUM_DOCUMENTO, codigo: SISBEN_ERR_029, severidad: "1", causa: DOCUMENTO_CERO}
 
 filtro_filas:
   lineas_vacias: true
@@ -192,3 +228,15 @@ fixture:
     - {id: TRUNCADA, descripcion: "fila con 10 columnas", cambios: {NUM_DOCUMENTO: "1000000120"}, columnas: 10, esperado: {codigos: [SISBEN_ERR_026]}}
     - {id: DUP_ANTIGUO, descripcion: "duplicado más antiguo: se marca", cambios: {NUM_DOCUMENTO: "1000000199", FECHA_ACTUALIZACION_CNS: "01/01/2026"}, esperado: {codigos: [], duplicado: true}}
     - {id: DUP_RECIENTE, descripcion: "duplicado más reciente: se conserva", cambios: {NUM_DOCUMENTO: "1000000199", FECHA_ACTUALIZACION_CNS: "15/01/2026"}, esperado: {codigos: [], duplicado: false}}
+    # v2 (AUD-V-09 a): HU §5.1 «Duplicados por tipo y número», con número propio (198) para no formar grupo con 199.
+    - {id: DUP_CEROS_ANTIGUO, descripcion: "duplicado con ceros a la izquierda, más antiguo: se marca", cambios: {TIP_DOCUMENTO: "3", NUM_DOCUMENTO: "1000000198", FECHA_ACTUALIZACION_CNS: "01/01/2026"}, esperado: {codigos: [], duplicado: true, grupo_duplicado: DUP_CEROS}}
+    - {id: DUP_CEROS_RECIENTE, descripcion: "duplicado con ceros a la izquierda, más reciente: se conserva", cambios: {TIP_DOCUMENTO: "3", NUM_DOCUMENTO: "0001000000198", FECHA_ACTUALIZACION_CNS: "15/01/2026"}, esperado: {codigos: [], duplicado: false, grupo_duplicado: DUP_CEROS}}
+  # v2 (AUD-V-09 c): nombres inválidos de HU §5.1 (spec §2 RA-01 a RA-04); se rechazan con SISBEN_ERR_024 a la fecha_referencia.
+  nombres_invalidos:
+    - RT_SISBEN_EXPERIAN_202601.20260205093000-0500.txt   # RA-01: prefijo RT_ (spec §2)
+    - EP_SISBEN_EXPERIAN_202601.20260205093000-0500.txt   # RA-01: prefijo EP_ (spec §2)
+    - SISBEN_EXPERIAN_202603.20260205093000-0500.txt      # RA-02: periodo posterior al mes actual
+    - SISBEN_EXPERIAN_202601.20251231093000-0500.txt      # RA-04: recepción anterior al primer día del periodo
+    - SISBEN_EXPERIAN_202601.20260206093000-0500.txt      # RA-03: recepción posterior a hoy
+    # Desviación PA-003: el motor no lo procesa por filePattern; aquí solo prueba la Capa A.
+    - SISBEN_EXPERIAN_202601.txt                          # RA-01: sin marca de tiempo (HU §5.1)
