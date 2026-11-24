@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.4 — 2026-11-24
+
+### Corregido
+- **HF-14. La suite de `edf-validation` dependía del insumo de la corrida E2E.** `test_insumo_e2e_sigue_verificando_y_acepta_las_claves_nuevas` fallaba con `KeyError: 'valores'` en cuanto el insumo pasó a la v2. Ahora sirve con v1 y v2.
+- **HF-15. Supuesto resuelto que seguía pidiendo confirmación.** Al marcar `RESUELTO <ID>`, `resolver_supuestos` quita el «; confirmar …» de la misma línea (lo dejaba en `lookups-<fuente>.conf`, F-12). Prueba: `test_hf15_supuesto_resuelto_no_pide_confirmacion`.
+
 ## 1.9.3 — 2026-11-24
 
 ### Corregido

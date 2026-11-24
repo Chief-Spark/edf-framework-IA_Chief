@@ -942,16 +942,27 @@ def test_aud_v19_codigos_de_error_fuera_de_la_carpeta_del_fork(spec, tmp_path):
 
 @pytest.mark.skipif(not INSUMO_E2E.exists(), reason="sin el expediente de la corrida E2E SISBEN")
 def test_insumo_e2e_sigue_verificando_y_acepta_las_claves_nuevas(tmp_path, capsys):
-    """El insumo actual (sin claves nuevas) sigue dando OK; con las claves nuevas también y genera (copia en memoria)."""
+    """El insumo de la corrida (v1 sin claves nuevas o v2 con ellas) da OK; con las claves nuevas también genera (copia en memoria)."""
     assert rt.main(["--spec", str(INSUMO_E2E), "--solo-verificar"]) == 0
     assert capsys.readouterr().out.startswith("source-spec OK (22 campos, 29 códigos)")
     alt = rt.load_spec(INSUMO_E2E)
     alt["archivo"]["nombre"].update(periodo_no_futuro=True, recepcion_no_futura=True, recepcion_desde_inicio_periodo=True)
     rv05 = next(r for r in alt["reglas_entre_campos"] if r["id"] == "RV-SIS-05")
-    for clave in ("valores",):
-        rv05.pop(clave)
+    # El insumo de la corrida puede estar en v1 (lista literal) o en v2 (ya solo_ceros): la prueba sirve para ambos
+    # (corrida E2E SISBEN, HF-14: la suite no debe romperse porque el expediente avance).
+    rv05.pop("valores", None)
     rv05["tipo"] = "solo_ceros"
     alt["supuestos_resueltos"] = [{"id": "F-11", "fuente": "spec-sisben.md §8"}]
     assert rt.verify_spec(alt) == []
     manifest = rt.render_all(alt, tmp_path)
     assert manifest["skill"] == "edf-validation" and "F-11" not in manifest["supuestos"]
+
+
+def test_hf15_supuesto_resuelto_no_pide_confirmacion():
+    """HF-15 (corrida E2E SISBEN): al marcar RESUELTO se quita el «; confirmar con ...» de la misma línea."""
+    texto = "# ASSUMPTION F-12: archivo y columnas; confirmar con el dueño del catálogo.\n# ASSUMPTION F-04: x; confirmar en el ambiente."
+    salida, usados = rt.resolver_supuestos(texto, {"F-12": "spec §9"})
+    primera, segunda = salida.split("\n")
+    assert primera == "# RESUELTO F-12 (spec §9): archivo y columnas."
+    assert "confirmar en el ambiente" in segunda and "ASSUMPTION F-04" in segunda
+    assert usados == {"F-12"}

@@ -1025,7 +1025,17 @@ def resolver_supuestos(text: str, resueltos: dict[str, str]) -> tuple[str, set[s
         usados.add(ident)
         return f"RESUELTO {ident} ({resueltos[ident]})"
 
-    return MARCA_RE.sub(repl, text), usados
+    lineas = []
+    for linea in text.split("\n"):
+        nueva = MARCA_RE.sub(repl, linea)
+        if nueva != linea:
+            # HF-15: un supuesto resuelto no puede seguir pidiendo confirmación en la misma marca.
+            nueva = PEDIDO_CONFIRMAR_RE.sub("", nueva)
+        lineas.append(nueva)
+    return "\n".join(lineas), usados
+
+
+PEDIDO_CONFIRMAR_RE = re.compile(r";\s*(?:confirmar|verificar)\b[^\n]*?(?=\.?\s*$)", re.IGNORECASE)
 
 
 def lookup_csvs(spec: dict, out: Path) -> dict[Path, str]:
