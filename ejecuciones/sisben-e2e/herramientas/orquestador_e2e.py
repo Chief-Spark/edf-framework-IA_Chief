@@ -225,8 +225,13 @@ def cmd_riesgo(a) -> None:
         for k in ("descripcion", "nivel", "mitigacion", "estado"):
             if getattr(a, k):
                 r[k] = getattr(a, k)
+        if a.etapa:
+            r["etapa_afectada"] = a.etapa
+    bit = nuevo_evento(e, "riesgo", f"{r['id']} ({r['nivel']}, {r.get('etapa_afectada') or '—'}): {r['descripcion']}",
+                       a.quien or "Orquestador (emulado) · `ORQ-E2E`", a.porque or "Registro o cambio de riesgo",
+                       "aplicado", r.get("etapa_afectada") or "—", riesgo=r["nivel"], traza="R3.4 · riesgos")
     guardar(e)
-    print(r["id"], r["estado"])
+    print(r["id"], r["estado"], bit)
 
 
 def cmd_pregunta(a) -> None:
@@ -344,7 +349,7 @@ def main() -> int:
     p = sub.add_parser("checklist")
     p.add_argument("--etapa", required=True); p.add_argument("--json", required=True)
     p = sub.add_parser("riesgo")
-    for k in ("id", "descripcion", "nivel", "etapa", "mitigacion", "estado"):
+    for k in ("id", "descripcion", "nivel", "etapa", "mitigacion", "estado", "quien", "porque"):
         p.add_argument(f"--{k}")
     p = sub.add_parser("pregunta")
     for k in ("id", "pregunta", "origen", "etapa", "estado", "respuesta"):

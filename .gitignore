@@ -8,3 +8,5 @@ __pycache__/
 htmlcov/
 # Expedientes de prueba locales
 expedientes/
+# Excepción: el expediente de la corrida E2E se versiona (es la evidencia de la ejecución)
+!ejecuciones/*/expedientes/

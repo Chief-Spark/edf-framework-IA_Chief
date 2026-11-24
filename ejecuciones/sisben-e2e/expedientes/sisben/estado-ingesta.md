@@ -1,0 +1,87 @@
+# Estado de la ingesta — SISBEN IV (`sisben`)
+
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T17:22:16-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
+
+| Campo | Valor |
+|---|---|
+| Etapa actual | `analisis` |
+| Fuente oficial | mixto |
+| reusePIN | `false` |
+| Business Light Code | batch |
+| Bitácora | 17 eventos, último BIT-0017 |
+
+## Etapas
+
+| # | Etapa | Estado | Riesgo | Artefactos aprobados | Aprobación | Transición |
+|---|---|---|---|---|---|---|
+| 0 | Analisis de Requerimiento y Contexto | `no_iniciada` | bajo | 0/4 | — | 🔒 |
+| 1 | Validation | `no_iniciada` | medio | 0/6 | — | 🔒 |
+| 2 | Acceptance | `no_iniciada` | medio | 0/4 | — | 🔒 |
+| 3 | Curation - Flow | `no_iniciada` | medio | 0/5 | — | 🔒 |
+| 4 | Curation - Stock | `no_iniciada` | medio | 0/1 | — | 🔒 |
+| 5 | Pinning | `no_iniciada` | alto | 0/4 | — | 🔒 |
+| 6 | Synthesis / Consistency | `no_iniciada` | alto | 0/3 | — | 🔒 |
+| 7 | State Calculation | `no_iniciada` | critico | 0/4 | — | 🔒 |
+
+## Artefactos
+
+| Etapa | ID | Nombre | Estado | Hash |
+|---|---|---|---|---|
+| analisis | ART-001 | contexto-ingesta.md | `prevalidado` | — |
+| analisis | ART-002 | mapeo-campos.md (todos los campos) | `prevalidado` | — |
+| analisis | ART-003 | dependencias.md | `prevalidado` | — |
+| analisis | ART-004 | plan-de-ruta.md | `prevalidado` | — |
+| validation | ART-010 | insumo: source-spec-validation.yaml (edf-analisis) | `prevalidado` | — |
+| validation | ART-011 | SISBENValidationProcessor.scala + Spec, ValidatedEvent, FileMetadata | `ausente` | — |
+| validation | ART-012 | Capa A: FieldSpec, FieldValidators, FieldValidatorsSpec | `ausente` | — |
+| validation | ART-013 | SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv | `ausente` | — |
+| validation | ART-014 | HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf | `ausente` | — |
+| validation | ART-015 | manifest.json | `ausente` | — |
+| acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `ausente` | — |
+| acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `ausente` | — |
+| acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `ausente` | — |
+| acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `ausente` | — |
+| curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `ausente` | — |
+| curation_flow | ART-031 | SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado | `ausente` | — |
+| curation_flow | ART-032 | bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary | `ausente` | — |
+| curation_flow | ART-033 | fixture sintetico y tests de curation | `ausente` | — |
+| curation_flow | ART-034 | contrato Curation -> Pinning de la ingesta (steering 11 §4) | `ausente` | — |
+| curation_stock | ART-040 | mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock) | `ausente` | — |
+| pinning | ART-050 | insumo: yaml-skill-pinning.yaml (edf-analisis) | `ausente` | — |
+| pinning | ART-051 | SISBENIdentityMatcher.scala (o matcher compartido) (con verificacion aritmetica del umbral) | `ausente` | — |
+| pinning | ART-052 | identifying-attributes.json | `ausente` | — |
+| pinning | ART-053 | bloque HOCON de pinning-application.conf con reusePIN = false (ingesta nueva) | `ausente` | — |
+| synthesis | ART-060 | insumo: yaml-skill-synthesis.yaml (edf-analisis) | `ausente` | — |
+| synthesis | ART-061 | GDD domaindictionary.json (campo -> handler LFP/LAP/EUC, solo confirmados) | `ausente` | — |
+| synthesis | ART-062 | bloque HOCON oxygen.stage.consistencyCheck | `ausente` | — |
+| state_calculation | ART-070 | insumo: yaml-skill-statecalc.yaml (edf-analisis) | `ausente` | — |
+| state_calculation | ART-071 | fields[] de statecalc-foundation-local.json | `ausente` | — |
+| state_calculation | ART-072 | CalculationSection de statecalc-calculation-local.json | `ausente` | — |
+| state_calculation | ART-073 | CA1: Data Provisioning consulta la seccion de la ingesta en el XPM | `ausente` | — |
+
+## Aprobaciones
+
+| ID | Tipo | Desde → hacia | Decisión | Actor | Riesgo | Bitácora |
+|---|---|---|---|---|---|---|
+
+## Preguntas abiertas
+
+- PA-001 (resuelta, bloqueante): ¿Con qué mecanismo se cumple R-26 / HU §5.6 (la sección #sisben solo para los PIN del archivo vigente)? Opciones: (a) archivo.metadata fileLoadType en Validation; (b) inferDelete en Acceptance; (c) lógica en el enricher de State Calculation; (d) el motor ya lo resuelve.
+- PA-002 (abierta, bloqueante): En State Calculation (statecalc-foundation/enricher), ¿cómo se determina el corte vigente de SISBEN y cómo se excluye la sección #sisben de los PIN cuyo último evento SISBEN no pertenece a ese corte (HU R-26, §5.6)? Opciones compatibles: (c1) filtro en el enricher comparando fechaCorte curado (spec §10.1) con el corte vigente (máximo fechaCorte o corte del último archivo aceptado; toca [A:CQ-006]); (d) el motor ya lo cumple, solo con evidencia de código o pipeline. Fuera de alcance sin nueva versión de HU/spec: cambios al Anexo A, a Acceptance o a Synthesis.
+
+## Riesgos
+
+| ID | Nivel | Etapa | Estado | Descripción |
+|---|---|---|---|---|
+| RG-001 | alto | analisis | abierto | El analisis produce un mapeo incompleto por specs ambiguas; el contexto defectuoso se arrastra a las etapas siguientes. |
+| RG-002 | alto | pinning | abierto | reusePIN mal declarado en una ingesta nueva corrompe la asignacion de PIN. |
+| RG-003 | critico | state_calculation | abierto | R-26 sin mecanismo definido: un PIN ausente del archivo vigente podría conservar su sección #sisben (impacto N4). |
+| RG-004 | medio | validation | abierto | Los reportes de ingesta enviados al DNP llevan tipo y número de documento (PII). |
+| RG-005 | bajo | curation_flow | abierto | La precondición 'Ruíz + INC_011' del escenario de HU §5.3 no se puede producir desde Validation (Ruíz es válido). |
+| RG-006 | medio | validation | abierto | La compilación y las pruebas Scala no las certifica el framework (F-01). |
+| RG-007 | medio | curation_flow | abierto | Una Fec_digitacion futura con formato válido es inconsistencia sev. 3 pero se transforma: Curation la publica como epoch y llega a #sisben como fecha de encuesta futura (spec §10.4 regla 1, §13) |
+| RG-008 | medio | curation_flow | abierto | ide_hogar e ide_ficha_origen son identificadores públicos (R-28, spec §10.1) que podrían enlazarse con una persona (re-identificación indirecta) |
+| RG-009 | medio | validation | abierto | Adultos con tipo 7 (salvoconducto) se rechazan hasta que Experian cree el tipo (R-17; 07 §5.7 [A:OQ-TR-2b]) |
+| RG-010 | medio | synthesis | abierto | La reference curation-pinning-sisben.md §6/§8 dice que SISBEN va sin Synthesis y periodicidad Unique, contra HU R-25 y spec §12 |
+| RG-011 | alto | state_calculation | abierto | La certificación de 4 dimensiones antes de producción (07 §5.7) no figura en la DoD de la HU §6 y no hay motor que la calcule |
