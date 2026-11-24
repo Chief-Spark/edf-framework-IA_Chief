@@ -97,3 +97,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** No aprueba artefactos. (1, como SIM-PO-01) AUD-V-04: no se cambia el filePattern ni el Anexo A; desviación documentada no bloqueante (PA-003, RG-012). (2) Autoriza claves aditivas en el insumo para RA-02..04 (mes actual en America/Bogota: supuesto), RV-SIS-05 sobre valor normalizado (1-15 ceros igual; 16 ceros y «00 00» → ERR_029) y casos nuevos del fixture con IDs nuevos; ART-010 vuelve a propuesto con re-auditoría y re-aprobación N2; la transición no se reabre. (3) AUD-V-07: spec tal cual, PA-004 y RG-013, prueba que documente. (4) AUD-V-18: PA-005 y RG-014, no certificable por la skill. (5) Cabecera del insumo se corrige con el punto 2 (sin tocar spec_version).
 - **Decisión:** Registradas PA-003..005 (no bloqueantes, validation) y RG-012..014 (BIT-0034..0039). Cambio del insumo al analista cuando el framework 1.9.2 publique las claves.
 - **Bitácora:** BIT-0034..BIT-0039
+
+## INT-013 · Analista (edf-analisis) · insumo v2 · `validation`
+
+- **Cuándo:** 2026-11-24T18:15:59-05:00
+- **Pedido:** Versión 2 de source-spec-validation.yaml con las claves 1.9.2 autorizadas (INT-012) y verificaciones.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —

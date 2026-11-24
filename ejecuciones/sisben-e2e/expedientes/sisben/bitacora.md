@@ -698,3 +698,71 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0041 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | ART-010 vuelve a propuesto: versión 2 del insumo con claves aditivas del framework 1.9.2 (RA-02..04, solo_ceros RV-SIS-05, supuestos_resueltos, casos nuevos del fixture) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:15:59-05:00 |
+| **Por qué** | Autorización del aprobador simulado (INT-012, punto 2); la transición analisis→validation (APR-004) no se reabre; la versión 1 queda trazada en APR-003 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-010 |
+| **Trazabilidad** | prompt 08 |
+| **Corrige** | BIT-0023 |
+
+---
+
+## BIT-0042 · `bloqueo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `analisis` → estado `aprobada` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:16:14-05:00 |
+| **Por qué** | ART-010 (insumo de validation) volvió a propuesto (BIT-0041): la condición c3 deja de cumplirse; la transición analisis→validation queda suspendida hasta re-aprobar el insumo y la transición (regla 7b; hallazgo HF-12). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `analisis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0043 · `bloqueo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `validation` → estado `no_iniciada` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:16:57-05:00 |
+| **Por qué** | Suspensión por revisión del insumo ART-010 (references/03 §3c paso 2, framework 1.9.3): validation vuelve a no_iniciada; ART-011..015 (prevalidados con el insumo v1) no se aprueban y se regenerarán. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0044 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T18:17:11-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
