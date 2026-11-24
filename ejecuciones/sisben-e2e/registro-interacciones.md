@@ -118,6 +118,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:22:41-05:00
 - **Pedido:** AUD-V-22/23: corregir solo comentarios de la cabecera del insumo v2.
+- **Respuesta:** Cabecera corregida (l.24-25, 38-43): supuesto [PM] SUP-APR-01 (mes actual de RA-02 en America/Bogota) y nota del esquema; texto de PA-003..005. --solo-verificar OK; YAML sin comentarios idéntico; sha256 dd707688…
+- **Decisión:** Verificado por el Orquestador (diff sin comentarios vacío). Pedir al aprobador la re-aprobación de ART-010 v2 y la nueva aprobación de la transición (references/03 §3c pasos 3 y 4).
+- **Bitácora:** —
+
+## INT-016 · Aprobador simulado SIM-DEV-01 · `validation`
+
+- **Cuándo:** 2026-11-24T18:23:08-05:00
+- **Pedido:** Re-aprobar ART-010 v2 y aprobar de nuevo la transición analisis→validation (references/03 §3c).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

@@ -21,7 +21,8 @@
 #   generador 1.9.2 arma la prueba `HeaderFuente` desde campos[].alias, que ya son los nombres de spec §3.
 #
 # Trazabilidad (steering 05 §3, §6):
-#   - Todos los valores son [C]: copiados del Anexo A de `fuentes/spec-sisben.md` 1.0.2 (salvo las líneas listadas arriba), que la spec declara
+#   - Los valores son [C], copiados del Anexo A de `fuentes/spec-sisben.md` 1.0.2 (salvo las líneas listadas arriba y el
+#     supuesto SUP-APR-01 de abajo), que la spec declara
 #     verificado contra el esquema y el generador (spec-sisben.md §cabecera "Verificación"; HU-SISBEN §6, fila Validation).
 #   - fuente/archivo/guard_rails: spec-sisben.md §1, §2, §3 (guard-rails); HU-SISBEN §3, R-01 a R-03.
 #   - campos: spec-sisben.md §3 (posición, tipo, longitud, obligatoriedad, severidad, código); HU-SISBEN R-04 a R-18.
@@ -34,8 +35,12 @@
 #     `filas_sinteticas` (render_templates.py, catálogos sintéticos); no se resuelve ninguna ruta en disco.
 #   - encoding: null = sin clave `encoding` en el HOCON, ruta textFile UTF-8 (esquema, `archivo.encoding`); spec §2 dice UTF-8.
 #   - fixture: spec-sisben.md §Anexo A (bloque `fixture`), sintético.
-# Sin `[A:*]` ni `[PM]` en este insumo. Ninguna pregunta abierta lo afecta: PA-001 está resuelta por las fuentes
-# (R-26 se cumple en State Calculation; el Anexo A no cambia) y PA-002 es solo de state_calculation (contexto-ingesta.md §6).
+# Supuesto [PM] SUP-APR-01 (ID sugerido; aprobador simulado, INT-012): el «mes actual» de RA-02 es el mes calendario en
+#   America/Bogota (fuente.zona_horaria); spec §2 RA-02 no dice la zona. El esquema no admite `supuestos` en
+#   `archivo.nombre`, así que este supuesto no deja marca ASSUMPTION en el código generado.
+# Preguntas abiertas: PA-003 (no bloqueante) explica el caso del nombre sin marca de tiempo; PA-004 y PA-005 (no
+#   bloqueantes) son de Validation pero no cambian este insumo. PA-001 está resuelta por las fuentes y PA-002 es solo de
+#   state_calculation (contexto-ingesta.md §6).
 # DATOS SINTÉTICOS: todo valor de `fixture` y `catalogos[].filas_sinteticas` es inventado (los códigos DIVIPOLA son los del DANE).
 #
 # source-spec de Validation derivado de spec-sisben.md y hu-sisben.md. DATOS SINTÉTICOS.
