@@ -56,8 +56,10 @@ aquí. Alcance y glosario: `references/alcance-y-glosario.md`.
 5. **Credenciales.** Nunca leer, copiar ni citar el contenido de `settings-artifactory.xml` u otro
    archivo de credenciales. Si aparece versionado con secretos, reportarlo para rotación.
 6. **Sin PII en logs ni reportes.** Solo códigos, conteos y números de línea.
-7. **Discrepancias:** se registran en `references/decisiones-y-abiertos.md`; no se resuelven en
-   silencio. Para comportamiento del motor, el código Oxygen gana sobre los documentos.
+7. **Discrepancias:** no se resuelven en silencio. Las de una ingesta van en la entrega al Orquestador (con la
+   lista de artefactos de `expedientes/<id>/propuestas/validation/`), que las registra en el expediente; **nunca**
+   se escriben en `.kiro/` (`references/decisiones-y-abiertos.md` es solo del mantenimiento de la skill). Para
+   comportamiento del motor, el código Oxygen gana sobre los documentos.
 
 ## Regla de ejecución: generar, nunca compilar
 
@@ -73,8 +75,11 @@ Esta skill **solo genera archivos**. Todo se hace con Python 3 (PyYAML y jsonsch
 
 - **Ingesta real (también SISBEN):** el source-spec es el insumo aprobado de `edf-analisis`
   (`expedientes/<ingesta-id>/insumos/source-spec-validation.yaml`, Paso 0.3). Sus valores salen de la HU y la
-  spec de la ingesta (`.kiro/steering/00-framework-edf.md` §6). Revisar con el técnico cada `ASSUMPTION`
-  (lista en `references/decisiones-y-abiertos.md`) y confirmar o ajustar.
+  spec de la ingesta (`.kiro/steering/00-framework-edf.md` §6), que **manda** sobre cualquier referencia de esta
+  skill. Revisar con el técnico cada `ASSUMPTION` (el significado de cada ID está en
+  `references/decisiones-y-abiertos.md`). Si la spec ya fija el valor, el insumo lo declara en
+  `supuestos_resueltos`; si hay que cambiar un valor, se cambia el insumo (vía `edf-analisis`), y las discrepancias
+  se listan en la entrega al Orquestador (regla dura 7).
 - **Ejemplo SISBEN = solo referencia de FORMA.** `assets/examples/sisben/source-spec.sisben.yaml` muestra la
   estructura y el nivel de detalle; **nunca** se copian sus valores, tampoco para SISBEN: difiere de la spec
   vigente (prefijos de RT/EP, códigos, longitudes, catálogos). Si el insumo y el ejemplo difieren, manda el
@@ -86,7 +91,20 @@ Esta skill **solo genera archivos**. Todo se hace con Python 3 (PyYAML y jsonsch
   Cada campo necesita un `ejemplo_invalido` sintético y el fixture, casos sintéticos con su resultado
   esperado.
 
-Referencias: `references/especificacion-sisben.md`, `references/dsl-config-reference.md`.
+Referencias: `references/dsl-config-reference.md` (claves HOCON y DSL). `references/especificacion-sisben.md` es
+un ejemplo histórico (versión 0.1.0): no es fuente de ninguna ingesta y no se usa para llenar el insumo.
+
+**Claves opcionales del source-spec (1.9.2).** Sin ellas el comportamiento no cambia:
+
+| Clave | Sintaxis | Efecto |
+|---|---|---|
+| Reglas de fecha del nombre (AUD-V-02) | en `archivo.nombre`: `periodo_no_futuro: true`, `recepcion_no_futura: true`, `recepcion_desde_inicio_periodo: true` | Con los grupos `periodo`, `marca_tiempo` y `offset` del regex: periodo AAAAMM ≤ mes actual (zona de la fuente); marca de tiempo con su offset ≤ ahora; fecha de la marca ≥ primer día del periodo. Si no se cumple: `codigos_especiales.nombre_archivo`. Reloj: `Instant.now()` en el processor, `--hoy` (fin del día) en `prevalidar_archivo.py`, `fixture.fecha_referencia` en las pruebas |
+| Solo ceros (AUD-V-03) | en `reglas_entre_campos`: `{id: RV-X, tipo: solo_ceros, campo: <CAMPO>, codigo: <COD>, severidad: "1", causa: <CAUSA>}` | Emite el código si el valor sin espacios no está vacío y es solo `0` (`0`, 16 ceros, `00 00`). Reemplaza la lista literal de ceros |
+| Supuestos resueltos (AUD-V-08) | en la raíz: `supuestos_resueltos: [{id: F-11, fuente: "spec-x.md §8"}, ...]` | La marca `ASSUMPTION <ID>` sale como `RESUELTO <ID> (<fuente>)` y el ID no queda en `manifest["supuestos"]` |
+| Grupos de duplicados (AUD-V-09) | en `fixture.casos[].esperado`: `grupo_duplicado: <GRUPO>` | Una prueba por grupo (p. ej. el mismo documento con y sin ceros a la izquierda) |
+| Nombres inválidos (AUD-V-09) | en `fixture`: `nombres_invalidos: [<nombre>, ...]` | Prueba generada: cada nombre produce el código de nombre de archivo |
+
+`catalogos[].archivo` es la ruta del CSV relativa a `oxygen.application.paths.lookupHome` (AUD-V-06).
 
 ### Paso 2 · Verificar el spec
 
@@ -118,7 +136,8 @@ Genera (VAL-TPL-01..11, detalle en `references/inventario-plantillas.md`):
 | — | `<Fuente>ValidatedEvent.scala`, `validator/<Fuente>FileMetadata.scala` (con los miembros de `archivo.metadata` si la spec los declara: `minFrequency`, `subSubscriber`, `additionalInformation` y otros como `fileLoadType`, tomados de la implementación de referencia; ADR-05) |
 | C | `processor/<Fuente>ValidationProcessor.scala` |
 | Tests | `<Fuente>ValidationProcessorSpec.scala` (sin clases del framework) |
-| Datos | fixture sintético, CSV de catálogos sintéticos, `codigos-error-<fuente>.csv` |
+| Datos | fixture sintético, CSV de catálogos sintéticos (`src/test/resources/<fuente>/`) |
+| Documentación | `docs/codigos-error-<fuente>.csv` (catálogo de códigos con `OxygenDuplicate`; **no** se pega en el fork, AUD-V-19) |
 | HOCON | `propuesta/validation-configs-<fuente>.conf`, `propuesta/lookups-<fuente>.conf` |
 | Control | `manifest.json` (archivos, sha256, supuestos, requisitos de ambiente) |
 
@@ -184,7 +203,12 @@ propio skill.
 
 ## Hechos del motor que el skill no debe olvidar
 
-- `filePattern` se compara contra la ruta completa: empieza con `.*`.
+- `filePattern` se compara contra la ruta completa: empieza con `.*`. Cada elemento de `validate[]` y de
+  `metrics[]` lleva el suyo: el motor lo lee con `data.filePattern.get` y sin él falla en cada archivo (AUD-V-01).
+- Un archivo que no cumple ningún `filePattern` no se procesa ni recibe marcador: el código de nombre de archivo
+  solo lo emite un nombre que sí cumple `filePattern` (AUD-V-04, decisión de la spec).
+- Los `file` de `oxygen.lookups[]` se arman con `${oxygen.application.paths.lookupHome}"/..."`, como en los confs
+  del motor (AUD-V-06).
 - Claves mal escritas se ignoran en silencio. `footerRows` vale 1 por defecto.
 - Sin `deDupVersion` se marcan todos los duplicados (AS-IS). En `EXTN` la marca la pone el processor.
 - Con `searchAllHeaderFooter = true` el processor se instancia con headers vacíos; aquí se usa `false`.

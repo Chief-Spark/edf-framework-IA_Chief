@@ -22,8 +22,8 @@ falta o tiene otro tipo: **una clave mal escrita se ignora en silencio** y rige 
 | `historicAttributeArgs` (con s) | `""` | omitido |
 | `fullScanSchema` | `true` (el motor 2404 no lo lee) | omitido |
 | `sumMetrics` | `""` | omitido |
-| `validate = [{ filePattern?, fileName?, header?, footer?, contexual|contextual { enabled, qualification, version } }]` | sin expresión el archivo pasa como válido | `fileName`, `header` = `errorlevelNotIn("1")`, `contexual.enabled = false` |
-| `metrics = [{ filePattern?, file = [{ metricId, metricExpr }] }]` | vacío | `AverageRQS`, `TotalRegistros` |
+| `validate = [{ filePattern, fileName?, header?, footer?, contexual|contextual { enabled, qualification, version } }]` | `filePattern` **obligatoria en cada elemento**: el motor elige el elemento con `fillPathFileName.matches(data.filePattern.get)` (`SparkValidator.getValidateInfo`, `SparkValidator.scala:1436-1442`, llamado fuera de `Try` en `validateFilename`); sin la clave, `None.get` lanza `NoSuchElementException`. Sin expresión el archivo pasa como válido | `filePattern` (el del bloque), `fileName`, `header` = `errorlevelNotIn("1")`, `contexual.enabled = false` (AUD-V-01) |
+| `metrics = [{ filePattern, file = [{ metricId, metricExpr }] }]` | `filePattern` **obligatoria en cada elemento** (`getMetricsInfo`, `:1444-1449`; `elem.filePattern.get` en `:955`); lista vacía = sin métricas | `filePattern` (el del bloque), `AverageRQS`, `TotalRegistros` (AUD-V-01) |
 | XML: `rootTag, headerTag, footerTag, dataTag, xsdFile, xmlVersion, enableXsdValidation, customXmlTagHandler` | `None`/`false` | no aplica |
 
 Efectos combinados que el skill fuerza:
@@ -50,6 +50,14 @@ Efectos combinados que el skill fuerza:
 `{ tableName (obligatoria), file, fileFormat, delimiter, processor (default LookupProcessor),
 keys = [ { index = "col" | "colA+colB" } ] }`. `caseSensitive` no lo lee el parser. El delimitador por
 defecto del lector no está verificado (F-12): el skill lo emite siempre.
+
+`file` es la ruta del CSV. Todos los lookups de los confs del motor la arman con
+`${oxygen.application.paths.lookupHome}"/<ruta>"` (`oxygen-curation/aws/conf/oxygen-lookup-aws.conf:5,13`,
+`oxygen-curation/src/main/resources/local/oxygen-lookup-local.conf`, `oxygen-synthesis/.../oxygen-lookup-local.conf`)
+y ninguno usa un nombre suelto. Cómo resuelve `OxygenLookupService` (oxygen-core, fuera del repo) un nombre
+relativo no está verificado, así que el skill emite siempre la forma del motor:
+`file = ${oxygen.application.paths.lookupHome}"/<catalogos[].archivo>"` (AUD-V-06, 1.9.2). Confirmar contra
+oxygen-core cuando esté disponible.
 
 ## DSL de expresiones de registro/archivo
 

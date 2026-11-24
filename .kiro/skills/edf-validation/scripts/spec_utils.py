@@ -8,9 +8,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from render_templates import SpecError, field_by_name, java_to_py_date, load_spec, load_yaml
+from render_templates import nombre_valido_el_dia  # réplica del nombre de archivo (AUD-V-02, AUD-V-16)
 from render_templates import verify_spec as _verify_spec_dict
 
-__all__ = ["SpecError", "field_by_name", "java_to_py_date", "load_spec", "load_yaml", "verify_spec"]
+__all__ = ["SpecError", "field_by_name", "java_to_py_date", "load_spec", "load_yaml", "nombre_valido_el_dia",
+           "verify_spec"]
 
 
 def verify_spec(spec_path: Path) -> list[str]:

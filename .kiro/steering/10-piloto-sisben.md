@@ -27,5 +27,5 @@ Las cuatro preguntas históricas del piloto (tipo de `fec_digitacion`, event typ
 
 - Repo principal: `bureau.colombia_innersource`. Las carpetas sueltas Validation/Curation/Pinning son Java 8 y **no** son las del pipeline actual [DEMO | 00:24:46].
 - Procesadores: `SISBENValidationProcessor.scala`, `SisbenCurationProcessor`.
-- Config: `validation-common-application.inner.conf` (umbral de calidad).
+- Config: `validation-common-application-inner.conf` (bloque de la ingesta y umbral de calidad; mismo patrón `<stage>-common-application-inner.conf` de `07-contratos-frontera.md` §6 y de `curation-common-application-inner.conf` en el fork). El repo `Motor-Oxigen/` no trae los inner: confirmar el nombre en el fork.
 - Stack: Scala/Spark/EMR, S3, Kafka (MSK), Airflow, ECS Fargate, Hive + Redshift, Maven + Jenkins + Bitbucket, catálogos maestros Collibra → S3.

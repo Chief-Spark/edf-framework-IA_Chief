@@ -30,7 +30,8 @@ from datetime import date, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from spec_utils import SpecError, field_by_name, java_to_py_date, load_spec, verify_spec  # noqa: E402
+from spec_utils import (SpecError, field_by_name, java_to_py_date, load_spec,  # noqa: E402
+                        nombre_valido_el_dia, verify_spec)
 
 DUPLICATE_MARK = "OxygenDuplicate"
 
@@ -157,6 +158,11 @@ def validate_record(spec: dict, row: str, catalog: Catalog, today: date) -> list
             if expected is not None and comparable(expected) != comparable(v(rule["campo_nombre"])):
                 errors.append({"campo": rule["campo_nombre"], "codigo": rule["codigo"], "nivel": rule["severidad"],
                                "causa": "CORRESPONDENCIA"})
+        elif rule["tipo"] == "solo_ceros":  # AUD-V-03: sobre el valor sin espacios, no sobre una lista
+            sin_espacios = normalize(v(rule["campo"]), ["quitar_espacios"])
+            if sin_espacios and set(sin_espacios) == {"0"}:
+                errors.append({"campo": rule["campo"], "codigo": rule["codigo"], "nivel": rule["severidad"],
+                               "causa": rule["causa"]})
         elif comparable(v(rule["campo"])) in {comparable(x) for x in rule["valores"]}:
             errors.append({"campo": rule["campo"], "codigo": rule["codigo"], "nivel": rule["severidad"],
                            "causa": rule["causa"]})
@@ -202,19 +208,11 @@ def validate_header(spec: dict, headers: list[str]) -> list[dict]:
     return [] if ok else [error]
 
 
-def validate_name(spec: dict, path: str) -> list[dict]:
-    name = re.split(r"[/\\]", path)[-1]
-    rx = spec["archivo"]["nombre"]
-    match = re.fullmatch(rx["regex"], name)
-    valid = False
-    if match:
-        try:
-            datetime.strptime(match.group(rx["grupos"]["periodo"]), "%Y%m")
-            stamp = match.group(rx["grupos"]["marca_tiempo"])
-            valid = datetime.strptime(stamp, "%Y%m%d%H%M%S").strftime("%Y%m%d%H%M%S") == stamp
-        except ValueError:
-            valid = False
-    if valid:
+def validate_name(spec: dict, path: str, today: date | None = None) -> list[dict]:
+    """Réplica de RecordValidator.validarNombre: regex, periodo, marca de tiempo y offset que acepta Java
+    (AUD-V-16) y, si la spec las activa, las reglas de fecha (AUD-V-02) con el reloj `today` (fin del día en la
+    zona de la fuente; sin `today`, la fecha de hoy)."""
+    if nombre_valido_el_dia(spec, path, today or date.today()):
         return []
     return [{"campo": "FILENAME", "codigo": spec["codigos_especiales"]["nombre_archivo"], "nivel": "1",
              "causa": "NOMBRE_ARCHIVO"}]
@@ -327,7 +325,7 @@ def prevalidate(spec: dict, path: Path, catalog: Catalog, today: date, detail: b
     if not lines:
         summary.update(resultado="FALLA_JOB", motivo="archivo totalmente vacío: OxygenException('File Empty Exception')")
         return summary
-    name_errors = validate_name(spec, str(path))
+    name_errors = validate_name(spec, str(path), today)
     summary["nombre_valido"] = not name_errors
     if name_errors and not eval_dsl(spec["diagnostico_archivo"]["fileName"], name_errors):
         summary.update(resultado="MARCADOR", **marker("errorInFileName", name_errors, -1002))
@@ -407,7 +405,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--spec", required=True, type=Path)
     parser.add_argument("--archivo", required=True, type=Path)
     parser.add_argument("--lookups", type=Path, help="carpeta con los CSV de catálogo (default: filas sintéticas)")
-    parser.add_argument("--hoy", help="fecha de referencia AAAA-MM-DD (default: hoy)")
+    parser.add_argument("--hoy", help="fecha de referencia AAAA-MM-DD (default: hoy); es también el reloj de las "
+                                      "reglas de fecha del nombre: fin de ese día en la zona de la fuente")
     parser.add_argument("--salida", type=Path, help="escribe el resumen JSON en este archivo")
     parser.add_argument("--detalle", action="store_true", help="incluye línea → códigos (sin valores)")
     args = parser.parse_args(argv)

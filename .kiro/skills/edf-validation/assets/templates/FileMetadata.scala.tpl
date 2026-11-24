@@ -1,5 +1,5 @@
 // VAL-TPL-05 · plantilla parametrizada.
-// Generado por el skill edf-validation-stage desde source-spec ({{spec_version}}). No editar a mano.
+// Generado por la skill edf-validation desde source-spec ({{spec_version}}). No editar a mano.
 // Guard-rails de archivo de {{Fuente}} extraídos del nombre. Nunca lanza si el nombre no coincide (VAL-RC03):
 // el diagnóstico del nombre lo hace validateFilename; aquí solo se usan valores de respaldo.
 package {{paquete_fuente}}.validator
@@ -26,7 +26,7 @@ class {{Fuente}}FileMetadata(fileName: String, headers: Array[String]) extends F
     .map(i => i.recibido.atOffset(i.offset).toInstant.toEpochMilli)
     .getOrElse(0L)
 
-  /** ASSUMPTION VAL-SP07: fecha de corte = {{file_as_of_date_desc}} (inferida del nombre), en epoch ms; 0L si no coincide. */
+  /** ASSUMPTION VAL-SP07: fecha de corte = {{file_as_of_date_desc}} del nombre, en epoch ms; 0L si no coincide. */
   override val fileAsOfDate: Long = RecordValidator.parsearNombre({{Fuente}}Spec.Spec, fileName)
     .map(i => {{expr_file_as_of_date}}.atStartOfDay(ZoneId.of("{{zona_horaria}}")).toInstant.toEpochMilli)
     .getOrElse(0L)

@@ -139,7 +139,7 @@ Estos cuatro términos tienen más de un significado vigente en las fuentes. **U
 | **FQS** | Puntaje de calidad del archivo que calcula Acceptance y se compara contra el umbral. Fórmula: `(total − menores − rechazados_por_severidad_bloqueante) / (total − menores)`. **La expansión de la sigla no consta** | `[PM]` (sigla) / `[C]` (fórmula) | 12/tech, 11/vision |
 | **RQS** | Aparece una sola vez, junto a FQS, con umbral ≥90%. **Ni la expansión ni la definición constan en ninguna fuente** | `[PM]` | 11/vision |
 | **`qualityThreshold`** | Umbral de aceptación del archivo. Valor `0.90`, **parametrizable, nunca hardcodeado** | `[C]` | PD/tech, 12/tech |
-| **Rechazo silencioso de menores** | Los registros de tipos documentales 7 y 10 se rechazan sin sumar al puntaje de calidad | `[C]` | 12/tech, 11/vision |
+| **Rechazo silencioso de menores** | Los registros de menores salen del total sin sumar al puntaje de calidad. Los valores que identifican a un menor los declara la spec de la ingesta (SISBEN: tipos de documento `1` y `2` del archivo, códigos Experian `10` y `7`; `07-contratos-frontera.md` §5.3) | `[C]` | 12/tech, 11/vision |
 | **Certificación de 4 dimensiones** | Certificación de calidad de State Calculation: completitud de mandatorios ≥90%, validez de tipo de dato 100%, unicidad 0% de duplicados por llave, consistencia ≥90% | `[C]` | HU-008 |
 | **Reglas de consistencia** | Reglas declarativas de Synthesis, con ID `CONS-<INGESTA>-<NNN>`. Severidad de advertencia: no bloquean el procesamiento | `[C]` | HU-007 |
 | **Duplicados por llave** | Registros con la misma llave documental; se conserva el más vigente | `[C]` | 12/tech |

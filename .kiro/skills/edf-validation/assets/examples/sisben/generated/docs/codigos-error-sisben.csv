@@ -26,3 +26,4 @@ SISBEN_ERR_024;1;FILENAME;Nombre de archivo inválido
 SISBEN_ERR_025;1;HEADER;Header inválido
 SISBEN_ERR_026;1;REGISTRO;Número de columnas distinto al layout
 SISBEN_ERR_027;1;REGISTRO;Error interno al validar el registro
+OxygenDuplicate;;REGISTRO;Duplicado no conservado (marca OxygenDuplicate)

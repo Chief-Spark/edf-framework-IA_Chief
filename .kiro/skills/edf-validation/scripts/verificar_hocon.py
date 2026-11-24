@@ -12,6 +12,11 @@ diferido) está separado de la evaluación de reglas (evaluar_reglas, función p
 se prueba sin pyhocon. Reglas: AC-29a (REQUIRED_KEYS), AC-29b (IGNORED_KEYS), AC-30
 (dupKeyCheckEnabled ⇒ computeMetrics), AC-31 (validate[] con fileName y header), AC-32 (lookups con
 tableName), filePattern con .* y que acepte la ruta del archivo de ejemplo.
+
+1.9.2 (corrida E2E SISBEN): cada elemento de validate[] y de metrics[] lleva su filePattern, porque el motor lo lee
+con data.filePattern.get (SparkValidator.getValidateInfo/getMetricsInfo; AUD-V-01), y cada lookup usa
+${oxygen.application.paths.lookupHome} en `file` (AUD-V-06). Para parsear, leer_fragmentos define esa ruta con
+un valor sintético (LOOKUP_HOME_SINTETICO).
 """
 from __future__ import annotations
 
@@ -24,6 +29,7 @@ from pathlib import Path
 IGNORED_KEYS = ("numberOfHeaderRows", "numberOfFooterRows", "historicAttributeArg", "rejectedDir")
 REQUIRED_KEYS = ("filePattern", "processor", "headerRows", "footerRows", "computeMetrics", "validate")
 CARPETA_PROPUESTA = Path("env") / "application-conf" / "innersource" / "propuesta"
+LOOKUP_HOME_SINTETICO = "/lookupHome-sintetico"  # valor de ${oxygen.application.paths.lookupHome} al parsear
 
 
 def cargar_parser() -> Callable[[str], Mapping]:
@@ -41,16 +47,27 @@ def evaluar_reglas(block: Mapping, lookups: Sequence[Mapping], sample_name: str 
     file_pattern = str(block.get("filePattern", ""))
     if not file_pattern.startswith(".*"):
         problems.append("filePattern debe empezar con .*")
-    if block.get("dupKeyCheckEnabled") and not block.get("computeMetrics"):  # AC-30
+    if block.get("dupKeyCheckEnabled", None) and not block.get("computeMetrics", None):  # AC-30
         problems.append("dupKeyCheckEnabled exige computeMetrics = true")
-    validate = (block.get("validate") or [{}])[0]
+    validate = (block.get("validate", None) or [{}])[0]
     if "fileName" not in validate or "header" not in validate:  # AC-31
         problems.append("validate[] sin expresión fileName/header: el motor no emitiría marcadores (F-11)")
     if sample_name and not re.fullmatch(file_pattern, "/ruta/sintetica/" + sample_name):
         problems.append("filePattern no acepta la ruta completa del archivo de ejemplo")
+    for lista in ("validate", "metrics"):  # AUD-V-01: el motor hace data.filePattern.get en cada elemento
+        for i, item in enumerate(block.get(lista, None) or []):
+            # get con default: ConfigTree de pyhocon lanza si la clave falta y no hay default.
+            patron = item.get("filePattern", None) if isinstance(item, Mapping) else None
+            if patron is None:
+                problems.append(f"{lista}[{i}] sin filePattern: el motor hace data.filePattern.get "
+                                "(NoSuchElementException en cada archivo)")
+            elif sample_name and not re.fullmatch(str(patron), "/ruta/sintetica/" + sample_name):
+                problems.append(f"{lista}[{i}].filePattern no acepta la ruta completa del archivo de ejemplo")
     for item in lookups:
         if "tableName" not in item:  # AC-32
             problems.append("lookup sin tableName (clave obligatoria)")
+        if not str(item.get("file", "")).startswith(LOOKUP_HOME_SINTETICO + "/"):  # AUD-V-06
+            problems.append(f"lookup {item.get('tableName', '?')}: file sin ${{oxygen.application.paths.lookupHome}}")
     return problems
 
 
@@ -61,7 +78,8 @@ def leer_fragmentos(generated: Path, fuente: str,
     block_text = (folder / f"validation-configs-{fuente}.conf").read_text(encoding="utf-8")
     block = parse("configs = [\n" + block_text + "\n]")["configs"][0]
     lookups_text = (folder / f"lookups-{fuente}.conf").read_text(encoding="utf-8")
-    lookups = list(parse("lookups = " + lookups_text)["lookups"])
+    lookups = list(parse("lookups = " + lookups_text + "\noxygen.application.paths.lookupHome = "
+                         f'"{LOOKUP_HOME_SINTETICO}"\n')["lookups"])
     return block, lookups
 
 

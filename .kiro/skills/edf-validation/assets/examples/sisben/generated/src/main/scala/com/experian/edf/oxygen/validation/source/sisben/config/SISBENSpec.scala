@@ -1,5 +1,5 @@
 // VAL-TPL-03 · Capa B · plantilla parametrizada.
-// Generado por el skill edf-validation-stage desde source-spec (sisben-v4-0.1.0). No editar a mano.
+// Generado por la skill edf-validation desde source-spec (sisben-v4-0.1.0). No editar a mano.
 // Especificación de SISBEN como datos: es la fuente de verdad del evento, del header y de los tests.
 package com.experian.edf.oxygen.validation.source.sisben.config
 
@@ -172,7 +172,11 @@ object SISBENSpec {
       grupoPeriodo = 2,
       grupoMarcaTiempo = 3,
       grupoOffset = 4,
-      fileTagPorPrefijo = Map("" -> "REGULAR", "RT_" -> "RT", "EP_" -> "EP")
+      fileTagPorPrefijo = Map("" -> "REGULAR", "RT_" -> "RT", "EP_" -> "EP"),
+      // Reglas de fecha del nombre (archivo.nombre del source-spec; false = no se aplican, AUD-V-02).
+      periodoNoFuturo = false,
+      recepcionNoFutura = false,
+      recepcionDesdeInicioPeriodo = false
     ),
     subscriber = "999722",
     dataSource = "DNP",
@@ -185,7 +189,7 @@ object SISBENSpec {
     campoSubscriberRelation = NUM_DOCUMENTO,
     campoAsOfDate = FECHA_ACTUALIZACION_CNS,
     codigos = CodigosEspeciales(
-      // ASSUMPTION F-11: códigos provisionales del nombre de archivo y del header.
+      // ASSUMPTION F-11: códigos del nombre de archivo y del header (codigos_especiales del source-spec).
       nombreArchivo = "SISBEN_ERR_024",
       header = "SISBEN_ERR_025",
       // ASSUMPTION F-09: fila con un número de columnas distinto al layout → error de nivel 1, sin excepción.

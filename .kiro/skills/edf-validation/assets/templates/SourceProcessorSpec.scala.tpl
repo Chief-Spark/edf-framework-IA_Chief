@@ -1,5 +1,5 @@
 // VAL-TPL-10 · tests de la fuente {{Fuente}} (parametrizada desde source-spec {{spec_version}}).
-// Generado por el skill edf-validation-stage. No editar a mano: agregar casos en el source-spec.
+// Generado por la skill edf-validation. No editar a mano: agregar casos en el source-spec.
 // Prueba la especificación + Capa A, que es exactamente la lógica que ejecuta {{Fuente}}ValidationProcessor.
 // ASSUMPTION VAL-SP10: no importa clases del framework Oxygen; compila y corre con Scala 2.12 + ScalaTest, sin clúster ni JAR.
 // La prueba de integración del processor (ProcessorContext, lookup real) requiere el JAR (F-01).
@@ -19,6 +19,9 @@ class {{Fuente}}ValidationProcessorSpec extends AnyFunSuite {
 
   private val spec = {{Fuente}}Spec.Spec
   private val hoy = {{fecha_referencia_scala}}
+  /** Reloj de las pruebas del nombre: fin del día de referencia en la zona de la fuente (igual que --hoy en
+    * prevalidar_archivo.py, AUD-V-02). */
+  private val ahora = hoy.atTime(23, 59, 59).atZone(java.time.ZoneId.of(spec.zonaHoraria)).toInstant
 
   /** Filas sintéticas del source-spec y una consulta con la semántica de Util.getLookup del motor (VAL-PT03):
     * devuelve los valores de la columna pedida en las filas que cumplen el filtro, o List("") si no hay coincidencia. */
@@ -48,6 +51,9 @@ class {{Fuente}}ValidationProcessorSpec extends AnyFunSuite {
     RecordValidator.validarRegistro(spec, fila, CatalogoSintetico, hoy).errores.map(_.codigo)
 
   private val HeaderCorrecto: String = "{{header_linea_scala}}"
+
+  /** Header con los nombres fuente (primer alias de cada campo) (AUD-V-09). */
+  private val HeaderFuente: String = "{{header_fuente_linea_scala}}"
 
   test("la especificación declara {{numero_campos}} campos con posiciones consecutivas") {
     assert(spec.numeroCampos == {{numero_campos}})
@@ -104,6 +110,11 @@ class {{Fuente}}ValidationProcessorSpec extends AnyFunSuite {
     assert(!RecordValidator.esHeader(spec, linea(RegistroBase)))
   }
 
+  test("header con los nombres fuente (alias) se acepta y se reconoce como fila de header") {
+    assert(RecordValidator.validarHeader(spec, Seq(HeaderFuente)).isEmpty)
+    assert(RecordValidator.esHeader(spec, HeaderFuente))
+  }
+
   test("header con una columna distinta, con columnas de menos o vacío produce el código de header") {
     val cols = HeaderCorrecto.split(java.util.regex.Pattern.quote("{{delimitador_scala}}"), -1)
     assert(RecordValidator.validarHeader(spec, Seq(cols.updated(1, "OTRA").mkString("{{delimitador_scala}}"))).map(_.codigo) == Seq(spec.codigos.header))
@@ -112,9 +123,9 @@ class {{Fuente}}ValidationProcessorSpec extends AnyFunSuite {
   }
 
   test("nombre de archivo del fixture es válido y uno distinto no") {
-    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/{{fixture_nombre_archivo}}").isEmpty)
-    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/OTRO_ARCHIVO.txt").map(_.codigo) == Seq(spec.codigos.nombreArchivo))
-  }
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/{{fixture_nombre_archivo}}", ahora).isEmpty)
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/OTRO_ARCHIVO.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+  }{{bloque_pruebas_nombre}}
 
   test("la clave de duplicado nunca es vacía") {
     assert(RecordValidator.claveDuplicado(spec, Campos.separar(linea(RegistroBase), "{{delimitador_scala}}")).nonEmpty)

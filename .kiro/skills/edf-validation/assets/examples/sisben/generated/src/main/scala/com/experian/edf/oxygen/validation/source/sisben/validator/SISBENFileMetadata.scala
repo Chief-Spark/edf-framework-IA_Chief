@@ -1,5 +1,5 @@
 // VAL-TPL-05 · plantilla parametrizada.
-// Generado por el skill edf-validation-stage desde source-spec (sisben-v4-0.1.0). No editar a mano.
+// Generado por la skill edf-validation desde source-spec (sisben-v4-0.1.0). No editar a mano.
 // Guard-rails de archivo de SISBEN extraídos del nombre. Nunca lanza si el nombre no coincide (VAL-RC03):
 // el diagnóstico del nombre lo hace validateFilename; aquí solo se usan valores de respaldo.
 package com.experian.edf.oxygen.validation.source.sisben.validator
@@ -26,7 +26,7 @@ class SISBENFileMetadata(fileName: String, headers: Array[String]) extends FileM
     .map(i => i.recibido.atOffset(i.offset).toInstant.toEpochMilli)
     .getOrElse(0L)
 
-  /** ASSUMPTION VAL-SP07: fecha de corte = último día del periodo AAAAMM (inferida del nombre), en epoch ms; 0L si no coincide. */
+  /** ASSUMPTION VAL-SP07: fecha de corte = último día del periodo AAAAMM del nombre, en epoch ms; 0L si no coincide. */
   override val fileAsOfDate: Long = RecordValidator.parsearNombre(SISBENSpec.Spec, fileName)
     .map(i => i.periodo.atEndOfMonth.atStartOfDay(ZoneId.of("America/Bogota")).toInstant.toEpochMilli)
     .getOrElse(0L)

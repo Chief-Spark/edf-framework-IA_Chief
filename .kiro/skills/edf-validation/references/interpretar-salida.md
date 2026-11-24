@@ -8,7 +8,7 @@ Kafka. No hay `rejected/`. Cada línea es un `TaggedValidatedEvent`:
 | Campo | Qué mirar |
 |---|---|
 | `lineage` | `dataSource = DNP`, `subscriber = 999722`, `fileName`, `receivedDate`, `fileAsOfDate`, `recordHash` |
-| `validatedRecordJson` | Mapa ordenado `NOMBRE_CAMPO → valor` (22 claves) |
+| `validatedRecordJson` | Mapa ordenado `NOMBRE_CAMPO → valor recibido`, sin trim (22 claves; Curation necesita el valor original, AUD-V-05) |
 | `errorCodes[]` | `ObjectError`: `errorCodeValue` = código, `errorLevel` = `1`/`3`, `messageKey` = causa |
 | `qualityScores[]` | `{name: "RQS", score: 1.0 | 0.0}` |
 | `eventType` | 30; o el del marcador (-1002…-1005) |
@@ -21,7 +21,10 @@ Kafka. No hay `rejected/`. Cada línea es un `TaggedValidatedEvent`:
    encontrada (`.processorerror`), `lambda ≠ batch`, `emitStockMetrics` ausente, o una excepción por
    registro distinta de `MalformedEventException` (no debería ocurrir con el código generado).
 2. **Solo hay un evento marcador** con sufijo en el nombre de salida:
-   - `errorInFileName` (-1002): el nombre no cumple el regex o la marca de tiempo es imposible. Código
+   - `errorInFileName` (-1002): el nombre no cumple el regex, la marca de tiempo es imposible, el offset no
+     lo acepta Java o se viola una regla de fecha activa de `archivo.nombre` (periodo futuro, recepción futura,
+     recepción anterior al periodo; AUD-V-02). Un archivo que no cumple `filePattern` no llega aquí: el motor
+     no lo procesa (no hay marcador). Código
      `SISBEN_ERR_024`.
    - `errorInHeader` (-1003): header con ≠ 22 columnas o nombres no reconocidos. `SISBEN_ERR_025`.
    - `errorInFooter` (-1004): no aplica a SISBEN (`footerRows = 0`). Con `filas_footer > 0` el processor
@@ -29,9 +32,12 @@ Kafka. No hay `rejected/`. Cada línea es un `TaggedValidatedEvent`:
    - `errorInEmptyFileBody` (-1005): header presente pero **ningún registro tras filtros**; ocurre
      también si todas las filas son de menores o vacías.
    Acceptance rechaza automáticamente estos marcadores.
-3. **Hay registros**: revisar conteo por código y promedio de RQS (métrica `AverageRQS`).
+3. **Hay registros**: revisar conteo por código y promedio de RQS (métrica `AverageRQS`). Los códigos de esta
+   lista son los del ejemplo de forma (`assets/examples/sisben/`); en una ingesta valen los de su spec (por
+   ejemplo, en la spec SISBEN 1.0.2 la fecha de digitación es `SISBEN_INC_018`, de severidad 3).
    - `SISBEN_ERR_026` alto → delimitador incorrecto o `;` dentro de un valor.
-   - `SISBEN_ERR_003/005` altos → catálogo DANE desactualizado o mal cargado en `lookupHome`.
+   - `SISBEN_ERR_003/005` altos → catálogo DANE desactualizado o mal cargado en `lookupHome` (los `file`
+     del HOCON son `${oxygen.application.paths.lookupHome}"/<archivo>"`, AUD-V-06).
    - `SISBEN_ERR_018/022` altos → formato de fecha nuevo en la fuente.
    - `SISBEN_ERR_023` → salvoconductos pendientes de homologación (esperado, F-08).
    - `OxygenDuplicate` → duplicados por tipo + número; se conserva el más reciente.

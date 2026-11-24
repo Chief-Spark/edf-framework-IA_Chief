@@ -5,6 +5,9 @@ Generador VIGENTE de la skill (desde la versión 1.4.0 del framework, 2026-11-18
 solo Python 3 con PyYAML y jsonschema. Es la traducción fiel del generador Java deprecado que se usó hasta la
 1.3.x (scripts/java, conservado como referencia histórica, no se ejecuta): misma salida byte a byte, incluido
 manifest.json. Desde la auditoría 2026-11-24 (AUD-V1..AUD-V8) la salida evoluciona solo aquí.
+1.9.2 (corrida E2E SISBEN, AUD-V-01..AUD-V-21): filePattern en validate[]/metrics[], lookupHome en los lookups,
+valor recibido en validatedRecordJson, reglas de fecha del nombre, regla solo_ceros, supuestos_resueltos, grupos de
+duplicados y nombres inválidos en el fixture, códigos de error en docs/ y nombre de la skill en el manifest.
 
 Uso:
     python render_templates.py --spec source-spec.yaml --out carpeta_salida
@@ -27,11 +30,13 @@ import hashlib
 import json
 import re
 import sys
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
 
 import yaml
 
+SKILL_NAME = "edf-validation"  # nombre de la skill (SKILL.md); manifest y cabeceras (AUD-V-10)
 SKILL_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = SKILL_DIR / "assets" / "templates"
 SCHEMA_PATH = SKILL_DIR / "assets" / "schema" / "source-spec.schema.yaml"
@@ -80,7 +85,8 @@ TEMPLATE_TARGETS: dict[str, str] = {
     "fixture.txt.tpl": "src/test/resources/{{fuente}}/{{fixture_nombre_archivo}}",
     "validation-block.conf.tpl": "env/application-conf/innersource/propuesta/validation-configs-{{fuente}}.conf",
     "lookups.conf.tpl": "env/application-conf/innersource/propuesta/lookups-{{fuente}}.conf",
-    "codigos-error.csv.tpl": "env/application-conf/innersource/propuesta/codigos-error-{{fuente}}.csv",
+    # Catálogo documental de códigos: fuera de la carpeta propuesta/ que se pega en el fork (AUD-V-19).
+    "codigos-error.csv.tpl": "docs/codigos-error-{{fuente}}.csv",
 }
 
 
@@ -187,6 +193,133 @@ def build_fixture_line(spec: dict, case: dict) -> str:
     return spec["archivo"]["delimitador"].join(values)
 
 
+# ------------------------------------------------- nombre de archivo (réplica de RecordValidator, AUD-V-02/16)
+# Reglas de fecha opcionales de archivo.nombre. Sin ellas (o en false) el nombre se valida como antes: regex,
+# periodo AAAAMM legible, marca de tiempo legible y offset que acepta java.time.ZoneOffset.of.
+REGLAS_NOMBRE = ("periodo_no_futuro", "recepcion_no_futura", "recepcion_desde_inicio_periodo")
+# Formas que acepta java.time.ZoneOffset.of, por longitud del texto (sin contar la Z).
+_OFFSET_FORMAS = {2: r"([+-])(\d)", 3: r"([+-])(\d\d)", 5: r"([+-])(\d\d)(\d\d)", 6: r"([+-])(\d\d):(\d\d)",
+                  7: r"([+-])(\d\d)(\d\d)(\d\d)", 9: r"([+-])(\d\d):(\d\d):(\d\d)"}
+
+
+def java_zone_offset(texto: str | None) -> timedelta | None:
+    """Offset con las reglas de java.time.ZoneOffset.of: Z, ±h, ±hh, ±hhmm, ±hh:mm, ±hhmmss, ±hh:mm:ss; horas 0..18,
+    minutos y segundos 0..59 y total dentro de ±18:00. None si Java lo rechazaría (p. ej. -2500, AUD-V-16)."""
+    if texto == "Z":
+        return timedelta(0)
+    forma = _OFFSET_FORMAS.get(len(texto or ""))
+    m = re.fullmatch(forma, texto) if forma else None
+    if not m:
+        return None
+    partes = [int(x) for x in m.groups()[1:]] + [0, 0]
+    horas, minutos, segundos = partes[:3]
+    total = timedelta(hours=horas, minutes=minutos, seconds=segundos)
+    if horas > 18 or minutos > 59 or segundos > 59 or total > timedelta(hours=18):
+        return None
+    return -total if m.group(1) == "-" else total
+
+
+def info_nombre(spec: dict, ruta: str | None) -> dict | None:
+    """Réplica de RecordValidator.parsearNombre: grupos del nombre (sin ruta) o None si no coincide, si el periodo
+    o la marca de tiempo no son fechas válidas o si el offset no lo acepta Java."""
+    nombre = re.split(r"[/\\]", ruta or "")[-1]
+    rx = spec["archivo"]["nombre"]
+    grupos = rx["grupos"]
+    match = re.fullmatch(rx["regex"], nombre)
+    if not match:
+        return None
+    periodo_txt, marca = match.group(grupos["periodo"]), match.group(grupos["marca_tiempo"])
+    try:
+        periodo = datetime.strptime(periodo_txt, "%Y%m")
+        recibido = datetime.strptime(marca, "%Y%m%d%H%M%S")
+    except (TypeError, ValueError):
+        return None
+    if periodo.strftime("%Y%m") != periodo_txt or recibido.strftime("%Y%m%d%H%M%S") != marca:
+        return None
+    offset = java_zone_offset(match.group(grupos["offset"]))
+    if offset is None:
+        return None
+    return {"periodo": (periodo.year, periodo.month), "recibido": recibido, "offset": offset}
+
+
+def ahora_de_referencia(spec: dict, hoy: date) -> datetime:
+    """Reloj de un día (--hoy, fixture.fecha_referencia): fin del día (23:59:59) en la zona de la fuente. Es el mismo
+    instante que usa la prueba Scala generada (`ahora`)."""
+    from zoneinfo import ZoneInfo
+
+    return datetime.combine(hoy, time(23, 59, 59), ZoneInfo(spec["fuente"]["zona_horaria"]))
+
+
+def reglas_nombre_violadas(spec: dict, info: dict, ahora: datetime) -> list[str]:
+    """Reglas de fecha de archivo.nombre activas que el nombre no cumple respecto de `ahora` (con zona)."""
+    nombre = spec["archivo"]["nombre"]
+    violadas = []
+    if nombre.get("periodo_no_futuro"):
+        try:
+            from zoneinfo import ZoneInfo
+
+            local = ahora.astimezone(ZoneInfo(spec["fuente"]["zona_horaria"]))
+            futuro = info["periodo"] > (local.year, local.month)
+        except Exception:  # noqa: BLE001 - como la Capa A: zona inválida → nombre inválido, sin excepción
+            futuro = True
+        if futuro:
+            violadas.append("periodo_no_futuro")
+    if nombre.get("recepcion_no_futura") and info["recibido"].replace(tzinfo=timezone(info["offset"])) > ahora:
+        violadas.append("recepcion_no_futura")
+    if nombre.get("recepcion_desde_inicio_periodo") and info["recibido"].date() < date(*info["periodo"], 1):
+        violadas.append("recepcion_desde_inicio_periodo")
+    return violadas
+
+
+def nombre_valido(spec: dict, ruta: str, ahora: datetime) -> bool:
+    """Réplica de RecordValidator.validarNombre(spec, ruta, ahora)."""
+    info = info_nombre(spec, ruta)
+    return info is not None and not reglas_nombre_violadas(spec, info, ahora)
+
+
+def nombre_valido_el_dia(spec: dict, ruta: str, hoy: date) -> bool:
+    """nombre_valido con el reloj de un día (ahora_de_referencia). Sin reglas de fecha activas no usa la zona ni el
+    día, como la Capa A; con reglas y una zona inválida el nombre es inválido."""
+    info = info_nombre(spec, ruta)
+    if info is None:
+        return False
+    if not any(spec["archivo"]["nombre"].get(r) for r in REGLAS_NOMBRE):
+        return True
+    try:
+        ahora = ahora_de_referencia(spec, hoy)
+    except Exception:  # noqa: BLE001 - zona inexistente: nombre inválido, sin excepción (como la Capa A)
+        return False
+    return not reglas_nombre_violadas(spec, info, ahora)
+
+
+def nombres_de_prueba(spec: dict) -> list[tuple[str, str, str]]:
+    """(regla, descripción, nombre) SINTÉTICOS que violan cada regla de fecha activa, derivados del nombre del
+    fixture cambiando solo los dígitos del periodo o de la marca de tiempo. Vacío si no hay reglas activas."""
+    nombre = spec["archivo"]["nombre"]
+    activas = [r for r in REGLAS_NOMBRE if nombre.get(r)]
+    fixture = spec["fixture"]["nombre_archivo"]
+    match = re.fullmatch(nombre["regex"], fixture)
+    if not activas or not match:
+        return []
+    grupos = nombre["grupos"]
+    ref = date.fromisoformat(spec["fixture"]["fecha_referencia"])
+    periodo = datetime.strptime(match.group(grupos["periodo"]), "%Y%m")
+
+    def con(grupo: str, valor: str) -> str:
+        i, j = match.span(grupos[grupo])
+        return fixture[:i] + valor + fixture[j:]
+
+    candidatos = {
+        "periodo_no_futuro": ("periodo posterior al mes de referencia",
+                              con("periodo", f"{ref.year + 1:04d}{ref.month:02d}")),
+        "recepcion_no_futura": ("recepción posterior a la fecha de referencia",
+                                con("marca_tiempo", (ref + timedelta(days=3)).strftime("%Y%m%d") + "120000")),
+        "recepcion_desde_inicio_periodo": ("recepción anterior al primer día del periodo",
+                                           con("marca_tiempo", (periodo - timedelta(days=1)).strftime("%Y%m%d") + "120000")),
+    }
+    return [(regla, *candidatos[regla]) for regla in activas]
+
+
 # ---------------------------------------------------------------------- verificaciones semánticas
 def check_codes(spec: dict) -> list[str]:
     errors: list[str] = []
@@ -287,6 +420,10 @@ def check_references(spec: dict) -> list[str]:
         else:
             need_field(r.get("campo"), r["id"])
     for cat in spec["catalogos"]:
+        archivo = cat["archivo"]
+        if archivo.startswith("/") or ".." in archivo.split("/") or re.search(r"[\\\"$]", archivo) or not archivo:
+            errors.append(f"{cat['tabla']}: archivo debe ser una ruta relativa a lookupHome, sin '/' inicial, '..', '\\\\', "
+                          f"comillas ni '$' (AUD-V-06): {archivo!r}")
         for key in cat["keys"]:
             if key not in cat["columnas"]:
                 errors.append(f"{cat['tabla']}: key {key} no es una columna")
@@ -365,6 +502,33 @@ def check_file_contract(spec: dict) -> list[str]:
         errors.append("fixture.nombre_archivo no cumple archivo.file_pattern (ruta completa)")
     if re.search(r"[\"\\/]", fixture_name):
         errors.append("fixture.nombre_archivo no puede contener comillas, barras ni rutas")
+    return errors + check_name_rules(spec)
+
+
+def check_name_rules(spec: dict) -> list[str]:
+    """AUD-V-02/AUD-V-09: el nombre del fixture cumple las reglas de fecha activas a la fecha de referencia; cada
+    nombre de prueba derivado y cada fixture.nombres_invalidos se rechaza con la réplica Python de la Capa A."""
+    errors: list[str] = []
+    fixture = spec["fixture"]
+    try:
+        ahora = ahora_de_referencia(spec, date.fromisoformat(fixture["fecha_referencia"]))
+    except Exception as exc:  # noqa: BLE001 - zona u hoy inválidos: se informa como error de la spec
+        activas = [r for r in REGLAS_NOMBRE if spec["archivo"]["nombre"].get(r)]
+        return [f"fuente.zona_horaria o fixture.fecha_referencia inválidas para las reglas del nombre: {exc}"] \
+            if activas or fixture.get("nombres_invalidos") else []
+    nombre = "/ruta/sintetica/" + fixture["nombre_archivo"]
+    info = info_nombre(spec, nombre)
+    if info is None:
+        errors.append("fixture.nombre_archivo: periodo, marca de tiempo u offset inválidos (Java lo rechazaría)")
+    else:
+        errors += [f"fixture.nombre_archivo no cumple archivo.nombre.{r} a la fecha de referencia"
+                   for r in reglas_nombre_violadas(spec, info, ahora)]
+    for regla, _, prueba in nombres_de_prueba(spec):
+        if nombre_valido(spec, prueba, ahora):
+            errors.append(f"archivo.nombre.{regla}: no se pudo derivar del fixture un nombre que la viole ({prueba})")
+    for invalido in fixture.get("nombres_invalidos") or []:
+        if nombre_valido(spec, invalido, ahora):
+            errors.append(f"fixture.nombres_invalidos: {invalido} es válido con el regex y las reglas del nombre")
     return errors
 
 
@@ -404,13 +568,26 @@ def check_fixture(spec: dict) -> list[str]:
     return errors
 
 
+def check_supuestos_resueltos(spec: dict) -> list[str]:
+    """AUD-V-08: un ID de supuestos_resueltos aparece una sola vez y no está a la vez en la lista `supuestos` de
+    un campo, regla o catálogo (sería resuelto y abierto a la vez)."""
+    errors = []
+    ids = [r["id"] for r in spec.get("supuestos_resueltos") or []]
+    errors += [f"supuestos_resueltos: {i} repetido" for i in sorted({i for i in ids if ids.count(i) > 1})]
+    abiertos = {s for grupo in ("campos", "reglas_entre_campos", "catalogos")
+                for item in spec[grupo] for s in item.get("supuestos") or []}
+    errors += [f"supuestos_resueltos: {i} también figura como supuesto abierto de un campo, regla o catálogo"
+               for i in sorted(set(ids) & abiertos)]
+    return errors
+
+
 def verify_spec(spec: dict, schema_path: Path = SCHEMA_PATH) -> list[str]:
     """Esquema + reglas semánticas. Devuelve todos los errores encontrados."""
     errors = validate_schema(spec, schema_path)
     if errors:
         return errors  # sin forma válida, las reglas semánticas no son confiables
     for check in (check_fields, check_codes, check_quality_scores, check_metrics, check_references,
-                  check_file_contract, check_metadata, check_fixture):
+                  check_file_contract, check_metadata, check_fixture, check_supuestos_resueltos):
         errors += check(spec)
     return errors
 
@@ -460,6 +637,10 @@ def render_regla(r: dict) -> str:
                 f"      tabla = \"{scala_str(r['tabla'])}\", columnaClave = \"{scala_str(r['columna_clave'])}\", "
                 f"columnaNombre = \"{scala_str(r['columna_nombre'])}\",\n"
                 f"      codigo = \"{scala_str(r['codigo'])}\", severidad = {sev})")
+    if r["tipo"] == "solo_ceros":
+        return (marcas
+                + f"    SoloCeros(id = \"{scala_str(r['id'])}\", campo = {r['campo']}, "
+                f"codigo = \"{scala_str(r['codigo'])}\", severidad = {sev}, causa = \"{scala_str(r['causa'])}\")")
     return (marcas
             + f"    ValorConCodigoPropio(id = \"{scala_str(r['id'])}\", campo = {r['campo']}, "
             f"valores = Set({scala_list(r['valores'])}),\n"
@@ -470,7 +651,7 @@ def render_lookup(cat: dict) -> str:
     keys = ",\n".join(f'      {{ index = "{hocon_str(k)}" }}' for k in cat["keys"])
     return ("  {\n"
             f"    tableName = \"{hocon_str(cat['tabla'])}\"\n"
-            f"    file = \"{hocon_str(cat['archivo'])}\"\n"
+            f"    file = ${{oxygen.application.paths.lookupHome}}\"/{hocon_str(cat['archivo'])}\"\n"
             "    fileFormat = \"csv\"\n"
             f"    delimiter = \"{hocon_str(cat['delimitador'])}\"\n"
             f"    keys = [\n{keys}\n    ]\n"
@@ -492,8 +673,27 @@ def render_field_tests(spec: dict) -> str:
         for c in spec["campos"])
 
 
+def render_dup_test(spec: dict, grupo: str | None, dup_lines: list[str], dup_flags: list[bool]) -> str:
+    """Prueba de un grupo de duplicados del fixture. Sin `grupo_duplicado` el texto es el de siempre."""
+    kept = dup_flags.index(False) if False in dup_flags else -1
+    lines = ", ".join(f'"{line}"' for line in dup_lines)
+    delim = scala_str(spec["archivo"]["delimitador"])
+    titulo = "fixture duplicados" + (f" (grupo {scala_str(grupo)})" if grupo else "")
+    return (
+        f"  test(\"{titulo}: misma clave y se conserva el más reciente (ASSUMPTION F-14)\") {{\n"
+        f"    val grupo = Seq({lines})\n"
+        f"    val claves = grupo.map(l => RecordValidator.claveDuplicado(spec, Campos.separar(l, \"{delim}\")).toSeq)\n"
+        "    assert(claves.distinct.size == 1)\n"
+        "    val fechas = grupo.map(l => RecordValidator.asOfDate(spec, l).getOrElse(0L))\n"
+        "    val candidatos = fechas.zipWithIndex.map { case (f, i) => (f, \"%05d\".format(i)) }\n"
+        f"    assert(RecordValidator.indiceAConservar(candidatos) == {kept})\n"
+        "  }")
+
+
 def render_fixture_tests(spec: dict) -> str:
-    blocks, dup_lines, dup_flags = [], [], []
+    blocks: list[str] = []
+    # grupo_duplicado (opcional, AUD-V-09) → (líneas, marcas); sin la clave todos van al grupo None, como antes.
+    dup_groups: dict[str | None, tuple[list[str], list[bool]]] = {}
     for case in spec["fixture"]["casos"]:
         line = scala_str(build_fixture_line(spec, case))
         title = scala_str(f"fixture {case['id']}: {case['descripcion']}")
@@ -505,22 +705,34 @@ def render_fixture_tests(spec: dict) -> str:
                     f"    assert(codigos(\"{line}\") == Seq({scala_list(esperado.get('codigos') or [])}))")
         blocks.append(f"  test(\"{title}\") {{\n{body}\n  }}")
         if "duplicado" in esperado:
-            dup_lines.append(line)
-            dup_flags.append(bool(esperado["duplicado"]))
-    if dup_lines:
-        kept = dup_flags.index(False) if False in dup_flags else -1
-        lines = ", ".join(f'"{line}"' for line in dup_lines)
-        delim = scala_str(spec["archivo"]["delimitador"])
-        blocks.append(
-            "  test(\"fixture duplicados: misma clave y se conserva el más reciente (ASSUMPTION F-14)\") {\n"
-            f"    val grupo = Seq({lines})\n"
-            f"    val claves = grupo.map(l => RecordValidator.claveDuplicado(spec, Campos.separar(l, \"{delim}\")).toSeq)\n"
-            "    assert(claves.distinct.size == 1)\n"
-            "    val fechas = grupo.map(l => RecordValidator.asOfDate(spec, l).getOrElse(0L))\n"
-            "    val candidatos = fechas.zipWithIndex.map { case (f, i) => (f, \"%05d\".format(i)) }\n"
-            f"    assert(RecordValidator.indiceAConservar(candidatos) == {kept})\n"
-            "  }")
+            lineas, marcas = dup_groups.setdefault(esperado.get("grupo_duplicado"), ([], []))
+            lineas.append(line)
+            marcas.append(bool(esperado["duplicado"]))
+    for grupo, (lineas, marcas) in dup_groups.items():
+        blocks.append(render_dup_test(spec, grupo, lineas, marcas))
     return "\n\n".join(blocks) + render_footer_test(spec)
+
+
+def render_name_tests(spec: dict) -> str:
+    """Pruebas del nombre de archivo que dependen de la spec (AUD-V-02, AUD-V-09): una por regla de fecha activa
+    (nombre derivado del fixture) y una por fixture.nombres_invalidos. Vacío si no hay ninguna."""
+    blocks = []
+    for regla, descripcion, nombre in nombres_de_prueba(spec):
+        blocks.append(
+            f"  test(\"nombre de archivo con {scala_str(descripcion)} produce el código de nombre ({regla})\") {{\n"
+            f"    assert(RecordValidator.validarNombre(spec, \"/ruta/sintetica/{scala_str(nombre)}\", ahora).map(_.codigo) == "
+            "Seq(spec.codigos.nombreArchivo))\n"
+            "  }")
+    invalidos = spec["fixture"].get("nombres_invalidos") or []
+    if invalidos:
+        lista = ", ".join(f'"{scala_str(n)}"' for n in invalidos)
+        blocks.append(
+            "  test(\"nombres de archivo inválidos declarados en el fixture producen el código de nombre\") {\n"
+            f"    for (nombre <- Seq({lista}))\n"
+            "      assert(RecordValidator.validarNombre(spec, \"/ruta/sintetica/\" + nombre, ahora).map(_.codigo) == "
+            "Seq(spec.codigos.nombreArchivo), nombre)\n"
+            "  }")
+    return "".join("\n\n" + b for b in blocks)
 
 
 def render_footer(spec: dict) -> dict[str, str]:
@@ -618,6 +830,8 @@ def render_error_codes(spec: dict) -> str:
              *([f"{especiales['footer']};1;FOOTER;Footer inválido"] if especiales.get("footer") else []),
              f"{especiales['estructura']};1;REGISTRO;Número de columnas distinto al layout",
              f"{especiales['interno']};1;REGISTRO;Error interno al validar el registro"]
+    if spec["duplicados"]["habilitado"]:  # marca del motor/processor, sin nivel (F-15, AUD-V-19)
+        rows.append(f"{DUPLICATE_MARK};;REGISTRO;Duplicado no conservado (marca OxygenDuplicate)")
     seen, unique = set(), []
     for row in rows:  # un código puede venir de un campo y de una regla (p. ej. correspondencia DANE)
         code = row.split(";", 1)[0]
@@ -640,6 +854,8 @@ def build_context(spec: dict) -> dict[str, str]:
     filtro = spec["filtro_filas"]
     filtro_pos = fields[filtro["campo"]]["posicion"] if filtro.get("campo") else None
     header = delim.join(c["nombre"] for c in campos)
+    # Header con los nombres fuente: primer alias distinto del nombre de dominio (o el nombre si no hay) (AUD-V-09).
+    header_fuente = delim.join(next((a for a in c["alias"] if a != c["nombre"]), c["nombre"]) for c in campos)
     ref = fixture["fecha_referencia"].split("-")
     footer = render_footer(spec)
     ultimo_dia = nombre["file_as_of_date"] == "ultimo_dia_periodo"
@@ -680,6 +896,10 @@ def build_context(spec: dict) -> dict[str, str]:
         "grupo_periodo": str(grupos["periodo"]),
         "grupo_marca_tiempo": str(grupos["marca_tiempo"]),
         "grupo_offset": str(grupos["offset"]),
+        "nombre_periodo_no_futuro": lower(bool(nombre.get("periodo_no_futuro"))),
+        "nombre_recepcion_no_futura": lower(bool(nombre.get("recepcion_no_futura"))),
+        "nombre_recepcion_desde_inicio_periodo": lower(bool(nombre.get("recepcion_desde_inicio_periodo"))),
+        "bloque_pruebas_nombre": render_name_tests(spec),
         "bloque_file_tags": ", ".join(f'"{scala_str(k)}" -> "{scala_str(v)}"'
                                       for k, v in nombre["file_tag_por_prefijo"].items()),
         "expr_file_as_of_date": "i.periodo.atEndOfMonth" if ultimo_dia else "i.periodo.atDay(1)",
@@ -694,7 +914,8 @@ def build_context(spec: dict) -> dict[str, str]:
         "bloque_reglas": ",\n".join(render_regla(r) for r in spec["reglas_entre_campos"]),
         "bloque_accesores": "\n".join(f'  val {camel(c["nombre"])}: String = Campos.valor(valores, {c["posicion"]})'
                                       for c in campos),
-        "bloque_mapa_json": "\n".join(f'    m.put("{c["nombre"]}", {camel(c["nombre"])})' for c in campos),
+        # validatedRecordJson lleva el valor RECIBIDO, sin trim (Curation lo necesita; AUD-V-05).
+        "bloque_mapa_json": "\n".join(f'    m.put("{c["nombre"]}", Campos.crudo(valores, {c["posicion"]}))' for c in campos),
         "filtro_lineas_vacias": lower(filtro.get("lineas_vacias")),
         "filtro_posicion_scala": f"Some({filtro_pos})" if filtro_pos else "None",
         "filtro_valores_scala": scala_list(filtro.get("valores") or []),
@@ -723,6 +944,7 @@ def build_context(spec: dict) -> dict[str, str]:
         "registro_base_scala": scala_list(fixture["registro_base"]),
         "header_linea": header,
         "header_linea_scala": scala_str(header),
+        "header_fuente_linea_scala": scala_str(header_fuente),
         "numero_campos": str(len(campos)),
         "fecha_referencia_scala": f"LocalDate.of({int(ref[0])}, {int(ref[1])}, {int(ref[2])})",
         "fixture_nombre_archivo": fixture["nombre_archivo"],
@@ -791,6 +1013,21 @@ def marcas_sin_id(text: str) -> list[int]:
     return out
 
 
+def resolver_supuestos(text: str, resueltos: dict[str, str]) -> tuple[str, set[str]]:
+    """AUD-V-08: cambia `ASSUMPTION <ID>` por `RESUELTO <ID> (<fuente>)` para los IDs que la spec de la ingesta ya
+    fija (supuestos_resueltos). Esas marcas dejan de ser supuestos abiertos y no entran a manifest["supuestos"]."""
+    usados: set[str] = set()
+
+    def repl(match: re.Match) -> str:
+        ident = match.group(1)
+        if ident not in resueltos:
+            return match.group(0)
+        usados.add(ident)
+        return f"RESUELTO {ident} ({resueltos[ident]})"
+
+    return MARCA_RE.sub(repl, text), usados
+
+
 def lookup_csvs(spec: dict, out: Path) -> dict[Path, str]:
     """Catálogos SINTÉTICOS para tests/ejecución local (no son datos oficiales): ruta → contenido."""
     base = out / "src" / "test" / "resources" / spec["fuente"]["fuente"] / "lookup"
@@ -823,6 +1060,8 @@ def render_all(spec: dict, out: Path, templates_dir: Path = TEMPLATES_DIR) -> di
     files: dict[Path, str] = {}
     supuestos: set[str] = set()
     problems: list[str] = []
+    resueltos = {r["id"]: r["fuente"] for r in spec.get("supuestos_resueltos") or []}
+    resueltos_usados: set[str] = set()
     for rel, target in TEMPLATE_TARGETS.items():
         body, missing = fill(read_text(templates_dir / rel), context)
         target_path, missing_path = fill(target, context)
@@ -830,6 +1069,8 @@ def render_all(spec: dict, out: Path, templates_dir: Path = TEMPLATES_DIR) -> di
         if missing:
             problems.append(f"{rel}: huecos sin valor {sorted(missing)}")
             continue
+        body, usados = resolver_supuestos(body, resueltos)
+        resueltos_usados |= usados
         leftover = sorted(set(PLACEHOLDER_RE.findall(body)))
         if leftover:
             problems.append(f"{rel}: quedaron huecos sin resolver {leftover}")
@@ -841,6 +1082,9 @@ def render_all(spec: dict, out: Path, templates_dir: Path = TEMPLATES_DIR) -> di
             problems.append(f"{rel}: marca ASSUMPTION sin ID en las líneas {sin_id} (AC-18a)")
         supuestos.update(marcas_supuesto(body))
         files[out / target_path] = body
+    sin_marca = sorted(set(resueltos) - resueltos_usados)
+    if sin_marca:
+        problems.append(f"supuestos_resueltos sin marca ASSUMPTION en la salida: {sin_marca}")
     for path, text in lookup_csvs(spec, out).items():
         forbidden = scan_forbidden(text)
         if forbidden:
@@ -849,7 +1093,7 @@ def render_all(spec: dict, out: Path, templates_dir: Path = TEMPLATES_DIR) -> di
 
     ambiente = spec["ambiente"]
     manifest = {
-        "skill": "edf-validation-stage",
+        "skill": SKILL_NAME,
         "spec_version": spec["spec_version"],
         "fuente": spec["fuente"]["Fuente"],
         "estado": "PROPUESTA - requiere aprobación del técnico antes de copiar al fork (Human-in-the-Loop)",
@@ -864,6 +1108,8 @@ def render_all(spec: dict, out: Path, templates_dir: Path = TEMPLATES_DIR) -> di
         },
         "supuestos": sorted(supuestos),
     }
+    if resueltos:
+        manifest["supuestos_resueltos"] = [{"id": i, "fuente": resueltos[i]} for i in sorted(resueltos)]
     manifest_text = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
     forbidden = scan_forbidden(manifest_text)
     if forbidden:

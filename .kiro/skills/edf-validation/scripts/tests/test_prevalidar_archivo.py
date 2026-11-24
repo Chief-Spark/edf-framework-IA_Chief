@@ -226,3 +226,111 @@ def test_cli_spec_con_footer_sale_con_2(tmp_path, capsys):
     archivo = EXAMPLE / "input" / "SISBEN_EXPERIAN_202406.20240630120000-0500.txt"
     assert pv.main(["--spec", str(con_footer), "--archivo", str(archivo), "--hoy", "2024-06-30"]) == 2
     assert "no modela E8 (footer)" in capsys.readouterr().err
+
+
+# ------------------------------------------------------------------ 1.9.2: corrida E2E SISBEN (AUD-V-nn)
+HOY_E2E = date(2026, 11, 24)
+NOMBRES_FECHA = {  # los tres casos de la auditoría (prefijo del ejemplo de forma), con --hoy 2026-11-24
+    "periodo futuro": "SISBEN_EXPERIAN_209901.20260205093000-0500.txt",
+    "recepción anterior al periodo": "SISBEN_EXPERIAN_202601.20251205093000-0500.txt",
+    "recepción futura": "SISBEN_EXPERIAN_202611.20261230093000-0500.txt",
+}
+VALIDO_E2E = "SISBEN_EXPERIAN_202601.20260205093000-0500.txt"
+
+
+def con_reglas(spec: dict) -> dict:
+    alt = copy.deepcopy(spec)
+    alt["archivo"]["nombre"].update(periodo_no_futuro=True, recepcion_no_futura=True,
+                                    recepcion_desde_inicio_periodo=True)
+    return alt
+
+
+@pytest.mark.parametrize("nombre", NOMBRES_FECHA.values(), ids=NOMBRES_FECHA.keys())
+def test_aud_v02_sin_claves_el_nombre_se_valida_como_antes(spec, nombre):
+    assert pv.validate_name(spec, "/x/" + nombre, HOY_E2E) == []
+
+
+@pytest.mark.parametrize("nombre", NOMBRES_FECHA.values(), ids=NOMBRES_FECHA.keys())
+def test_aud_v02_con_claves_el_nombre_se_rechaza_con_el_codigo_configurado(spec, nombre):
+    errores = pv.validate_name(con_reglas(spec), "/x/" + nombre, HOY_E2E)
+    assert [e["codigo"] for e in errores] == [spec["codigos_especiales"]["nombre_archivo"]]
+    assert pv.validate_name(con_reglas(spec), "/x/" + VALIDO_E2E, HOY_E2E) == []
+
+
+@pytest.mark.parametrize("regla,nombre", [
+    ("periodo_no_futuro", NOMBRES_FECHA["periodo futuro"]),
+    ("recepcion_no_futura", NOMBRES_FECHA["recepción futura"]),
+    ("recepcion_desde_inicio_periodo", NOMBRES_FECHA["recepción anterior al periodo"]),
+])
+def test_aud_v02_cada_regla_por_separado(spec, regla, nombre):
+    alt = copy.deepcopy(spec)
+    alt["archivo"]["nombre"][regla] = True
+    assert pv.validate_name(alt, "/x/" + nombre, HOY_E2E)
+    alt["archivo"]["nombre"][regla] = False
+    assert pv.validate_name(alt, "/x/" + nombre, HOY_E2E) == []
+
+
+def test_aud_v02_el_reloj_es_hoy_hasta_el_fin_del_dia(spec):
+    alt = copy.deepcopy(spec)
+    alt["archivo"]["nombre"]["recepcion_no_futura"] = True
+    mismo_dia = "SISBEN_EXPERIAN_202611.20261124235959-0500.txt"  # 23:59:59 en Bogotá, --hoy 2026-11-24
+    assert pv.validate_name(alt, mismo_dia, HOY_E2E) == []
+    assert pv.validate_name(alt, mismo_dia, date(2026, 11, 23))
+    alt["archivo"]["nombre"]["recepcion_no_futura"] = False
+    alt["archivo"]["nombre"]["periodo_no_futuro"] = True
+    assert pv.validate_name(alt, "SISBEN_EXPERIAN_202611.20261124120000-0500.txt", HOY_E2E) == []
+    assert pv.validate_name(alt, "SISBEN_EXPERIAN_202612.20261124120000-0500.txt", HOY_E2E)
+
+
+def test_aud_v02_prevalidacion_emite_marcador_de_nombre(spec, catalog, tmp_path):
+    path = write_file(tmp_path, spec, [";".join(base_row(spec))], name=NOMBRES_FECHA["periodo futuro"])
+    assert pv.prevalidate(spec, path, catalog, HOY_E2E)["resultado"] == "VALIDADO"
+    summary = pv.prevalidate(con_reglas(spec), path, catalog, HOY_E2E)
+    assert summary["marcador"] == "errorInFileName" and summary["codigos"] == ["SISBEN_ERR_024"]
+
+
+def test_aud_v02_cli_usa_hoy_como_reloj(spec, tmp_path, capsys):
+    spec_path = tmp_path / "con-reglas.yaml"
+    spec_path.write_text(yaml.safe_dump(con_reglas(spec), allow_unicode=True, sort_keys=False), encoding="utf-8")
+    archivo = write_file(tmp_path, spec, [";".join(base_row(spec))], name=NOMBRES_FECHA["recepción futura"])
+    assert pv.main(["--spec", str(spec_path), "--archivo", str(archivo), "--hoy", "2026-11-24"]) == 0
+    assert json.loads(capsys.readouterr().out)["marcador"] == "errorInFileName"
+    assert pv.main(["--spec", str(spec_path), "--archivo", str(archivo), "--hoy", "2026-12-31"]) == 0
+    assert json.loads(capsys.readouterr().out)["resultado"] == "VALIDADO"
+
+
+@pytest.mark.parametrize("offset,valido", [("-2500", False), ("+1801", False), ("-0560", False),
+                                           ("+1800", True), ("-0500", True), ("+0000", True)])
+def test_aud_v16_offset_como_java(spec, offset, valido):
+    errores = pv.validate_name(spec, f"/x/SISBEN_EXPERIAN_202601.20260205093000{offset}.txt", HOY_E2E)
+    assert (errores == []) is valido
+
+
+def spec_solo_ceros(spec: dict) -> dict:
+    alt = copy.deepcopy(spec)
+    alt["reglas_entre_campos"].append({"id": "RV-SIS-05", "tipo": "solo_ceros", "campo": "NUM_DOCUMENTO",
+                                       "codigo": "SISBEN_ERR_029", "severidad": "1", "causa": "DOCUMENTO_CERO"})
+    return alt
+
+
+@pytest.mark.parametrize("documento,emite", [("0000000000000000", True), ("00 00", True), (" 0000", True), ("0", True),
+                                             ("0001000000101", False), (" 0001000000101", False), ("", False)])
+def test_aud_v03_solo_ceros_sobre_el_valor_sin_espacios(spec, catalog, documento, emite):
+    alt = spec_solo_ceros(spec)
+    values = base_row(alt)
+    values[14] = documento
+    codigos = [e["codigo"] for e in pv.validate_record(alt, ";".join(values), catalog, HOY)]
+    assert ("SISBEN_ERR_029" in codigos) is emite
+    if emite:
+        assert "SISBEN_ERR_015" not in codigos  # 16 ceros normalizan a "0": la longitud no falla, solo la regla
+
+
+def test_aud_v03_reglas_por_lista_no_cambian(spec, catalog):
+    alt = copy.deepcopy(spec)
+    alt["reglas_entre_campos"].append({"id": "RV-LISTA", "tipo": "valor_con_codigo_propio", "campo": "NUM_DOCUMENTO",
+                                       "valores": ["0000"], "codigo": "SISBEN_ERR_029", "severidad": "1",
+                                       "causa": "DOCUMENTO_CERO"})
+    values = base_row(alt)
+    for documento, emite in ((" 0000", True), ("0000000000000000", False), ("00 00", False)):
+        values[14] = documento
+        assert ("SISBEN_ERR_029" in [e["codigo"] for e in pv.validate_record(alt, ";".join(values), catalog, HOY)]) is emite

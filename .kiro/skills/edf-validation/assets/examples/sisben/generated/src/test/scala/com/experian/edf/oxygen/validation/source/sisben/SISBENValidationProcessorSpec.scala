@@ -1,5 +1,5 @@
 // VAL-TPL-10 · tests de la fuente SISBEN (parametrizada desde source-spec sisben-v4-0.1.0).
-// Generado por el skill edf-validation-stage. No editar a mano: agregar casos en el source-spec.
+// Generado por la skill edf-validation. No editar a mano: agregar casos en el source-spec.
 // Prueba la especificación + Capa A, que es exactamente la lógica que ejecuta SISBENValidationProcessor.
 // ASSUMPTION VAL-SP10: no importa clases del framework Oxygen; compila y corre con Scala 2.12 + ScalaTest, sin clúster ni JAR.
 // La prueba de integración del processor (ProcessorContext, lookup real) requiere el JAR (F-01).
@@ -19,6 +19,9 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
 
   private val spec = SISBENSpec.Spec
   private val hoy = LocalDate.of(2024, 6, 30)
+  /** Reloj de las pruebas del nombre: fin del día de referencia en la zona de la fuente (igual que --hoy en
+    * prevalidar_archivo.py, AUD-V-02). */
+  private val ahora = hoy.atTime(23, 59, 59).atZone(java.time.ZoneId.of(spec.zonaHoraria)).toInstant
 
   /** Filas sintéticas del source-spec y una consulta con la semántica de Util.getLookup del motor (VAL-PT03):
     * devuelve los valores de la columna pedida en las filas que cumplen el filtro, o List("") si no hay coincidencia. */
@@ -110,6 +113,9 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
     RecordValidator.validarRegistro(spec, fila, CatalogoSintetico, hoy).errores.map(_.codigo)
 
   private val HeaderCorrecto: String = "ID_FICHA_ORIGEN;ID_HOGAR;COD_DPTO;NOM_DPTO;COD_MPIO;NOM_MPIO;ID_CLASE;ID_PERSONA_ORDEN;ID_NACIONAL;PRI_APELLIDO;SEG_APELLIDO;PRI_NOMBRE;SEG_NOMBRE;TIP_DOCUMENTO;NUM_DOCUMENTO;ID_GRUPO;ID_NIVEL;FECHA_DIGITACION;FECHA_ACTUALIZACION_PERSONA;ID_MARCA;ID_ESTADO;FECHA_ACTUALIZACION_CNS"
+
+  /** Header con los nombres fuente (primer alias de cada campo) (AUD-V-09). */
+  private val HeaderFuente: String = "ide_ficha_origen;ide_hogar;cod_dpto;nom_dpto;cod_mpio;nom_mpio;cod_clase;ide_persona;ide_nacional;pri_apellido;seg_apellido;pri_nombre;seg_nombre;tip_documento;num_documento;grupo;nivel;fecha;fec_actualizacion_persona;marca;estado;fec_actualizacion_cns"
 
   test("la especificación declara 22 campos con posiciones consecutivas") {
     assert(spec.numeroCampos == 22)
@@ -252,6 +258,11 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
     assert(!RecordValidator.esHeader(spec, linea(RegistroBase)))
   }
 
+  test("header con los nombres fuente (alias) se acepta y se reconoce como fila de header") {
+    assert(RecordValidator.validarHeader(spec, Seq(HeaderFuente)).isEmpty)
+    assert(RecordValidator.esHeader(spec, HeaderFuente))
+  }
+
   test("header con una columna distinta, con columnas de menos o vacío produce el código de header") {
     val cols = HeaderCorrecto.split(java.util.regex.Pattern.quote(";"), -1)
     assert(RecordValidator.validarHeader(spec, Seq(cols.updated(1, "OTRA").mkString(";"))).map(_.codigo) == Seq(spec.codigos.header))
@@ -260,8 +271,8 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
   }
 
   test("nombre de archivo del fixture es válido y uno distinto no") {
-    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202406.20240630120000-0500.txt").isEmpty)
-    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/OTRO_ARCHIVO.txt").map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202406.20240630120000-0500.txt", ahora).isEmpty)
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/OTRO_ARCHIVO.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
   }
 
   test("la clave de duplicado nunca es vacía") {

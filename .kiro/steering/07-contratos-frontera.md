@@ -68,7 +68,7 @@ Formato de salida por ambiente: `text` en QA/STG, `avro` en Producción. `[C]`
 | Costura | Produce | Consume | Artefacto de salida | Ruta S3 | Marcador | Estado |
 |---|---|---|---|---|---|---|
 | Preparation → **Validation** | Externo al framework | Validation | Archivo preparado, con el delimitador que declara la spec de la ingesta | (entrada externa) | — | `[C]` frontera · `[PM]` verificación del delimitador real entregado |
-| **Validation** → Acceptance | Validation | Acceptance | Registros validados + Quality Score por campo + reporte de inconsistencias | `validated/`, `reports/validation/` | `_SUCCESS` | `[C]` |
+| **Validation** → Acceptance | Validation | Acceptance | Registros validados + quality score por registro (el que define la spec de la ingesta; SISBEN: `RQS`) + reporte de inconsistencias | `validated/`, `reports/validation/` | `_SUCCESS` | `[C]` |
 | **Acceptance** → Curation | Acceptance | Curation | Eventos aceptados; rechazados aparte; FQS del archivo; notificaciones sin PII | `accepted/` (permanece), `rejects/`, `reports/acceptance/` | `_SUCCESS` | `[C]` |
 | **Curation** → Pinning | Curation | Pinning | Eventos curados en `flow` y `stock`; registro en el domain dictionary | `curated/` | `ready-curate` | `[A:OQ-IL-3]` parcial — contrato en `11-contrato-curation-pinning.md`; pendientes en su §6 |
 | **Pinning** → Synthesis | Pinning | Synthesis | Eventos con PIN; fase HC aparte | `pinning/pinned/`, `pinning/pinned/{id}-pin-hc/`, `reports/pinning/` | `_SUCCESS` | `[C]` |
@@ -107,7 +107,7 @@ El efecto de cada regla lo declara la spec de la ingesta. Ningún agente elige e
 
 - Umbral: `qualityThreshold = 0.90`, **parametrizable, nunca hardcodeado**.
 - Fórmula del puntaje del archivo: `(total − menores − rechazados) / (total − menores)`.
-- **Rechazo silencioso de menores** (efecto «descarte silencioso» de §5.1): tipos documentales 7 y 10 se rechazan sin sumar al puntaje.
+- **Rechazo silencioso de menores** (efecto «descarte silencioso» de §5.1): los registros de menores salen del total sin sumar al puntaje. Qué valores identifican a un menor lo declara la spec de la ingesta, que manda sobre este documento; en SISBEN son los tipos de documento `1` y `2` **del archivo** (`expedientes/sisben/fuentes/spec-sisben.md` §5), cuyos códigos Experian homologados son `10` y `7`.
 - Duplicados por llave documental: se conserva el registro más vigente.
 - **El rechazo es a nivel de archivo completo**, no de registro.
 - Notificaciones por SNS/SES: **sin PII**.

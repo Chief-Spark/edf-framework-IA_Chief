@@ -71,8 +71,9 @@ def test_detecta_clave_ignorada(generated):
 # los lookups ya parseados como dict/list. Los valores imitan el bloque SISBEN generado (datos SINTÉTICOS).
 # ------------------------------------------------------------------------------------------------------
 MUESTRA = "SISBEN_EXPERIAN_202406.20240630120000-0500.txt"
+PATRON = r".*(RT_|EP_)?SISBEN_EXPERIAN_\d{6}\.\d{14}[+-]\d{4}\.txt"
 BLOQUE_OK = {
-    "filePattern": r".*(RT_|EP_)?SISBEN_EXPERIAN_\d{6}\.\d{14}[+-]\d{4}\.txt",
+    "filePattern": PATRON,
     "processor": "com.experian.edf.oxygen.validation.source.sisben.processor.SISBENValidationProcessor",
     "fileFormat": "text",
     "headerRows": 1,
@@ -81,10 +82,13 @@ BLOQUE_OK = {
     "computeMetrics": True,
     "dupKeyCheckEnabled": True,
     "deDupVersion": "EXTN",
-    "validate": [{"fileName": 'errorlevelNotIn("1")', "header": 'errorlevelNotIn("1")',
+    "validate": [{"filePattern": PATRON, "fileName": 'errorlevelNotIn("1")', "header": 'errorlevelNotIn("1")',
                   "contexual": {"enabled": False}}],
+    "metrics": [{"filePattern": PATRON, "file": [{"metricId": "TotalRegistros", "metricExpr": "count(*)"}]}],
 }
-LOOKUPS_OK = [{"tableName": "TABLA_SINTETICA_A", "file": "a.csv"}, {"tableName": "TABLA_SINTETICA_B", "file": "b.csv"}]
+LH = vh.LOOKUP_HOME_SINTETICO
+LOOKUPS_OK = [{"tableName": "TABLA_SINTETICA_A", "file": LH + "/a.csv"},
+              {"tableName": "TABLA_SINTETICA_B", "file": LH + "/sub/b.csv"}]
 
 
 def _bloque(**cambios):
@@ -128,14 +132,15 @@ def test_ac30_dup_key_check_exige_compute_metrics(dup, metricas, falla):
     assert ("dupKeyCheckEnabled exige computeMetrics = true" in problemas) is falla
 
 
-@pytest.mark.parametrize("validate", [[{"fileName": "x"}], [{"header": "x"}], [{}], []])
+@pytest.mark.parametrize("validate", [[{"filePattern": PATRON, "fileName": "x"}],
+                                      [{"filePattern": PATRON, "header": "x"}], [{"filePattern": PATRON}], []])
 def test_ac31_validate_sin_file_name_o_header(validate):
     problemas = vh.evaluar_reglas(_bloque(validate=validate), LOOKUPS_OK, MUESTRA)
     assert any("validate[] sin expresión fileName/header" in p for p in problemas)
 
 
 def test_ac32_lookup_sin_table_name():
-    lookups = LOOKUPS_OK + [{"file": "sin_tabla.csv"}]
+    lookups = LOOKUPS_OK + [{"file": LH + "/sin_tabla.csv"}]
     assert vh.evaluar_reglas(BLOQUE_OK, lookups, MUESTRA) == ["lookup sin tableName (clave obligatoria)"]
     assert vh.evaluar_reglas(BLOQUE_OK, [], MUESTRA) == []
 
@@ -146,7 +151,9 @@ def test_file_pattern_sin_comodin_y_que_no_acepta_la_muestra():
     problemas = vh.evaluar_reglas(sin_comodin, LOOKUPS_OK, MUESTRA)
     assert "filePattern no acepta la ruta completa del archivo de ejemplo" in problemas
     assert vh.evaluar_reglas(BLOQUE_OK, LOOKUPS_OK, "OTRA_FUENTE_202406.txt") == [
-        "filePattern no acepta la ruta completa del archivo de ejemplo"]
+        "filePattern no acepta la ruta completa del archivo de ejemplo",
+        "validate[0].filePattern no acepta la ruta completa del archivo de ejemplo",
+        "metrics[0].filePattern no acepta la ruta completa del archivo de ejemplo"]
 
 
 def _parser_falso(bloque, lookups):
@@ -190,3 +197,60 @@ def test_cli_sin_pyhocon_con_parser_inyectado(generated, monkeypatch, capsys):
 def test_cli_sin_pyhocon_sale_con_3_aunque_falten_archivos(tmp_path, monkeypatch):
     monkeypatch.setitem(sys.modules, "pyhocon", None)
     assert vh.main(["--generado", str(tmp_path / "no_existe"), "--fuente", "sisben"]) == 3
+
+
+# ------------------------------------------------------------------------------------------------------
+# 1.9.2 (corrida E2E SISBEN): filePattern en validate[]/metrics[] (AUD-V-01) y lookupHome en los lookups (AUD-V-06)
+# ------------------------------------------------------------------------------------------------------
+@pytest.mark.parametrize("lista", ["validate", "metrics"])
+def test_aud_v01_elemento_sin_file_pattern_falla(lista):
+    bloque = copy.deepcopy(BLOQUE_OK)
+    del bloque[lista][0]["filePattern"]
+    problemas = vh.evaluar_reglas(bloque, LOOKUPS_OK, MUESTRA)
+    assert problemas == [f"{lista}[0] sin filePattern: el motor hace data.filePattern.get "
+                         "(NoSuchElementException en cada archivo)"]
+
+
+def test_aud_v01_file_pattern_del_elemento_debe_aceptar_la_muestra():
+    bloque = copy.deepcopy(BLOQUE_OK)
+    bloque["metrics"][0]["filePattern"] = ".*OTRA_FUENTE.*"
+    assert vh.evaluar_reglas(bloque, LOOKUPS_OK, MUESTRA) == [
+        "metrics[0].filePattern no acepta la ruta completa del archivo de ejemplo"]
+    assert vh.evaluar_reglas(bloque, LOOKUPS_OK, None) == []
+
+
+def test_aud_v01_el_ejemplo_generado_lleva_file_pattern_en_validate_y_metrics(generated):
+    """Sin pyhocon: el texto generado declara filePattern dentro de validate[0] y de metrics[0]."""
+    texto = (generated / vh.CARPETA_PROPUESTA / "validation-configs-sisben.conf").read_text(encoding="utf-8")
+    validate = texto[texto.index("validate = ["):texto.index("metrics = [")]
+    metrics = texto[texto.index("metrics = ["):]
+    assert validate.count("filePattern = ") == 1 and metrics.count("filePattern = ") == 1
+
+
+def test_aud_v06_lookup_sin_lookup_home_falla():
+    lookups = [{"tableName": "TABLA_SINTETICA_A", "file": "a.csv"}]
+    assert vh.evaluar_reglas(BLOQUE_OK, lookups, MUESTRA) == [
+        "lookup TABLA_SINTETICA_A: file sin ${oxygen.application.paths.lookupHome}"]
+
+
+def test_aud_v06_lookups_generados_resuelven_lookup_home(generated):
+    pytest.importorskip("pyhocon")
+    _, lookups = vh.leer_fragmentos(generated, "sisben", vh.cargar_parser())
+    assert lookups and all(str(l["file"]).startswith(vh.LOOKUP_HOME_SINTETICO + "/") for l in lookups)
+
+
+def test_aud_v01_con_pyhocon_detecta_validate_y_metrics_sin_file_pattern(generated):
+    """Reproduce la propuesta rechazada (sin filePattern en validate[0]/metrics[0], file sin lookupHome)."""
+    pytest.importorskip("pyhocon")
+    conf = generated / vh.CARPETA_PROPUESTA / "validation-configs-sisben.conf"
+    lineas = conf.read_text(encoding="utf-8").split("\n")
+    principal = next(l for l in lineas if l.startswith("  filePattern = "))
+    conf.write_text("\n".join(l for l in lineas if not l.startswith("      filePattern = ") or l == principal),
+                    encoding="utf-8")
+    lookups = generated / vh.CARPETA_PROPUESTA / "lookups-sisben.conf"
+    lookups.write_text(lookups.read_text(encoding="utf-8").replace('${oxygen.application.paths.lookupHome}"/', '"'),
+                       encoding="utf-8")
+    problemas = vh.check(generated, "sisben", MUESTRA)
+    assert "validate[0] sin filePattern: el motor hace data.filePattern.get (NoSuchElementException en cada archivo)" in problemas
+    assert "metrics[0] sin filePattern: el motor hace data.filePattern.get (NoSuchElementException en cada archivo)" in problemas
+    assert sum("file sin ${oxygen.application.paths.lookupHome}" in p for p in problemas) == 7

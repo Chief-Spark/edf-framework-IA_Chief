@@ -29,11 +29,32 @@ $defs:
       Opcional. IDs de references/decisiones-y-abiertos.md cuyo valor llega a este elemento. El generador
       escribe una marca `ASSUMPTION <ID>` por cada uno junto al código del elemento y manifest.json los lista
       (ADR-G1, AC-18a).
+  id_supuesto:
+    type: string
+    pattern: '^(F-\d{2}|VAL-P[AT]\d{2}|VAL-SP\d{2})$'
 
 properties:
   spec_version:
     type: string
     x-placeholders: [spec_version]
+
+  supuestos_resueltos:
+    type: array
+    description: >-
+      Opcional (1.9.2, AUD-V-08). Supuestos de las plantillas (ASSUMPTION <ID>) cuyo valor ya fija la spec de la
+      ingesta. El generador cambia cada marca por `RESUELTO <ID> (<fuente>)`, el ID no entra a
+      manifest["supuestos"] y manifest["supuestos_resueltos"] lo lista con su fuente. Falla si el ID no tiene marca
+      en la salida o si también está en la lista `supuestos` de un campo, regla o catálogo.
+    items:
+      type: object
+      additionalProperties: false
+      required: [id, fuente]
+      properties:
+        id: {$ref: "#/$defs/id_supuesto"}
+        fuente:
+          type: string
+          pattern: '^(?!.*\*/)[^"\\\n\r]+$'
+          description: Sección de la spec que fija el valor (p. ej. "spec-sisben.md §8"). Sin comillas, barras invertidas, saltos de línea ni "*/".
 
   fuente:
     type: object
@@ -148,6 +169,22 @@ properties:
             type: string
             enum: [ultimo_dia_periodo, primer_dia_periodo]
             x-placeholders: [expr_file_as_of_date, file_as_of_date_desc]
+          # Reglas de fecha del nombre (opcionales, 1.9.2, AUD-V-02). Usan los grupos `periodo`, `marca_tiempo` y
+          # `offset` del regex. Ausentes o false: el nombre se valida como antes. Violarlas produce
+          # codigos_especiales.nombre_archivo. El reloj es Instant.now() en el processor, `--hoy` (fin del día en
+          # fuente.zona_horaria) en prevalidar_archivo.py y fixture.fecha_referencia en las pruebas generadas.
+          periodo_no_futuro:
+            type: boolean
+            description: El periodo AAAAMM no es posterior al mes actual en fuente.zona_horaria.
+            x-placeholders: [nombre_periodo_no_futuro, bloque_pruebas_nombre]
+          recepcion_no_futura:
+            type: boolean
+            description: La marca de tiempo, con su offset, no es posterior al instante actual.
+            x-placeholders: [nombre_recepcion_no_futura]
+          recepcion_desde_inicio_periodo:
+            type: boolean
+            description: La fecha de la marca de tiempo (tal como viene en el nombre) no es anterior al primer día del periodo.
+            x-placeholders: [nombre_recepcion_desde_inicio_periodo]
 
   guard_rails:
     type: object
@@ -162,8 +199,8 @@ properties:
     type: array
     minItems: 1
     x-placeholders: [bloque_constantes_campos, bloque_fieldspecs, bloque_accesores, bloque_mapa_json,
-                     bloque_casos_campo, header_linea, header_linea_scala, registro_base_scala, numero_campos,
-                     bloque_codigos_error]
+                     bloque_casos_campo, header_linea, header_linea_scala, header_fuente_linea_scala,
+                     registro_base_scala, numero_campos, bloque_codigos_error]
     items:
       type: object
       additionalProperties: false
@@ -219,6 +256,21 @@ properties:
             tipo: {const: valor_con_codigo_propio}
             campo: {$ref: "#/$defs/nombre_campo"}
             valores: {type: array, items: {type: string}, minItems: 1}
+            codigo: {$ref: "#/$defs/codigo"}
+            severidad: {$ref: "#/$defs/nivel"}
+            causa: {type: string, pattern: "^[A-Z_]+$"}
+            supuestos: {$ref: "#/$defs/supuestos"}
+        - type: object
+          additionalProperties: false
+          description: >-
+            1.9.2 (AUD-V-03). Emite `codigo` si el valor del campo, tras quitar todos los espacios (extremos e
+            internos), no está vacío y está formado solo por ceros ("0", "0000000000000000", "00 00"). No depende de
+            una lista literal ni de la normalización del campo.
+          required: [id, tipo, campo, codigo, severidad, causa]
+          properties:
+            id: {type: string}
+            tipo: {const: solo_ceros}
+            campo: {$ref: "#/$defs/nombre_campo"}
             codigo: {$ref: "#/$defs/codigo"}
             severidad: {$ref: "#/$defs/nivel"}
             causa: {type: string, pattern: "^[A-Z_]+$"}
@@ -312,7 +364,12 @@ properties:
       required: [tabla, archivo, delimitador, columnas, keys, filas_sinteticas]
       properties:
         tabla: {type: string}
-        archivo: {type: string}
+        archivo:
+          type: string
+          description: >-
+            Ruta del CSV relativa a oxygen.application.paths.lookupHome (nombre o subcarpeta/nombre). El HOCON emite
+            file = ${oxygen.application.paths.lookupHome}"/<archivo>" (AUD-V-06). Sin "/" inicial, "..", "\\",
+            comillas ni "$".
         delimitador: {type: string}
         columnas: {type: array, items: {type: string}, minItems: 1}
         keys: {type: array, items: {type: string}, minItems: 1}
@@ -335,6 +392,14 @@ properties:
       nombre_archivo: {type: string, x-placeholders: [fixture_nombre_archivo]}
       fecha_referencia: {type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$", x-placeholders: [fecha_referencia_scala]}
       registro_base: {type: array, items: {type: string}, x-placeholders: [registro_base_scala]}
+      nombres_invalidos:
+        type: array
+        description: >-
+          Opcional (1.9.2, AUD-V-09). Nombres de archivo SINTÉTICOS (sin ruta) que deben producir
+          codigos_especiales.nombre_archivo; se generan como prueba de la fuente y el generador comprueba que su réplica
+          Python los rechaza. Un nombre que no cumple archivo.file_pattern no llega al processor en el motor.
+        items: {type: string, pattern: '^[^"\\/\n\r]+$'}
+        x-placeholders: [bloque_pruebas_nombre]
       footer:
         type: array
         items: {type: string}
@@ -362,3 +427,10 @@ properties:
                 filtrado: {type: boolean}
                 codigos: {type: array, items: {type: string}}
                 duplicado: {type: boolean}
+                grupo_duplicado:
+                  type: string
+                  pattern: "^[A-Z0-9_]+$"
+                  description: >-
+                    Opcional (1.9.2, AUD-V-09). Agrupa los casos con `duplicado` en grupos de duplicados distintos (p. ej.
+                    un documento con y sin ceros a la izquierda); se genera una prueba por grupo. Sin la clave, todos los
+                    casos con `duplicado` forman un solo grupo, como antes.

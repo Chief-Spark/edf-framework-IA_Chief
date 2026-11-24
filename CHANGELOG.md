@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.9.2 — 2026-11-24
+
+Defectos del framework que encontró la auditoría independiente de la etapa Validation de la corrida E2E SISBEN (`ejecuciones/sisben-e2e/auditorias/validation.md`, dictamen RECHAZADO). Las claves nuevas del source-spec son opcionales: el insumo actual de la corrida sigue dando `source-spec OK (22 campos, 29 códigos)` y su prevalidación sigue igual a la spec §15. Para que la propuesta cambie hay que regenerarla.
+
+### Corregido (P0)
+- **AUD-V-01. `validate[]` y `metrics[]` sin `filePattern`** (corrida E2E SISBEN, AUD-V-01). El motor elige cada elemento con `data.filePattern.get` (`SparkValidator.scala:1436-1449`, `:955`): sin la clave fallaba en cada archivo. `validation-block.conf.tpl` lo emite en `validate[0]` y `metrics[0]`, `dsl-config-reference.md` lo marca obligatorio y `verificar_hocon.py` falla si falta (la propuesta rechazada ahora da «HOCON con problemas»).
+
+### Corregido (P1)
+- **AUD-V-02. Reglas de fecha del nombre de archivo.** Claves opcionales en `archivo.nombre`: `periodo_no_futuro`, `recepcion_no_futura` y `recepcion_desde_inicio_periodo`. Usan los grupos `periodo`, `marca_tiempo` y `offset` del regex y, si no se cumplen, dan `codigos_especiales.nombre_archivo`. Capa A: `NombreArchivoSpec` con las tres banderas (por defecto `false`) y `RecordValidator.validarNombre(spec, ruta, ahora)`. El processor usa `Instant.now()`, `prevalidar_archivo.py` usa `--hoy` (fin del día en la zona de la fuente) y las pruebas generadas usan `fixture.fecha_referencia`. Se genera una prueba por regla activa con un nombre derivado del fixture, y el generador comprueba que el fixture cumpla las reglas.
+- **AUD-V-03. «Solo ceros» sobre el valor normalizado.** Nuevo tipo de regla `solo_ceros` (`ReglaEntreCampos.SoloCeros`). Da el código si el valor sin espacios no está vacío y es solo `0`: 16 ceros y `00 00` ahora lo dan. `valor_con_codigo_propio` no cambia.
+- **AUD-V-05. `validatedRecordJson` con el valor recibido.** `comoMapa` usa `Campos.crudo`, sin trim. La validación sigue con `Campos.valor`.
+- **AUD-V-06. Lookups con `lookupHome`.** `file = ${oxygen.application.paths.lookupHome}"/<archivo>"`, la forma de todos los confs del motor. `catalogos[].archivo` es una ruta relativa, y una absoluta o con `..` se rechaza. `verificar_hocon.py` resuelve la sustitución con un valor sintético. Cómo resuelve oxygen-core un nombre relativo sigue sin verificar: no está en el repo.
+
+### Corregido (P2)
+- **AUD-V-08.** Clave opcional `supuestos_resueltos: [{id, fuente}]`. Si la spec de la ingesta ya fija un valor, la marca sale como `RESUELTO <ID> (<fuente>)` y el ID no queda en `manifest["supuestos"]`. Se reescribieron sin «provisional» ni «inferido» las marcas F-11, VAL-PA04 y VAL-SP07.
+- **AUD-V-09 (parte framework).** `fixture.casos[].esperado.grupo_duplicado` (una prueba por grupo, por ejemplo con ceros a la izquierda), `fixture.nombres_invalidos` (prueba generada y verificada) y prueba del header con los nombres fuente.
+- **AUD-V-10.** `manifest.skill` y las cabeceras dicen `edf-validation`.
+- **AUD-V-11.** La regla dura 7, el checklist §1 y el Paso 1 mandan las discrepancias de una ingesta a la entrega al Orquestador, nunca a `.kiro/`.
+- **AUD-V-12.** El checklist tiene una nota vigente del generador Python. Las notas Java y de la corrida priorizada quedan rotuladas como históricas, y ADR-04 como superado.
+- **AUD-V-13.** `especificacion-sisben.md` queda rotulada «ejemplo histórico» y el Paso 1 ya no la cita como fuente. Se actualizaron `interpretar-salida.md`, la fila F-08 y el runbook («7 tablas»).
+- **AUD-V-15.** `07-contratos-frontera.md` §4 dice «quality score por registro» y §5.3 dice menores = tipos `1` y `2` del archivo (la spec de la ingesta manda). Mismo ajuste en `02-lexico-edf.md`.
+- **AUD-V-16.** `prevalidar_archivo.py` valida el offset como `ZoneOffset.of`: `-2500` se rechaza.
+- **AUD-V-17.** `listDuplicateEvents` reconstruye `TaggedValidatedEvent` con los 17 argumentos del motor (`Validator.scala:208-210`): se conservan `inferredAsDeleted` y `fileTag`. Compilación no certificada (F-01).
+- **AUD-V-19.** `codigos-error-<fuente>.csv` se genera en `docs/`, fuera de la carpeta que se pega en el fork, y lista `OxygenDuplicate`.
+- **AUD-V-21.** El inner se llama `validation-common-application-inner.conf` también en `10-piloto-sisben.md`.
+
+### Pruebas
+- Validation: 215 (antes 165 con `pyhocon`). Sin `pyhocon`: 208 pasan y 7 se omiten. Pruebas nuevas en `test_render_templates.py`, `test_prevalidar_archivo.py` y `test_verificar_hocon.py`. El ejemplo `assets/examples/sisben/generated/` se regeneró: cambian las cabeceras, el HOCON (`filePattern` y `lookupHome`), la Capa A, el evento, el processor, las pruebas, los hashes y la ruta `docs/codigos-error-sisben.csv`. `resumen-prevalidacion.json` no cambia.
+- `tests/test_regresion_e2e_validation.py` (nuevo, 7 pruebas): las correcciones de texto. Herramientas: 121 (antes 114). Acceptance 127 y Curation 106, sin cambios. `auditar-skills.py`: 0 silencios y 0 obsoletas.
+
+### Sin corregir aquí
+- AUD-V-04, -07, -14, -18 y -20 son de la spec o del insumo y los decide el PO. AUD-V-09 también tiene una parte de insumo: los casos que falten en el Anexo A.
+- No se regeneró la propuesta de `ejecuciones/`. Hay que regenerarla con el insumo actualizado.
+
 ## 1.9.1 — 2026-11-24
 
 Cinco defectos del framework que encontró la etapa 0 de la corrida E2E SISBEN y que confirmó un auditor independiente (AUD-E0-10, -11, -13, -14 y -15).

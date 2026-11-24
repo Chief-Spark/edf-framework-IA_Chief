@@ -1,6 +1,12 @@
-# Especificación SISBEN V4 (caso piloto)
+# Especificación SISBEN V4 (caso piloto) · EJEMPLO HISTÓRICO
 
-Versión ejecutable: `assets/examples/sisben/source-spec.sisben.yaml`. Esta página la explica; si hay
+> **Histórico, no es la spec de ninguna ingesta (AUD-V-13, 1.9.2).** Esta página explica el ejemplo de forma
+> `assets/examples/sisben/source-spec.sisben.yaml` tal como se escribió en la versión 0.1.0 de la skill. Difiere de
+> la spec SISBEN vigente (prefijos `RT_`/`EP_`, severidades, códigos `SISBEN_ERR_001…`, supuestos ya resueltos).
+> En una ingesta manda su spec (`expedientes/<id>/fuentes/`) a través del insumo aprobado de `edf-analisis`; esta
+> página no se cita como fuente (Paso 1 de `SKILL.md`).
+
+Versión ejecutable del ejemplo: `assets/examples/sisben/source-spec.sisben.yaml`. Esta página la explica; si hay
 diferencia, manda el YAML.
 
 ## Identidad (IN-01, cerrado)

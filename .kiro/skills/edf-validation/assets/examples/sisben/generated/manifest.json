@@ -1,5 +1,5 @@
 {
-  "skill": "edf-validation-stage",
+  "skill": "edf-validation",
   "spec_version": "sisben-v4-0.1.0",
   "fuente": "SISBEN",
   "estado": "PROPUESTA - requiere aprobación del técnico antes de copiar al fork (Human-in-the-Loop)",
@@ -7,35 +7,35 @@
   "archivos": [
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/common/FieldSpec.scala",
-      "sha256": "898b6c668e7071365df5c16bc021f9698ec01458ab388a2615f20563ab50532b"
+      "sha256": "a49b90c11cac96221a4309b3f08c8cf8c94f2899cbd41e81bb6e9cf581068111"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/common/FieldValidators.scala",
-      "sha256": "041c9101e0d331f1e04a725c7f8205b4cf3bb54b1265bb21965975c05d78b701"
+      "sha256": "9d221edd60bc6a8cd2b965b67810e6e236825351923addb2af281a04e4deb5e6"
     },
     {
       "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/common/FieldValidatorsSpec.scala",
-      "sha256": "7cde8b6acf2ff55234d631eb2625c317fbb1d5b4306285dbae01bdf69485cfaf"
+      "sha256": "2ac49d91692d45161ec419ed75e86eeab1207ba6ef3b51a8b4e0d95e509f755e"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/config/SISBENSpec.scala",
-      "sha256": "13302cc0bfbe9b1514ee125e2b973be14ee3beb2667dcf669225572043c9e247"
+      "sha256": "999589028991d31076fa3be36ffcf91ab4ebcce82b699dcd3ab662f9116a910b"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/SISBENValidatedEvent.scala",
-      "sha256": "4ff9bc763c6ced435290403dc122275a136ab1d2965ef32d7f93c7a311791647"
+      "sha256": "55b3130584af7ddc278b43e0178f2813bfb158881f7d3c6c6cfd05f6c1aafe80"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/validator/SISBENFileMetadata.scala",
-      "sha256": "45ef276d6fbdf52bc7ce5119063e2ecfa36519ded0254efe24f1c126d4610783"
+      "sha256": "97e8c8c584fd4272c91cdc25344441be3c93148993e5376526022da5eb722f6f"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/processor/SISBENValidationProcessor.scala",
-      "sha256": "9d0a504ef6b053beedfac77a6e363a0d9bcbdc9187d13e0f17b5e26905602a6c"
+      "sha256": "13f00a2496bb72ad75ce4be9a2a0483b49b2227cf94cf36186dff2a23ec39c23"
     },
     {
       "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/sisben/SISBENValidationProcessorSpec.scala",
-      "sha256": "7180ace7b70941f911b71c7662f07e9cfc8427d368b1f75041ce94d6d7e24f75"
+      "sha256": "451287ce87e1f616a5ba3573750db75c0a3983ae730c3860a31666907950523e"
     },
     {
       "ruta": "src/test/resources/sisben/SISBEN_EXPERIAN_202406.20240630120000-0500.txt",
@@ -43,15 +43,15 @@
     },
     {
       "ruta": "env/application-conf/innersource/propuesta/validation-configs-sisben.conf",
-      "sha256": "2bad158cd6fc9f7e0c16d56d6dee9a8398b19e14709b914d4360404db1b005b3"
+      "sha256": "87499ee16a0350f9c644ed2b55100b9ba87b3ceda71da1d60b78796434e3e69c"
     },
     {
       "ruta": "env/application-conf/innersource/propuesta/lookups-sisben.conf",
-      "sha256": "da069da3b5c789c246a6aa1b3cabb66c0dae9cde1ed7a3ecdc99471f4fa0dcb5"
+      "sha256": "6f2341bdf0f43da6f117f49da3712a6103e2e3092b84febb70ceeeb0904a5fa1"
     },
     {
-      "ruta": "env/application-conf/innersource/propuesta/codigos-error-sisben.csv",
-      "sha256": "0e3ba28332b28708820500f5d414080954f24e8b0b39ebbcfbad25d1ca39a653"
+      "ruta": "docs/codigos-error-sisben.csv",
+      "sha256": "40d71453cacc4987f73fa53690da7788d8986c1e6c932398a26b30feed253d75"
     },
     {
       "ruta": "src/test/resources/sisben/lookup/SISBEN_HOME_ID_CLASIFICATION_NH.csv",

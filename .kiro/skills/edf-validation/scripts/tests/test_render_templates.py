@@ -327,9 +327,13 @@ def test_hocon_generado_parsea(spec, tmp_path):
         assert clave in block, f"falta la clave {clave}"
     pattern = re.compile(block["filePattern"])
     assert pattern.fullmatch("/home/app/validation/input/" + spec["fixture"]["nombre_archivo"])
+    for elemento in list(block["validate"]) + list(block["metrics"]):  # AUD-V-01: el motor hace filePattern.get
+        assert re.compile(elemento["filePattern"]).fullmatch("/home/app/validation/input/" + spec["fixture"]["nombre_archivo"])
     lookups = pyhocon.ConfigFactory.parse_string(
-        "lookups = " + (tmp_path / PROPUESTA / "lookups-sisben.conf").read_text(encoding="utf-8"))["lookups"]
+        "lookups = " + (tmp_path / PROPUESTA / "lookups-sisben.conf").read_text(encoding="utf-8")
+        + '\noxygen.application.paths.lookupHome = "/lookupHome"\n')["lookups"]
     assert len(lookups) == len(spec["catalogos"])
+    assert [l["file"] for l in lookups] == [f"/lookupHome/{c['archivo']}" for c in spec["catalogos"]]  # AUD-V-06
 
 
 def test_processor_no_usa_apis_prohibidas(spec, tmp_path):
@@ -647,7 +651,7 @@ def test_footer_se_valida_cuando_hay_filas_footer(spec, tmp_path):
     conf = (tmp_path / PROPUESTA / "validation-configs-sisben.conf").read_text(encoding="utf-8")
     assert "footerRows = 1" in conf
     assert '      footer = "errorlevelNotIn(\\"1\\")"\n' in conf
-    csv = (tmp_path / PROPUESTA / "codigos-error-sisben.csv").read_text(encoding="utf-8")
+    csv = (tmp_path / "docs" / "codigos-error-sisben.csv").read_text(encoding="utf-8")
     assert "SISBEN_ERR_028;1;FOOTER;Footer inválido" in csv
     pruebas = _archivo(tmp_path, "SISBENValidationProcessorSpec.scala")
     assert "footer: filas que cumplen footer_regex se aceptan" in pruebas
@@ -718,3 +722,236 @@ def test_silencios_intencionales_marcados():
                 if not MARCA_SILENCIO.search(linea + "\n" + previa):
                     sin_marca.append(f"{f.name}:{i + 1}")
     assert sin_marca == []
+
+
+# ------------------------------------------------------------------ 1.9.2: corrida E2E SISBEN (AUD-V-nn)
+RAIZ_REPO = SKILL.parent.parent.parent
+INSUMO_E2E = RAIZ_REPO / "ejecuciones" / "sisben-e2e" / "expedientes" / "sisben" / "insumos" / "source-spec-validation.yaml"
+
+
+def spec_con_reglas_nombre(spec: dict) -> dict:
+    alt = copy.deepcopy(spec)
+    alt["archivo"]["nombre"].update(periodo_no_futuro=True, recepcion_no_futura=True,
+                                    recepcion_desde_inicio_periodo=True)
+    return alt
+
+
+def test_aud_v01_validate_y_metrics_llevan_file_pattern(spec, tmp_path):
+    rt.render_all(spec, tmp_path)
+    conf = (tmp_path / PROPUESTA / "validation-configs-sisben.conf").read_text(encoding="utf-8")
+    patron = f'filePattern = "{rt.hocon_str(spec["archivo"]["file_pattern"])}"'
+    validate = conf[conf.index("validate = ["):conf.index("metrics = [")]
+    metrics = conf[conf.index("metrics = ["):]
+    assert conf.count(patron) == 3 and patron in validate and patron in metrics
+
+
+def test_aud_v02_sin_claves_el_nombre_no_cambia(spec, tmp_path):
+    ctx = rt.build_context(spec)
+    assert ctx["bloque_pruebas_nombre"] == ""
+    assert (ctx["nombre_periodo_no_futuro"], ctx["nombre_recepcion_no_futura"],
+            ctx["nombre_recepcion_desde_inicio_periodo"]) == ("false", "false", "false")
+    hoy = rt.date(2024, 6, 30)
+    for nombre in ("SISBEN_EXPERIAN_209901.20240630120000-0500.txt", "SISBEN_EXPERIAN_202406.20240531120000-0500.txt",
+                   "SISBEN_EXPERIAN_202406.20240703120000-0500.txt"):
+        assert rt.nombre_valido_el_dia(spec, "/x/" + nombre, hoy), nombre
+
+
+def test_aud_v02_reglas_de_fecha_del_nombre_se_generan_y_prueban(spec, tmp_path):
+    alt = spec_con_reglas_nombre(spec)
+    assert rt.verify_spec(alt) == []
+    pruebas = rt.nombres_de_prueba(alt)
+    assert [(r, n) for r, _, n in pruebas] == [
+        ("periodo_no_futuro", "SISBEN_EXPERIAN_202506.20240630120000-0500.txt"),
+        ("recepcion_no_futura", "SISBEN_EXPERIAN_202406.20240703120000-0500.txt"),
+        ("recepcion_desde_inicio_periodo", "SISBEN_EXPERIAN_202406.20240531120000-0500.txt")]
+    hoy = rt.date(2024, 6, 30)
+    assert not any(rt.nombre_valido_el_dia(alt, n, hoy) for _, _, n in pruebas)
+    assert rt.nombre_valido_el_dia(alt, alt["fixture"]["nombre_archivo"], hoy)
+    rt.render_all(alt, tmp_path)
+    fuente = _archivo(tmp_path, "SISBENSpec.scala")
+    assert ("periodoNoFuturo = true,\n      recepcionNoFutura = true,\n      recepcionDesdeInicioPeriodo = true" in fuente)
+    pruebas_scala = _archivo(tmp_path, "SISBENValidationProcessorSpec.scala")
+    for regla, _, nombre in pruebas:
+        assert f'"/ruta/sintetica/{nombre}", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo)' in pruebas_scala
+        assert f"({regla})" in pruebas_scala
+    processor = _archivo(tmp_path, "ValidationProcessor.scala")
+    assert "RecordValidator.validarNombre(spec, nombreArchivo, Instant.now())" in processor
+
+
+def test_aud_v02_fixture_que_viola_una_regla_falla(spec):
+    alt = spec_con_reglas_nombre(spec)
+    alt["fixture"]["fecha_referencia"] = "2024-06-29"  # la marca del fixture (30/06 12:00) queda en el futuro
+    assert contiene(rt.verify_spec(alt), "fixture.nombre_archivo no cumple archivo.nombre.recepcion_no_futura")
+    alt = spec_con_reglas_nombre(spec)
+    alt["fuente"]["zona_horaria"] = "Zona/Inexistente"
+    assert contiene(rt.verify_spec(alt), "inválidas para las reglas del nombre")
+
+
+def test_aud_v16_offset_que_java_rechaza(spec):
+    assert rt.java_zone_offset("-2500") is None and rt.java_zone_offset("+1801") is None
+    assert rt.java_zone_offset("+1800") == rt.timedelta(hours=18)
+    assert rt.java_zone_offset("-0500") == -rt.timedelta(hours=5)
+    assert rt.java_zone_offset("-05:30") == -rt.timedelta(hours=5, minutes=30)
+    assert rt.java_zone_offset("Z") == rt.timedelta(0)
+    for malo in ("0500", "-0560", "+05:3", "", None, "+123"):
+        assert rt.java_zone_offset(malo) is None, malo
+    alt = copy.deepcopy(spec)
+    alt["fixture"]["nombre_archivo"] = "SISBEN_EXPERIAN_202406.20240630120000-2500.txt"
+    assert contiene(rt.verify_spec(alt), "offset inválidos (Java lo rechazaría)")
+
+
+def test_aud_v03_regla_solo_ceros(spec, tmp_path):
+    alt = copy.deepcopy(spec)
+    alt["reglas_entre_campos"].append({"id": "RV-SIS-05", "tipo": "solo_ceros", "campo": "NUM_DOCUMENTO",
+                                       "codigo": "SISBEN_ERR_029", "severidad": "1", "causa": "DOCUMENTO_CERO"})
+    assert rt.verify_spec(alt) == []
+    rt.render_all(alt, tmp_path)
+    assert ('    SoloCeros(id = "RV-SIS-05", campo = NUM_DOCUMENTO, codigo = "SISBEN_ERR_029", '
+            'severidad = Severidad.Error, causa = "DOCUMENTO_CERO")') in _archivo(tmp_path, "SISBENSpec.scala")
+    assert "case r: ReglaEntreCampos.SoloCeros =>" in _archivo(tmp_path, "FieldValidators.scala")
+    assert "SISBEN_ERR_029;1;NUM_DOCUMENTO;Regla RV-SIS-05" in (tmp_path / "docs" / "codigos-error-sisben.csv").read_text(
+        encoding="utf-8")
+    alt["reglas_entre_campos"][-1]["campo"] = "NO_EXISTE"
+    assert contiene(rt.check_references(alt), "RV-SIS-05: campo inexistente NO_EXISTE")
+    sin_causa = copy.deepcopy(alt)
+    del sin_causa["reglas_entre_campos"][-1]["causa"]
+    assert rt.verify_spec(sin_causa)
+
+
+def test_aud_v05_validated_record_json_lleva_el_valor_recibido(spec, tmp_path):
+    """Por inspección del texto: comoMapa (validatedRecordJson) usa Campos.crudo y no aplica trim."""
+    rt.render_all(spec, tmp_path)
+    evento = _archivo(tmp_path, "SISBENValidatedEvent.scala")
+    mapa = evento[evento.index("def comoMapa"):evento.index("override def read")]
+    assert ".trim" not in mapa and "Campos.valor" not in mapa
+    assert 'm.put("NUM_DOCUMENTO", Campos.crudo(valores, 15))' in mapa
+    assert mapa.count("Campos.crudo(valores, ") == len(spec["campos"])
+    comun = _archivo(tmp_path, "FieldValidators.scala")
+    crudo = comun[comun.index("def crudo("):comun.index("def valor(")]
+    assert ".trim" not in crudo
+    assert "def valor(valores: Array[String], posicion: Int): String = crudo(valores, posicion).trim" in comun
+
+
+def test_aud_v06_lookups_con_lookup_home(spec, tmp_path):
+    rt.render_all(spec, tmp_path)
+    conf = (tmp_path / PROPUESTA / "lookups-sisben.conf").read_text(encoding="utf-8")
+    for cat in spec["catalogos"]:
+        assert f'    file = ${{oxygen.application.paths.lookupHome}}"/{cat["archivo"]}"\n' in conf
+    for malo in ("/abs/x.csv", "../x.csv", "a\\b.csv", 'a"b.csv', "${x}.csv", ""):
+        alt = copy.deepcopy(spec)
+        alt["catalogos"][0]["archivo"] = malo
+        assert contiene(rt.check_references(alt), "ruta relativa a lookupHome"), malo
+    alt = copy.deepcopy(spec)
+    alt["catalogos"][0]["archivo"] = "sisben/SISBEN_HOME_ID_CLASIFICATION_NH.csv"
+    assert rt.check_references(alt) == []
+
+
+def test_aud_v08_supuestos_resueltos_por_la_spec(spec, tmp_path):
+    alt = copy.deepcopy(spec)
+    alt["supuestos_resueltos"] = [{"id": "F-11", "fuente": "spec §8"}, {"id": "VAL-SP01", "fuente": "spec §8"},
+                                  {"id": "F-14", "fuente": "spec §6"}]
+    assert rt.verify_spec(alt) == []
+    manifest = rt.render_all(alt, tmp_path)
+    assert not {"F-11", "VAL-SP01", "F-14"} & set(manifest["supuestos"])
+    assert manifest["supuestos_resueltos"] == [{"id": "F-11", "fuente": "spec §8"}, {"id": "F-14", "fuente": "spec §6"},
+                                               {"id": "VAL-SP01", "fuente": "spec §8"}]
+    textos = salida(tmp_path)
+    assert all("ASSUMPTION F-11" not in t and "ASSUMPTION F-14" not in t for t in textos.values())
+    assert "// RESUELTO F-11 (spec §8): códigos del nombre de archivo" in _archivo(tmp_path, "SISBENSpec.scala")
+    assert "RESUELTO F-14 (spec §6)" in _archivo(tmp_path, "SISBENValidationProcessorSpec.scala")
+    en_codigo = sorted({m for t in textos.values() for m in MARCA.findall(t)})
+    assert manifest["supuestos"] == en_codigo  # el manifest sigue derivándose de las marcas que quedan
+
+
+def test_aud_v08_sin_clave_el_manifest_no_cambia(spec, tmp_path):
+    manifest = rt.render_all(spec, tmp_path)
+    assert "supuestos_resueltos" not in manifest and "F-11" in manifest["supuestos"]
+
+
+def test_aud_v08_supuesto_resuelto_invalido(spec, tmp_path):
+    alt = copy.deepcopy(spec)
+    alt["supuestos_resueltos"] = [{"id": "F-08", "fuente": "spec"}, {"id": "F-08", "fuente": "otra"}]
+    errores = rt.verify_spec(alt)
+    assert contiene(errores, "F-08 repetido") and contiene(errores, "F-08 también figura como supuesto abierto")
+    alt["supuestos_resueltos"] = [{"id": "F-99", "fuente": "spec"}]
+    assert rt.verify_spec(alt) == []
+    with pytest.raises(rt.SpecError, match=re.escape("supuestos_resueltos sin marca ASSUMPTION en la salida: ['F-99']")):
+        rt.render_all(alt, tmp_path / "out")
+    assert not (tmp_path / "out").exists()
+    for fuente in ('con "comillas"', "fin */ de comentario", "a\\b"):
+        alt["supuestos_resueltos"] = [{"id": "F-11", "fuente": fuente}]
+        assert contiene(rt.verify_spec(alt), "supuestos_resueltos/0/fuente"), fuente
+
+
+def test_aud_v09_grupos_de_duplicados_y_header_fuente(spec, tmp_path):
+    alt = copy.deepcopy(spec)
+    casos = alt["fixture"]["casos"]
+    casos.append({"id": "DUP_CEROS_A", "descripcion": "duplicado sin ceros",
+                  "cambios": {"NUM_DOCUMENTO": "1000000199", "FECHA_ACTUALIZACION_CNS": "01/01/2024"},
+                  "esperado": {"codigos": [], "duplicado": True, "grupo_duplicado": "CEROS"}})
+    casos.append({"id": "DUP_CEROS_B", "descripcion": "duplicado con ceros a la izquierda",
+                  "cambios": {"NUM_DOCUMENTO": "0001000000199", "FECHA_ACTUALIZACION_CNS": "01/06/2024"},
+                  "esperado": {"codigos": [], "duplicado": False, "grupo_duplicado": "CEROS"}})
+    alt["fixture"]["nombres_invalidos"] = ["SISBEN_EXPERIAN_202406.txt", "XX_SISBEN_EXPERIAN_202406.20240630120000-0500.txt",
+                                           "SISBEN_EXPERIAN_202413.20240630120000-0500.txt"]
+    assert rt.verify_spec(alt) == []
+    rt.render_all(alt, tmp_path)
+    pruebas = _archivo(tmp_path, "SISBENValidationProcessorSpec.scala")
+    assert 'test("fixture duplicados: misma clave' in pruebas  # el grupo sin clave conserva su título
+    assert 'test("fixture duplicados (grupo CEROS): misma clave' in pruebas
+    assert 'Seq("SISBEN_EXPERIAN_202406.txt", "XX_SISBEN_EXPERIAN_202406.20240630120000-0500.txt"' in pruebas
+    assert 'test("header con los nombres fuente (alias) se acepta' in pruebas
+    fuente_header = ";".join(next((a for a in c["alias"] if a != c["nombre"]), c["nombre"]) for c in spec["campos"])
+    assert f'private val HeaderFuente: String = "{fuente_header}"' in pruebas
+    alt["fixture"]["nombres_invalidos"].append(spec["fixture"]["nombre_archivo"])
+    assert contiene(rt.verify_spec(alt), "es válido con el regex y las reglas del nombre")
+
+
+def test_aud_v09_sin_grupos_la_prueba_de_duplicados_no_cambia(spec):
+    assert rt.render_fixture_tests(spec).count('test("fixture duplicados: misma clave') == 1
+    assert "(grupo " not in rt.render_fixture_tests(spec)
+
+
+def test_aud_v10_nombre_de_la_skill(spec, tmp_path):
+    manifest = rt.render_all(spec, tmp_path)
+    assert manifest["skill"] == "edf-validation" == rt.SKILL_NAME
+    assert not any("edf-validation-stage" in t for t in arbol(tmp_path).values())
+    assert all("Generado por la skill edf-validation" in t
+               for r, t in salida(tmp_path).items() if r.endswith((".scala", ".conf")))
+
+
+def test_aud_v17_duplicado_conserva_file_tag(spec, tmp_path):
+    rt.render_all(spec, tmp_path)
+    processor = _archivo(tmp_path, "ValidationProcessor.scala")
+    assert "tve.headerErrors, tve.footerErrors, tve.keys, tve.inferredAsDeleted, tve.fileTag)" in processor
+
+
+def test_aud_v19_codigos_de_error_fuera_de_la_carpeta_del_fork(spec, tmp_path):
+    manifest = rt.render_all(spec, tmp_path)
+    rutas = [a["ruta"] for a in manifest["archivos"]]
+    assert "docs/codigos-error-sisben.csv" in rutas
+    assert not any(r.startswith(PROPUESTA) and r.endswith(".csv") for r in rutas)
+    assert sorted(p.name for p in (tmp_path / PROPUESTA).iterdir()) == ["lookups-sisben.conf",
+                                                                        "validation-configs-sisben.conf"]
+    csv = (tmp_path / "docs" / "codigos-error-sisben.csv").read_text(encoding="utf-8")
+    assert csv.splitlines()[-1] == "OxygenDuplicate;;REGISTRO;Duplicado no conservado (marca OxygenDuplicate)"
+    sin_dup = copy.deepcopy(spec)
+    sin_dup["duplicados"]["habilitado"] = False
+    assert "OxygenDuplicate" not in rt.render_error_codes(sin_dup)
+
+
+@pytest.mark.skipif(not INSUMO_E2E.exists(), reason="sin el expediente de la corrida E2E SISBEN")
+def test_insumo_e2e_sigue_verificando_y_acepta_las_claves_nuevas(tmp_path, capsys):
+    """El insumo actual (sin claves nuevas) sigue dando OK; con las claves nuevas también y genera (copia en memoria)."""
+    assert rt.main(["--spec", str(INSUMO_E2E), "--solo-verificar"]) == 0
+    assert capsys.readouterr().out.startswith("source-spec OK (22 campos, 29 códigos)")
+    alt = rt.load_spec(INSUMO_E2E)
+    alt["archivo"]["nombre"].update(periodo_no_futuro=True, recepcion_no_futura=True, recepcion_desde_inicio_periodo=True)
+    rv05 = next(r for r in alt["reglas_entre_campos"] if r["id"] == "RV-SIS-05")
+    for clave in ("valores",):
+        rv05.pop(clave)
+    rv05["tipo"] = "solo_ceros"
+    alt["supuestos_resueltos"] = [{"id": "F-11", "fuente": "spec-sisben.md §8"}]
+    assert rt.verify_spec(alt) == []
+    manifest = rt.render_all(alt, tmp_path)
+    assert manifest["skill"] == "edf-validation" and "F-11" not in manifest["supuestos"]

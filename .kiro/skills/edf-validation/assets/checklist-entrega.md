@@ -6,8 +6,10 @@ Marcar cada punto antes de pedir la aprobación del técnico. Un punto sin marca
 
 - [ ] `python scripts/render_templates.py --spec <spec> --solo-verificar` termina en `source-spec OK`.
 - [ ] Generado con `python scripts/render_templates.py --spec <spec> --out <salida>`; nada se compiló.
-- [ ] Cada `ASSUMPTION` del spec fue revisado con el técnico (confirmado o ajustado).
-- [ ] Discrepancias documentales nuevas registradas en `references/decisiones-y-abiertos.md`.
+- [ ] Cada `ASSUMPTION` del spec fue revisado con el técnico (confirmado o ajustado). Los que la spec de la
+      ingesta ya fija están en `supuestos_resueltos` del insumo (salen como `RESUELTO <ID>`).
+- [ ] Discrepancias documentales nuevas listadas en la entrega al Orquestador (expediente de la ingesta), nunca
+      en archivos de `.kiro/` (`references/decisiones-y-abiertos.md` es solo del mantenimiento de la skill).
 - [ ] Fixture y `ejemplo_invalido` son sintéticos; ningún registro real.
 
 ## 2. Códigos y DSL
@@ -17,6 +19,10 @@ Marcar cada punto antes de pedir la aprobación del técnico. Un punto sin marca
 - [ ] Niveles de un carácter (`1`, `3`); sin severidad 0.
 - [ ] Nombres de quality score fuera de operadores, literales y códigos.
 - [ ] `validate[].fileName` y `validate[].header` presentes (F-11).
+- [ ] Cada elemento de `validate[]` y de `metrics[]` lleva `filePattern` (el motor hace `data.filePattern.get`,
+      AUD-V-01; `verificar_hocon.py` lo revisa).
+- [ ] Las reglas de fecha del nombre que pide la spec están activas en `archivo.nombre` (AUD-V-02) y las reglas
+      «solo ceros» usan `tipo: solo_ceros`, no una lista literal (AUD-V-03).
 
 ## 3. Processor y código Scala
 
@@ -40,7 +46,9 @@ Marcar cada punto antes de pedir la aprobación del técnico. Un punto sin marca
       y `validateFooter` en el processor (AUD-V3).
 - [ ] `computeMetrics = true` y `dupKeyCheckEnabled = true` con `deDupVersion = "EXTN"`.
 - [ ] Sin clave `encoding` (UTF-8, D5); `contexual.enabled = false`.
-- [ ] Lookups nuevos en `oxygen.lookups[]` con `tableName`, `file`, `delimiter`, `keys[].index`.
+- [ ] Lookups nuevos en `oxygen.lookups[]` con `tableName`, `file`, `delimiter`, `keys[].index`; cada `file` es
+      `${oxygen.application.paths.lookupHome}"/<archivo>"` (AUD-V-06).
+- [ ] `docs/codigos-error-<fuente>.csv` no se pega en el fork (es documentación, AUD-V-19).
 - [ ] Ambiente verificado: `lambda = batch`, `historicAttributes = false`, `emitStockMetrics` presente,
       `defaultOutputStructure` confirmado.
 
@@ -59,11 +67,24 @@ Marcar cada punto antes de pedir la aprobación del técnico. Un punto sin marca
 
 ---
 
-## Nota de verificación · generador en Java 17 (2026-10-20)
+## Nota vigente · generador Python (desde la 1.4.0, 2026-11-18; revisada en la 1.9.2)
 
-`render_templates.py` se reemplazó por el generador Java de `scripts/java/` (Temurin 17.0.20.1, Maven
-3.10.0). `render_templates.py` y `tests/test_render_templates.py` quedan **deprecados**
-(`scripts/DEPRECADOS.md`). La tabla de la versión 0.1.0, más abajo, queda como registro histórico.
+El generador vigente es `scripts/render_templates.py` (Python 3 con PyYAML y jsonschema, sin compilar nada).
+`tests/test_render_templates.py` está en la suite y `render_templates.py` en la cobertura (`.coveragerc`); ver
+`scripts/DEPRECADOS.md`. Las notas que siguen son **históricas**: describen el estado de su fecha y no se aplican.
+
+| # | Verificación | Comando (desde la raíz del skill) | Resultado esperado |
+|---|---|---|---|
+| v1 | Pruebas de los scripts | `python3 -m pytest scripts/tests -q` | todo en verde; sin `pyhocon` se omiten las pruebas que lo necesitan |
+| v2 | Ejemplo versionado = regeneración | `test_ejemplo_persistido_igual_a_regeneracion` | OK |
+| v3 | HOCON generado | `python3 scripts/verificar_hocon.py --generado <salida> --fuente <fuente> --archivo-ejemplo <fixture>` (con `pyhocon`) | `HOCON OK`: `filePattern` en `validate[]`/`metrics[]` y `lookupHome` en los lookups |
+
+## Nota de verificación · generador en Java 17 (2026-10-20) · HISTÓRICA, superada por la 1.4.0
+
+En esa fecha `render_templates.py` se reemplazó por el generador Java (Temurin 17.0.20.1, Maven 3.10.0) y
+`render_templates.py` y `tests/test_render_templates.py` quedaron deprecados. **Desde la 1.4.0 es al revés**: el
+generador Java es el deprecado y conservado solo como referencia (`scripts/DEPRECADOS.md`). La tabla de la versión
+0.1.0, más abajo, también es registro histórico.
 
 | # | Verificación | Comando | Resultado |
 |---|---|---|---|
@@ -73,7 +94,10 @@ Marcar cada punto antes de pedir la aprobación del técnico. Un punto sin marca
 | j4 | Ejemplo versionado = regeneración | prueba `ejemploPersistidoIgualARegeneracion` | OK |
 | j5 | Pruebas Python | `python -m pytest scripts/tests` | 82 passed, 3 skipped (sin pyhocon): 61 de los scripts vigentes, más las 21 deprecadas de `test_render_templates.py` |
 
-## Nota de verificación · correcciones de la corrida priorizada (2026-10-21)
+## Nota de verificación · correcciones de la corrida priorizada (2026-10-21) · HISTÓRICA
+
+k2 y k3 describen la suite de esa fecha (ADR-04, superado por la 1.4.0): hoy `test_render_templates.py` sí se
+recoge y `.coveragerc` ya no omite `render_templates.py`.
 
 ADR-01 (catálogo que lanza → código interno de nivel 1), ADR-04 (pruebas y script deprecados fuera de la
 suite y de la cobertura) y plan #5/#6. El ejemplo `assets/examples/sisben/generated/` se regeneró: cambian

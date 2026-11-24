@@ -62,7 +62,9 @@ cp1252) o usar `--salida`, que siempre escribe UTF-8.
 2. Pegar el objeto de `propuesta/validation-configs-<fuente>.conf` como **elemento nuevo** de
    `oxygen.stage.validation.configs = [...]` en `validation-common-application-inner.conf`.
 3. Pegar los objetos de `propuesta/lookups-<fuente>.conf` en `oxygen.lookups = [...]` del inner y ubicar
-   los CSV de catálogo reales (no los sintéticos) en `oxygen.application.paths.lookupHome`.
+   los CSV de catálogo reales (no los sintéticos) en `oxygen.application.paths.lookupHome`, con la ruta
+   relativa de `catalogos[].archivo`: cada `file` es `${oxygen.application.paths.lookupHome}"/<archivo>"`
+   (AUD-V-06). `docs/codigos-error-<fuente>.csv` es documentación: no se copia al fork (AUD-V-19).
 4. No editar `*-common-application.conf` base ni otros elementos existentes.
 
 ## 5. Compilar y probar (requiere JAR)
@@ -121,6 +123,7 @@ argumentos. Rutas y roles los define el equipo de plataforma; no incluir credenc
 - `oxygen.features.enable.emitStockMetrics` presente.
 - `oxygen.features.enable.defaultOutputStructure` confirmado (F-04).
 - `paths.validationDir` y `paths.validatedDir` del ambiente; con CustomMode, `appHome` se borra al final.
-- Las 7 tablas en `lookupHome` con las columnas declaradas en `keys[].index`.
+- Las tablas de `catalogos[]` del source-spec (7 en el ejemplo de forma; las que diga la spec de la ingesta)
+  en `lookupHome`, con las columnas declaradas en `keys[].index`.
 
 Luego interpretar la salida con `interpretar-salida.md`.

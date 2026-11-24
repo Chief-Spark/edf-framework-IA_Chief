@@ -13,7 +13,7 @@ raíz del fork de Colombia de oxygen-validation; `raiz_fuente` = `src/main/scala
 | VAL-TPL-05 | `FileMetadata.scala.tpl` | — | `raiz_fuente/validator/<Fuente>FileMetadata.scala` | por fuente |
 | VAL-TPL-06 | `ValidationProcessor.scala.tpl` | C | `raiz_fuente/processor/<Fuente>ValidationProcessor.scala` | por fuente |
 | VAL-TPL-07 | `validation-block.conf.tpl` | — | `env/application-conf/innersource/propuesta/validation-configs-<fuente>.conf` | por fuente |
-| VAL-TPL-08 | `lookups.conf.tpl` + `codigos-error.csv.tpl` + CSV de catálogos | — | `.../propuesta/lookups-<fuente>.conf`, `.../codigos-error-<fuente>.csv`, `src/test/resources/<fuente>/lookup/*.csv` | por fuente |
+| VAL-TPL-08 | `lookups.conf.tpl` + `codigos-error.csv.tpl` + CSV de catálogos | — | `.../propuesta/lookups-<fuente>.conf`, `docs/codigos-error-<fuente>.csv` (documental, fuera de `propuesta/`, AUD-V-19), `src/test/resources/<fuente>/lookup/*.csv` | por fuente |
 | VAL-TPL-09 | `capa-a/FieldValidatorsSpec.scala.tpl` | A | `src/test/scala/<paquete_comun>/FieldValidatorsSpec.scala` | una vez |
 | VAL-TPL-10 | `SourceProcessorSpec.scala.tpl` | — | `src/test/scala/<paquete_fuente>/<Fuente>ValidationProcessorSpec.scala` | por fuente |
 | VAL-TPL-11 | `fixture.txt.tpl` | — | `src/test/resources/<fuente>/<nombre del fixture>` | por fuente |
@@ -39,7 +39,8 @@ esa parte se expresa como datos del source-spec:
 
 | `parte_manual` original | Dato del source-spec | Código generado |
 |---|---|---|
-| Reglas entre campos (DANE código↔nombre, salvoconducto) | `reglas_entre_campos[]` (`correspondencia_catalogo`, `valor_con_codigo_propio`) | `ReglaEntreCampos` en `<Fuente>Spec` |
+| Reglas entre campos (DANE código↔nombre, salvoconducto, documento en ceros) | `reglas_entre_campos[]` (`correspondencia_catalogo`, `valor_con_codigo_propio`, `solo_ceros`) | `ReglaEntreCampos` en `<Fuente>Spec` |
+| Reglas de fecha del nombre (periodo y recepción) | `archivo.nombre.{periodo_no_futuro, recepcion_no_futura, recepcion_desde_inicio_periodo}` | `NombreArchivoSpec` + `RecordValidator.validarNombre(spec, ruta, ahora)` |
 | Fecha no futura | `campos[].no_futura` | `FieldValidators.noFutura` |
 | `listDuplicateEvents` (EXTN) | `duplicados.{clave, modo, campo_fecha}` | `RecordValidator.indiceAConservar` + processor |
 | Normalización en memoria (RV-GEN-07) | `campos[].normalizacion` | `FieldValidators.normalizar` |
@@ -54,7 +55,8 @@ trait ReglaEntreCampos` (Capa A) y al esquema; no se escribe lógica a mano en e
 - Paquetes y rutas: `paquete_comun`, `paquete_fuente`, `ruta_comun`, `ruta_fuente`, `processor_fqcn`.
 - Archivo: `delimitador_scala`, `filas_header`, `filas_footer`, `file_format`, `linea_encoding`,
   `file_pattern_hocon`, `regex_nombre_scala`, `grupo_*`, `bloque_file_tags`, `expr_file_as_of_date`,
-  `is_footer_row_expr`, `bloque_validate_footer` (vacío sin footer, AUD-V3).
+  `is_footer_row_expr`, `bloque_validate_footer` (vacío sin footer, AUD-V3), `nombre_periodo_no_futuro`,
+  `nombre_recepcion_no_futura`, `nombre_recepcion_desde_inicio_periodo` (AUD-V-02).
 - Campos y reglas: `bloque_constantes_campos`, `bloque_fieldspecs`, `bloque_reglas`, `bloque_accesores`,
   `bloque_mapa_json`, `header_linea`, `numero_campos`.
 - Filtro, QS, duplicados: `filtro_*`, `bloque_quality_scores`, `dup_*`, `dedup_version`,
@@ -63,4 +65,5 @@ trait ReglaEntreCampos` (Capa A) y al esquema; no se escribe lógica a mano en e
   (vacío sin footer), `bloque_metricas`,
   `bloque_lookups`, `bloque_codigos_error`.
 - Tests y fixture: `bloque_catalogo_sintetico`, `registro_base_scala`, `bloque_casos_campo`,
-  `bloque_casos_fixture`, `bloque_registros_fixture`, `fecha_referencia_scala`, `fixture_nombre_archivo`.
+  `bloque_casos_fixture`, `bloque_registros_fixture`, `fecha_referencia_scala`, `fixture_nombre_archivo`,
+  `header_fuente_linea_scala` y `bloque_pruebas_nombre` (1.9.2, AUD-V-02/AUD-V-09).
