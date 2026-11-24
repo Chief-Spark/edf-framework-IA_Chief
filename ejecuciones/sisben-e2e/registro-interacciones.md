@@ -142,6 +142,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:29:45-05:00
 - **Pedido:** Regenerar tras framework 1.9.4 y repetir V1-V7.
+- **Respuesta:** Regenerada con 1.9.4: frente a la entrega anterior solo cambia la línea 7 de lookups-sisben.conf y su sha256 en el manifest. V1-V7 OK (suite 216 passed con pyhocon); muestra = spec §15; fixture igual. 8 supuestos abiertos.
+- **Decisión:** ART-011..015 prevalidados; re-auditoría de la propuesta.
+- **Bitácora:** —
+
+## INT-019 · Auditor independiente (validation) · re-auditoría de la propuesta · `validation`
+
+- **Cuándo:** 2026-11-24T18:30:48-05:00
+- **Pedido:** Re-auditar ART-011..015 regenerados (insumo v2, framework 1.9.4).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

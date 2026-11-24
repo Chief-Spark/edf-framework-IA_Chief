@@ -47,7 +47,7 @@
     },
     {
       "ruta": "env/application-conf/innersource/propuesta/lookups-sisben.conf",
-      "sha256": "2aa0a7270f7e3cf79ecd69d48c016bdb334a0f13b4365dcd347d15b0593f1fac"
+      "sha256": "48481960dec0d44dfc2a58cf0b4d9014f779556120a61aaa4a22160b6b10b1e9"
     },
     {
       "ruta": "docs/codigos-error-sisben.csv",

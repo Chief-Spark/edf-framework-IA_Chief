@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T18:24:43-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T18:30:48-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 51 eventos, último BIT-0051 |
+| Bitácora | 53 eventos, último BIT-0053 |
 
 ## Etapas
 

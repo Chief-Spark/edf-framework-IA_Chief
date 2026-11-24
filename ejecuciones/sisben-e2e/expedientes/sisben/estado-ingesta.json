@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T18:24:43-05:00",
-    "vista_md_regenerada_en": "2026-11-24T18:24:43-05:00"
+    "actualizado_en": "2026-11-24T18:30:48-05:00",
+    "vista_md_regenerada_en": "2026-11-24T18:30:48-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -187,7 +187,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
           },
           "riesgo": "medio"
@@ -203,7 +203,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
           }
         },
@@ -218,7 +218,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
           }
         },
@@ -233,7 +233,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
           }
         },
@@ -248,7 +248,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Generador edf-validation (INT-009): render_templates OK 18 archivos; verificar_hocon OK con pyhocon; suite de la skill 165 passed; prevalidación de la muestra = spec §15",
+            "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
           }
         }
@@ -959,8 +959,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0051",
-    "eventos_totales": 51,
+    "ultimo_evento": "BIT-0053",
+    "eventos_totales": 53,
     "append_only": true,
     "retencion_meses": 24
   }
