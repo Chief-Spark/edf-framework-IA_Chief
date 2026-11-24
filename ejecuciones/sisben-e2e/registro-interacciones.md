@@ -65,3 +65,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** Aprueba ART-001..004 (bajo), la etapa 0 (contexto, bajo, con supuesto: cierre formal del PO pendiente no bloqueante), ART-010 (medio, diff limpio contra el Anexo A) y la transición analisis→validation (medio por la etapa afectada, supuesto del aprobador), con checklist c1..c6 (c5 y c6 no aplican). Pide el orden etapa → insumo → transición.
 - **Decisión:** Registradas APR-001..004 en ese orden (BIT-0020..0024); hashes sha256 de los cinco artefactos; transición habilitada; Validation en_progreso. Corrección BIT-0028: ref_aprobacion de analisis = APR-004 (regla 7a).
 - **Bitácora:** BIT-0020..BIT-0028
+
+## INT-009 · Generador (edf-validation) · `validation`
+
+- **Cuándo:** 2026-11-24T17:32:49-05:00
+- **Pedido:** Generar la propuesta de Validation desde el insumo aprobado ART-010 (render_templates.py --out propuestas/validation/), checklist, verificar_hocon, prevalidación de la muestra, revisión a mano de escenarios HU §5; reportar ART-011..015.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
