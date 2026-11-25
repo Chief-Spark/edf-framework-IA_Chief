@@ -9,7 +9,7 @@ vigente es `render_templates.py`: solo necesita Python 3 con PyYAML y jsonschema
 |---|---|
 | `render_templates.py` | **Vigente.** Generador y verificador del source-spec |
 | `spec_utils.py` | Vigente. Reutiliza la verificación de `render_templates.py`; ya no llama a ningún `.jar` |
-| `tests/test_render_templates.py` | Vigente, en la suite (`python -m pytest scripts/tests`) y en la cobertura |
+| `tests/test_render_templates.py` | Vigente, en la suite (`python3 -m pytest scripts/tests`) y en la cobertura |
 | `java/` (generador `RenderTemplates`, `Contexto`, `Verificaciones`, `Py` y `RenderTemplatesTest`) | **Deprecado.** Solo referencia histórica. No se compila ni se ejecuta; la skill nunca usa `mvn` ni `java -jar` |
 
 ### Evidencia de equivalencia (2026-11-18)

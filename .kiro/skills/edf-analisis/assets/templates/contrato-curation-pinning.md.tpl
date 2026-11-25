@@ -7,6 +7,8 @@
 | Contrato general | `.kiro/steering/11-contrato-curation-pinning.md` (formato del evento, regla de normalización, pendientes) |
 | Fuentes de esta tabla | `insumos/source-spec-curation.yaml` (`campos_curados[]`), `analisis/mapeo-campos.md`, `references/logica-pinning.md` §5, §7, §12.1 |
 
+Marcadores (steering `05` §3): `[C]` confirmado por la fuente · `[P]` propuesto por un agente, sin aprobación · `[A:<ID>]` abierto · `[PM]` pendiente-manual: el equipo debe completarlo a mano · `[S]` superado. El estado de este contrato vive solo en `estado-ingesta.json` (HF-32).
+
 ## 1. Claves que Pinning consume
 
 Una fila por clave de `curatedRecordJson` que entra a `identifying-attributes.json`. La columna "Clave publicada" se copia **literal** de `campos_curados[].destino`.

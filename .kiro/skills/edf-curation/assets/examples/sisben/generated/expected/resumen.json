@@ -26,6 +26,7 @@
       "segundoApellido"
     ]
   },
+  "claves_omitidas_por_nulas": {},
   "homologacion_tipo_documento": {
     "evt-0001": [
       "3",

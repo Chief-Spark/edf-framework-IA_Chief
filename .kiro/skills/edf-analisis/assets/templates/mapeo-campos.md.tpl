@@ -4,7 +4,6 @@
 |---|---|
 | Ingesta | `{{ingesta-id}}` |
 | Versión / Fecha | 1.0.0 / {{AAAA-MM-DD}} |
-| Estado | PROPUESTO |
 | Cobertura | {{n}} de {{N}} campos del contrato del archivo — **debe ser N de N para cerrar la etapa 0** |
 
 Una fila por campo de la fuente, con las **nueve dimensiones** de `07-contratos-frontera.md` §3. Ninguna celda vacía: si no se sabe, `[A:<ID>]` o `[PM]` con su pregunta abierta. **No se mapea a XPM aquí** (`04` §4.4).

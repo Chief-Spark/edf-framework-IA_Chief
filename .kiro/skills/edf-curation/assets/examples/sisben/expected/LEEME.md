@@ -1,6 +1,6 @@
 # Salida esperada del fixture sintético (SISBEN)
 
-Generada con `python scripts/render_templates.py --write-expected <dir>` y la implementación de
+Generada con `python3 scripts/render_templates.py --write-expected <dir>` y la implementación de
 referencia `scripts/curation_reference.py` (idéntica, byte a byte, a la que generaba el Java deprecado). Entrada: `../fixture/accepted-events.input.yaml` (8 eventos
 aceptados sintéticos).
 

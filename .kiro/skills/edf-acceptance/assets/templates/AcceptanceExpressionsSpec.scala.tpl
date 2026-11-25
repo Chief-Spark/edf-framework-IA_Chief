@@ -123,6 +123,7 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
     assert(fileKeyCases.nonEmpty, "el insumo no declara archivo.claves_de_prueba")
     fileKeyCases.foreach { case (clave, valor, expected) =>
       // Las claves ruta_* son rutas de validados y se recortan como en el motor; las demás se comparan tal cual
+      // (convención declarada en el esquema, archivo.claves_de_prueba[].clave, HF-44).
       // (misma regla que render_templates.verify_spec). String.matches exige coincidencia total, como el motor.
       val key = if (clave.startsWith("ruta_")) engineFileKey(valor) else valor
       assert(key.matches(FilePattern) == expected, clave + ": " + key + " debería " + (if (expected) "" else "no ") + "coincidir")

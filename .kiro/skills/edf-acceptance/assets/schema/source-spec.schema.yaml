@@ -89,7 +89,16 @@ properties:
           additionalProperties: false
           required: [clave, valor, debe_coincidir]
           properties:
-            clave: {type: string}
+            clave:
+              type: string
+              minLength: 1
+              description: >-
+                HF-44 (AUD-A-19). Convención del prefijo: una clave que empieza por `ruta_` es una ruta del
+                directorio de validados (lleva `/` o `\`) y se le aplica el recorte de extensión del motor
+                (SparkAcceptor.removeFileExtension) antes de comparar, en verify_spec y en la prueba Scala; sin el
+                prefijo, el valor se compara tal cual (p. ej. `lineage.fileName`). Una clave `ruta_*` sin separador
+                de directorio es un error. Un valor con separador sin el prefijo da un aviso: se compara sin
+                recortar y, con `debe_coincidir: false`, el caso pasa siempre por el sufijo `.<datasetId>`.
             valor: {type: string}
             debe_coincidir: {type: boolean}
   calidad:

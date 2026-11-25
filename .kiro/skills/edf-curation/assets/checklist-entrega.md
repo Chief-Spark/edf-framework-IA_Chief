@@ -5,9 +5,9 @@ no se oculta.
 
 ## Generación
 
-- [ ] `python scripts/render_templates.py` terminó con `OK` (source-spec válido contra el esquema). No se ejecutó `mvn`, `javac` ni `java -jar`.
+- [ ] `python3 scripts/render_templates.py` terminó con `OK` (source-spec válido contra el esquema). No se ejecutó `mvn`, `javac` ni `java -jar`.
 - [ ] Ningún `{{hueco}}` sin resolver en la salida (lo verifica el generador y sus pruebas).
-- [ ] `python -m pytest scripts/tests -q` en verde.
+- [ ] `python3 -m pytest scripts/tests -q` en verde.
 - [ ] Parse-check HOCON de `fragmentos/*.conf` en verde (`hocon_check.py`; Typesafe Config queda para el fork y se reporta como no verificado).
 - [ ] Los 12 artefactos CUR-TPL-01..12 están en `MANIFEST.json` (`archivos`).
 - [ ] Todo archivo generado salvo `MANIFEST.json` está en exactamente una de `archivos`, `marcas_sintetico`
@@ -21,8 +21,9 @@ no se oculta.
 - [ ] Logger y lookups como `@transient lazy val`; homologación cargada una vez.
 - [ ] `curateEvent` no lanza; `curar` envuelto en `NonFatal` con log de `eventId` y clase de la excepción (AUD-C2).
 - [ ] Todo `Try(...).getOrElse`, `Try(...).toOption` y `case NonFatal` lleva `SILENCIO-INTENCIONAL <ID>`
-      (`python tools/auditar-skills.py --skill edf-curation` desde la raíz del framework).
-- [ ] `outputEventType = 30` (`ASSUMPTION:`) y `enrichEventWithPayload = event.payload`.
+      (`python3 tools/auditar-skills.py --skill edf-curation` desde la raíz del framework).
+- [ ] `outputEventType` = el event type de salida de la spec de la ingesta (`fuente.output_event_type`), con
+      `ASSUMPTION CUR-PA04` o, si la spec lo fija, `RESUELTO CUR-PA04` (HF-51); `enrichEventWithPayload = event.payload`.
 - [ ] `subscriberRelation` no sobrescrito, salvo que el source-spec declare `extension_subscriber_relation` (D14):
       en ese caso hay `override def subscriberRelation`, el núcleo `relacion` y su prueba; un componente faltante
       deja `subscriberRelation:COMPONENTE_FALTANTE` (AUD-C3). Firma del gancho verificada en la copia del motor
@@ -49,6 +50,8 @@ no se oculta.
 - [ ] El ambiente tiene `emitStockMetrics` y `consistency.paths.domainDictionaryFile`;
       `enable.defaultCurationProcessor` apagado.
 - [ ] Lookups: solo se agregan tablas propias; CSV real cargado por el equipo (no el sintético).
+- [ ] Ningún `tableName` queda dos veces en el `oxygen-lookup-inner.conf` del fork: si Validation ya registró la
+      tabla (SISBEN: la 202) y el inner es común, se deja una sola entrada equivalente (HF-54, AUD-C-23).
 - [ ] Conf base sin cambios.
 
 ## Seguridad y datos

@@ -14,12 +14,12 @@ pedir su rotación.
 
 ```bash
 cd edf-curation
-python -m pip install pyyaml jsonschema pytest     # una vez
-python scripts/render_templates.py \
+python3 -m pip install pyyaml jsonschema pytest     # una vez
+python3 scripts/render_templates.py \
   --spec assets/examples/sisben/source-spec.sisben.yaml \
   --out  assets/examples/sisben/generated          # ATENCIÓN: --out se borra y se recrea
-python -m pytest scripts/tests -q
-python scripts/hocon_check.py assets/examples/sisben/generated/fragmentos/*.conf
+python3 -m pytest scripts/tests -q
+python3 scripts/hocon_check.py assets/examples/sisben/generated/fragmentos/*.conf
 ```
 
 La skill nunca ejecuta `mvn`, `javac` ni `java -jar`: `scripts/java/` es el generador anterior, deprecado

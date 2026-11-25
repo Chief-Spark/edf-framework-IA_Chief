@@ -338,6 +338,15 @@ def engine_file_key(path: str) -> str:
     return remove_extension(stripped) if "errorIn" in path else stripped
 
 
+def es_clave_de_ruta(clave: str) -> bool:
+    """HF-44: convención del esquema. Una clave de prueba `ruta_*` es una ruta del directorio de validados."""
+    return clave.startswith("ruta_")
+
+
+def es_ruta(valor: str) -> bool:
+    return "/" in valor or "\\" in valor
+
+
 def verify_spec(spec: dict) -> list[str]:
     """Verificaciones del inventario (ACC-TPL-01/02/04) y de los riesgos ACC-R01..R03."""
     errors: list[str] = []
@@ -352,7 +361,11 @@ def verify_spec(spec: dict) -> list[str]:
     for case in spec["archivo"].get("claves_de_prueba", []):
         # Las claves "ruta_*" son rutas del directorio de validados: se les aplica el mismo recorte
         # de extensión que hace el motor en E3 antes de comparar (String.matches = coincidencia total).
-        value = engine_file_key(case["valor"]) if case["clave"].startswith("ruta_") else case["valor"]
+        # La convención está declarada en el esquema (HF-44).
+        if es_clave_de_ruta(case["clave"]) and not es_ruta(case["valor"]):
+            errors.append(f"claves_de_prueba {case['clave']}: el prefijo ruta_ declara una ruta del directorio de "
+                          "validados, pero el valor no tiene separador de directorio (HF-44)")
+        value = engine_file_key(case["valor"]) if es_clave_de_ruta(case["clave"]) else case["valor"]
         if bool(regex.fullmatch(value)) != case["debe_coincidir"]:
             errors.append(f"filePattern vs {case['clave']}: se esperaba {case['debe_coincidir']} (ACC-R03)")
 
@@ -469,6 +482,13 @@ def avisos(spec: Any) -> list[str]:
     if isinstance(spec, dict) and "expresiones_propuestas_sisben" in spec:
         out.append("aviso  expresiones_propuestas_sisben está deprecada desde 1.9.5 (HF-21): renómbrela a "
                    "expresiones_propuestas")
+    archivo = spec.get("archivo") if isinstance(spec, dict) else None
+    casos = (archivo.get("claves_de_prueba") or []) if isinstance(archivo, dict) else []
+    for case in casos:
+        if isinstance(case, dict) and es_ruta(str(case.get("valor", ""))) and not es_clave_de_ruta(str(case.get("clave", ""))):
+            out.append(f"aviso  claves_de_prueba {case.get('clave')}: el valor es una ruta pero la clave no empieza por "
+                       "ruta_; se compara sin el recorte de extensión del motor y, con debe_coincidir: false, pasa "
+                       f"siempre (HF-44, AUD-A-19). Renómbrela ruta_{case.get('clave')} en la próxima versión del insumo")
     return out
 
 

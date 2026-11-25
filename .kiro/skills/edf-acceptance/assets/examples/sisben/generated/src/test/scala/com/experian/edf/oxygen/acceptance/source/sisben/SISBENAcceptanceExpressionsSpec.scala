@@ -83,7 +83,7 @@ class SISBENAcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfterAll
     ("ruta_validada_sin_extension", "/home/app/validation/validated/SISBEN_EXPERIAN_202401.20240131120000-0500.txt.900001", true),
     ("ruta_marcador_sin_extension", "/home/app/validation/validated/EP_SISBEN_EXPERIAN_202401.20240131140000-0500.txt.errorInHeader.900003", true),
     ("lineage_fileName", "RT_SISBEN_EXPERIAN_202401.20240131130000+0000.txt", true),
-    ("otra_fuente", "/home/app/validation/validated/RUNT_EXPERIAN_202401.20240131120000-0500.txt.900009", false),
+    ("ruta_otra_fuente", "/home/app/validation/validated/RUNT_EXPERIAN_202401.20240131120000-0500.txt.900009", false),
   )
 
   private lazy val spark: SparkSession =
@@ -130,6 +130,7 @@ class SISBENAcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfterAll
     assert(fileKeyCases.nonEmpty, "el insumo no declara archivo.claves_de_prueba")
     fileKeyCases.foreach { case (clave, valor, expected) =>
       // Las claves ruta_* son rutas de validados y se recortan como en el motor; las demás se comparan tal cual
+      // (convención declarada en el esquema, archivo.claves_de_prueba[].clave, HF-44).
       // (misma regla que render_templates.verify_spec). String.matches exige coincidencia total, como el motor.
       val key = if (clave.startsWith("ruta_")) engineFileKey(valor) else valor
       assert(key.matches(FilePattern) == expected, clave + ": " + key + " debería " + (if (expected) "" else "no ") + "coincidir")

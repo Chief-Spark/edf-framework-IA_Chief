@@ -335,6 +335,20 @@ def sin_meta(evento: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in evento.items() if not k.startswith("_")}
 
 
+def origenes_no_almacenados(evento: dict[str, Any], spec: dict[str, Any]) -> set[str]:
+    """HF-45: campos de entrada cuyo código de error tiene un nivel de parametros.niveles_no_almacenar (RF-CUR-10).
+
+    Misma regla que ``curation_reference.curar``: un código sin campo o con nivel nulo no omite nada.
+    """
+    niveles = {str(n) for n in spec["parametros"].get("niveles_no_almacenar") or []}
+    out = set()
+    for e in evento.get("errorCodes") or []:
+        campo = spec["codigos_error"].get(e.get("errorCodeValue")) if e else None
+        if campo is not None and e.get("errorLevel") is not None and str(e["errorLevel"]) in niveles:
+            out.add(campo)
+    return out
+
+
 def salida_esperada(spec: dict[str, Any], eventos: list[dict[str, Any]]) -> tuple[list[dict], dict]:
     """Eventos curados y resumen de la salida esperada del fixture."""
     curados, descartados = [], []
@@ -346,7 +360,7 @@ def salida_esperada(spec: dict[str, Any], eventos: list[dict[str, Any]]) -> tupl
         else:
             curados.append(r)
     campo_adv = spec["parametros"]["campo_advertencias"]
-    advertencias, omitidas, homologacion = {}, {}, {}
+    advertencias, omitidas, omitidas_nulas, homologacion = {}, {}, {}, {}
     con_advertencias = 0
     for c in curados:
         rec = c["curatedRecordJson"]
@@ -354,10 +368,17 @@ def salida_esperada(spec: dict[str, Any], eventos: list[dict[str, Any]]) -> tupl
         if rec.get(campo_adv):
             con_advertencias += 1
             advertencias[ident] = rec[campo_adv]
-        faltan = [m["destino"] for m in spec["campos_curados"] if m["destino"] not in rec]
-        if faltan:
-            omitidas[ident] = faltan
         entrada = next(e for e in eventos if e["eventId"] == c["eventId"])
+        # HF-45 (AUD-C-14): una clave ausente sale por una de dos causas, que se informan aparte: el nivel de su
+        # código de error (niveles_no_almacenar, RF-CUR-10) o su valor nulo (omitir_si_nulas, AUD-C4).
+        no_almacenados = origenes_no_almacenados(entrada, spec)
+        faltan = [m for m in spec["campos_curados"] if m["destino"] not in rec]
+        por_severidad = [m["destino"] for m in faltan if (m.get("origen") or "") in no_almacenados]
+        por_nulas = [m["destino"] for m in faltan if m["destino"] not in por_severidad]
+        if por_severidad:
+            omitidas[ident] = por_severidad
+        if por_nulas:
+            omitidas_nulas[ident] = por_nulas
         tip = json.loads(entrada["validatedRecordJson"]).get("TIP_DOCUMENTO")
         homologacion[ident] = [tip, rec.get("tipoDocumento")]
     resumen = {
@@ -368,6 +389,7 @@ def salida_esperada(spec: dict[str, Any], eventos: list[dict[str, Any]]) -> tupl
         "eventos_con_advertencias": con_advertencias,
         "advertencias": advertencias,
         "claves_omitidas_por_severidad": omitidas,
+        "claves_omitidas_por_nulas": omitidas_nulas,
         "homologacion_tipo_documento": homologacion,
     }
     return curados, resumen
@@ -631,7 +653,62 @@ def casos_relacion_scala(spec: dict[str, Any], eventos: list[dict], curados: lis
         advierte = "true" if falta in c["curatedRecordJson"][adv] else "false"
         lineas.append(f"    assert({clase}.curar({args}).{adv}.contains({q(falta)}) == {advierte})  // {ev['eventId']}")
     lineas.append("  }")
+    lineas.append("")
+    lineas.append(caso_relacion_componente_faltante(spec, eventos, curados))
     return "\n".join(lineas)
+
+
+def caso_relacion_componente_faltante(spec: dict[str, Any], eventos: list[dict], curados: list[dict]) -> str:
+    """HF-48 (AUD-C-17): caso sintético FIJO del camino de respaldo de subscriberRelation (componente faltante).
+
+    Con registros aceptados es inalcanzable desde el fixture (Validation rechaza tipos y números que dejarían un
+    componente nulo), así que no se inyecta en el fixture: se toma el primer evento curado sin errores, se vacía
+    el campo de entrada de un componente y se exige el aceptado ("COPIADO") y la advertencia COMPONENTE_FALTANTE.
+    El esperado se comprueba con la referencia antes de escribirlo.
+    """
+    ext = spec["extension_subscriber_relation"]
+    clase = spec["processor"]["nombre_clase"]
+    fuente = spec["fuente"]["Fuente"]
+    adv = spec["parametros"]["campo_advertencias"]
+    falta = f"subscriberRelation:{ref.COMPONENTE_FALTANTE}"
+    curados_id = {c["eventId"] for c in curados}
+    por_destino = {m["destino"]: m for m in spec["campos_curados"]}
+
+    def origen_de(campo: str, vistos: frozenset = frozenset()) -> str:
+        """Campo de entrada del componente; sigue copia_de (p. ej. standardizedIdType ← tipoDocumento)."""
+        m = por_destino.get(campo)
+        if m is None or campo in vistos:
+            return ""
+        if m.get("origen"):
+            return m["origen"]
+        t = m["transformacion"]
+        return origen_de(t["campo"], vistos | {campo}) if t["tipo"] == "copia_de" else ""
+
+    for ev in eventos:
+        if ev["eventId"] not in curados_id or ev.get("errorCodes"):
+            continue
+        for campo in ext.get("campos") or []:
+            origen = origen_de(campo)
+            datos = json.loads(ev["validatedRecordJson"])
+            if not origen or origen not in datos:
+                continue
+            datos[origen] = ""
+            texto = json.dumps(datos, ensure_ascii=False, separators=(",", ":"))
+            archivo = ev["lineage"]["fileName"]
+            curado = ref.curar(texto, archivo, [], spec)
+            if ref.subscriber_relation(curado, spec, "COPIADO") != "COPIADO" or falta not in curado[adv]:
+                continue
+            args = f"{tq(texto)}, {q(archivo)}, Nil, {fuente}CurationSpec.Homologacion"
+            return "\n".join([
+                f'  test("subscriberRelation: componente faltante ({campo} vacío) devuelve el aceptado y advierte '
+                f'(caso sintético fijo, HF-48)") {{',
+                f"    // Sintético: {ev['eventId']} con {origen} vacío. No está en el fixture: con registros aceptados no ocurre.",
+                f'    assert({clase}.relacion({args}, "COPIADO") == "COPIADO")',
+                f"    assert({clase}.curar({args}).{adv}.contains({q(falta)}))",
+                "  }",
+            ])
+    return ("  // HF-48: no se pudo construir el caso sintético de componente faltante (ningún evento curado sin errores "
+            "con el campo de entrada de un componente); el camino de respaldo solo lo prueba curation_reference.py.")
 
 
 def casos_scala(eventos: list[dict[str, Any]], curados: list[dict[str, Any]]) -> str:
@@ -947,7 +1024,8 @@ def render(spec_path: Path, out: Path, templates: Path, schema_path: Path,
     for tpl_id, destino, contenido in contenidos:
         escribir(out / destino, contenido)
         manifest["archivos"].append({"plantilla": tpl_id, "archivo": destino,
-                                     "fusionar": destino.startswith("fragmentos/")})
+                                     "fusionar": destino.startswith("fragmentos/"),
+                                     "sha256": sha256(out / destino)})  # HF-55 (AUD-C-24)
 
     # Lookups sintéticos de prueba (CUR-TPL-12 complementa): el de homologación desde el spec, el resto copiado.
     lk_out = out / rutas["test_resources"] / "lookups"
@@ -961,13 +1039,14 @@ def render(spec_path: Path, out: Path, templates: Path, schema_path: Path,
         else:
             shutil.copyfile(lk_in / nombre, lk_out / nombre)
     shutil.copyfile(lk_in / MARCA_LOOKUPS, lk_out / MARCA_LOOKUPS)
-    manifest["marcas_sintetico"] = [f"{rutas['test_resources']}lookups/{MARCA_LOOKUPS}"]
+    marca = f"{rutas['test_resources']}lookups/{MARCA_LOOKUPS}"
+    manifest["marcas_sintetico"] = [{"ruta": marca, "sha256": sha256(out / marca)}]  # HF-55 (AUD-C-24)
 
     exp = out / "expected"
     escribir(exp / "curated-events.json", json.dumps(curados, ensure_ascii=False, indent=2) + "\n")
     escribir(exp / "resumen.json", json.dumps(resumen, ensure_ascii=False, indent=2) + "\n")
-    # AC-25 (ADR-G3, 2026-10-21): el manifest cubre todo lo generado. Los CSV de lookups y expected/ van con su
-    # hash. MANIFEST.json no se lista a sí mismo.
+    # AC-25 (ADR-G3, 2026-10-21): el manifest cubre todo lo generado, cada archivo con su sha256 (HF-55: también
+    # `archivos` y `marcas_sintetico`). MANIFEST.json no se lista a sí mismo.
     otras += ["expected/curated-events.json", "expected/resumen.json"]
     manifest["otros_archivos"] = [{"ruta": r, "sha256": sha256(out / r)} for r in otras]
     # AC-CUR-10 (ADR-G4): valor y origen de la zona; advertencia si difiere de la de asOfDate (main la escribe

@@ -142,7 +142,7 @@ def test_hf60_steering_11_lector_en_oxygen_pinning():
 def test_hf60_modo_2_documenta_el_verificador_del_insumo_de_pinning():
     skill = leer(ANA / "SKILL.md")
     modo2 = skill[skill.index("## Modo 2"):skill.index("## Referencias")]
-    assert "`python tools/verificar-insumo-pinning.py <ingesta-id>`" in modo2
+    assert "`python3 tools/verificar-insumo-pinning.py <ingesta-id>`" in modo2
     assert (RAIZ / "tools" / "verificar-insumo-pinning.py").is_file()
 
 

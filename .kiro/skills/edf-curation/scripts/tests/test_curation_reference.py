@@ -333,17 +333,17 @@ def test_errores_nulos_se_toleran_igual_que_en_scala(spec, adv):
 
 
 def test_nivel_nulo_conserva_el_campo_y_advierte(spec, adv):
-    """AUD-C7: un código conocido con nivel nulo no omite ni anula; deja <campo>:NIVEL_DESCONOCIDO."""
+    """AUD-C7: un código conocido con nivel nulo no omite ni anula; deja <campo curado>:NIVEL_DESCONOCIDO (HF-53)."""
     reg = '{"SEG_APELLIDO": "Ficticio", "TIP_DOCUMENTO": "3", "NUM_DOCUMENTO": "1"}'
     out = ref.curar(reg, ARCHIVO, [{"codigo": "SISBEN_INC_011", "nivel": None}], spec)
     assert out["segundoApellido"] == "FICTICIO"
-    assert out[adv] == ["SEG_APELLIDO:NIVEL_DESCONOCIDO"]
+    assert out[adv] == ["segundoApellido:NIVEL_DESCONOCIDO"]
     out = ref.curar(reg, ARCHIVO, [{"errorCodeValue": "SISBEN_INC_011"}], spec)  # sin nivel = nulo
-    assert out[adv] == ["SEG_APELLIDO:NIVEL_DESCONOCIDO"]
+    assert out[adv] == ["segundoApellido:NIVEL_DESCONOCIDO"]
     out = ref.curar(reg, ARCHIVO, [{"codigo": "NO_EXISTE", "nivel": None}], spec)  # código desconocido: nada
     assert out[adv] == []
     out = ref.curar("{no", ARCHIVO, [{"codigo": "SISBEN_INC_011", "nivel": None}], spec)
-    assert out[adv][:2] == ["registro:REGISTRO_ILEGIBLE", "SEG_APELLIDO:NIVEL_DESCONOCIDO"]
+    assert out[adv][:2] == ["registro:REGISTRO_ILEGIBLE", "segundoApellido:NIVEL_DESCONOCIDO"]
 
 
 def test_curar_evento_fuera_del_file_pattern(spec):

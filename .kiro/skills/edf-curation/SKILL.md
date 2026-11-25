@@ -72,8 +72,8 @@ Si la spec de la ingesta no lo dice, es una pregunta abierta: no se elige por de
 El ejemplo `assets/examples/sisben/source-spec.sisben.yaml` **no** incluye las entradas `standardizedId*` y usa la política "no se almacena", a propósito: sus salidas esperadas y pruebas se generaron así. Si se cambia, hay que regenerarlo y actualizar la copia versionada:
 
 ```bash
-python scripts/render_templates.py --write-expected assets/examples/sisben/expected
-python -m pytest scripts/tests -q
+python3 scripts/render_templates.py --write-expected assets/examples/sisben/expected
+python3 -m pytest scripts/tests -q
 ```
 
 
@@ -122,6 +122,7 @@ son referencia de forma, no fuente (HF-40, AUD-C-07).
    `oxygen.lookups[]` y entradas al domain dictionary del *inner*. Nunca se edita el conf base, ni
    claves de etapa (`runMode`, `partitionSize`, `enableSSRWrite`, `includeQualityCodes`,
    `includeErrorCodes`, `excludes`), ni bloques de otras ingestas.
+   **Advertencia de tabla de lookup duplicada (HF-54, AUD-C-23): Validation y Curation pueden registrar la misma tabla (SISBEN: la 202) en `oxygen.lookups[]`. Si el fork comparte un único `oxygen-lookup-inner.conf`, la segunda entrada con el mismo `tableName` pisa a la primera sin error (el motor indexa por `tableName`, `SparkOxygenLookup.scala:30`). Antes de fusionar, busca el `tableName` en el inner: si ya existe, no lo dupliques; verifica que las dos definiciones sean equivalentes (archivo, `delimiter`, `keys`) y deja una sola.**
 2. **Solo datos sintéticos** en fixtures, lookups de prueba, ejemplos y tests. Nunca datos reales.
 3. **Nunca** leer, copiar, citar valores ni adjuntar `settings-artifactory.xml` ni otro archivo con
    credenciales. Si aparece uno expuesto, pedir rotación.
@@ -163,8 +164,8 @@ entrada, códigos de error → campo, homologación, reglas de documento, catál
 ### 3. Generar
 
 ```bash
-python scripts/render_templates.py --spec <source-spec.yaml> --solo-verificar   # opcional: valida sin generar
-python scripts/render_templates.py --spec <source-spec.yaml> --out <carpeta-salida>
+python3 scripts/render_templates.py --spec <source-spec.yaml> --solo-verificar   # opcional: valida sin generar
+python3 scripts/render_templates.py --spec <source-spec.yaml> --out <carpeta-salida>
 ```
 
 `--out` se borra y se vuelve a crear: use una carpeta dedicada. Si `zona_horaria_fechas` difiere de
@@ -187,7 +188,7 @@ solo sobre campos anteriores, `filePattern` contra ejemplos y contraejemplos, ca
 | `src/test/resources/<fuente>/` | `accepted-events.json` (JSON lines) + `lookups/*.csv` sintéticos + `lookups/LEEME.md` (marca de sintético, AC-30) |
 | `fragmentos/` | HOCON del bloque, HOCON de lookups, entradas del domain dictionary (**a fusionar**) |
 | `expected/` | salida esperada del fixture (implementación de referencia `scripts/curation_reference.py`). Con `--write-expected <dir>` se copia además a `<dir>`: para SISBEN, la copia versionada `assets/examples/sisben/expected/`, que es la que compara `test_salida_igual_a_la_versionada` |
-| `MANIFEST.json` | plantilla → archivo → ¿fusionar? (12 entradas en `archivos`); `marcas_sintetico` lista la marca de los lookups; `otros_archivos` lista, con `ruta` y `sha256`, los CSV de lookups y `expected/` (todo lo generado salvo el propio manifest, ADR-G3); `zona_horaria_fechas: {valor, origen}` y `advertencias` (ADR-G4) |
+| `MANIFEST.json` | plantilla → archivo → ¿fusionar? (12 entradas en `archivos`); `marcas_sintetico` lista la marca de los lookups; cada entrada de `archivos` y de `marcas_sintetico` lleva su `sha256` (HF-55) y `otros_archivos` lista, con `ruta` y `sha256`, los CSV de lookups y `expected/` (todo lo generado salvo el propio manifest, ADR-G3); `zona_horaria_fechas: {valor, origen}` y `advertencias` (ADR-G4) |
 
 Parte manual (`TODO(manual)` en el processor): enriquecimiento sin valores (Business Line Code,
 Type of Data). El nombre completo se genera con `concatenacion` cuando la spec de la ingesta define su orden.
@@ -195,8 +196,8 @@ Type of Data). El nombre completo se genera con `concatenacion` cuando la spec d
 ### 4. Verificar
 
 ```bash
-python -m pytest scripts/tests -q                           # generador, referencia, hocon_check y portabilidad
-python scripts/hocon_check.py <carpeta-salida>/fragmentos/*.conf
+python3 -m pytest scripts/tests -q                           # generador, referencia, hocon_check y portabilidad
+python3 scripts/hocon_check.py <carpeta-salida>/fragmentos/*.conf
 ```
 
 El parse con Typesafe Config (el parser del motor), la compilación y las pruebas Scala ocurren en el fork,

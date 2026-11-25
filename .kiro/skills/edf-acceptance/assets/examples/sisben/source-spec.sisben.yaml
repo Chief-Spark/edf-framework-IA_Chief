@@ -34,7 +34,7 @@ archivo:
     - {clave: ruta_validada_sin_extension, valor: "/home/app/validation/validated/SISBEN_EXPERIAN_202401.20240131120000-0500.txt.900001", debe_coincidir: true}
     - {clave: ruta_marcador_sin_extension, valor: "/home/app/validation/validated/EP_SISBEN_EXPERIAN_202401.20240131140000-0500.txt.errorInHeader.900003", debe_coincidir: true}
     - {clave: lineage_fileName, valor: "RT_SISBEN_EXPERIAN_202401.20240131130000+0000.txt", debe_coincidir: true}
-    - {clave: otra_fuente, valor: "/home/app/validation/validated/RUNT_EXPERIAN_202401.20240131120000-0500.txt.900009", debe_coincidir: false}
+    - {clave: ruta_otra_fuente, valor: "/home/app/validation/validated/RUNT_EXPERIAN_202401.20240131120000-0500.txt.900009", debe_coincidir: false}
 
 # IN-02 · Regla de calidad del archivo (D7). Una sola escala (0..1) en todas las expresiones.
 calidad:

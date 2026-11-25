@@ -109,7 +109,7 @@ un ejemplo histórico (versión 0.1.0): no es fuente de ninguna ingesta y no se 
 ### Paso 2 · Verificar el spec
 
 ```bash
-python scripts/render_templates.py --spec <spec.yaml> --solo-verificar
+python3 scripts/render_templates.py --spec <spec.yaml> --solo-verificar
 ```
 
 Debe terminar en `source-spec OK`. Corrige el spec (no las plantillas) ante cualquier error. Lo que se
@@ -122,7 +122,7 @@ coherente con el regex del nombre.
 ### Paso 3 · Generar los artefactos
 
 ```bash
-python scripts/render_templates.py --spec <spec.yaml> --out <salida>/
+python3 scripts/render_templates.py --spec <spec.yaml> --out <salida>/
 ```
 
 En macOS/Linux usa `python3` si `python` no existe. Para una ingesta del framework, `<salida>` es `expedientes/<id>/propuestas/validation/`.
@@ -145,7 +145,7 @@ El generador es todo o nada: sale con código 2, sin escribir ningún archivo, s
 sin resolver, una marca `ASSUMPTION` sin ID o un patrón de credenciales. No edites los archivos generados:
 cambia el spec y regenera.
 
-Verificación opcional del HOCON generado, con `pyhocon`: `python scripts/verificar_hocon.py
+Verificación opcional del HOCON generado, con `pyhocon`: `python3 scripts/verificar_hocon.py
 --generado <salida> --fuente <fuente> --archivo-ejemplo <fixture>`. Si `pyhocon` no está, se reporta
 "no verificado" (no es un error).
 
@@ -165,7 +165,7 @@ Recorre `assets/checklist-entrega.md` y deja constancia de cada punto. Revisa en
 ### Paso 5 · Pre-validar un archivo (opcional, sin Spark)
 
 ```bash
-python scripts/prevalidar_archivo.py --spec <spec.yaml> --archivo <archivo> [--lookups <dir>] --hoy AAAA-MM-DD --detalle
+python3 scripts/prevalidar_archivo.py --spec <spec.yaml> --archivo <archivo> [--lookups <dir>] --hoy AAAA-MM-DD --detalle
 ```
 
 Simula el flujo del motor (vacío → nombre → header → filtro → registros → duplicados → métricas) y
@@ -209,6 +209,7 @@ propio skill.
   solo lo emite un nombre que sí cumple `filePattern` (AUD-V-04, decisión de la spec).
 - Los `file` de `oxygen.lookups[]` se arman con `${oxygen.application.paths.lookupHome}"/..."`, como en los confs
   del motor (AUD-V-06).
+- **Advertencia de tabla de lookup duplicada (HF-54, AUD-C-23): Validation y Curation pueden registrar la misma tabla (SISBEN: la 202) en `oxygen.lookups[]`. Si el fork comparte un único `oxygen-lookup-inner.conf`, la segunda entrada con el mismo `tableName` pisa a la primera sin error (el motor indexa por `tableName`, `SparkOxygenLookup.scala:30`). Antes de fusionar, busca el `tableName` en el inner: si ya existe, no lo dupliques; verifica que las dos definiciones sean equivalentes (archivo, `delimiter`, `keys`) y deja una sola.**
 - Claves mal escritas se ignoran en silencio. `footerRows` vale 1 por defecto.
 - Sin `deDupVersion` se marcan todos los duplicados (AS-IS). En `EXTN` la marca la pone el processor.
 - Con `searchAllHeaderFooter = true` el processor se instancia con headers vacíos; aquí se usa `false`.
@@ -233,7 +234,7 @@ scripts/java/  generador Java anterior: solo referencia histórica, no se usa (s
 ```
 
 Requisitos: Python ≥ 3.10 con PyYAML y jsonschema para generar y prevalidar. Sin Java ni Maven. Para las
-pruebas del skill, `pytest` (`python -m pytest scripts/tests`); `pyhocon` opcional (sin él se omiten 4
+pruebas del skill, `pytest` (`python3 -m pytest scripts/tests`); `pyhocon` opcional (sin él se omiten 4
 pruebas y `verificar_hocon.py` sale con código 3, "no verificado"). Cobertura: desde la raíz del skill, `coverage run -m pytest scripts/tests` (lee `.coveragerc`)
 y un `coverage report --include=scripts/<script>.py --fail-under=80` por script (`assets/checklist-entrega.md`, k3).
 

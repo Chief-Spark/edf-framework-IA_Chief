@@ -10,7 +10,7 @@ vigente es `render_templates.py`: solo necesita Python 3 con PyYAML y jsonschema
 | `render_templates.py` | **Vigente.** Generador de los 12 artefactos, salida esperada y `MANIFEST.json` |
 | `curation_reference.py` | **Vigente.** Implementación de referencia (espejo de Capa A y del núcleo del processor) |
 | `hocon_check.py` | Vigente. Parse-check mínimo de los fragmentos HOCON |
-| `tests/test_render_templates.py`, `tests/test_curation_reference.py`, `tests/test_hocon_y_portabilidad.py` | Vigentes, en la suite (`python -m pytest scripts/tests -q`) y en la cobertura |
+| `tests/test_render_templates.py`, `tests/test_curation_reference.py`, `tests/test_hocon_y_portabilidad.py` | Vigentes, en la suite (`python3 -m pytest scripts/tests -q`) y en la cobertura |
 | `java/` (generador `RenderTemplates`, `Referencia`, `Py`, `RenderError` y sus pruebas) | **Deprecado.** Solo referencia histórica. No se compila ni se ejecuta; la skill nunca usa `mvn` ni `java -jar` |
 
 Las pruebas Python anteriores (`tests/test_render.py`, `tests/test_reference.py`), que cubrían la versión

@@ -21,6 +21,14 @@
 .PARAMETER HoconPath
     Ruta al bloque .conf (HOCON, oxygen.stage.consistencyCheck) generado por el skill.
 
+.PARAMETER Modo
+    propio (default) | colombia (HF-78). En modo Colombia (bureau.colombia_innersource,
+    SKILL.md «Modo Colombia», EVAL-SYN-13) el bloque HOCON de la ingesta es solo
+    comentarios: NO se exige la raíz oxygen.stage.consistencyCheck (exigirla haría
+    que un generador "arregle" el FAIL escribiendo la raíz). Se exigen 0 líneas
+    activas y una línea VERIFICAR por cada clave de la lista de Colombia, la misma
+    regla que verificar_hocon_synthesis_colombia de tools/verificar-artefactos-etapa.py.
+
 .PARAMETER ExpectEmptyFields
     Si se indica, exige que "fields" del GDD sea un array vacío: solo para un
     insumo sin ningún campo confirmado (EVAL-SYN-01). Ya NO es el caso de
@@ -36,6 +44,10 @@
     # Caso Jurad (EVAL-SYN-09/10) -- GDD y HOCON con contenido real
     .\verificar-artefacto.ps1 -GddPath .\domaindictionary.json -HoconPath .\consistency-application-block.conf
 
+.EXAMPLE
+    # Modo Colombia (EVAL-SYN-13) -- bloque solo con la lista VERIFICAR
+    .\verificar-artefacto.ps1 -Modo colombia -GddPath .\domaindictionary.json -HoconPath .\consistency-application-block.sisben.conf
+
 .NOTAS
     - No requiere ejecutar Spark ni el motor real. Solo analiza texto.
       Ningún resultado "PASS" de este script certifica por sí solo el
@@ -48,6 +60,8 @@
 param(
     [string]$GddPath,
     [string]$HoconPath,
+    [ValidateSet("propio", "colombia")]
+    [string]$Modo = "propio",
     [switch]$ExpectEmptyFields
 )
 
@@ -143,6 +157,11 @@ if ($GddPath) {
                 Write-Host "PASS - ningún campo usa 'handler':'LFP' como string literal" -ForegroundColor Green
             }
 
+            # HF-78 — nunca "handler": null (LFP = omitir la clave)
+            Test-Contains -Content $raw -Pattern '"handler"\s*:\s*null' `
+                -Description "ningún campo escribe 'handler': null (LFP se expresa omitiendo la clave, HF-78)" `
+                -ShouldNotMatch
+
             # handler, cuando está presente, solo puede ser EUC o LAP
             $checked++
             $invalidHandlers = $parsed.fields | Where-Object { $_.handler -and $_.handler -notin @("EUC", "LAP") }
@@ -178,9 +197,41 @@ if ($HoconPath) {
     } else {
         $hocon = Get-Content $HoconPath -Raw
 
-        # EVAL-SYN-03 — clave raíz real, nunca oxygen.stage.synthesis
-        Test-Contains -Content $hocon -Pattern 'oxygen\.stage\.consistencyCheck\s*\{' `
-            -Description "la clave raíz real 'oxygen.stage.consistencyCheck' está presente (EVAL-SYN-03)"
+        if ($Modo -eq "colombia") {
+            # HF-78 / EVAL-SYN-13 — modo Colombia: 0 líneas activas y la lista VERIFICAR completa.
+            # Misma lista que CLAVES_VERIFICAR_COLOMBIA de tools/verificar-artefactos-etapa.py.
+            $clavesColombia = @(
+                "oxygen.stage.consistencyCheck.paths.dictionaryFile",
+                "oxygen.stage.consistencyCheck.paths.domainDictionaryFile",
+                "oxygen.stage.consistencyCheck.paths.customRulesFile",
+                "oxygen.stage.consistencyCheck.dateType",
+                "oxygen.stage.consistencyCheck.checkFileTagEnabled",
+                "oxygen.stage.consistencyCheck.eventTypeList",
+                "oxygen.stage.consistencyCheck.historicAttributeArgs",
+                "oxygen.stage.consistencyCheck.fieldHandlerHashFunction",
+                "oxygen.stage.consistencyCheck.orchestration",
+                "oxygen.stage.consistencyCheck.datasetFormat",
+                "oxygen.stage.consistencyCheck.relationshipMigrationProcessorClassName"
+            )
+            $lineas = $hocon -split "`r?`n"
+            $esComentario = { param($l) $l.Trim().StartsWith("#") -or $l.Trim().StartsWith("//") }
+            $checked++
+            $activas = @($lineas | Where-Object { $_.Trim() -and -not (& $esComentario $_) })
+            if ($activas.Count -gt 0) {
+                $failures += "FAIL - modo Colombia: $($activas.Count) línea(s) activa(s); el bloque de la ingesta no escribe claves compartidas de oxygen.stage.consistencyCheck (primera: '$($activas[0].Trim())')"
+            } else {
+                Write-Host "PASS - modo Colombia: 0 líneas activas (EVAL-SYN-13)" -ForegroundColor Green
+            }
+            $verificar = ($lineas | Where-Object { (& $esComentario $_) -and $_ -match 'VERIFICAR' }) -join "`n"
+            foreach ($clave in $clavesColombia) {
+                Test-Contains -Content $verificar -Pattern ([regex]::Escape($clave) + '(?![A-Za-z0-9_])') `
+                    -Description "modo Colombia: 'VERIFICAR $clave' está en la lista"
+            }
+        } else {
+            # EVAL-SYN-03 — clave raíz real, nunca oxygen.stage.synthesis (solo modo propio)
+            Test-Contains -Content $hocon -Pattern 'oxygen\.stage\.consistencyCheck\s*\{' `
+                -Description "la clave raíz real 'oxygen.stage.consistencyCheck' está presente (EVAL-SYN-03)"
+        }
 
         Test-Contains -Content $hocon -Pattern 'oxygen\.stage\.synthesis\s*\{' `
             -Description "no existe la clave inventada 'oxygen.stage.synthesis' (EVAL-SYN-03)" `

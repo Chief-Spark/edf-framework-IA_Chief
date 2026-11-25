@@ -22,7 +22,7 @@ Todo paso que copia archivos al fork o ejecuta un job requiere **aprobación exp
 El generador es `scripts/render_templates.py` (Python 3, sin compilar):
 
 ```bash
-python scripts/render_templates.py --spec mi-source-spec.yaml --solo-verificar
+python3 scripts/render_templates.py --spec mi-source-spec.yaml --solo-verificar
 ```
 
 Falla (código 2) ante: esquema inválido, códigos de longitud distinta, colisiones de subcadena,
@@ -32,8 +32,8 @@ vacía, nombre de fixture que no cumple el regex.
 ## 2. Generar la propuesta
 
 ```bash
-python scripts/render_templates.py --spec mi-source-spec.yaml --out salida/
-python scripts/verificar_hocon.py --generado salida/ --fuente <fuente> --archivo-ejemplo <fixture>   # opcional (pyhocon)
+python3 scripts/render_templates.py --spec mi-source-spec.yaml --out salida/
+python3 scripts/verificar_hocon.py --generado salida/ --fuente <fuente> --archivo-ejemplo <fixture>   # opcional (pyhocon)
 ```
 
 Sin `pyhocon`, `verificar_hocon.py` sale con código 3: el HOCON queda **no verificado** (no es un fallo
@@ -45,7 +45,7 @@ el diff contra el fork (`git diff --no-index <fork>/src salida/src`) y **esperar
 ## 3. Pre-validar un archivo localmente (sin Spark)
 
 ```bash
-python scripts/prevalidar_archivo.py --spec mi-source-spec.yaml --archivo <archivo> \
+python3 scripts/prevalidar_archivo.py --spec mi-source-spec.yaml --archivo <archivo> \
   [--lookups salida/src/test/resources/<fuente>/lookup] [--hoy AAAA-MM-DD] [--detalle] [--salida resumen.json]
 ```
 

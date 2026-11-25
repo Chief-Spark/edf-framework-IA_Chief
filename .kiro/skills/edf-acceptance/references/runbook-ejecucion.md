@@ -12,12 +12,12 @@ sin acceso al repositorio de artefactos ni a los JAR del framework, nada de lo g
 
 ```bash
 cd <raíz del skill>
-python scripts/render_templates.py --spec <su-spec>.yaml --out <salida> --audit   # huecos y supuestos (sin compilar)
-python scripts/simular_decision.py --spec <su-spec>.yaml     # decisión esperada por archivo
-python scripts/hocon_check.py <salida>/hocon/*.conf          # parse del subconjunto HOCON
-python -m pytest scripts/tests -q                            # pruebas del skill
-python -m coverage run -m pytest scripts/tests -q            # cobertura (opcional)
-python -m coverage report --include=scripts/hocon_check.py --fail-under=80        # una vez por script (AC-31)
+python3 scripts/render_templates.py --spec <su-spec>.yaml --out <salida> --audit   # huecos y supuestos (sin compilar)
+python3 scripts/simular_decision.py --spec <su-spec>.yaml     # decisión esperada por archivo
+python3 scripts/hocon_check.py <salida>/hocon/*.conf          # parse del subconjunto HOCON
+python3 -m pytest scripts/tests -q                            # pruebas del skill
+python3 -m coverage run -m pytest scripts/tests -q            # cobertura (opcional)
+python3 -m coverage report --include=scripts/hocon_check.py --fail-under=80        # una vez por script (AC-31)
 ```
 
 Con `--audit`, después de los huecos, el generador imprime una línea `supuesto  S-ACC-xx  impacto=…

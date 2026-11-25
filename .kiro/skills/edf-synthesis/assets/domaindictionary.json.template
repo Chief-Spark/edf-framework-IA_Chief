@@ -10,6 +10,10 @@
 // pendiente, o lo incluyes SIN la clave "handler" (que es LFP implícito) solo
 // si eso también fue confirmado como la intención real, no por default tuyo.
 //
+// NUNCA "handler": null (HF-78): si el insumo dice handler: null (= LFP), la
+// clave se OMITE. Un null explícito sustituye el default LFP de
+// DictionaryFieldV2 (DomainDictionaryV2.java:48) por un handler nulo [P].
+//
 // REGLA DE SISTEMA: NUNCA declares aquí los 3 campos de sistema que el motor
 // inyecta automáticamente (inferredAsDeleted, shouldDelete, fileTag) -- ya
 // existen sin que el usuario los pida, duplicarlos es un error de generación.

@@ -7,66 +7,81 @@
     {
       "plantilla": "CUR-TPL-01",
       "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/common/FieldMapping.scala",
-      "fusionar": false
+      "fusionar": false,
+      "sha256": "c8427e958ae5c288b9ebb2d631c08388f74b029ded90a0d115fe09b09e40d5a3"
     },
     {
       "plantilla": "CUR-TPL-02",
       "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/common/Transformaciones.scala",
-      "fusionar": false
+      "fusionar": false,
+      "sha256": "5e951492c63aeb35d8fbdc384ddd8ff27c3362abc95cb7ff50640194b28ad02d"
     },
     {
       "plantilla": "CUR-TPL-10",
       "archivo": "src/test/scala/com/experian/edf/oxygen/curation/source/common/TransformacionesSpec.scala",
-      "fusionar": false
+      "fusionar": false,
+      "sha256": "b40e0669fe8cfe8c55c7a10d273ff44b97a370e629bfdfe761cdd2b5b4996b77"
     },
     {
       "plantilla": "CUR-TPL-03",
       "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/config/SISBENCurationSpec.scala",
-      "fusionar": false
+      "fusionar": false,
+      "sha256": "692ab85d6e4d1dc3913be0aff39e97e74570b65c0aea05793c19a24d15a623a4"
     },
     {
       "plantilla": "CUR-TPL-04",
       "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCuratedEvent.scala",
-      "fusionar": false
+      "fusionar": false,
+      "sha256": "52dc1eb9a9ad6aa94cf33182c58da33c6a3d31e6fc01d8c010a0271fd8c97715"
     },
     {
       "plantilla": "CUR-TPL-05",
       "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENAcceptedRecord.scala",
-      "fusionar": false
+      "fusionar": false,
+      "sha256": "e74e72d90e1e12e88dc075332a901d928375f0092aa68315bcd3d086ff514e6f"
     },
     {
       "plantilla": "CUR-TPL-08",
       "archivo": "fragmentos/colombia-domain-dictionary-inner.sisben.json",
-      "fusionar": true
+      "fusionar": true,
+      "sha256": "907b9bb429702f85647ad821a35462dc7a3c72c22ee74a3f83b18de86053d57d"
     },
     {
       "plantilla": "CUR-TPL-12",
       "archivo": "src/test/resources/sisben/accepted-events.json",
-      "fusionar": false
+      "fusionar": false,
+      "sha256": "29c40de72e26721e06b1c8fa64e3c489e82b887130827cf86694aad8fae092ad"
     },
     {
       "plantilla": "CUR-TPL-06",
       "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/processor/SISBENCurationProcessor.scala",
-      "fusionar": false
+      "fusionar": false,
+      "sha256": "55e0f71e3b496fc814be3eb103540ce298942c62f5f12fc96fcfe1b74b489743"
     },
     {
       "plantilla": "CUR-TPL-11",
       "archivo": "src/test/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCurationProcessorSpec.scala",
-      "fusionar": false
+      "fusionar": false,
+      "sha256": "c065e2103eb911b3317d95694cf0c2f901be4a4b53fe8a57782e09589409a807"
     },
     {
       "plantilla": "CUR-TPL-07",
       "archivo": "fragmentos/curation-common-application-inner.sisben.conf",
-      "fusionar": true
+      "fusionar": true,
+      "sha256": "1c8a78872b92c56e203c8d3368c2822cd36d8cdbbcf92ac14ea084ecf2c41ddf"
     },
     {
       "plantilla": "CUR-TPL-09",
       "archivo": "fragmentos/oxygen-lookup-inner.sisben.conf",
-      "fusionar": true
+      "fusionar": true,
+      "sha256": "489fb1f4bcd412c0cbb2e7e9b0d82147820c49b9665044c15aa61634c299f5d6"
     }
   ],
   "marcas_sintetico": [
-    "src/test/resources/sisben/lookups/LEEME.md"
+    {
+      "ruta": "src/test/resources/sisben/lookups/LEEME.md",
+      "sha256": "3a9b957666a6f6296c22965a1d5e754e0808bf7db3ed14318bbba8c29eb9fae4"
+    }
   ],
   "otros_archivos": [
     {
@@ -103,7 +118,7 @@
     },
     {
       "ruta": "expected/resumen.json",
-      "sha256": "f93b4bff7dc7b3f85444639c723f1fb6880241e638d8663fe88347b99ed32c61"
+      "sha256": "b0a6ff1122cfca2303ad5b9f605509084975d017a1b3a398c478268b074861a2"
     }
   ],
   "zona_horaria_fechas": {

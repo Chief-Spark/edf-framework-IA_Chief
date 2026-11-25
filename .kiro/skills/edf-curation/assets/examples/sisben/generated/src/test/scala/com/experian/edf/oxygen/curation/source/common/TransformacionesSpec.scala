@@ -53,6 +53,14 @@ class TransformacionesSpec extends AnyFunSuite {
     assert(Transformaciones.fechaEpoch(Some("2024-01-15 10:30:00"), todos, utc) == Resultado.ok(1705314600000L))
   }
 
+  test("NBSP (U+00A0): trim y \\s son ASCII, como en curation_reference.py (HF-52, AUD-C-21)") {
+    // String.trim no quita el NBSP: la fecha no parsea (nulo + FORMATO_INVALIDO) y texto lo conserva.
+    assert(Transformaciones.fechaEpoch(Some("15/01/2024\u00a0"), fmts, utc) == Resultado.advertir(Motivos.FormatoInvalido))
+    assert(Transformaciones.texto(Some("\u00a0X ")) == Resultado.ok("\u00a0X"))
+    // documento: \s (ASCII) no quita el NBSP; soloDigitos sí, con \D.
+    assert(Transformaciones.documento(Some("12\u00a034"), ReglaDocumento(soloDigitos = true, quitarCerosIzquierda = false, padding = None, conservarOriginal = false)) == Resultado.ok("1234"))
+  }
+
   test("original: conserva el valor recibido tal cual, sin recortar (HF-34, AUD-C-01)") {
     assert(Transformaciones.original(Some(" 0001000000101")) == Resultado.ok(" 0001000000101"))
     assert(Transformaciones.original(Some(" 3 ")) == Resultado.ok(" 3 "))

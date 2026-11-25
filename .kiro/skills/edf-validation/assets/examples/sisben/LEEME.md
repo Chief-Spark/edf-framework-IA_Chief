@@ -18,7 +18,7 @@ rechazaría el archivo con el umbral 0.90; 5 registros pasarían la regla de reg
 Regenerar:
 
 ```bash
-python scripts/render_templates.py --spec assets/examples/sisben/source-spec.sisben.yaml --out assets/examples/sisben/generated
-python scripts/prevalidar_archivo.py --spec assets/examples/sisben/source-spec.sisben.yaml \
+python3 scripts/render_templates.py --spec assets/examples/sisben/source-spec.sisben.yaml --out assets/examples/sisben/generated
+python3 scripts/prevalidar_archivo.py --spec assets/examples/sisben/source-spec.sisben.yaml \
   --archivo assets/examples/sisben/input/SISBEN_EXPERIAN_202406.20240630120000-0500.txt --hoy 2024-06-30 --detalle
 ```

@@ -60,7 +60,11 @@ object Resultado {
   def advertir(motivo: String): Resultado[Nothing] = Resultado(None, Some(motivo))
 }
 
-/** Motivos de advertencia. Solo nombres de campo + motivo: nunca valores (CUR-RC06). */
+/**
+ * Motivos de advertencia. Solo nombres de campo + motivo: nunca valores (CUR-RC06). ErrorInterno,
+ * NivelDesconocido y ComponenteFaltante son DEFENSIVOS (HF-53): no salen con entradas aceptadas y están fuera de
+ * la lista cerrada de motivos de la spec de la ingesta; references/interpretar-salida.md los documenta.
+ */
 object Motivos {
   val FormatoInvalido = "FORMATO_INVALIDO"
   val NoHomologable = "NO_HOMOLOGABLE"

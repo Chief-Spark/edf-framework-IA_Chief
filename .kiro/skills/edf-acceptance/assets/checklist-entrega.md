@@ -2,7 +2,7 @@
 
 Marque cada punto antes de presentar la propuesta. Un punto en rojo bloquea la entrega.
 
-## A. Automático (`python scripts/render_templates.py --audit` y `pytest` en verde; nada se compila)
+## A. Automático (`python3 scripts/render_templates.py --audit` y `pytest` en verde; nada se compila)
 
 - [ ] La spec valida contra `source-spec.schema.yaml`.
 - [ ] Todo hueco de las plantillas está definido en el schema y lleno en la spec (ramas activas).

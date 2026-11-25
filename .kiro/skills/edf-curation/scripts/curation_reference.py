@@ -41,12 +41,24 @@ PREFIJO_IDENTIDAD = "standardizedId"
 INT_MIN, INT_MAX = -(2**31), 2**31 - 1
 LONG_MIN, LONG_MAX = -(2**63), 2**63 - 1
 
-# Formatos de fecha (patrón Java del source-spec → regex). \d reconoce dígitos Unicode, como en Java.
+# HF-52 (AUD-C-21): semántica de Java/Scala, no la de Python. `String.trim` quita solo los caracteres <= U+0020
+# (no el NBSP U+00A0), y `\s`/`\d`/`\D` de java.util.regex son ASCII; en Python `str.strip()` y `\s`/`\d` son
+# Unicode. La réplica usa _trim_java y re.ASCII para que `expected/` no se aparte del Scala.
+_JAVA_TRIM = "".join(chr(i) for i in range(0x21))
+_A = re.ASCII
+
+
+def _trim_java(s: str) -> str:
+    """Como String.trim de Java: quita los caracteres <= U+0020 de los extremos (el NBSP se conserva)."""
+    return s.strip(_JAVA_TRIM)
+
+
+# Formatos de fecha (patrón Java del source-spec → regex). Dígitos ASCII, como DateTimeFormatter (DecimalStyle.STANDARD).
 _FORMATOS = {
-    "dd/MM/uuuu": re.compile(r"^(\d{2})/(\d{2})/(\d{4})$"),
-    "uuuu-MM-dd HH:mm:ss": re.compile(r"^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$"),
+    "dd/MM/uuuu": re.compile(r"^(\d{2})/(\d{2})/(\d{4})$", _A),
+    "uuuu-MM-dd HH:mm:ss": re.compile(r"^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$", _A),
     # F-FW-10: ISO solo fecha (00:00 en la zona).
-    "uuuu-MM-dd": re.compile(r"^(\d{4})-(\d{2})-(\d{2})$"),
+    "uuuu-MM-dd": re.compile(r"^(\d{4})-(\d{2})-(\d{2})$", _A),
 }
 _UTC_ALIAS = {"UTC", "Z", "GMT", "UT", "UCT", "ETC/UTC", "ETC/GMT", "ETC/UCT", "ETC/UNIVERSAL", "ETC/ZULU",
               "UNIVERSAL", "ZULU", "GMT0", "ETC/GMT0", "ETC/GMT+0", "ETC/GMT-0", "GREENWICH", "ETC/GREENWICH"}
@@ -74,7 +86,7 @@ def zona_normalizada(nombre: str) -> str:
 def _limpio(valor: Any) -> str | None:
     if valor is None:
         return None
-    s = str(valor).strip()
+    s = _trim_java(str(valor))
     return s or None
 
 
@@ -116,7 +128,7 @@ def nombre(valor: str | None, conservar_enie: bool = False):
     if conservar_enie:
         s = s.replace(marca, "Ñ")
     s = re.sub(r"[^A-ZÑ ]" if conservar_enie else r"[^A-Z ]", " ", s)
-    s = re.sub(r"\s+", " ", s).strip()
+    s = _trim_java(re.sub(r"\s+", " ", s, flags=_A))
     return (s, None) if s else (None, NO_NORMALIZABLE)
 
 
@@ -124,7 +136,7 @@ def padding_izquierda(valor: str | None, longitud: int):
     s = _limpio(valor)
     if s is None:
         return None, None
-    if not re.fullmatch(r"\d+", s) or len(s) > longitud:
+    if not re.fullmatch(r"\d+", s, _A) or len(s) > longitud:
         return None, FORMATO_INVALIDO
     return s.rjust(longitud, "0"), None
 
@@ -169,9 +181,9 @@ def documento(valor: str | None, regla: dict[str, Any]):
     if regla.get("conservar_original"):
         return s, None
     # F-FW-14: Pinning compara texto exacto (steering 11 §3); las letras del número van en mayúsculas.
-    s = re.sub(r"\s+", "", s).upper()
+    s = re.sub(r"\s+", "", s, flags=_A).upper()
     if regla.get("solo_digitos"):
-        s = re.sub(r"\D", "", s)
+        s = re.sub(r"\D", "", s, flags=_A)
     if regla.get("quitar_ceros_izquierda"):
         s = s.lstrip("0")
     if regla.get("padding"):
@@ -244,15 +256,15 @@ def convertir(valor: Any, tipo: str):
     entero = tipo in ("entero", "largo")
     if isinstance(valor, int) and entero:  # bool es un int: pasa tal cual
         return valor, None
-    s = str(valor).strip()
+    s = _trim_java(str(valor))
     if entero:
-        if not re.fullmatch(r"[+-]?\d+", s):
+        if not re.fullmatch(r"[+-]?\d+", s, _A):
             return None, FORMATO_INVALIDO
         n = int(s)
         lo, hi = (INT_MIN, INT_MAX) if tipo == "entero" else (LONG_MIN, LONG_MAX)
         return (n, None) if lo <= n <= hi else (None, FORMATO_INVALIDO)
     if tipo == "decimal":
-        if not re.fullmatch(r"[+-]?\d+(\.\d+)?", s):  # separador decimal: punto
+        if not re.fullmatch(r"[+-]?\d+(\.\d+)?", s, _A):  # separador decimal: punto
             return None, FORMATO_INVALIDO
         return float(s), None
     if tipo == "booleano":
@@ -271,7 +283,7 @@ def info_archivo(file_name: str | None, spec: dict[str, Any], nombre_zona: str |
     """
     base = re.split(r"[\\/]", file_name or "")[-1]
     archivo = spec["archivo"]
-    m = re.search(archivo["regex_derivacion"], base)
+    m = re.search(archivo["regex_derivacion"], base, _A)
     if not m or m.re.groups < 2:
         return None, None  # AUD-C2: regex sin los 2 grupos (validar_coherencia lo rechaza antes; defensivo)
     prefijo = m.group(1) or ""
@@ -290,7 +302,7 @@ def info_archivo(file_name: str | None, spec: dict[str, Any], nombre_zona: str |
 
 def coincide_file_pattern(file_name: str | None, spec: dict[str, Any]) -> bool:
     """El motor resuelve el processor con una coincidencia completa (String.matches)."""
-    return re.fullmatch(spec["archivo"]["file_pattern"], file_name or "") is not None
+    return re.fullmatch(spec["archivo"]["file_pattern"], file_name or "", _A) is not None
 
 
 # ---------------------------------------------------------------- núcleo del processor
@@ -379,13 +391,13 @@ def _parse_registro(validated_record_json: str | None) -> dict[str, str] | None:
     for k, v in datos.items():
         if v is None:
             continue
-        out[str(k).strip().upper()] = _texto_gson(v)
+        out[_trim_java(str(k)).upper()] = _texto_gson(v)
     return out
 
 
 def _regla_documento(tipo_raw: str | None, spec: dict[str, Any]) -> dict[str, Any]:
     reglas = spec["reglas_documento"]
-    clave = (tipo_raw or "").strip().upper()
+    clave = _trim_java(tipo_raw or "").upper()
     return reglas["por_tipo"].get(clave, reglas["por_defecto"])
 
 
@@ -416,7 +428,9 @@ def curar(validated_record_json: str | None, file_name: str | None, errores: lis
         crudo_nivel = e["nivel"] if "nivel" in e else e.get("errorLevel")
         if crudo_nivel is None:
             # AUD-C7: nivel nulo → el campo se conserva, pero el registro lo advierte (no queda implícito).
-            advertencias.append(f"{campo}:{NIVEL_DESCONOCIDO}")
+            # HF-53: con el campo CURADO (<campo curado>:<MOTIVO>), una por destino del campo de entrada.
+            advertencias += [f"{m['destino']}:{NIVEL_DESCONOCIDO}" for m in spec["campos_curados"]
+                             if (m.get("origen") or "") == campo]
             continue
         nivel = str(crudo_nivel)
         if nivel in (params.get("niveles_no_almacenar") or []):

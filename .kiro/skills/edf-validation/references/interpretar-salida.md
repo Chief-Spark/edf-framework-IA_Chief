@@ -84,7 +84,7 @@ Lo que Validation garantiza y Acceptance consume:
 | Quality score | `RQS` ∈ {0.0, 1.0} por registro |
 | Regla de registro sugerida | `errorlevelNotIn("1") and errorcodeNotIn("OxygenDuplicate")` |
 | Regla de archivo sugerida | `average("qs.RQS") >= 0.90` acepta; condición `RQS_BAJO_UMBRAL_SISBEN` = `average("qs.RQS") < 0.90`, `reasonCode = SISBFA00001` |
-| Rechazo automático | marcadores `errorInFileName`/`errorInHeader`; `customReasonForAutomaticRejectionEnabled = true` |
+| Rechazo automático | marcadores `errorInFileName`/`errorInHeader`; `customReasonForAutomaticRejectionEnabled` lo fija el insumo de Acceptance, no Validation (en la corrida SISBEN e2e, `false`, default del motor, `SparkAcceptor.scala:166`; el `true` era del SISBEN histórico, HF-42) |
 | Duplicados | Acceptance no deduplica: rechaza por `OxygenDuplicate` |
 
 La configuración de Acceptance la genera su propio skill; este skill solo entrega el contrato y el

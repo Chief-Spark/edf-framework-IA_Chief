@@ -25,10 +25,24 @@
 .PARAMETER HoconPath
     Ruta al bloque .conf (HOCON) generado por el skill.
 
+.PARAMETER Modo
+    propio (default) | colombia (HF-67). En modo Colombia el bloque de la
+    ingesta es solo comentarios (SKILL.md «Modo Colombia»): se exigen 0 líneas
+    activas, la lista VERIFICAR completa (HF-65) y, con -PropuestaDir, que no
+    haya IdentityMatcher.scala ni identifying-attributes.json (EVAL-PIN-12..14).
+    Equivalente en Python: scripts/render_bloque_colombia.py --verificar.
+
+.PARAMETER PropuestaDir
+    Carpeta propuestas/pinning/ de la ingesta (solo con -Modo colombia, EVAL-PIN-14).
+
 .EXAMPLE
     .\verificar-artefacto.ps1 -MatcherPath .\JuradIdentityMatcher.scala `
                                -AttributesJsonPath .\identifying-attributes.json `
                                -HoconPath .\pinning-application-block.conf
+
+.EXAMPLE
+    .\verificar-artefacto.ps1 -Modo colombia -HoconPath .\pinning-application-block.sisben.conf `
+                               -PropuestaDir .\propuestas\pinning
 
 .NOTAS
     - No requiere compilar Scala. Solo analiza texto. Ningún resultado "PASS"
@@ -41,7 +55,10 @@
 param(
     [string]$MatcherPath,
     [string]$AttributesJsonPath,
-    [string]$HoconPath
+    [string]$HoconPath,
+    [ValidateSet("propio", "colombia")]
+    [string]$Modo = "propio",
+    [string]$PropuestaDir
 )
 
 $ErrorActionPreference = "Stop"
@@ -163,10 +180,16 @@ if ($HoconPath) {
         $failures += "FAIL - $HoconPath no existe"
     } else {
         $hocon = Get-Content $HoconPath -Raw
+        # HF-67 (AUD-P-23): las reglas sobre valores se evalúan FUERA de comentarios. El comentario obligatorio
+        # del colapso («groupSSR = true (:676)») no es un valor y daba un falso positivo seguro en modo Colombia.
+        $lineasHocon = $hocon -split "`r?`n"
+        $esComentario = { param($l) $l.Trim().StartsWith("#") -or $l.Trim().StartsWith("//") }
+        $activasHocon = @($lineasHocon | Where-Object { $_.Trim() -and -not (& $esComentario $_) })
+        $hoconActivo = $activasHocon -join "`n"
 
         # EVAL-PIN-03 / EVAL-PIN-10 variante — groupSSR debe quedar como TODO, no true/false fijo
         $checked++
-        if ($hocon -match 'groupSSR\s*=\s*(true|false)\b' -and $hocon -notmatch '(?i)TODO.*groupSSR|groupSSR.*TODO') {
+        if ($hoconActivo -match 'groupSSR\s*=\s*(true|false)\b' -and $hocon -notmatch '(?i)TODO.*groupSSR|groupSSR.*TODO') {
             $failures += "FAIL - groupSSR tiene un valor fijo (true/false) sin TODO asociado (EVAL-PIN-03)"
         } else {
             Write-Host "PASS - groupSSR no fue resuelto sin TODO explícito (EVAL-PIN-03)" -ForegroundColor Green
@@ -176,6 +199,55 @@ if ($HoconPath) {
         Test-Contains -Content $hocon -Pattern '\{\{[A-Z_0-9]+\}\}' `
             -Description "no quedan placeholders {{...}} sin resolver en el HOCON" `
             -ShouldNotMatch
+
+        if ($Modo -eq "colombia") {
+            # EVAL-PIN-12 / EVAL-PIN-14 — ninguna línea activa (tampoco reusePin = ...)
+            $checked++
+            if ($activasHocon.Count -gt 0) {
+                $failures += "FAIL - modo Colombia: $($activasHocon.Count) línea(s) activa(s); el bloque solo lleva comentarios VERIFICAR (EVAL-PIN-12, -14). Primera: '$($activasHocon[0].Trim())'"
+            } else {
+                Write-Host "PASS - modo Colombia: 0 líneas activas, ningún reusePin ni clave compartida escrita (EVAL-PIN-12, -14)" -ForegroundColor Green
+            }
+            # EVAL-PIN-13 — matcher o lista de referencia nunca como valor activo
+            Test-Contains -Content $hoconActivo -Pattern '\b(ISIdentityMatcher|RIIdentityMatcher)\b|(?<![-\w])identifying-attributes\.json' `
+                -Description "modo Colombia: ni ISIdentityMatcher/RIIdentityMatcher ni identifying-attributes.json como valor activo (EVAL-PIN-13)" `
+                -ShouldNotMatch
+            # HF-65 — la lista VERIFICAR nombra lo que lee el motor (misma lista que VERIFICAR_COLOMBIA del .py)
+            $verificarColombia = @(
+                "oxygen.stage.pinning.paths.identifyingAttributesFile",
+                "oxygen.stage.pinning.identityMatcher",
+                "oxygen.stage.pinning.reusePin",
+                "oxygen.stage.pinning.paths.domainDictionaryFile",
+                "oxygen.stage.pinning.nearNeighborBlockSize",
+                "oxygen.stage.pinning.pinningVleRange",
+                "oxygen.stage.pinning.groupSSR",
+                "oxygen.stage.pinning.paths.pinnedReferenceDir",
+                "oxygen.stage.curation.paths.curatedDir",
+                "integración estática con HBase",
+                "clusterSplitter",
+                "INPUT_REF_DIR",
+                "*-common-application.conf"
+            )
+            $verificar = ($lineasHocon | Where-Object { (& $esComentario $_) -and $_ -match 'VERIFICAR' }) -join "`n"
+            foreach ($clave in $verificarColombia) {
+                Test-Contains -Content $verificar -Pattern ([regex]::Escape($clave) + '(?![A-Za-z0-9_])') `
+                    -Description "modo Colombia: 'VERIFICAR $clave' está en la lista (HF-65)"
+            }
+        }
+    }
+}
+
+# ─────────────────────────────────────────────────────────────
+# 4. Modo Colombia — no se generan matcher ni lista (EVAL-PIN-14)
+# ─────────────────────────────────────────────────────────────
+if ($Modo -eq "colombia" -and $PropuestaDir) {
+    $checked++
+    $prohibidos = @(Get-ChildItem -Path $PropuestaDir -Recurse -File |
+        Where-Object { $_.Name -like "*IdentityMatcher.scala" -or $_.Name -eq "identifying-attributes.json" })
+    if ($prohibidos.Count -gt 0) {
+        $failures += "FAIL - modo Colombia: la propuesta trae $($prohibidos.Name -join ', '); se reutilizan el matcher y la lista compartidos (EVAL-PIN-14)"
+    } else {
+        Write-Host "PASS - modo Colombia: la propuesta no trae IdentityMatcher.scala ni identifying-attributes.json (EVAL-PIN-14)" -ForegroundColor Green
     }
 }
 
@@ -194,7 +266,8 @@ if ($failures.Count -gt 0) {
     Write-Host "`nFALLOS ($($failures.Count)):" -ForegroundColor Red
     $failures | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
     Write-Host "`nRecordatorio: este script NO cubre los casos que dependen de la RESPUESTA DE TEXTO del skill" -ForegroundColor Yellow
-    Write-Host "(EVAL-PIN-02, 03, 09, 10, 11) ni la corrección de negocio de fondo. Verificar esos manualmente" -ForegroundColor Yellow
+    Write-Host "(EVAL-PIN-02, 03, 09, 10, 11; de EVAL-PIN-12..14, la explicación y el escalamiento N4) ni la" -ForegroundColor Yellow
+    Write-Host "corrección de negocio de fondo. Verificar esos manualmente" -ForegroundColor Yellow
     Write-Host "contra Diseño/casos-prueba-skill-pinning.md." -ForegroundColor Yellow
     exit 1
 } else {

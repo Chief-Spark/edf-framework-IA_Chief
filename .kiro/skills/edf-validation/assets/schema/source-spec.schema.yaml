@@ -44,7 +44,7 @@ properties:
       Opcional (1.9.2, AUD-V-08). Supuestos de las plantillas (ASSUMPTION <ID>) cuyo valor ya fija la spec de la
       ingesta. El generador cambia cada marca por `RESUELTO <ID> (<fuente>)`, el ID no entra a
       manifest["supuestos"] y manifest["supuestos_resueltos"] lo lista con su fuente. Falla si el ID no tiene marca
-      en la salida o si también está en la lista `supuestos` de un campo, regla o catálogo.
+      en la salida o si también está en la lista `supuestos` de un campo, regla, catálogo o archivo.nombre.
     items:
       type: object
       additionalProperties: false
@@ -185,6 +185,12 @@ properties:
             type: boolean
             description: La fecha de la marca de tiempo (tal como viene en el nombre) no es anterior al primer día del periodo.
             x-placeholders: [nombre_recepcion_desde_inicio_periodo]
+          supuestos:
+            $ref: "#/$defs/supuestos"
+            description: >-
+              Opcional (HF-13). IDs de supuestos sobre las reglas del nombre (p. ej. la zona del «mes actual»). El
+              generador escribe una marca `ASSUMPTION <ID>` junto a NombreArchivoSpec y manifest.json los lista.
+            x-placeholders: [marcas_supuesto_nombre]
 
   guard_rails:
     type: object

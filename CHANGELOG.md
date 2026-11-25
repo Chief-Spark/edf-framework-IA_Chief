@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.9.12 — 2026-11-25
+
+Lote final de la corrida E2E SISBEN (HF-13, 42, 44, 45, 47..55, 65..67, 78, 79; HF-56 queda como propuesta de diseño).
+
+### Lote final de la corrida E2E SISBEN (defectos del framework; `ejecuciones/sisben-e2e/hallazgos-framework.md`)
+
+**edf-validation**
+- HF-13: `archivo.nombre` admite `supuestos` (IDs de `decisiones-y-abiertos.md`). El generador escribe `// ASSUMPTION <ID>` junto a `NombreArchivoSpec` (hueco `marcas_supuesto_nombre`, vacío sin la clave: el ejemplo no cambia), `manifest["supuestos"]` lo lista y `check_supuestos_resueltos` lo cruza. Pruebas: `test_hf13_*`.
+- HF-42: `references/interpretar-salida.md` ya no fija `customReasonForAutomaticRejectionEnabled = true` (SISBEN histórico): lo fija el insumo de Acceptance.
+- HF-54: advertencia en SKILL y checklist sobre la tabla de lookup duplicada si el fork comparte un `oxygen-lookup-inner.conf`.
+
+**edf-acceptance**
+- HF-44: el esquema declara la convención `ruta_` de `archivo.claves_de_prueba[].clave`. `verify_spec` falla con una clave `ruta_*` sin separador de directorio; un valor con ruta sin el prefijo da un aviso (no bloquea insumos ya aprobados: el de la corrida da el aviso por `otra_fuente`, AUD-A-19). El ejemplo renombra `otra_fuente` → `ruta_otra_fuente` y se regenera (`SISBENAcceptanceExpressionsSpec.scala`: el nombre de la clave y un comentario). Pruebas: `scripts/tests/test_lote_final.py`.
+
+**edf-curation**
+- HF-45: `resumen.json` separa `claves_omitidas_por_severidad` (niveles_no_almacenar) de `claves_omitidas_por_nulas` (omitir_si_nulas).
+- HF-48: con `extension_subscriber_relation`, el Spec Scala trae un caso sintético FIJO del respaldo (componente faltante → aceptado + `subscriberRelation:COMPONENTE_FALTANTE`), fuera del fixture; sigue `copia_de` hasta el campo de entrada.
+- HF-49: comentario de RF-CUR-10 según `NivelesNoAlmacenar`/`NivelesAnular`, no «severidad 3 / 0» fijo.
+- HF-50: cita `runbook-ejecucion.md §2` en lugar de «§fork».
+- HF-51: checklist: `outputEventType` = event type de la spec con `ASSUMPTION` o `RESUELTO CUR-PA04`.
+- HF-52: la réplica Python sigue a Java: `String.trim` (solo ≤ U+0020, el NBSP se conserva) y regex ASCII (`re.ASCII`). Caso NBSP en las dos suites (`TransformationsSpec.scala.tpl` y `test_lote_final.py`).
+- HF-53: `NIVEL_DESCONOCIDO` va con el campo curado (`<destino>:NIVEL_DESCONOCIDO`, uno por destino); `ERROR_INTERNO`, `NIVEL_DESCONOCIDO` y `COMPONENTE_FALTANTE` documentados como motivos defensivos fuera de la lista cerrada de la spec (anotar en PA-007).
+- HF-54: misma advertencia de lookup duplicado en SKILL y checklist.
+- HF-55: `MANIFEST.json` con `sha256` en cada entrada de `archivos` y de `marcas_sintetico` (que pasa a `{ruta, sha256}`).
+- Ejemplo regenerado: MANIFEST (hashes), `resumen.json` (clave nueva vacía), `FieldMapping.scala` (comentario de motivos), `SISBENCurationProcessor.scala` (comentario y `NIVEL_DESCONOCIDO` con el destino), `TransformacionesSpec.scala` (caso NBSP), `SISBENCurationProcessorSpec.scala` (cita del runbook). `curated-events.json` no cambia.
+
+**edf-pinning**
+- HF-65: la sección «Modo Colombia» de la plantilla del bloque tiene cabecera propia y una VERIFICAR por ruta HOCON que lee el motor (`oxygen.stage.pinning.paths.*`, `identityMatcher`, `reusePin`, `nearNeighborBlockSize`, `pinningVleRange`, `groupSSR`, `paths.pinnedReferenceDir`, `oxygen.stage.curation.paths.curatedDir`, integración estática con HBase, `*-common-application.conf`; `clusterSplitter` e `INPUT_REF_DIR` con nombre `[PM]`); `[P]` en el mecanismo del colapso.
+- HF-66: generador mínimo `scripts/render_bloque_colombia.py --insumo … [--contrato …]`: valida el insumo con `tools/verificar-insumo-pinning.py`, copia literal la sección y rellena sus huecos; reproducible.
+- HF-67: `evals/verificar-artefacto.ps1` con `-Modo propio|colombia` y `-PropuestaDir`: `groupSSR` evaluado fuera de comentarios, chequeos de EVAL-PIN-12..14. Equivalente Python: `render_bloque_colombia.py --verificar <bloque> [--dir-propuesta <dir>]`. Pruebas: `tests/test_lote_final_framework.py`.
+
+**edf-synthesis**
+- HF-78: `evals/verificar-artefacto.ps1` con `-Modo propio|colombia` (en Colombia: 0 líneas activas y las 11 VERIFICAR, sin exigir la raíz) y chequeo de `"handler": null`; advertencia «nunca `handler: null` en el JSON» en el SKILL (paso 3) y en la plantilla del GDD.
+- HF-79: cita del default local de `consistencyCheck` (`oxygen-config-default-local.conf:459-468`; `orchestration :460-464`, `datasetFormat :465-468`) en la plantilla del bloque.
+
+**edf-analisis y transversal**
+- HF-42: plantillas de la etapa 0 (`contexto-ingesta`, `mapeo-campos`, `dependencias`, `plan-de-ruta`) sin fila «Estado | PROPUESTO» (HF-32).
+- HF-47: la cabecera de un insumo lleva la leyenda literal del steering `05` §3 (`[PM]` = pendiente-manual; lo que propone el modelo es `[P]`); leyenda en `contrato-curation-pinning.md.tpl`.
+- HF-79: `precondiciones_bloqueantes` nombra la condición, no su valor del momento (`_cabecera-yaml-skill.yaml.tpl`); `python` → `python3` en los SKILL, references, checklists y LEEME de las skills (no en los hooks: los instaladores reescriben el intérprete, ni en `edf-statecalc`/`edf-orquestador`/`.kiro/specs`, fuera de este lote).
+
+**No corregido en este lote**
+- HF-56 (diseño, Orquestador) — propuesta: admitir en el esquema de `etapa` un `ref_aprobacion` por sucesora (`transiciones: [{a: <etapa>, habilitada, ref_aprobacion}]`) y que la regla 7a valide cada una.
+  Mientras tanto, documentar en `references/03` que con dos sucesoras la segunda transición solo consta en `aprobaciones[]` y el validador debe buscarla ahí.
+
 ## 1.9.11 — 2026-11-25
 
 Correcciones de la auditoría del insumo de State Calculation de la corrida E2E SISBEN (`ejecuciones/sisben-e2e/auditorias/statecalc.md` §3, HF-73 a HF-77). Mismo patrón que Pinning (1.9.8/1.9.9) y Synthesis (1.9.10). No se tocó nada de `ejecuciones/`.

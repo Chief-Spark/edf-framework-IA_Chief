@@ -125,7 +125,7 @@ Esta skill **solo genera archivos**, con Python 3:
 ### Paso 2 · Generar los artefactos (orden real del inventario)
 
 ```bash
-python scripts/render_templates.py --spec <spec>.yaml --out <salida> --audit
+python3 scripts/render_templates.py --spec <spec>.yaml --out <salida> --audit
 ```
 
 En macOS/Linux usa `python3` si `python` no existe. Para una ingesta del framework, `<salida>` es `expedientes/<id>/propuestas/acceptance/`.
@@ -164,9 +164,9 @@ sin `--audit`, después de las líneas `generado`/`omitido`. Una spec sin el blo
 ### Paso 3 · Verificar
 
 ```bash
-python scripts/simular_decision.py --spec <spec>.yaml          # decisión por archivo, comparada con lo esperado
-python scripts/hocon_check.py <salida>/hocon/*.conf            # parse del HOCON generado
-python -m pytest scripts/tests -q                              # pruebas del skill (generador, simulador, hocon_check)
+python3 scripts/simular_decision.py --spec <spec>.yaml          # decisión por archivo, comparada con lo esperado
+python3 scripts/hocon_check.py <salida>/hocon/*.conf            # parse del HOCON generado
+python3 -m pytest scripts/tests -q                              # pruebas del skill (generador, simulador, hocon_check)
 ```
 
 `simular_decision.py` compara cada archivo con `decision_esperada`, `reason_code_esperado` y el `esperado_registro`
@@ -191,8 +191,8 @@ ACC-TPL-05 genera la prueba «umbral alternativo …»: evalúa `accept` y las c
 obligatorio con `esperado: rechazado` (los `reasonCode` registrados, unidos por coma) y vale `""` si se omite.
 `simular_decision.py` evalúa los mismos casos.
 
-La cobertura de los scripts Python se mide por script: `python -m coverage run -m pytest scripts/tests -q`
-y luego `python -m coverage report --include=scripts/<script>.py --fail-under=80` para
+La cobertura de los scripts Python se mide por script: `python3 -m coverage run -m pytest scripts/tests -q`
+y luego `python3 -m coverage report --include=scripts/<script>.py --fail-under=80` para
 `render_templates.py`, `simular_decision.py` y `hocon_check.py` (AC-31).
 
 Luego recorre `assets/checklist-entrega.md` (A automático, B manual, C seguridad, D HITL). Busca

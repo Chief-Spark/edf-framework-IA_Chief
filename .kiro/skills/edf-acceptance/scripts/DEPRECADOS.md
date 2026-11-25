@@ -8,7 +8,7 @@ vigente es `render_templates.py`: solo necesita Python 3 con PyYAML y jsonschema
 | Archivo | Estado |
 |---|---|
 | `render_templates.py` | **Vigente.** Generador, verificador de la spec y auditoría de huecos y supuestos |
-| `tests/test_render_templates.py` | Vigente, en la suite (`python -m pytest scripts/tests`) y en la cobertura |
+| `tests/test_render_templates.py` | Vigente, en la suite (`python3 -m pytest scripts/tests`) y en la cobertura |
 | `simular_decision.py`, `hocon_check.py` y sus pruebas | Vigentes, sin cambios de función |
 | `java/` (`RenderTemplates`, `Plantillas`, `Verificaciones`, `Auditoria`, `Py` y `RenderTemplatesTest`) | **Deprecado.** Solo referencia histórica. No se compila ni se ejecuta; la skill nunca usa `mvn` ni `java -jar` |
 

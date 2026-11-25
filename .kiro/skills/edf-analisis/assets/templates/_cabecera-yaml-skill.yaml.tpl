@@ -29,6 +29,9 @@ alcance:
   genera: []                                        # artefactos que la skill de etapa SÍ debe generar con este YAML
   no_genera: []                                     # lo que queda fuera, con la razón
   precondiciones_bloqueantes: []                    # - {id, descripcion, efecto}
+  # `descripcion` nombra la CONDICIÓN que se exige (p. ej. «requiere transicion_habilitada de pinning en
+  # estado-ingesta.json»), nunca su valor del momento («pinning aprobada con transicion_habilitada: false»):
+  # el valor cambia después de aprobar el insumo y dejarlo escrito lo desactualiza (HF-79, igual que HF-32).
 
 marcado_heredado:
   nota: "Todo valor con marcador distinto de [C] en logica-{{etapa}}.md se transcribe con su marcador original. Ningún [A:*] se resuelve en este YAML."

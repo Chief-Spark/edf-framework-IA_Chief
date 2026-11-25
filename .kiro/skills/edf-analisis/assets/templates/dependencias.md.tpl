@@ -4,7 +4,6 @@
 |---|---|
 | Ingesta | `{{ingesta-id}}` |
 | Versión / Fecha | 1.0.0 / {{AAAA-MM-DD}} |
-| Estado | PROPUESTO |
 
 ## 1. Dependencias de datos y catálogos
 

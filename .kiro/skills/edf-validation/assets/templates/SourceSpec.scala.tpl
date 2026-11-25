@@ -32,7 +32,7 @@ object {{Fuente}}Spec {
       grupoOffset = {{grupo_offset}},
       fileTagPorPrefijo = Map({{bloque_file_tags}}),
       // Reglas de fecha del nombre (archivo.nombre del source-spec; false = no se aplican, AUD-V-02).
-      periodoNoFuturo = {{nombre_periodo_no_futuro}},
+{{marcas_supuesto_nombre}}      periodoNoFuturo = {{nombre_periodo_no_futuro}},
       recepcionNoFutura = {{nombre_recepcion_no_futura}},
       recepcionDesdeInicioPeriodo = {{nombre_recepcion_desde_inicio_periodo}}
     ),

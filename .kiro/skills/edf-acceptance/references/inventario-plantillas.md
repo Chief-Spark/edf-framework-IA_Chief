@@ -26,6 +26,8 @@ del expediente).
 | IN-07 | Intervención manual | `intervencion_manual.*` | no se configura | cerrado |
 | IN-08 | Semántica de borrado | `contextual_override.*` | sin definir | **abierto** |
 
+IN-01, `archivo.claves_de_prueba` (HF-44): una clave que empieza por `ruta_` es una ruta del directorio de validados y se recorta como en el motor (`removeFileExtension`) antes de comparar con el `filePattern`; sin el prefijo, el valor se compara tal cual (`lineage.fileName`). `verify_spec` falla con una clave `ruta_*` sin separador de directorio y avisa de un valor con separador sin el prefijo: con `debe_coincidir: false` ese caso pasaría siempre por el sufijo `.<datasetId>`, sin probar nada.
+
 ## Plantillas
 
 | Paso | Id | Archivo `.tpl` | Tipo | Genera | Condición |

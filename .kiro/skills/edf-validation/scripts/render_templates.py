@@ -611,7 +611,8 @@ def check_supuestos_resueltos(spec: dict) -> list[str]:
     errors += [f"supuestos_resueltos: {i} repetido" for i in sorted({i for i in ids if ids.count(i) > 1})]
     abiertos = {s for grupo in ("campos", "reglas_entre_campos", "catalogos")
                 for item in spec[grupo] for s in item.get("supuestos") or []}
-    errors += [f"supuestos_resueltos: {i} también figura como supuesto abierto de un campo, regla o catálogo"
+    abiertos.update(spec["archivo"]["nombre"].get("supuestos") or [])  # HF-13
+    errors += [f"supuestos_resueltos: {i} también figura como supuesto abierto de un campo, regla, catálogo o archivo.nombre"
                for i in sorted(set(ids) & abiertos)]
     return errors
 
@@ -948,6 +949,8 @@ def build_context(spec: dict) -> dict[str, str]:
         "nombre_periodo_no_futuro": lower(bool(nombre.get("periodo_no_futuro"))),
         "nombre_recepcion_no_futura": lower(bool(nombre.get("recepcion_no_futura"))),
         "nombre_recepcion_desde_inicio_periodo": lower(bool(nombre.get("recepcion_desde_inicio_periodo"))),
+        # HF-13: supuestos sobre las reglas del nombre; vacío sin la clave (la salida no cambia).
+        "marcas_supuesto_nombre": render_marcas_supuesto(nombre, "      "),
         "bloque_pruebas_nombre": render_name_tests(spec),
         "bloque_file_tags": ", ".join(f'"{scala_str(k)}" -> "{scala_str(v)}"'
                                       for k, v in nombre["file_tag_por_prefijo"].items()),

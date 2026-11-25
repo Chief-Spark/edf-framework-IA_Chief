@@ -7,7 +7,6 @@
 | Ingesta (`id` del expediente) | `{{ingesta-id}}` |
 | Versión | 1.0.0 |
 | Fecha | {{AAAA-MM-DD}} |
-| Estado | PROPUESTO (pasa a APROBADO con aprobación registrada por `edf-orquestador`) |
 | Fuentes | {{HU y spec de Confluence (obligatorias), con ruta; layout y archivo de muestra sintético (opcionales)}} |
 | Skill | `edf-analisis` (modo etapa 0, tipo T1) |
 

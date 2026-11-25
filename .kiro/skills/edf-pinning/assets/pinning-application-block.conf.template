@@ -2,30 +2,30 @@
 # Bloque HOCON parametrizable — oxygen.stage.pinning para {{INGESTA_NOMBRE}}
 # ─────────────────────────────────────────────────────────────────────────
 #
-# Esta plantilla NO reemplaza pinning-application.conf completo. Es el bloque
-# de claves con efecto directo verificado en el código real de oxygen-pinning
-# que dependen del mapeo de identidad de esta ingesta. Las claves de
-# infraestructura de ejecución (env.conf, spark.conf) están fuera de alcance
-# de este skill.
-#
-# Cada clave trae su propio comentario con la regla y el estado de
-# confirmación — no borres estos comentarios al generar el archivo final,
-# son la trazabilidad que el revisor humano necesita.
+# Dos secciones excluyentes. En modo Colombia se entrega SOLO la sección
+# «Modo Colombia» (todo comentario, sin claves). Fuera de modo Colombia se
+# entrega la sección «Fuera de modo Colombia», y las dos notas que la abren
+# (alcance del bloque y comentario por clave) valen solo para ella (HF-65).
 #
 # ── Modo Colombia (bureau.colombia_innersource; SKILL.md «Modo Colombia») ──
-# La aplicación de Pinning es COMPARTIDA: lee todas las fuentes bajo
-# curatedDir/*/* (PinningIOUtils.scala:23-31) y cada clave de
-# oxygen.stage.pinning vale para todas. En modo Colombia NO se escribe el
-# bloque oxygen.stage.pinning de abajo: se entrega solo esta lista de
-# verificación, con el valor vigente que el equipo confirma en el conf
-# compartido. Si la ingesta necesita otro valor en una clave compartida, es
-# un bloqueo que se reporta, no una clave que se escribe.
+# Este archivo NO tiene claves: es la lista de verificación de la ingesta
+# {{INGESTA_NOMBRE}} contra el conf compartido de Colombia. La aplicación de
+# Pinning es COMPARTIDA: lee todas las fuentes bajo curatedDir/*/*
+# (PinningIOUtils.scala:23-31) y cada clave de oxygen.stage.pinning vale para
+# todas. Cada VERIFICAR nombra la ruta HOCON que lee el motor; cuando la copia
+# del motor solo trae la constante (oxygen-global), el nombre de la clave es
+# [PM] y se confirma en el fork. Si la ingesta necesita otro valor en una
+# clave compartida, es un bloqueo que se reporta, no una clave que se escribe.
+# Generación reproducible: scripts/render_bloque_colombia.py (HF-66).
 #
-#   VERIFICAR identifyingAttributesFile = lista compartida de Colombia
-#             (identifying-attributes-new.json)
-#   VERIFICAR identityMatcher           = matcher compartido de Colombia
-#             (ColombiaIdentityMatcher / IdentityImpl, steering 11 §6 #7)
-#   VERIFICAR reusePin                  = valor vigente del conf compartido.
+#   VERIFICAR oxygen.stage.pinning.paths.identifyingAttributesFile = lista
+#             compartida de Colombia ({{IDENTIFYING_ATTRIBUTES_COMPARTIDO}}); solo
+#             se usa .head (SparkPinner.scala:222, :315). Debe traer las claves
+#             del evento curado: {{CLAVES_EVENTO_CURADO}}. No se regenera.
+#   VERIFICAR oxygen.stage.pinning.identityMatcher = matcher compartido de
+#             Colombia (Class.forName, SparkPinner.scala:220, :657). Insumo:
+#             {{IDENTITY_MATCHER_COLOMBIA}} (steering 11 §6 #7).
+#   VERIFICAR oxygen.stage.pinning.reusePin = valor vigente del conf compartido.
 #             NO SE ESCRIBE (HF-57). Es global: SparkPinner.scala:223 lo lee
 #             una vez y :409 decide para toda la corrida. false renumera los
 #             PIN de TODAS las fuentes (:979-985); solo con true la persona
@@ -34,19 +34,52 @@
 #             propia, no un valor de la clave global. Cambiar la clave es N4:
 #             se documenta y se escala (steering 06 §3).
 #             Valor de la fuente (dato, no se genera): {{REUSE_PIN_VALOR_FUENTE}}
-#   VERIFICAR domainDictionaryFile, clusterSplitter, nearNeighborBlockSize,
-#             pinningVleRange, groupSSR = valores vigentes del conf compartido
+#   VERIFICAR oxygen.stage.pinning.paths.domainDictionaryFile = presente (si
+#             falta, solo un warn y sigue con "": SparkPinner.scala:192-198).
+#   VERIFICAR oxygen.stage.pinning.nearNeighborBlockSize = valor vigente; los
+#             bloques >= este valor se descartan sin error (:719-723).
+#   VERIFICAR oxygen.stage.pinning.pinningVleRange = valor vigente (:982).
+#   VERIFICAR oxygen.stage.pinning.groupSSR = valor vigente (:665-676).
+#   VERIFICAR oxygen.stage.pinning.paths.pinnedReferenceDir = presente
+#             (SparkPinner.scala:409; el default lo define siempre).
+#   VERIFICAR oxygen.stage.curation.paths.curatedDir = contiene la salida
+#             curada de la ingesta (PinningIOUtils.scala:27, curatedDir/*/*); si
+#             no, la ingesta no se pinea y no da error.
+#   VERIFICAR integración estática con HBase (SparkPinner.scala:224, :410)
+#             = valor vigente de la feature; nombre de la clave [PM]
+#             (ENABLE_HF_BATCH_STATIC_PIN_INTERGRATION, constante de oxygen-global).
+#   VERIFICAR clusterSplitter = valor vigente; nombre de la clave [PM]: la
+#             copia solo trae la constante CLUSTER_SPLITTER (SparkPinner.scala:221)
+#             y ningún .conf la nombra (AUD-P1).
+#   VERIFICAR INPUT_REF_DIR = valor vigente; nombre de la clave [PM]: es la
+#             constante que lee PinningIOUtils.scala:21, :24-25, no una clave
+#             HOCON de la copia.
+#   VERIFICAR *-common-application.conf: si el archivo destino del cambio es
+#             un conf común, tocarlo es N4 y se escala (steering 06 §3).
 #
 # COLAPSO SILENCIOSO (HF-58): nunca dejes, como «arranque», ISIdentityMatcher
 # (o RIIdentityMatcher) ni la lista de ejemplo identifying-attributes.json
 # (nationalId, firstName, cellPhone…) con eventos de Colombia (standardizedId*).
-# Esos slots no existen en el evento: todos valen "" (IdentityMatcher.scala:46-49),
+# Mecanismo [P] (la construcción de Identity está en oxygen-core, logica-pinning.md §9):
+# esos slots no existen en el evento: todos valen "" (IdentityMatcher.scala:46-49),
 # todas las identidades quedan iguales y se agrupan por identityId en UNA sola
 # antes de compararse (SparkPinner.scala:1756-1770). La llave de vecinos "" se
 # filtra con groupSSR = true (:676) y los bloques >= 700 se descartan (:719-723).
 # Resultado: un solo PIN para todas las personas, sin error.
 #
+# Fin de la sección «Modo Colombia».
+#
 # ── Fuera de modo Colombia (aplicación propia de la ingesta) ──
+#
+# Esta sección NO reemplaza pinning-application.conf completo. Es el bloque
+# de claves con efecto directo verificado en el código real de oxygen-pinning
+# que dependen del mapeo de identidad de esta ingesta. Las claves de
+# infraestructura de ejecución (env.conf, spark.conf) están fuera de alcance
+# de este skill.
+#
+# Cada clave trae su propio comentario con la regla y el estado de
+# confirmación — no borres estos comentarios al generar el archivo final,
+# son la trazabilidad que el revisor humano necesita.
 
 oxygen.stage.pinning {
 

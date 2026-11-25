@@ -4,7 +4,8 @@
 // (CuratedEvent, TaggedValidatedEvent): compilación NO CERTIFICADA (F-01).
 // Los JSON esperados salen de la implementación de referencia (scripts/curation_reference.py).
 // AUD-C9: estas pruebas llaman al núcleo (curar, relacion), no a curateEvent ni al gancho subscriberRelation,
-// que necesitan un TaggedValidatedEvent del JAR. Esa prueba se escribe en el fork (runbook-ejecucion.md §fork).
+// que necesitan un TaggedValidatedEvent del JAR. Esa prueba se escribe en el fork (runbook-ejecucion.md §2,
+// «Prueba del lado del fork (AUD-C9)»; HF-50).
 package {{paquete_fuente}}
 
 import org.junit.runner.RunWith

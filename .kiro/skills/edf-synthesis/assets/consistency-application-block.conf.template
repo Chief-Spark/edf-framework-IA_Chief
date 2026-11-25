@@ -50,9 +50,11 @@
 #   VERIFICAR oxygen.stage.consistencyCheck.fieldHandlerHashFunction = presente
 #             (.get, :202; el nombre HOCON exacto se confirma en el fork).
 #   VERIFICAR oxygen.stage.consistencyCheck.orchestration = presente, con source y
-#             target (orchestration.get, :68-69).
+#             target (orchestration.get, :68-69; default local de consistencyCheck en
+#             oxygen-config-default-local.conf:459-468, orchestration :460-464;
+#             no :104-119, que es discovery/validation, HF-79).
 #   VERIFICAR oxygen.stage.consistencyCheck.datasetFormat = presente (readWriteFormat.get,
-#             SynthesisIOUtils.scala:129).
+#             SynthesisIOUtils.scala:129; default local :465-468).
 #   VERIFICAR oxygen.stage.consistencyCheck.relationshipMigrationProcessorClassName =
 #             valor vigente; actúa sobre todos los eventos del HC (:250-253).
 #

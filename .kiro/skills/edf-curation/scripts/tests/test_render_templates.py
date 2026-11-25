@@ -211,7 +211,8 @@ def test_nivel_nulo_y_errores_nulos_en_scala(rendered):
     out, _ = rendered
     p = leer(out / SCALA_FUENTE / "processor/SISBENCurationProcessor.scala")
     assert 'Option(nivel).getOrElse("")' not in p
-    assert 'porCampo.collect { case (c, None) => s"$c:${Motivos.NivelDesconocido}" }' in p
+    assert 'porCampo.collect { case (c, None) => c }.flatMap(c =>' in p  # HF-53: con el campo curado
+    assert 'Mapeos.filter(_.origen == c).map(m => s"${m.destino}:${Motivos.NivelDesconocido}"))' in p
     assert "Option(errores).getOrElse(Seq.empty).flatMap(Option(_))" in p
     assert "advIniciales ++ advNivel" in p
 
@@ -283,7 +284,7 @@ def test_lookups_generados_marcados_como_sinteticos(rendered, spec):
     rel = spec["rutas_destino"]["test_resources"] + "lookups/"
     lk = out / rel
     assert "SINTÉTICO" in leer(lk / rt.MARCA_LOOKUPS)
-    assert manifest["marcas_sintetico"] == [rel + rt.MARCA_LOOKUPS]
+    assert [m["ruta"] for m in manifest["marcas_sintetico"]] == [rel + rt.MARCA_LOOKUPS]
     assert len(manifest["archivos"]) == 12  # la marca no es un artefacto de plantilla
     csv = list(lk.glob("*.csv"))
     assert len(csv) == len(spec["catalogos"])
@@ -311,12 +312,15 @@ def test_sin_marca_de_lookups_se_rechaza_sin_tocar_out(tmp_path):
 
 
 def test_manifest_lista_todos_los_archivos(rendered, spec):
-    """AC-25: todo archivo, salvo MANIFEST.json, está en exactamente una lista, y el sha256 coincide."""
+    """AC-25: todo archivo, salvo MANIFEST.json, está en exactamente una lista, y el sha256 coincide (HF-55: en
+    las tres listas)."""
     out, _ = rendered
     m = json.loads(leer(out / "MANIFEST.json"))
-    listados = [a["archivo"] for a in m["archivos"]] + list(m["marcas_sintetico"])
-    hashes = {o["ruta"]: o["sha256"] for o in m["otros_archivos"]}
-    listados += list(hashes)
+    listados = [a["archivo"] for a in m["archivos"]] + [x["ruta"] for x in m["marcas_sintetico"]]
+    listados += [o["ruta"] for o in m["otros_archivos"]]
+    hashes = {a["archivo"]: a["sha256"] for a in m["archivos"]}
+    hashes.update({o["ruta"]: o["sha256"] for o in m["marcas_sintetico"] + m["otros_archivos"]})
+    assert len(hashes) == len(listados)
     assert len(listados) == len(set(listados)), "un archivo aparece en más de una lista"
     disco = set(arbol(out))
     disco.remove("MANIFEST.json")

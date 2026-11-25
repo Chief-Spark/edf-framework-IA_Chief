@@ -30,10 +30,12 @@ El motor escribe `TaggedCuratedEventWithMap` en `curatedDir/<runMode>/<dataset>/
 | `ARCHIVO_NO_RECONOCIDO` | `lineage.fileName` no permite derivar tipo/fecha de corte | revisar convención de nombre |
 | `REGISTRO_ILEGIBLE` | `validatedRecordJson` no es un objeto JSON | revisar Validation |
 | `ERROR_INTERNO` | fallo inesperado capturado; registro vacío; log `Error interno al curar el evento <eventId> (<excepción>)` | bug del processor: reportar con `eventId` |
-| `NIVEL_DESCONOCIDO` | `<campo de entrada>:NIVEL_DESCONOCIDO`: código de Validation con nivel nulo; el campo se conserva (AUD-C7) | revisar el `errorLevel` en Validation |
+| `NIVEL_DESCONOCIDO` | `<campo curado>:NIVEL_DESCONOCIDO` (uno por destino del campo de entrada, HF-53): código de Validation con nivel nulo; el campo se conserva (AUD-C7) | revisar el `errorLevel` en Validation |
 | `COMPONENTE_FALTANTE` | `subscriberRelation:COMPONENTE_FALTANTE`: falta un campo de `extension_subscriber_relation`; se conserva el `subscriberRelation` aceptado (AUD-C3) | revisar el dato de identidad |
 
 Las advertencias nunca contienen valores del registro (CUR-RC06).
+
+**Motivos defensivos (HF-53, AUD-C-22).** `ERROR_INTERNO`, `NIVEL_DESCONOCIDO` y `COMPONENTE_FALTANTE` no salen con entradas aceptadas: solo ante una excepción, un `errorLevel` nulo o un componente de identidad nulo, que Validation rechaza antes. Si la spec de la ingesta cierra la lista de motivos (SISBEN: spec §10.1), quedan **fuera** de esa lista: se declaran en el contrato de la ingesta y se anotan en su pregunta abierta de motivos (SISBEN: PA-007) para la próxima versión de la spec. No se quitan: sin ellos el caso quedaría sin rastro (AUD-C3, AUD-C7, AUD-C2).
 
 ## Conciliación de conteos
 

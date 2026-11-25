@@ -1038,3 +1038,26 @@ def test_hf16_clave_sin_documento_unica_por_registro_en_la_plantilla():
 def test_hf18_separar_quita_solo_el_cr_final_en_la_plantilla():
     tpl = FV_TPL.read_text(encoding="utf-8")
     assert 'if (original.endsWith("\\r")) original.dropRight(1) else original' in tpl
+
+
+# ------------------------------------------------------------------ HF-13: supuestos en archivo.nombre
+def test_hf13_supuestos_en_archivo_nombre_dejan_marca_y_entran_al_manifest(spec, tmp_path):
+    alt = copy.deepcopy(spec)
+    alt["archivo"]["nombre"]["supuestos"] = ["VAL-SP02"]
+    assert rt.verify_spec(alt) == []
+    manifest = rt.render_all(alt, tmp_path)
+    texto = _archivo(tmp_path, "SISBENSpec.scala")
+    bloque = texto[texto.index("nombreArchivo = NombreArchivoSpec("):texto.index("periodoNoFuturo")]
+    assert "      // ASSUMPTION VAL-SP02: valor supuesto en el source-spec" in bloque
+    assert "VAL-SP02" in manifest["supuestos"]
+    alt["supuestos_resueltos"] = [{"id": "VAL-SP02", "fuente": "spec §8"}]
+    assert contiene(rt.verify_spec(alt), "VAL-SP02 también figura como supuesto abierto")
+    alt["archivo"]["nombre"]["supuestos"] = ["INT-012"]  # sin ID de decisiones-y-abiertos.md
+    assert rt.verify_spec(alt) != []
+
+
+def test_hf13_sin_supuestos_en_el_nombre_la_salida_no_cambia(spec, tmp_path):
+    rt.render_all(spec, tmp_path)
+    texto = _archivo(tmp_path, "SISBENSpec.scala")
+    assert ("      // Reglas de fecha del nombre (archivo.nombre del source-spec; false = no se aplican, AUD-V-02).\n"
+            "      periodoNoFuturo = ") in texto
