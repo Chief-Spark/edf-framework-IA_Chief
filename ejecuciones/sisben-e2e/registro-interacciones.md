@@ -369,3 +369,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
+
+## INT-047 · Analista (edf-analisis) · insumo de Pinning · `pinning`
+
+- **Cuándo:** 2026-11-24T21:31:31-05:00
+- **Pedido:** Preparar insumos/yaml-skill-pinning.yaml (ART-050) con lo verificable de PA-008 en Motor-Oxigen/.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
