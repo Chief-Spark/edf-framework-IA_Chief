@@ -3,7 +3,7 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T21:47:14-05:00",
+    "actualizado_en": "2026-11-24T21:57:48-05:00",
     "vista_md_regenerada_en": "2026-11-24T21:47:14-05:00"
   },
   "ingesta": {
@@ -613,7 +613,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Analista (INT-047): YAML parsea, secciones completas de la plantilla, sin estado; verificar-claves coherente (34 claves, 9 citas)",
+            "reportada_por": "Analista (INT-053): v2; verificar-insumo-pinning OK sin errores ni avisos; verificar-claves coherente",
             "reportada_en": "2026-11-25"
           }
         },

@@ -422,6 +422,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:55:07-05:00
 - **Pedido:** ART-050 v2 con 1.9.8 y las decisiones de INT-052 (AUD-P-01, -02, -04..-08).
+- **Respuesta:** ART-050 v2.0.0: cabecera sin estado; reusePin sin booleano (valor_en_fuente / valor_a_escribir «no se escribe»; decisión del PO, PA-009); claves compartidas «no se redefine»; advertencia del colapso con condición, mecanismo y efecto; evidencia ISIdentityMatcher:46-54 [P] (sin EventPinner); clave ausente [C]·[P]; INPUT_REF_DIR [PM]; ruta Pinned [C] con PA-010; estados al día; hechos del matcher de Colombia [PM] (RG-025), sin [A:*] en valores; campo umbral_y_matcher_determinista. verificar-insumo-pinning OK; verificar-claves OK. sha256 be720540…
+- **Decisión:** ART-050 v2 prevalidado; re-auditoría con el auditor de Pinning.
+- **Bitácora:** —
+
+## INT-054 · Auditor independiente (pinning) · insumo v2 · `pinning`
+
+- **Cuándo:** 2026-11-24T21:57:48-05:00
+- **Pedido:** Re-auditar ART-050 v2 con el framework 1.9.8.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

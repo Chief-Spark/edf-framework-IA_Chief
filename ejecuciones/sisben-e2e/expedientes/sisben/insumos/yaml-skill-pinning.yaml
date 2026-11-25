@@ -1,40 +1,46 @@
 # yaml-skill-pinning.yaml — insumo de edf-pinning para la ingesta sisben (ART-050), producido por edf-analisis (Modo 2,
 # tipo T3). Estructura: .kiro/skills/edf-analisis/assets/templates/_cabecera-yaml-skill.yaml.tpl +
-# yaml-skill-pinning.yaml.tpl. El ejemplo assets/examples/sisben/yaml-skill-pinning.yaml es solo forma: ningún valor se
-# copió de él (difiere en todo: aquel usa ISIdentityMatcher, slots nationalId/firstName y PRI_NOMBRE; esta ingesta es de
-# Colombia y reutiliza las piezas compartidas, edf-pinning SKILL.md «Modo Colombia»).
-# Sin estado ni aprobador (HF-32). Versión 1 · 2026-11-25.
+# yaml-skill-pinning.yaml.tpl (framework 1.9.8). El ejemplo assets/examples/sisben/yaml-skill-pinning.yaml es solo forma:
+# ningún valor se copió de él (esta ingesta es de Colombia y reutiliza las piezas compartidas, edf-pinning SKILL.md
+# «Modo Colombia»).
+# Sin estado ni aprobador (HF-32). Versión 2 · 2026-11-25.
 #
-# Fuentes de la ingesta: fuentes/hu-sisben.md 1.0.2 (R-24, §5.4, §6 fila Pinning) y fuentes/spec-sisben.md 1.0.2 (§1, §10.1,
-# §11, §14). Contrato aprobado: insumos/contrato-curation-pinning.md 2.0.0 (ART-034). Claves publicadas:
+# Fuentes de la ingesta: fuentes/hu-sisben.md 1.0.2 (§3, R-24, §5.4, §6 fila Pinning) y fuentes/spec-sisben.md 1.0.2 (§1,
+# §10.1, §11, §14). Contrato aprobado: insumos/contrato-curation-pinning.md 2.0.0 (ART-034). Claves publicadas:
 # insumos/source-spec-curation.yaml v2 (ART-030). La spec no trae un anexo con el contenido de este insumo.
 # Evidencia del motor: copia de solo lectura Motor-Oxigen/oxygen-pinning/ (no hay fork de Colombia en esta corrida).
 #
-# Marcadores (steering 05 §3): [C] confirmado · [P] propuesto / patrón · [A:<ID>] abierto (prohibido generar lo que
-# dependa de él) · [PM] pendiente-manual (el equipo lo completa a mano) · [S] superado.
-# Preguntas que bloquean este insumo (etapa pinning):
-#   PA-008 (registrada, bloqueante): lector del evento curado, existencia / FQCN / comparación de ColombiaIdentityMatcher,
-#          juego de códigos de standardizedIdType en las otras fuentes (RG-020), trato de la Ñ (RG-021). Parte (a) queda
-#          resuelta con evidencia del motor (ver alcance.precondiciones_bloqueantes); (b) y (c) siguen abiertas.
-#   PA-009 (PROPUESTA, bloqueante sugerida): oxygen.stage.pinning.reusePin es GLOBAL de la aplicación de Pinning
-#          (SparkPinner.scala:223, :409), no por ingesta: ¿cómo se cumple «reusePIN = false» de spec §11 en el Pinning
-#          compartido de Colombia sin regenerar los PIN de las demás fuentes? (RG-002).
+# Marcadores (steering 05 §3): [C] confirmado · [P] propuesto / patrón · [A:<ID>] abierto · [PM] pendiente-manual (el
+# equipo lo completa a mano) · [S] superado.
+# Decisiones que usa (INT-052):
+#   PA-008 RESUELTA: (a) lector, con el motor; (b) y (c) pasan a verificación diferida RG-025 (alto): FQCN de
+#          ColombiaIdentityMatcher, comparación del standardizedIdType entero y códigos de las otras fuentes, "" como
+#          nulo en la regla 0, identifying-attributes-new.json, Ñ, AUD-P-03 y umbral vigente. Esos hechos van [PM] (RG-025),
+#          nunca [C], y ningún valor de este insumo que vaya a un artefacto depende de ellos.
+#   PA-009 RESUELTA por el PO, opción (a): el bloque de SISBEN no escribe reusePin; «reusePIN = false» = ingesta sin PIN
+#          previos propios. PA-010 (abierta, no bloqueante) lo aclara en la próxima versión de HU y spec.
+# Cambios respecto de la versión 1 (auditorias/pinning.md, AJUSTES): AUD-P-01/02 (reusePin sin booleano: valor de la
+# fuente como dato, «no se escribe»), AUD-P-04 (advertencia del colapso con condición, mecanismo y efecto), AUD-P-05 (la
+# evidencia de «null lanza» es ISIdentityMatcher.scala:46-54, solo para el matcher de referencia), AUD-P-06 (comentario del
+# contrato frente a comportamiento; rama INPUT_REF_DIR; NullIdentityMatcher), AUD-P-07 (ruta Pinned de la spec frente al
+# pinnedDir único, PA-010), AUD-P-08 (estados de PA-008 y PA-009; la opción (b) de PA-009 como hallazgo N4 escalado);
+# campo nuevo modo_colombia.umbral_y_matcher_determinista (HF-60).
 
 documento:
   tipo: "intermediario-skill"
   etapa_pipeline: "Pinning"
   ingesta: "sisben"
-  version: "1.0.0"
+  version: "2.0.0"
   fecha: "2026-11-25"
   # Sin estado ni aprobador (HF-32): viven solo en estado-ingesta.json, que registra edf-orquestador con el hash de este archivo.
 
 procedencia:
   fuente_analisis:
     ruta: ".kiro/skills/edf-analisis/references/logica-pinning.md"
-    version_fuente: "1.0.0 (secciones §4.1, §7.2, §7.3, §8, §9, §12.1)"
+    version_fuente: "framework 1.9.8 (secciones §4.1, §7.2, §7.3, §8.0, §8.1, §9, §12.1)"
   fuentes_ingesta:
-    hu: "ejecuciones/sisben-e2e/expedientes/sisben/fuentes/hu-sisben.md (R-24, §5.4, §6)"
-    spec: "ejecuciones/sisben-e2e/expedientes/sisben/fuentes/spec-sisben.md (§11, §10.1, §14)"
+    hu: "ejecuciones/sisben-e2e/expedientes/sisben/fuentes/hu-sisben.md (§3, R-24, §5.4, §6)"
+    spec: "ejecuciones/sisben-e2e/expedientes/sisben/fuentes/spec-sisben.md (§1, §10.1, §11, §14)"
     mapeo_campos: "ejecuciones/sisben-e2e/expedientes/sisben/analisis/mapeo-campos.md"
     source_spec_curation: "ejecuciones/sisben-e2e/expedientes/sisben/insumos/source-spec-curation.yaml"
     contrato_curation_pinning: "ejecuciones/sisben-e2e/expedientes/sisben/insumos/contrato-curation-pinning.md"
@@ -45,38 +51,39 @@ procedencia:
 
 alcance:
   genera:
-    - "Bloque HOCON de oxygen.stage.pinning SOLO con lo que esta ingesta puede fijar sin redefinir claves compartidas de Colombia (edf-pinning SKILL.md «Modo Colombia»). Hoy, ninguna clave queda [C] para escribir: ver claves_configuracion_pinning"
+    - "Bloque HOCON de la ingesta SIN claves compartidas: solo comentarios con cada clave a verificar en el conf compartido de Colombia y su valor esperado (edf-pinning SKILL.md «Modo Colombia», punto 1)"
     - "Verificación de que standardizedIdType, standardizedIdNumber y standardizedIdName existen en campos_curados[].destino (tools/verificar-claves.py)"
-    - "Lista de bloqueos abiertos (PA-008, PA-009)"
+    - "Lista de bloqueos y verificaciones diferidas (RG-025)"
   no_genera:
-    - "IdentityMatcher propio para SISBEN: modo Colombia reutiliza ColombiaIdentityMatcher (spec §11: «SISBEN no genera IdentityMatcher propio»; edf-pinning SKILL.md «Modo Colombia») [C]"
-    - "identifying-attributes.json: se reutiliza la lista compartida identifying-attributes-new.json (steering 11 §2.1) [P]; no se regenera"
+    - "IdentityMatcher propio para SISBEN: modo Colombia reutiliza ColombiaIdentityMatcher (spec §11: «SISBEN no genera IdentityMatcher propio») [C]"
+    - "Lista de atributos propia: se reutiliza la lista compartida de Colombia identifying-attributes-new.json (steering 11 §2.1) [P]; su contenido [PM] (RG-025)"
     - "Bandera de fuente: SISBEN no usa isOfficialSource ni bandera propia (spec §11; HU R-24) [C]. OQ-TR-6 resuelto para SISBEN (steering 11 §6 #6)"
     - "keep-together.json / keep-apart.json: sin caso de negocio en la HU ni en la spec"
     - "Proceso de cédula sin coincidencia en BDIIREGI (PENDIENTE_VALIDACION_REGIS, compra RNEC nocturna): proceso existente de Experian (spec §11; HU §5.4; dependencias.md D-08) [C]; no está en Motor-Oxigen/oxygen-pinning/ (grep sin resultados): dónde se marca el estado es [PM] del fork"
-    - "env.conf / spark.conf y claves compartidas del Pinning de Colombia (identityMatcher, identifyingAttributesFile, domainDictionaryFile, nearNeighborBlockSize, pinningVleRange, groupSSR): no se redefinen (edf-pinning SKILL.md:34)"
+    - "Ninguna clave compartida de oxygen.stage.pinning (identifyingAttributesFile, identityMatcher, reusePin, domainDictionaryFile, clusterSplitter, nearNeighborBlockSize, pinningVleRange, groupSSR): la aplicación de Pinning de Colombia es compartida (edf-pinning SKILL.md «Modo Colombia»; HF-59)"
   precondiciones_bloqueantes:
     - id: "PA-008"
-      descripcion: "Lector del evento curado, existencia/FQCN/comparación de ColombiaIdentityMatcher en el fork, juego de códigos de standardizedIdType de las otras fuentes de Colombia (RG-020) y trato de la Ñ (RG-021)"
+      estado: "RESUELTA (INT-052): (a) con el motor; (b) y (c) en verificación diferida RG-025"
       resuelto_con_evidencia_del_motor:
-        - "(a) Lector [C] en la copia del motor: PinningIOUtils.readCuratedEvents lee curatedDir/*/* (flow y stock) (Motor-Oxigen/oxygen-pinning/.../util/PinningIOUtils.scala:23-31, :38-46) y llama a OxygenIOReaderUtils.taggedCuratedEventsFromWritable, que lee TaggedWritableEvent y lo convierte con TaggedWritableEvent.toTaggedCuratedEvent (.../util/OxygenIOReaderUtils.scala:72-75). El lector está en oxygen-pinning, no solo en la copia del repo de Validation que cita steering 11 §1. Queda [A:PA-008] solo la conversión toTaggedCuratedEvent y la creación de TaggedIdentity (TaggedIdentity.createWithTaggedCuratedEventWithMap, SparkPinner.scala:1693, :1760), que viven en oxygen-core, fuera de la copia"
-        - "Clave ausente = \"\" [C]: IdentityMatcher.scala:46-49 (comentario del contrato); EventPinner.scala:64-65 hace getAsString solo si el valor no es null (un JsonNull lanzaría): por eso Curation omite las standardizedId* nulas (RG-019, aceptado)"
-        - "Configuración del matcher [C]: oxygen.stage.pinning.identityMatcher = FQCN, cargado con Class.forName (SparkPinner.scala:220, :657; EventPinner.scala:27; pinning-application.conf:25). Es UNA clase para toda la aplicación de Pinning"
+        - "(a) Lector [C]: PinningIOUtils.readCuratedEvents lee curatedDir/*/* (flow y stock) (Motor-Oxigen/oxygen-pinning/.../util/PinningIOUtils.scala:23-31) y llama a OxygenIOReaderUtils.taggedCuratedEventsFromWritable, que lee TaggedWritableEvent y lo convierte con TaggedWritableEvent.toTaggedCuratedEvent (.../util/OxygenIOReaderUtils.scala:72-75). Rama alternativa: si INPUT_REF_DIR está definido, lee esa ruta en lugar de curatedDir/*/* (PinningIOUtils.scala:24-25); su valor en el conf de Colombia es [PM] (RG-025)"
+        - "Configuración del matcher [C]: oxygen.stage.pinning.identityMatcher = FQCN cargado con Class.forName (SparkPinner.scala:220, :657); el valor por defecto de la plataforma es \"\" (oxygen-config-default.conf:370), que falla al arrancar. Es UNA clase para toda la aplicación de Pinning"
         - "Lista de atributos [C]: oxygen.stage.pinning.paths.identifyingAttributesFile; solo se usa el primer elemento y se carga del classpath (SparkPinner.scala:222, :315; Pinner.scala:137-142)"
-      sigue_abierto:
-        - "(b) ColombiaIdentityMatcher NO está en Motor-Oxigen/ (solo IdentityMatcher, ISIdentityMatcher, RIIdentityMatcher, TestIdentityMatcher, IdentityImplPerson e IdentityImplCompany, estas dos de Brasil: CPF / Receita Federal). Su FQCN, sus reglas y cómo compara standardizedIdType (¿toString de un entero?) solo constan en pinning-muric.md (nivel 3) [A:PA-008]"
-        - "(b) Valores de standardizedIdType de las otras fuentes de Colombia: pinning-muric.md:29 lo describe como texto «CC, NIT, CE»; SISBEN publica el entero del código Experian (spec §10.1) [A:PA-008] (RG-020)"
-        - "(c) Comparación de nombres (ColombiaMatching.matchNames, getNameComponents) y trato de la Ñ: no está en la copia [A:PA-008] (RG-021)"
-        - "Contenido de identifying-attributes-new.json (que incluya standardizedIdType, standardizedIdNumber, standardizedIdName): solo pinning-muric.md §3.1 (nivel 3) [A:PA-008]"
-      efecto: "edf-pinning no genera el bloque HOCON hasta cerrar PA-008 (pregunta bloqueante de pinning)"
-    - id: "PA-009 (propuesta)"
-      descripcion: "oxygen.stage.pinning.reusePin es una sola clave de la aplicación de Pinning (SparkPinner.scala:223; se usa en :409 para leer o no el identity-pin-map de PINNED_REFERENCE_DIR). En Colombia el Pinning es compartido (lee curatedDir/*/* con todas las fuentes): escribir reusePin = false regenera los PIN de TODAS las fuentes (pinning dinámico, logica-pinning.md §8, :207-208), no solo los de SISBEN"
-      alternativas:
-        - "(a) No tocar la clave del Pinning compartido: «reusePIN = false» de spec §11 se cumple porque SISBEN no tiene generación previa propia en EDF (ingesta nueva, spec §1); los registros de SISBEN reciben el PIN que les asigne la generación vigente"
-        - "(b) Escribir reusePin = false en el conf de Colombia: regenera todos los PIN (riesgo N4 sobre las demás fuentes); requiere decisión del PO"
-        - "(c) Ejecutar SISBEN en una aplicación de Pinning propia con reusePin = false (otra configuración; fuera de lo que dicen la HU y la spec)"
-      dirigida_a: "Desarrollador con Ingesta 3 (dueño del Pinning de Colombia); cierra el PO (06 §4)"
-      efecto: "Bloquea escribir reusePin en el bloque HOCON (RG-002)"
+        - "Clave ausente = \"\": [C] comentario del contrato (IdentityMatcher.scala:46-49) · [P] comportamiento (TaggedIdentity.createWithTaggedCuratedEventWithMap, SparkPinner.scala:1693, :1760, está en oxygen-core)"
+        - "«null lanza»: [P] solo para el matcher de referencia (ISIdentityMatcher.scala:46-54 hace .get.toString); para ColombiaIdentityMatcher [PM] (RG-025). La omisión de las standardizedId* nulas en Curation (RG-019) sigue siendo la decisión correcta"
+      verificacion_diferida_RG-025:
+        - "ColombiaIdentityMatcher NO está en Motor-Oxigen/ (solo IdentityMatcher, ISIdentityMatcher, RIIdentityMatcher, NullIdentityMatcher —archivo TestIdentityMatcher.scala:6— e IdentityImplPerson / IdentityImplCompany, estas dos de Brasil: CPF / Receita Federal). Su FQCN y sus reglas solo constan en pinning-muric.md (nivel 3) [PM] (RG-025)"
+        - "Comparación del standardizedIdType entero y juego de códigos de las otras fuentes (pinning-muric.md:29: texto «CC, NIT, CE»; SISBEN publica el código Experian, spec §10.1) [PM] (RG-025, RG-020)"
+        - "Si \"\" cuenta como nulo en la regla 0 del matcher [PM] (RG-025)"
+        - "Contenido de identifying-attributes-new.json (que traiga standardizedIdType, standardizedIdNumber, standardizedIdName) [PM] (RG-025)"
+        - "Comparación de nombres (ColombiaMatching.matchNames) y trato de la Ñ [PM] (RG-025, RG-021)"
+        - "AUD-P-03: según pinning-muric.md §4.1.2 (nivel 3), sin bandera la regla 2 exige tipo + número + (nombre | dirección | teléfono); SISBEN solo publica nombre. Una persona que ya existe en otra fuente con el mismo tipo y número pero el nombre escrito distinto no haría match y recibiría PIN nuevo, contra HU §5.4 «Persona existente» y la prioridad 1 de spec §11 / R-24 [PM] (RG-025). Si el fork lo confirma: pregunta bloqueante para la certificación de pinning"
+        - "Umbral vigente de spec §11 frente a matcher determinista: ver modo_colombia.umbral_y_matcher_determinista [PM] (RG-025)"
+      efecto: "No bloquea esta corrida; bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation (RG-025). Ningún valor de este insumo que vaya a un artefacto depende de estos hechos"
+    - id: "PA-009"
+      estado: "RESUELTA por el PO (INT-052), opción (a)"
+      decision: "El bloque de SISBEN no escribe reusePin. «reusePIN = false» (spec §1, §11; HU §3, R-24) significa que SISBEN es ingesta nueva sin PIN previos propios (sus identidades no están en el identity-pin-map: centinela -1L, logica-pinning.md §8.1), no un valor de la clave global oxygen.stage.pinning.reusePin (SparkPinner.scala:223, :409)"
+      hallazgo_N4_escalado: "Escribir reusePin = false en la aplicación compartida de Colombia renumera los PIN de TODAS las fuentes como zipWithUniqueId + pinningVleRange (SparkPinner.scala:979-985) y rompe HU §5.4 «Persona existente» (solo el pinning estático conserva el PIN previo, :881-905). Es N4: no se propone como acción; se documenta y se escala (steering 06 §3). Escalamiento si en el fork el valor compartido vigente es false (RG-002)"
+      pendiente_spec: "PA-010 (abierta, no bloqueante): qué significa «reusePIN = false» y la ruta Pinned propia de spec §14 frente al pinnedDir único de la aplicación"
 
 marcado_heredado:
   nota: "Todo valor con marcador distinto de [C] en logica-pinning.md se transcribe con su marcador original. Ningún [A:*] se resuelve en este YAML (04-reglas-analisis.md §4.4)."
@@ -88,40 +95,45 @@ trazabilidad:
 # Ingesta del bureau de Colombia (DA-12): se REUTILIZAN la lista de atributos y el matcher compartidos.
 modo_colombia:
   aplica: true                                      # [C] spec §1 (DNP, subscriber 999722) y §11 (matcher compartido de Colombia)
-  identifying_attributes_compartido: "identifying-attributes-new.json"   # [P] steering 11 §2.1; contenido [A:PA-008]
-  identity_matcher: "ColombiaIdentityMatcher"       # [C] decisión (spec §11; HU R-24; steering 11 §6 #7 resuelto para SISBEN) · [A:PA-008] FQCN y clase en el fork
+  identifying_attributes_compartido: "identifying-attributes-new.json"   # [P] steering 11 §2.1 · contenido [PM] (RG-025)
+  identity_matcher: "ColombiaIdentityMatcher"       # [C] decisión (spec §11; HU R-24; steering 11 §6 #7 resuelto para SISBEN) · [PM] FQCN y comportamiento en el fork (RG-025)
   claves_obligatorias_en_evento_curado:             # [C] existen literal en source-spec-curation.yaml (regla 0 del matcher)
     - "standardizedIdType"
     - "standardizedIdNumber"
   clave_opcional: "standardizedIdName"              # [C] spec §11 (prioridad 2); se omite si es nula (RG-019)
   bandera_fuente_regla_1:
     opcion: "ninguna"                               # [C] spec §11; HU R-24 (OQ-TR-6 resuelto para SISBEN, steering 11 §6 #6)
-    efecto: "SISBEN cae en la regla 2: tipo + número + (nombre completo o parcial | dirección | teléfono). SISBEN no publica dirección ni teléfono (spec §10.1, lista completa): en la práctica, tipo + número + nombre [P] (reglas según pinning-muric.md §4.1.2, nivel 3, [A:PA-008])"
+    efecto: "Sin bandera, SISBEN cae en la regla 2 del matcher: tipo + número + (nombre completo o parcial | dirección | teléfono). SISBEN no publica dirección ni teléfono (spec §10.1, lista completa): en la práctica, tipo + número + nombre [PM] (reglas según pinning-muric.md §4.1.2, nivel 3; RG-025, AUD-P-03)"
   subscriber_relation_formato: "<standardizedIdType>_<standardizedIdNumber>"   # [C] spec §10.1 (steering 11 §6 #8 resuelto para SISBEN)
+  umbral_y_matcher_determinista:
+    texto_spec: "Prioridad 2: standardizedIdName «(NearNeighborKeys con el umbral vigente del matcher de Colombia)» (spec-sisben.md §11); HU R-24: prioridad 1 tipo + número, prioridad 2 standardizedIdName"
+    lectura_del_matcher: "pinning-muric.md §4.1.2 y §4.2 (nivel 3): reglas 0 a 4, match / no match, sin similarityThreshold; nearNeighborKeys = solo standardizedIdNumber"
+    diferencia: "La spec habla de un umbral y de bloquear por nombre; la descripción del matcher no tiene umbral y bloquea solo por número, y exige el nombre como tercer componente de la regla 2. Cambia el resultado si dos registros de la misma persona tienen tipo y número iguales y nombre distinto (AUD-P-03): con la descripción del matcher no unen. No se abre pregunta nueva: queda en la verificación diferida del matcher (RG-025, INT-052)"
+    estado: "[PM] (RG-025)"
 
 mapeo_identidad:
   decision_origen:
-    descripcion: "Las claves de identidad son las standardizedId* que publica Curation (opción A, steering 11 §6 #5) y el slot del motor es la misma clave en la lista compartida de Colombia. No se usan los slots del matcher de referencia (nationalId, firstName, firstLastName, cellPhone)."
+    descripcion: "Las claves de identidad son las standardizedId* que publica Curation (opción A, steering 11 §6 #5) y el slot del motor es la misma clave en la lista compartida de Colombia. No se usan los slots de la lista de referencia (HF-58)."
     fuente: "spec-sisben.md §11; contrato-curation-pinning.md §1; steering 11 §2.1, §6 #5"
     estado: "[C] claves · [P] slot = misma clave"
   atributos:
     - atributo_motor: "standardizedIdType"
       campo_curado_sisben: "standardizedIdType"
       rol_en_matching:
-        - "doesMatch: regla 0 (nulo → no match) y componente obligatorio de la regla 2 (ColombiaMatching.matchIdTypes) [A:PA-008]"
-        - "matchingKeysForCelebrity: posición 1 [A:PA-008]"
+        - "doesMatch: regla 0 (nulo → no match) y componente obligatorio de la regla 2 (ColombiaMatching.matchIdTypes) [PM] (RG-025)"
+        - "matchingKeysForCelebrity: posición 1 [PM] (RG-025)"
       obligatorio: true
       pertenece_llave_identidad: true
       pii: true
       tipo_publicado: "entero (código Experian del catálogo 202; spec §10.1)"
-      estado: "[C]"                                 # clave y valor publicados (spec §10.1, §11); comparación en el matcher [A:PA-008]
+      estado: "[C]"                                 # clave y valor publicados (spec §10.1, §11); comparación en el matcher [PM] (RG-025)
       fuente: "spec-sisben.md §11; contrato-curation-pinning.md §1; RG-020"
     - atributo_motor: "standardizedIdNumber"
       campo_curado_sisben: "standardizedIdNumber"
       rol_en_matching:
-        - "doesMatch: regla 0 y componente obligatorio de la regla 2 (ColombiaMatching.matchIdNumbers) [A:PA-008]"
-        - "nearNeighborKeys: única llave de blocking; nulo → la identidad no entra a vecinos (pinning-muric.md §4.2, nivel 3) [A:PA-008]"
-        - "matchingKeysForCelebrity: posición 2 [A:PA-008]"
+        - "doesMatch: regla 0 y componente obligatorio de la regla 2 (ColombiaMatching.matchIdNumbers) [PM] (RG-025)"
+        - "nearNeighborKeys: única llave de blocking; nulo → la identidad no entra a vecinos (pinning-muric.md §4.2, nivel 3) [PM] (RG-025)"
+        - "matchingKeysForCelebrity: posición 2 [PM] (RG-025)"
       obligatorio: true
       pertenece_llave_identidad: true
       pii: true
@@ -131,7 +143,7 @@ mapeo_identidad:
     - atributo_motor: "standardizedIdName"
       campo_curado_sisben: "standardizedIdName"
       rol_en_matching:
-        - "doesMatch: tercer componente de la regla 2 para SISBEN (nombre completo o parcial; ColombiaMatching.matchNames) [A:PA-008]"
+        - "doesMatch: tercer componente de la regla 2 para SISBEN (nombre completo o parcial; ColombiaMatching.matchNames) [PM] (RG-025)"
       obligatorio: false
       pertenece_llave_identidad: true
       pii: true
@@ -139,60 +151,67 @@ mapeo_identidad:
       estado: "[C]"
       fuente: "spec-sisben.md §10.1, §10.2, §11; HU R-24; contrato-curation-pinning.md §1; RG-021"
   pendientes_del_mapeo:
-    - id: "PA-008"
-      descripcion: "La comparación de las tres claves (tipo entero contra el juego de códigos de las otras fuentes; nombre con Ñ) depende de ColombiaIdentityMatcher/ColombiaMatching, que no están en la copia del motor"
-      efecto: "Sin cerrarla, no se sabe si la prioridad 1 y la 2 de R-24 cruzan a la misma persona entre fuentes"
-      estado: "[A:PA-008]"
+    - id: "RG-025"
+      descripcion: "La comparación de las tres claves (tipo entero frente al juego de códigos de las otras fuentes; \"\" como nulo; nombre con Ñ; nombre como requisito de la regla 2) depende de ColombiaIdentityMatcher / ColombiaMatching, que no están en la copia del motor"
+      efecto: "Verificación diferida: bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation, no esta corrida"
+      estado: "[PM] (RG-025)"
 
-# Modo Colombia: el matcher es determinista (match / no match): no hay pesos ni similarityThreshold que configurar
-# (edf-pinning SKILL.md:34). Se deja la evidencia del matcher de referencia porque es el valor por defecto del motor.
+# Modo Colombia: matcher determinista (match / no match), sin pesos ni similarityThreshold (edf-pinning SKILL.md
+# «Modo Colombia»). La diferencia con el «umbral vigente» de la spec está en modo_colombia.umbral_y_matcher_determinista.
 reglas_matching_por_campo:
   aplica: false
-  motor_referencia: "com.experian.edf.oxygen.pinning.extension.ISIdentityMatcher (default de pinning-application.conf:25) — NO aplica a SISBEN"
+  motor_referencia: "no aplica en modo Colombia (HF-58): no se hereda el matcher de referencia del conf de ejemplo"
   umbral_global:
-    similarityThreshold: "no aplica (ColombiaIdentityMatcher sin umbral numérico según pinning-muric.md §4.1.2) [A:PA-008]"
-    nota_spec: "spec §11 dice «NearNeighborKeys con el umbral vigente del matcher de Colombia» para la prioridad 2. La única descripción del matcher (pinning-muric.md §4.2, nivel 3) dice que nearNeighborKeys es solo standardizedIdNumber y no menciona umbral: la diferencia se resuelve con PA-008 (b), mirando el código del fork"
-    estado: "[A:PA-008]"
-    fuente: "spec-sisben.md §11; pinning-muric.md §4.1.2, §4.2; edf-pinning SKILL.md:34"
-  reglas: []                                        # no aplica en modo Colombia
+    similarityThreshold: "no aplica (matcher determinista; ver modo_colombia.umbral_y_matcher_determinista)"
+    regla: "no aplica"
+    estado: "[PM] (RG-025)"
+    fuente: "spec-sisben.md §11; pinning-muric.md §4.1.2, §4.2; edf-pinning SKILL.md «Modo Colombia»"
+  reglas: []
 
 instruccion_generacion:
   archivo: "identifying-attributes.json"
   ubicacion: "recurso de classpath (logica-pinning.md §5; Pinner.scala:137-142)"
   formato: "array JSON plano de strings con los nombres del slot del motor"
   contenido_a_escribir:
-    regla: "solo atributos [C] — en modo Colombia NO se escribe: se reutiliza identifying-attributes-new.json (SKILL.md «Modo Colombia»)"
+    regla: "no aplica en modo Colombia: se reutiliza la lista compartida identifying-attributes-new.json (no se regenera)"
     valor_resultante: []
     excluidos_hasta_resolver: []
     advertencia_consecuencia: >-
-      Verificación aritmética (edf-pinning SKILL.md §2; contrato-identitymatcher.md §4). Con ColombiaIdentityMatcher no hay
-      umbral numérico: la regla 2 exige tipo + número + nombre (SISBEN no publica dirección ni teléfono), así que una misma
-      persona con el nombre escrito distinto en otra fuente (Ñ, orden, segundo nombre) solo se une si el «match parcial» de
-      nombre la cubre [A:PA-008] (RG-021). Advertencia sobre el valor por defecto del motor: si identityMatcher quedara en
-      ISIdentityMatcher (pinning-application.conf:25) con los eventos de SISBEN, los slots nationalId, firstName y cellPhone
-      no existen en curatedRecordJson y valen "" en todas las identidades (IdentityMatcher.scala:46-49). Entonces
-      similarity = 0.5 (nationalId "" == "") + 0.3 (nombre "" == "") + 0.3 (cellPhone "" == "") = 1.1 >= 0.6
-      (ISIdentityMatcher.scala:56-61), y nearNeighborKeys da la misma llave "" para todas (:78-85): TODAS las personas de
-      SISBEN quedarían en un solo PIN, sin error (fail-silent). Por eso el matcher de Colombia es condición del insumo.
-    estado: "[C] cálculo sobre el código de la copia · [A:PA-008] comportamiento de ColombiaIdentityMatcher"
+      Colapso silencioso con el conf de referencia (edf-pinning SKILL.md, HF-58). Condición: el conf de ejemplo completo,
+      es decir identityMatcher = ISIdentityMatcher (pinning-application.conf:25) y la lista de ejemplo
+      identifying-attributes.json (nationalId, firstName, cellPhone…), aplicado a eventos de Colombia (standardizedId*).
+      Con el valor por defecto de la plataforma (identityMatcher = "", oxygen-config-default.conf:370) el job falla al
+      arrancar en Class.forName, y con ISIdentityMatcher y la lista de Colombia falla con excepción al hacer .get sobre un
+      slot ausente (ISIdentityMatcher.scala:78-83): no son silenciosos. Mecanismo [P] (la construcción de Identity está en
+      oxygen-core): esos slots no existen en el evento y valen "" en todas las identidades (IdentityMatcher.scala:46-49),
+      así que todos los eventos comparten la misma Identity y se agrupan por identityId en una sola ANTES del matching
+      (SparkPinner.scala:1756-1770). La llave de vecinos "" se filtra con groupSSR = true (:676; valor por defecto,
+      oxygen-config-default.conf:363) y los bloques de nearNeighborBlockSize (700) o más se descartan sin comparar
+      (:719-723); la suma 0.5 + 0.3 + 0.3 = 1.1 >= 0.6 (ISIdentityMatcher.scala:56-61) solo actúa con groupSSR = false y
+      bloques de menos de 700. Efecto: un solo PIN para todos los eventos de todas las fuentes que no traen esos slots,
+      sin error. Por eso el matcher y la lista de Colombia son condición del insumo; con ColombiaIdentityMatcher no hay
+      aritmética de umbral (matcher determinista).
+    estado: "[P] mecanismo · [C] condición y líneas citadas de la copia del motor"
 
 claves_configuracion_pinning:
   bloque_oxygen_stage_pinning:
     - clave: "oxygen.stage.pinning.paths.identifyingAttributesFile"
-      valor_a_escribir: "no redefinir (lista compartida de Colombia identifying-attributes-new.json)"
-      estado: "[P] no redefinir (SKILL.md:34) · [A:PA-008] contenido de la lista"
+      valor_a_escribir: "no se redefine (verificar en el conf compartido de Colombia que apunta a identifying-attributes-new.json)"
+      estado: "[P] no se redefine (edf-pinning SKILL.md «Modo Colombia») · contenido de la lista [PM] (RG-025)"
       fuente: "logica-pinning.md §4.1, §5; SparkPinner.scala:222, :315"
     - clave: "oxygen.stage.pinning.identityMatcher"
-      valor_a_escribir: "no redefinir (FQCN de ColombiaIdentityMatcher del conf compartido)"
-      estado: "[C] decisión (spec §11) · [A:PA-008] FQCN en el fork"
-      fuente: "pinning-application.conf:25; SparkPinner.scala:220, :657; EventPinner.scala:27"
+      valor_a_escribir: "no se redefine (verificar en el conf compartido de Colombia el FQCN de ColombiaIdentityMatcher)"
+      estado: "[C] decisión (spec §11) · [PM] FQCN en el fork (RG-025)"
+      fuente: "SparkPinner.scala:220, :657; oxygen-config-default.conf:370"
     - clave: "oxygen.stage.pinning.reusePin"
-      valor_a_escribir: false                       # valor de la ingesta (spec §11; HU R-24); NO se escribe hasta cerrar PA-009
-      estado: "[C] valor (spec §11: ingesta nueva) · [A:PA-009] dónde y cómo se aplica (clave global de la aplicación)"
-      fuente: "spec-sisben.md §1, §11; HU R-24; SparkPinner.scala:223, :409; logica-pinning.md §8; RG-002"
+      valor_en_fuente: "reusePIN = false (spec-sisben.md §1, §11; hu-sisben.md §3, R-24): ingesta nueva, sin PIN previos propios"
+      valor_a_escribir: "no se escribe en modo Colombia (PA-009 resuelta: opción a; clave global de la aplicación compartida)"
+      estado: "decisión del PO, PA-009 (INT-052)"
+      fuente: "logica-pinning.md §4.1, §8.0; edf-pinning SKILL.md «Modo Colombia»; SparkPinner.scala:223, :409, :979-985; RG-002"
   pendientes_de_configuracion:
-    - {clave: "oxygen.stage.pinning.paths.domainDictionaryFile", estado: "[PM] no redefinir si ya existe en el conf de Colombia; si falta, solo deja un warn (SparkPinner.scala:192-198, AUD-P1)"}
-    - {clave: "clusterSplitter / nearNeighborBlockSize / pinningVleRange / groupSSR", estado: "[PM] compartidas de Colombia: no se redefinen para SISBEN (SKILL.md:34). Volumen de referencia ~28 M por archivo (spec §1): el equipo confirma que el nearNeighborBlockSize vigente no descarta bloques de SISBEN (logica-pinning.md §9, fail-silent)"}
+    - {clave: "oxygen.stage.pinning.paths.domainDictionaryFile", estado: "[PM] no se redefine; verificar que existe en el conf de Colombia (si falta, solo deja un warn: SparkPinner.scala:192-198, AUD-P1)"}
+    - {clave: "clusterSplitter / nearNeighborBlockSize / pinningVleRange / groupSSR", estado: "[PM] compartidas de Colombia: no se redefinen. Volumen de referencia ~28 M por archivo (spec §1): el equipo confirma que el nearNeighborBlockSize vigente no descarta bloques de SISBEN (logica-pinning.md §9, fail-silent)"}
+    - {clave: "oxygen.stage.pinning.reusePin (valor vigente en el conf compartido), pinnedReferenceDir, INPUT_REF_DIR", estado: "[PM] verificar en el fork (RG-025, INT-052); si reusePin vigente es false, escalar (N4, RG-002)"}
 
 keep_together_keep_apart:
   instruccion_generacion:
@@ -201,22 +220,23 @@ keep_together_keep_apart:
 
 artefactos_salida_hacia_synthesis:
   nivel_contrato:
-    ruta_pinned: "s3://colombia-data/sisben/pinning/pinned/"   # [C] spec §14
+    ruta_pinned: "s3://colombia-data/sisben/pinning/pinned/"   # [C] ruta de la spec (§14)
     marcador_finalizacion: "_SUCCESS"                          # [P] 07-contratos-frontera.md §4
-    estado: "[C] ruta · [P] marcador"
-    fuente: "spec-sisben.md §14; 07-contratos-frontera.md §4"
+    relacion_con_pinnedDir: "El motor tiene un solo pinnedDir por aplicación (oxygen-config-default.conf:344) y la aplicación de Colombia es compartida: la relación entre la ruta propia de spec §14 y el pinnedDir de la aplicación queda para PA-010 (abierta, no bloqueante)"
+    estado: "[C] ruta de la spec · [P] marcador · relación con el pinnedDir remitida a PA-010"
+    fuente: "spec-sisben.md §14; 07-contratos-frontera.md §4; steering 11 §6 #1"
   escenarios_hu:
-    - "Persona existente (tipo + número que ya existe en EDF) → recibe ese PIN; persona nueva → PIN nuevo (HU §5.4) [C]. Cómo se cumple con reusePin depende de PA-009"
+    - "Persona existente (tipo + número que ya existe en EDF) → recibe ese PIN; persona nueva → PIN nuevo (HU §5.4) [C]. Se cumple con el pinning estático de la aplicación compartida (SparkPinner.scala:881-905), que no se modifica (PA-009); con nombre distinto ver AUD-P-03 (RG-025)"
     - "Cédula (standardizedIdType = 1) sin coincidencia en BDIIREGI → PENDIENTE_VALIDACION_REGIS y compra RNEC nocturna (HU §5.4; spec §11) [C]; fuera de Motor-Oxigen/oxygen-pinning [PM]"
 
 comportamiento_del_motor_a_tener_en_cuenta:
   comportamientos_fail_fast:
-    - "EventPinner.scala:64-65: un valor null explícito en una clave de identidad lanza al hacer getAsString → Curation omite las standardizedId* nulas (RG-019) [C]"
-    - "identityMatcher con un FQCN que no está en el classpath: Class.forName lanza al arrancar (SparkPinner.scala:657; EventPinner.scala:27) [C]"
+    - "identityMatcher vacío (valor por defecto de la plataforma, oxygen-config-default.conf:370) o con un FQCN fuera del classpath: Class.forName lanza al arrancar (SparkPinner.scala:657) [C]"
+    - "Matcher de referencia con un null o un slot ausente: .get.toString lanza (ISIdentityMatcher.scala:46-54, :78-83) [P]; con ColombiaIdentityMatcher [PM] (RG-025). Por eso Curation omite las standardizedId* nulas (RG-019)"
     - "Pin reusado fuera de pinningVleRange aborta el job (logica-pinning.md §8.2) [C]"
   comportamientos_fail_silent:
-    - "identityMatcher por defecto (ISIdentityMatcher) con eventos de SISBEN: todas las personas en un PIN (ver instruccion_generacion.advertencia_consecuencia) [C]"
-    - "Clave de identidad ausente → \"\" (IdentityMatcher.scala:46-49): con ColombiaIdentityMatcher, tipo o número vacío → no match (regla 0, nivel 3) [A:PA-008]"
+    - "Conf de referencia completo (ISIdentityMatcher + lista de ejemplo) con eventos de Colombia: un solo PIN para todos (ver instruccion_generacion.advertencia_consecuencia) [P]"
+    - "Clave de identidad ausente → \"\": [C] comentario del contrato (IdentityMatcher.scala:46-49) · [P] comportamiento; con ColombiaIdentityMatcher, tipo o número vacío → no match (regla 0, nivel 3) [PM] (RG-025)"
     - "identifyingAttributesFile con más de un elemento: solo se usa el primero (SparkPinner.scala:315) [C]"
-    - "reusePin = true sin un único *-identity-pin-map en PINNED_REFERENCE_DIR: genera PIN nuevos con un warn (logica-pinning.md §8, :207) [C]"
-    - "Bloques near-neighbor >= nearNeighborBlockSize se descartan del matching (logica-pinning.md §9) [C]"
+    - "reusePin = false en la aplicación compartida: renumera todos los PIN de todas las fuentes, sin error (SparkPinner.scala:979-985) [C] — no se escribe (PA-009)"
+    - "Bloques near-neighbor >= nearNeighborBlockSize se descartan del matching (SparkPinner.scala:719-723; logica-pinning.md §9) [C]"
