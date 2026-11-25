@@ -3,7 +3,7 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:05:23-05:00",
+    "actualizado_en": "2026-11-24T22:06:47-05:00",
     "vista_md_regenerada_en": "2026-11-24T21:47:14-05:00"
   },
   "ingesta": {
@@ -652,8 +652,6 @@
       "aprobacion_requerida": true,
       "ref_aprobacion": null,
       "preguntas_abiertas": [
-        "PA-008",
-        "PA-009",
         "PA-010"
       ],
       "riesgos": [
@@ -1675,8 +1673,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0134",
-    "eventos_totales": 134,
+    "ultimo_evento": "BIT-0135",
+    "eventos_totales": 135,
     "append_only": true,
     "retencion_meses": 24
   }

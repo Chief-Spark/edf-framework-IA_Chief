@@ -454,6 +454,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:05:24-05:00
 - **Pedido:** Aprobar ART-050 v2 y las transiciones curation_flow/curation_stock → pinning; confirmar el modo Colombia de ART-051..053.
+- **Respuesta:** (1) ART-050 condicional: v3 que solo cambie la línea 229 (AUD-P-13: cumplimiento [PM] RG-025), verificada por diferencia; AUD-P-17 (preguntas de la etapa sin PA-008/009); AUD-P-15/16 al lote (ya en 1.9.9). (2) Confirma el catálogo de Pinning en modo Colombia (ART-051/052 no obligatorios, ART-053 solo comentarios VERIFICAR y referencias, prueba con grep/pyhocon y hocon_check; DoD §6 según PA-009 y PA-010). (3) Aprueba dos transiciones (curation_flow → pinning y curation_stock → pinning), alto, diferidas, citando RG-025 y RG-002, después de ART-050 v3.
+- **Decisión:** v3 al analista; AUD-P-17 aplicado (preguntas de pinning = PA-010); registro de la corrección HF-63 confirmado; luego ART-050 v3 y las dos transiciones.
+- **Bitácora:** —
+
+## INT-058 · Analista (edf-analisis) · ART-050 v3 · `pinning`
+
+- **Cuándo:** 2026-11-24T22:06:47-05:00
+- **Pedido:** Solo la línea 229 (AUD-P-13).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

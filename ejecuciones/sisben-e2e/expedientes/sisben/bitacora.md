@@ -2296,3 +2296,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0135 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Confirmada por el aprobador (INT-057) la corrección del catálogo de Pinning a modo Colombia (BIT-0134; HF-63, AUD-P-14): ART-051/052 no obligatorios (no aplica en modo Colombia: spec §11; SKILL edf-pinning «Modo Colombia»), bajo RG-025; ART-053 obligatorio, alto, solo comentarios VERIFICAR y referencias. Preguntas de la etapa: PA-010 (PA-008/009 resueltas, AUD-P-17) |
+| **Quién** | Desarrollador SIM-DEV-01 (SIMULADO) · registra ORQ-E2E |
+| **Cuándo** | 2026-11-24T22:06:47-05:00 |
+| **Por qué** | INT-057 punto 2 y condición 3 del punto 1 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | ART-051, ART-052, ART-053 |
+| **Trazabilidad** | prompt 00 paso 2 (1.9.9) |
+| **Corrige** | BIT-0134 |
+
+---
