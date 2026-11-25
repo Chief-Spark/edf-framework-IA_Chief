@@ -81,10 +81,22 @@ instruccion_generacion:
 claves_configuracion_pinning:
   bloque_oxygen_stage_pinning:
     # Modo Colombia (HF-59): ninguna clave compartida se redefine; valor_a_escribir es "no se redefine (<qué se verifica>)".
+    # HF-81: edf-pinning (scripts/render_bloque_colombia.py) copia literal el `estado` y la `fuente` de
+    # identifyingAttributesFile, identityMatcher y reusePin en su VERIFICAR del bloque; lo no verificado va aquí con
+    # "[PM] (RG-nnn)" (edf-orquestador references/03 §3e, regla 2), porque es lo que llega al artefacto. Copia también
+    # alcance.precondiciones_bloqueantes (id y estado, y `hallazgo_N4_escalado` si la precondición lo trae: va al
+    # VERIFICAR de reusePin como disparador del escalamiento), mapeo_identidad.pendientes_del_mapeo (id y estado) y
+    # pendientes_de_configuracion (clave y estado; las que nombran reusePin van a su VERIFICAR).
     - clave: "oxygen.stage.pinning.paths.identifyingAttributesFile"
       valor_a_escribir: '["identifying-attributes.json"]'   # modo Colombia: "no se redefine (lista compartida identifying-attributes-new.json)"
-      estado: ""
+      estado: ""                                    # modo Colombia: p. ej. "[P] no se redefine · contenido de la lista [PM] (RG-nnn)"
       fuente: "logica-pinning.md §4.1, §5"
+    # HF-82: en modo Colombia la decisión del matcher la declara la spec / HU de la ingesta (no la fila steering 11 §6 #7,
+    # que sigue abierta para otras ingestas): cítala en estado o fuente; es lo que el bloque copia como fuente.
+    - clave: "oxygen.stage.pinning.identityMatcher"
+      valor_a_escribir: "no se redefine (matcher compartido de Colombia)"   # fuera de modo Colombia: FQCN del matcher propio
+      estado: ""                                    # modo Colombia: p. ej. "[C] decisión (spec §nn) · [PM] FQCN en el fork (RG-nnn)"
+      fuente: ""                                    # spec / HU de la ingesta que decide el matcher; SparkPinner.scala:220, :657
     # HF-57: reusePin es GLOBAL de la aplicación de Pinning (SparkPinner.scala:223, :409); false renumera los PIN de todas
     # las fuentes (:979-985). «Ingesta nueva → reusePIN = false» en una spec = la ingesta no tiene generación previa propia,
     # no un valor de la clave global. En modo Colombia valor_a_escribir es siempre el texto de abajo, nunca un booleano;
@@ -94,7 +106,7 @@ claves_configuracion_pinning:
       valor_a_escribir: "no se escribe en modo Colombia (clave global de la aplicación compartida)"   # fuera de modo Colombia: "true" | "false" confirmado [C] y la aplicación es propia
       estado: ""
       fuente: "logica-pinning.md §4.1, §8; edf-pinning SKILL.md «Modo Colombia»"
-  pendientes_de_configuracion: []
+  pendientes_de_configuracion: []                   # - {clave, estado}; p. ej. reusePin vigente: "[PM] verificar en el fork (RG-nnn); si es false, escalar (N4, RG-nnn)"
 
 keep_together_keep_apart:
   instruccion_generacion:

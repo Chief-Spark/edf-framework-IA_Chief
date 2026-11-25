@@ -16,15 +16,21 @@
 # del motor solo trae la constante (oxygen-global), el nombre de la clave es
 # [PM] y se confirma en el fork. Si la ingesta necesita otro valor en una
 # clave compartida, es un bloqueo que se reporta, no una clave que se escribe.
-# Generación reproducible: scripts/render_bloque_colombia.py (HF-66).
+# Generación reproducible: scripts/render_bloque_colombia.py (HF-66). Las
+# líneas «… en el insumo» y las referencias de la ingesta se copian literal
+# del insumo, con sus marcadores [PM] y sus riesgos RG-nnn (HF-81;
+# edf-orquestador references/03 §3e, regla 2): no se reescriben a mano.
 #
 #   VERIFICAR oxygen.stage.pinning.paths.identifyingAttributesFile = lista
 #             compartida de Colombia ({{IDENTIFYING_ATTRIBUTES_COMPARTIDO}}); solo
 #             se usa .head (SparkPinner.scala:222, :315). Debe traer las claves
 #             del evento curado: {{CLAVES_EVENTO_CURADO}}. No se regenera.
+#             {{ESTADO_IDENTIFYING_ATTRIBUTES}}
 #   VERIFICAR oxygen.stage.pinning.identityMatcher = matcher compartido de
 #             Colombia (Class.forName, SparkPinner.scala:220, :657). Insumo:
-#             {{IDENTITY_MATCHER_COLOMBIA}} (steering 11 §6 #7).
+#             {{IDENTITY_MATCHER_COLOMBIA}} (modo_colombia.identity_matcher; la
+#             decisión y su fuente son las que declara el insumo, HF-82).
+#             {{ESTADO_IDENTITY_MATCHER}}
 #   VERIFICAR oxygen.stage.pinning.reusePin = valor vigente del conf compartido.
 #             NO SE ESCRIBE (HF-57). Es global: SparkPinner.scala:223 lo lee
 #             una vez y :409 decide para toda la corrida. false renumera los
@@ -32,8 +38,11 @@
 #             existente recibe su PIN (:888-905). «Ingesta nueva → reusePIN =
 #             false» en una spec = la ingesta no tiene generación previa
 #             propia, no un valor de la clave global. Cambiar la clave es N4:
-#             se documenta y se escala (steering 06 §3).
+#             se documenta y se escala (steering 06 §3). Si el valor vigente
+#             ya es false, la aplicación compartida renumera en cada corrida:
+#             también se escala (N4).
 #             Valor de la fuente (dato, no se genera): {{REUSE_PIN_VALOR_FUENTE}}
+#             {{ESTADO_REUSE_PIN}}
 #   VERIFICAR oxygen.stage.pinning.paths.domainDictionaryFile = presente (si
 #             falta, solo un warn y sigue con "": SparkPinner.scala:192-198).
 #   VERIFICAR oxygen.stage.pinning.nearNeighborBlockSize = valor vigente; los
@@ -56,6 +65,9 @@
 #             HOCON de la copia.
 #   VERIFICAR *-common-application.conf: si el archivo destino del cambio es
 #             un conf común, tocarlo es N4 y se escala (steering 06 §3).
+#
+# Referencias de la ingesta (copiadas del insumo con su estado; HF-81):
+#   {{REFERENCIAS_INGESTA}}
 #
 # COLAPSO SILENCIOSO (HF-58): nunca dejes, como «arranque», ISIdentityMatcher
 # (o RIIdentityMatcher) ni la lista de ejemplo identifying-attributes.json
