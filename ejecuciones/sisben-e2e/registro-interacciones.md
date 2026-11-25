@@ -334,6 +334,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:22:09-05:00
 - **Pedido:** Re-auditar ART-030, ART-034 y ART-035 v2 con el framework 1.9.7.
+- **Respuesta:** Los tres insumos v2 aprobables (sin P0/P1). Cerrados en la salida generada AUD-C-01, -04..-10, -13 (cur-0004 = " 0001000000101" también en Scala; tipoDocumentoSisben sin recortar; fixture REGULAR y fileAsOfDate; override sin NPE; fila del 7; edf-curation; verificar-claves §1; 07). Verificaciones OK (pyhocon real; suite 128). P2: AUD-C-14 (framework: resumen.json clasifica la omisión de cur-0016 como por severidad), AUD-C-15 (tres citas de supuestos_resueltos), AUD-C-16 (marcador del matcher).
+- **Decisión:** AUD-C-15/16 al analista antes de aprobar; AUD-C-14 → HF-45 (lote final).
+- **Bitácora:** —
+
+## INT-043 · Analista (edf-analisis) · insumos de Curation v2.1 · `curation_flow`
+
+- **Cuándo:** 2026-11-24T21:26:58-05:00
+- **Pedido:** AUD-C-15 (citas de supuestos_resueltos) y AUD-C-16 (marcador del matcher).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

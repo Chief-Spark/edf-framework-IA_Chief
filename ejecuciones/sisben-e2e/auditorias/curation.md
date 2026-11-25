@@ -133,3 +133,100 @@ Todas sobre los insumos sin modificar (sha256 en la cabecera). La salida quedó 
 4. Que el Orquestador habilite la transición de `acceptance` (Paso 0.2 de `edf-curation`) antes de generar ART-031..033.
 
 Los P2 del framework que cambian la salida generada (AUD-C-04, -05, -06, -09, -10) conviene resolverlos en el mismo ciclo que AUD-C-01, para no regenerar dos veces. Los documentales (AUD-C-07, -08, -13) van al lote de cierre.
+
+## 6. Insumos v2
+
+| Campo | Valor |
+|---|---|
+| Fecha | 2026-11-25 (re-auditoría) |
+| Alcance | ART-030 v2 (sha256 `21754c61…`), ART-035 v2 (`accepted-events.input.yaml` `050b942d…`) y ART-034 2.0.0 (`640ba4bc…`), entregados en INT-041 con las decisiones de INT-038. Framework 1.9.7 (commits 955bed3 y 21b6781: HF-32, HF-34..41). Cierre de mis hallazgos AUD-C-01..13 en la salida generada |
+| **Dictamen global** | **APROBABLE.** Los tres insumos v2 aplican los cuatro ajustes autorizados (AUD-C-02, -03, -11, -12) y citan su origen. Todos los hallazgos de framework (AUD-C-01, -04..-10, -13) quedan cerrados en la salida generada. Los 8 escenarios de HU §5.3 cumplen, incluido `numeroDocumentoOriginal = " 0001000000101"`, también en la prueba Scala generada. No hay P0 ni P1. Hay tres P2 nuevos, AUD-C-14..16, que no bloquean. Sigue pendiente la habilitación de la transición de `acceptance` (`transicion_habilitada: false` en `estado-ingesta.json`; `edf-curation/SKILL.md:25`), que no depende de estos insumos |
+
+### 6.1 Dictamen por insumo
+
+**ART-030 v2: APROBABLE.**
+
+| Ajuste | Verificación | Resultado |
+|---|---|---|
+| AUD-C-12 `[P]` | `:26-27`, `:118-120` citan steering `11` §3, `EventPinner.scala:64-65`, INT-038 y PA-007 | Aplicado |
+| AUD-C-12 regex | `:96` = regex literal de spec §2 (`spec-sisben.md:36`); `--solo-verificar` la admite | Aplicado. Produce el mismo `fechaCorte` |
+| HF-38 | `"7": null` (`:72` del bloque) con `pendientes: ["7"]` y la descripción del 7. El CSV sintético trae `7;;SALVOCONDUCTO PARA REFUGIADO`. Con la referencia, el `7` da `tipoDocumento:HOMOLOGACION_PENDIENTE` (nunca un código) | Aplicado, fiel a spec §9.4 |
+| HF-32 | La cabecera no trae el estado (`:3`) | Aplicado |
+| RG-019 | Aceptado (`estado-ingesta.json`: `aceptado`, bajo); PA-007 abierta y no bloqueante | Coherente con INT-038 |
+| «Ninguna» = `texto` | Declarado `[PM]` como supuesto del aprobador, PA-007 (2) (`:29-30`, `:110-111`) | Coherente con INT-038 |
+| Valores de negocio | Iguales a los de la v1 auditada (§1), salvo lo anterior | Sin cambios indebidos |
+
+Verificación de cada `supuestos_resueltos[]` (`:53-63`) contra la marca de la plantilla (`references/decisiones-y-abiertos.md`) y la fuente citada:
+
+| ID | Qué supone la plantilla | Fuente citada | ¿La fuente lo fija? |
+|---|---|---|---|
+| CUR-PA04 | `outputEventType = 30` inferido (`decisiones:80`) | spec §1 | Sí (`spec-sisben.md:22`) |
+| CUR-PT05 | Nombre del campo de advertencias | spec §10.1 | Sí (`:280`) |
+| C-CUR-03 | Ñ → N (`:45`) | spec §10.2 r.2; HU R-23 | Sí (`:289`; `hu-sisben.md:92`) |
+| C-CUR-04 | Zona de las fechas (`:46`) | spec §10.1; HU R-23 | Sí (`:266`; `hu-sisben.md:92`) |
+| C-CUR-05 | Política de severidad 3 y nulos como `null`, salvo las de identidad; «confirmar con Synthesis» (`:47`) | spec §10.2 r.5 y §10.4 r.2-3 | **En parte** (AUD-C-15). La spec fija la política para SISBEN, pero no responde lo que la marca pedía confirmar con Synthesis (que un `null` del evento sea aceptable con LFP). Además, «ninguna clave se omite» choca con la omisión aceptada en RG-019 |
+| C-CUR-07 | Claves de `validatedRecordJson` = nombres de dominio (`:49`) | Validation aprobada APR-008 | Sí (`SISBENValidatedEvent.scala:43-66`). La aprobación vigente de ART-011 es APR-009 (AUD-C-15) |
+| C-CUR-08 | Reglas por tipo y padding (`:50`) | spec §10.1 | Sí (`:262`; sin excepción por tipo ni padding) |
+| F-07 | Nombre RT/EP, tipo por prefijo (`:29`) | spec §2 | Sí (`:38`, siempre `REGULAR`) |
+| F-12 | Archivo, columnas, clave y delimitador de los lookups (`:32`) | spec §9.4 | Sí, en lo que usa Curation (solo el 202). El delimitador `;` está en la introducción de §9 (`:166`), no en §9.4 (AUD-C-15) |
+| D8 | Nombre con marca de tiempo (`:16`) | spec §2 | Sí (`:35-37`) |
+
+Quedan abiertos con razón CUR-PT01 (paquete) y CUR-PT02 (API del lookup y lookup caído): son del framework y del motor, y la spec no los fija. En la salida generada solo quedan esas dos marcas `ASSUMPTION` (tres líneas); las otras diez salen como `RESUELTO <ID> (<fuente>)` y están en `MANIFEST.json["supuestos_resueltos"]`.
+
+**ART-035 v2: APROBABLE.**
+
+- AUD-C-02. `base_registro.NUM_DOCUMENTO = "1000000100"` y cur-0004 lleva el literal de la HU. Los 18 eventos curados tienen `subscriberRelation` distintos, así que ningún par comparte la clave de duplicado de spec §6.
+- AUD-C-03, RG-019. cur-0016 (`:132-136`): `primerNombre` y `primerApellido` nulos, advertencias `primerApellido:NO_NORMALIZABLE` y `primerNombre:NO_NORMALIZABLE` y `standardizedIdName` **ausente**. `subscriberRelation = 1_1000000116`, sin `COMPONENTE_FALTANTE`.
+- AUD-C-03, homologaciones. cur-0017..0019 dan `4→4`, `5→8` y `8→9` (spec §9.4 `:207-211`).
+- La descripción de cur-0004 ya no menciona el defecto.
+- RG-005 y RG-007 siguen cubiertos (cur-0006..0008).
+
+**ART-034 2.0.0: APROBABLE.**
+
+- AUD-C-11 (a): `ColombiaIdentityMatcher` figura como decisión `[C]` de spec §11 y como clase no presente en `Motor-Oxigen/` (`:32`). Lo verifiqué: no está.
+- AUD-C-11 (b): cita `EventPinner.scala:64-65` e `IdentityMatcher.scala:46-49` (`:9`, `:21`, `:69`, `:77`).
+- AUD-C-11 (c): las rutas son relativas al expediente (`:38`, `:78`).
+- AUD-C-11 (d): el encabezado de §1 es el de steering `11` §4 (`:19`).
+- RG-020 está redactado sobre el juego de códigos y sobre la comparación del matcher (`:70`), como pidió INT-038. Sigue en nivel alto y condiciona el insumo de Pinning.
+- Ejemplos y §3 corresponden a la salida v2.
+- Observación menor: la clase no verificada en el motor lleva `[PM]` (`:32`). No es una propuesta del modelo; encaja mejor `[A:matcher-colombia]` (steering `11` §6 #7). Va en AUD-C-16.
+
+### 6.2 Cierre de los hallazgos anteriores (salida generada en el scratchpad, `aud-cur-v2/`)
+
+| Hallazgo | Evidencia en la salida 1.9.7 | Estado |
+|---|---|---|
+| AUD-C-01 (P1) | `Transformaciones.original` devuelve el valor sin recortar (`Transformaciones.scala:33`); `AcceptedRecord.crudo` no hace `trim` (`SISBENAcceptedRecord.scala:20`); el processor solo usa el crudo para `original` (`SISBENCurationProcessor.scala:185`). `expected/` da cur-0004 `" 0001000000101"`, y la prueba Scala generada fija `" 0001000000101"` como esperado. Con la referencia, `TIP_DOCUMENTO " 3 "` da `tipoDocumentoSisben = " 3 "` y `tipoDocumento = 1` | **Cerrado** |
+| AUD-C-04 | `accepted-events.json`: `fileAsOfDate = 1769835600000` (último día del periodo) y `fileTag = "REGULAR"` | **Cerrado** |
+| AUD-C-05 | El override filtra los `errorCode` nulos y envuelve todo en `try`. La curación se reutiliza con un `ThreadLocal` del último evento (`ev eq event`): en el motor, `curateEvent` va antes que `subscriberRelation` en las dos rutas (`Curator.scala:78,89`; `:156` y `:179`) | **Cerrado** |
+| AUD-C-06 | 10 `RESUELTO`; solo quedan CUR-PT01 y CUR-PT02 | **Cerrado** (fuentes en §6.1, con la salvedad de AUD-C-15) |
+| AUD-C-07 | `dsl-config-reference.md:17-19,68`, `especificacion-sisben.md:3-7` y `SKILL.md:114-117` marcan los ejemplos como SISBEN **histórico**, que no es fuente. El comentario del bloque HOCON ya no dice `(\.txt)?` | **Cerrado** (se dejó como histórico, no se reescribió; es suficiente) |
+| AUD-C-08 | `verificar-claves.py` cuenta 34 claves publicadas (más `campo_advertencias`), lee solo §1 del contrato (3 citas, aunque §2 ya trae `` `subscriberRelation` `` entre comillas) y exime `INYECTADOS` (`:178`, `:184`) | **Cerrado** |
+| AUD-C-09 | El CSV trae la fila `7;;SALVOCONDUCTO PARA REFUGIADO` | **Cerrado** |
+| AUD-C-10 | `MANIFEST.json["skill"] = "edf-curation"`; 0 apariciones de `edf-curation-stage` en la salida | **Cerrado** |
+| AUD-C-13 | `07-contratos-frontera.md:91`: «Sin soporte en `edf-curation` (HF-41)» | **Cerrado** |
+
+### 6.3 Hallazgos nuevos
+
+| ID | Insumo | Clasificación | Sev. | Evidencia | Corrección |
+|---|---|---|:-:|---|---|
+| AUD-C-14 | — | framework | P2 | `expected/resumen.json` informa `"claves_omitidas_por_severidad": {"cur-0016": ["standardizedIdName"]}`. La clave no se omitió por severidad (no hay códigos y las dos listas de niveles están vacías), sino por `omitir_si_nulas`. `render_templates.py:357-359,370` cuenta como «por severidad» toda clave ausente. Quien lea el resumen concluiría que se violó spec §10.4 regla 3 | Separar `claves_omitidas_por_severidad` (niveles) de `claves_omitidas_por_nulas` (`omitir_si_nulas`) |
+| AUD-C-15 | ART-030 | insumo | P2 | `supuestos_resueltos` (`:58-62`). (a) C-CUR-05 se resuelve solo en parte: la spec fija la política, pero no la confirmación con Synthesis que pedía la marca, y la fuente cita «ninguna clave se omite» cuando RG-019 acepta omitir `standardizedIdName`. (b) C-CUR-07 cita APR-008; la aprobación vigente de ART-011 es APR-009. (c) F-12 cita §9.4, pero el delimitador está en §9 (`spec-sisben.md:166`) | (a) Citar además RG-019/INT-038 y dejar la confirmación con Synthesis para el insumo de Synthesis (spec §12: LFP por defecto), o no resolver C-CUR-05. (b) Citar APR-009. (c) Citar «§9 y §9.4». No cambia el código generado salvo el texto de los comentarios |
+| AUD-C-16 | ART-034 | insumo | P2 | `:32`: el marcador `[PM]` para «clase no verificada en el motor» | Usar `[A:matcher-colombia]` (steering `11` §6 #7) o `[P]` con la cita de `pinning-muric.md` |
+
+No hay hallazgos nuevos en las clasificaciones spec, motor ni artefacto.
+
+Nota fuera de la escala: `original` publica `""` cuando el valor crudo es vacío. No se da en SISBEN, porque `tip_documento` y `num_documento` son obligatorios (spec §3).
+
+### 6.4 Verificaciones
+
+| # | Comando | Resultado |
+|:-:|---|---|
+| 1 | `render_templates.py --spec EXP/insumos/source-spec-curation.yaml --solo-verificar` | rc=0 · `source-spec OK (33 campos curados, 1 con concatenacion; 12 plantillas y 18 eventos esperados calculados)` |
+| 2 | Generación completa en `/tmp/claude-0/-home-user-edf-framework-IA-Chief/17fd989e-8dfc-5ea8-ad37-44be188bb6cf/scratchpad/aud-cur-v2/` | rc=0, 12 artefactos. `MANIFEST.json`: `skill: edf-curation`, `advertencias: []`, 10 `supuestos_resueltos` |
+| 3 | Comprobación de `expected/` | 19 eventos de entrada, 18 curados; cur-0015 descartado (CUR-AP02); cur-0014 (`.TXT`) curado. Las 34 claves en el orden de spec §10.1 en los 18, salvo `standardizedIdName` en cur-0016. Los 8 escenarios de HU §5.3 cumplen; tipos 4/5/8 → 4/8/9; 18 `subscriberRelation` distintos |
+| 4 | `hocon_check.py fragmentos/*.conf` | rc=0, OK en los dos. Además, `pyhocon` 0.3.61, instalado solo en el scratchpad (`pylibs/`): parse OK de los dos fragmentos (`filePattern`, `processor`, `tableName`, `delimiter ";"`, `keys`) |
+| 5 | `python3 tools/verificar-claves.py --dir EXP/insumos` | rc=0 · `Claves publicadas por Curation: 34 · citas revisadas: 3 · claves coherentes` |
+| 6 | Suite de la skill | Sin `pyhocon`: 126 pasadas, 2 omitidas. Con `PYTHONPATH` al `pyhocon` del scratchpad: **128 pasadas, 0 omitidas** |
+| 7 | Referencia, casos borde | `TIP_DOCUMENTO " 3 "` → `tipoDocumentoSisben " 3 "`, tipo 1. `7` → `HOMOLOGACION_PENDIENTE`, `standardizedIdType` ausente, `COMPONENTE_FALTANTE`. `ppt` → 11 |
+
+No escribí ningún otro archivo del repo ni compilé Scala ni Java.
