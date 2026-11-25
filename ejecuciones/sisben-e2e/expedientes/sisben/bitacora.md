@@ -3333,3 +3333,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0196 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | State Calculation en modo Colombia (framework 1.9.11, HF-77): nombres de ART-071..073 según la semilla; PA-013 cita SparkStateCalculator.scala:166-171 y declara el modo; riesgos de la etapa completos (AUD-SC-15) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T23:10:01-05:00 |
+| **Por qué** | Re-auditoría de ART-070 v2, AUD-SC-15 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | — |
+| **Artefactos** | ART-071, ART-072, ART-073 |
+| **Trazabilidad** | prompt 00 paso 2 (1.9.11) |
+| **Corrige** | — |
+
+---

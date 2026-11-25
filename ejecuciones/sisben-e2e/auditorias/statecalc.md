@@ -149,3 +149,63 @@ El punto (1), `aliasEnabled`, no se puede evitar con configuración sin Nashorn:
 | Defecto 2 | Copia del insumo en `…/aud-sc/ins-def2/` con 3 entradas agregadas a `campos_a_generar`, y `verificar-claves.py --dir …/ins-def2` | No marca el DERIVED `fechaEncuesta` (clave inexistente) ni `field.standardizedIdType`. Marca `field.pin` como `X NO EXISTE` (exit 1) |
 | Motor | Lectura directa de los archivos citados en §1 a §4 | 10 afirmaciones se reproducen y 2 citas hay que precisarlas (AUD-SC-12, nota de `:192`) |
 | Restricciones | No se escribió ningún otro archivo del repositorio, no se usó git (ni para escribir) y no se compiló ni se usó PowerShell | Cumplidas. Las pruebas están solo en el scratchpad |
+
+## 7. Insumo v2
+
+| Campo | Valor |
+|---|---|
+| Objeto | ART-070 v2.0.0 `insumos/yaml-skill-statecalc.yaml` (528 líneas, sha256 `e6ca460b2b2ff77089a6797e754bd3eab35cb562c15b6294b4a296bf6d00bf7d`), estado `prevalidado` |
+| Framework | 1.9.11 (commit `8db046a`, HF-73..77) |
+| Decisiones contra las que se audita | INT-075 (PO simulado SIM-PO-01) y `estado-ingesta.json`: APR-030 (rechazo de ART-070), PA-002 (dirección c1-a, sigue abierta), PA-012 resuelta (BIT-0178), PA-013 ampliada, PA-014, RG-003, RG-007 (`aceptado`), RG-011, RG-031, BKL-001..003 |
+| **Dictamen como contenido** | **AJUSTES (menores).** La v2 recoge con fidelidad las decisiones del PO y corrige AUD-SC-01..13. Ningún valor que vaya a un artefacto depende de un hecho del fork. La vista previa de ART-071 pasa los verificadores nuevos con los avisos esperados. Queda **1 P1**: falta el bloque `modo_colombia` que exige la plantilla de 1.9.11 y que lee la skill. Hay además 5 P2. Para el registro: en esta corrida **no se aprueba** (APR-030); la etapa queda «bloqueada, no aprobada» |
+
+### 7.1 Fidelidad a INT-075 y a AUD-SC-01..13
+
+| Punto | Dónde en la v2 | Resultado |
+|---|---|---|
+| PA-002 (c1-a): filtro por fuente en el `where` con los campos base, y corte vigente marcado por el enricher | `:343`, `:361-376`; `seccion_resultante.where` `:402` | **Fiel.** La pregunta sigue abierta (`:79`, `:343`) |
+| Las seis condiciones de cierre | `:386-394` | **Fiel**, una por una, a la mitigación de RG-003 |
+| CQ-006 como entrega manual de Ingesta 3, sin regla de corte (BKL-001) | `:72`, `:90-92`, `:385`, `:505` | Fiel |
+| Supuesto «vigente = mayor periodo aceptado» y control de re-entrega (BKL-003) | `:377`, `:507`; SC-7 (b) `:449-453` | Fiel (AUD-SC-01) |
+| PA-012: «sisben», un objeto sin `groupBy`, null o ausente = sin sección, también para un atributo | `:27-28`, `:126-133`, `:384`, `:397-405`, `:478`; SC-2 `:429` | Fiel (AUD-SC-03, -04) |
+| PA-013 ampliada y PA-014 | `:81-86`, `:479-490` | Fiel. La numeración difiere de la del Orquestador (AUD-SC-15) |
+| RG-007 aceptado, como ítem explícito y con SC-8 | `:96-98`, `:454-458`, `:496` | Fiel (AUD-SC-08) |
+| RG-011 abierto, con llave de unicidad `[P]` de spec §6 (BKL-002) | `:99-101`, `:465-468` | Fiel (AUD-SC-08) |
+| RG-031 (dos documentos en un PIN) | `:382`, SC-9 `:459-463`, `:502` | Fiel. Una observación en AUD-SC-18 |
+| RG-025 y RG-028 como bloqueo de la certificación | `:102-104` | Fiel (AUD-SC-10) |
+| APR-030: ART-071 no se genera en esta corrida, y ART-072 y ART-073 van con `generar: false` | `:68`, `:276`, `:306`, `:332` | Fiel (AUD-SC-11) |
+| Modo delta, corte vigente que necesita la App o el motor, filtro por fuente sin enricher | `:358`, `:362-375`, `:379` | Fiel (AUD-SC-02, -05, -07) |
+| Sección propuesta fuera de la instrucción de generación | `:314`, `:395-405` | Fiel (AUD-SC-13) |
+| Citas y notas (ruta viva del alias, orden DERIVED/CALCULATED, periodo por `getPeriod`/`minFrequency`) | `:36-38`, `:213-221`, `:233-235`, `:380` | Fiel (AUD-SC-09, -12) |
+
+**Dependencia de hechos del fork.** Lo único que va a un artefacto son los 4 `campos_a_generar` (`:277-286`). Salen de spec §13 y §10.1 y del motor, y no usan alias, Nashorn ni la App. Todo lo que depende del fork está en `campos_excluidos_hasta_resolver`, en `generar: false` o en `seccion_resultante`, que no es instrucción. El matiz de modo Colombia está en AUD-SC-17.
+
+### 7.2 Verificaciones de la v2
+
+Las vistas previas están en `/tmp/claude-0/-home-user-edf-framework-IA-Chief/17fd989e-8dfc-5ea8-ad37-44be188bb6cf/scratchpad/aud-sc/v2/`. `art071-foundation.json` sale de `campos_a_generar`: 4 DERIVED, con `dataType` solo en `nivelSisben` (INTEGER). Como `--calculation` es obligatorio, se usa `calc-vacio.json` (`calculations: []`). En la tabla, `SS` = `ejecuciones/sisben-e2e/expedientes/sisben/insumos/source-spec-curation.yaml`.
+
+| Verificación | Resultado | ¿Esperado? |
+|---|---|---|
+| `verificar-artefactos-etapa.py statecalc --modo colombia --calculation calc-vacio.json --foundation art071-foundation.json --source-spec SS` | `ARTEFACTOS OK` (exit 0), con 2 avisos: sin `--campos-existentes` y sin `--secciones-existentes` | **Sí.** El choque de nombres con la Foundation compartida queda en la lista de verificación del fork, que es PA-013 (6) |
+| Lo mismo en modo propio, con `--source-spec` y sin él | `ARTEFACTOS OK` (exit 0), sin avisos | Sí |
+| Modo colombia con `--campos-existentes` de prueba (`nivelSisben`) | `X nivelSisben ya existe … Reutiliza el existente o escala (N4)` (exit 1) | Sí: la detección del choque funciona |
+| Referencia, no artefacto: `seccion_resultante` sobre una Foundation con alias y `fechaCorte`, en modo colombia | `ARTEFACTOS OK`, con avisos de alias `fechaEncuesta`/`fechaModificacion` «solo con aliasEnabled [PM]», de `isSisbenCorteVigente` «solo si lo agrega el enricher» y de nombres existentes | **Sí.** Son exactamente las dependencias PA-013 (1), BKL-001 y PA-013 (6) |
+| Casos negativos: DERIVED `fechaEncuesta` con `--source-spec`; sección `#sisben` con `where`; sección sin `where` en modo colombia | Los tres dan hallazgo `X` (exit 1) | Sí: HF-73 y HF-77 corrigen los defectos 1 y 5 |
+| `verificar-claves.py --dir …/insumos` | `Claves publicadas por Curation: 34 · citas revisadas: 119` / `RESULTADO: claves coherentes.` (exit 0) | Sí: son las 115 citas anteriores más los 4 `name` de los DERIVED (HF-74) |
+| Parse de la v2 (PyYAML) | OK. 17 secciones; aparecen `instruccion_generacion_prueba`, `preguntas_vinculadas`, `riesgos_vinculados` y `backlog_vinculado`. **No hay `modo_colombia`** | Ver AUD-SC-14 |
+| Correcciones del framework (lectura) | El golden `sisben-camino-feliz` declara los DERIVED previos (HF-75). Steering 07 §5.7 condiciona `isSisben` a `[A:OQ-TR-2]` y trata `migrate.md` como antecedente (HF-76). `decisiones-pendientes.md:30` ya no da por suficiente el passthrough (HF-77) | Los defectos 1-5 de §3 están corregidos en lo verificado |
+
+### 7.3 Hallazgos de la v2
+
+| ID | Clasificación | Sev. | Hallazgo | Evidencia | Corrección |
+|---|---|---|---|---|---|
+| AUD-SC-14 | insumo | **P1** | Falta el bloque `modo_colombia` (`aplica`, `regla`, `filtro_fuente`, `nombres_existentes_verificados`, `modo_delta`, `estado`). La plantilla de 1.9.11 lo pone primero entre las secciones que lee edf-statecalc, y la skill decide con `modo_colombia.aplica` si entrega entradas para la Foundation compartida o un archivo propio. El contenido de la v2 ya es de modo Colombia en el fondo (`:149`, `:261`, `:291-294`, `:362`, `:379`), pero sin el bloque estructurado la skill no lo sabe. La cabecera dice además «framework 1.9.10, plantilla vigente» (`:3`) | `yaml-skill-statecalc.yaml.tpl:3-20`; edf-statecalc SKILL.md `:40`; `references/modo-colombia.md` §2 | Agregar `modo_colombia` con: `aplica: true [P]` (Pinning y Synthesis del expediente van en modo Colombia, spec §11-§13), confirmación en PA-013 (6) y (7); `filtro_fuente` = el predicado de `:402` (`[C]` decisión del PO, `[A:OQ-TR-2]`); `nombres_existentes_verificados: "no — PA-013 (6)"`; `modo_delta: "[PM] PA-013 (5)"`. Actualizar la cabecera a 1.9.11 |
+| AUD-SC-15 | orquestador | P2 | El expediente no declara el modo de State Calculation (prompt 00, paso 2, de 1.9.11), y ART-071..073 siguen con los nombres de modo propio («fields[] de statecalc-foundation-local.json», etc.). PA-013 en el estado tiene otra numeración que la v2: su (7) repite el writer de nulos del punto (4), cuando en la v2 el (7) es «sintetizado de Colombia frente a las rutas de spec §14». Además sigue citando `SparkStateCalculator.scala:66-67` | `estado-ingesta.json` (etapa `state_calculation`, PA-013); `00-iniciar-ingesta.md:23` | Registrar el modo (Colombia, pendiente de PA-013 (6)/(7)), renombrar ART-071..073 según la semilla de 1.9.11 y alinear el texto de PA-013 con `:481-488` de la v2 |
+| AUD-SC-16 | insumo | P2 | Errata «attachHistorcData» (`:379`, `:486`). El feature es `STATECALC_ATTACH_HISTORIC_DATA` (método `joinHistoricData` / `attachHistoricalData`) | `StateCalcAddOns.scala:40-48` | Corregir el nombre |
+| AUD-SC-17 | insumo | P2 | En modo Colombia, qué entradas lleva ART-071 depende de PA-013 (6), no solo su integración. Si la Foundation compartida ya declara uno de los 4 campos con la misma clave y el mismo `dataType`, se **reutiliza** y no se declara; si lo declara con otro `dataType`, es un bloqueo N4 que se escala. La v2 solo dice «no se integra al fork sin PA-013 (6)» (`:68`, `:291-294`) | `references/modo-colombia.md` §2.1; `ContextUtils.scala:15-19` | Escribir la regla en la `advertencia` y marcar la lista de ART-071 como «4 candidatos, sujetos a PA-013 (6)». Consecuencia de §3e #1: ART-071 tampoco queda final antes de PA-013 (6), lo que es coherente con APR-030 |
+| AUD-SC-18 | insumo | P2 | SC-9 (`:459-463`) está como `[P]`, pero la mitigación registrada de RG-031 lo exige antes de certificar, igual que SC-7 y SC-8 (`[C]` «escenario exigido») | RG-031 en `estado-ingesta.json` | Marcarlo `[C]` (exigido por RG-031) |
+| AUD-SC-19 | insumo | P2 | No cita RG-032 (evidencia diferida de synthesis, `alto`). Synthesis quedó `aprobada` con evidencia diferida (APR-032), y su evidencia de pipeline (paso de Synthesis de state-generation sobre el HC de Colombia) es previa a la certificación de esta etapa, que no admite evidencia diferida. La precondición `habilitacion-synthesis` (`:105-107`) tampoco dice que synthesis ya está aprobada con `transicion_habilitada: false` | RG-032; `03` §3b `:66` | Agregar RG-032 a `riesgos_vinculados` y a las precondiciones de certificación, y actualizar `habilitacion-synthesis` |
+
+**P0:** ninguno.
+
+**Estado:** la v2 queda `prevalidado` y no aprobado (APR-030). Para que una futura v3 se pueda aprobar hace falta: corregir AUD-SC-14 y los P2; cerrar PA-002 con sus seis condiciones, PA-013 y PA-014; y que el PO apruebe en N4.

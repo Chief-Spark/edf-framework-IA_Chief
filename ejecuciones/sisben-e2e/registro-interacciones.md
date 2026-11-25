@@ -630,6 +630,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T23:06:59-05:00
 - **Pedido:** Re-auditar ART-070 v2 con los verificadores de 1.9.11.
+- **Respuesta:** v2 como contenido: AJUSTES menores (sin P0): refleja INT-075 y AUD-SC-01..13; nada que vaya a un artefacto depende del fork. Verificadores 1.9.11 sobre ART-071: --modo colombia OK con avisos esperados (sin listas de existentes); modo propio OK; controles negativos fallan como deben. P1 AUD-SC-14 (falta el bloque modo_colombia de la plantilla 1.9.11). P2: AUD-SC-15 (expediente), -16 (errata), -17 (campos de ART-071 dependen de PA-013 (6)), -18 (SC-9 [C]), -19 (citar RG-032).
+- **Decisión:** AUD-SC-15 aplicado por el Orquestador (BIT-0195); v3 al analista con AUD-SC-14, -16..-19 (sigue sin aprobación).
+- **Bitácora:** —
+
+## INT-080 · Analista (edf-analisis) · insumo de State Calculation v3 · `state_calculation`
+
+- **Cuándo:** 2026-11-24T23:10:02-05:00
+- **Pedido:** AUD-SC-14, -16..-19 en ART-070.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

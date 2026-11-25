@@ -3,7 +3,7 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:59:11-05:00",
+    "actualizado_en": "2026-11-24T23:10:01-05:00",
     "vista_md_regenerada_en": "2026-11-24T22:59:11-05:00"
   },
   "ingesta": {
@@ -823,7 +823,7 @@
         {
           "id": "ART-071",
           "tipo": "configuracion",
-          "nombre": "fields[] de statecalc-foundation-local.json",
+          "nombre": "entradas fields[] de la ingesta en modo Colombia: campos Foundation para integrar en el statecalc-foundation compartido de Colombia, sin repetir un name ni alias existente (un nombre duplicado gana para todas las fuentes), DERIVED con name = clave curada publicada, CALCULATED solo sobre campos Foundation declarados (HF-77)",
           "ruta": "propuestas/statecalc/",
           "obligatorio": true,
           "estado_artefacto": "ausente"
@@ -831,15 +831,16 @@
         {
           "id": "ART-072",
           "tipo": "configuracion",
-          "nombre": "CalculationSection de statecalc-calculation-local.json",
+          "nombre": "secciones de la ingesta en modo Colombia: CalculationSection para integrar en el statecalc-calculation compartido de Colombia, cada una con where de filtro por fuente ([A:OQ-TR-2]), name valido como identificador JavaScript (sin #) y sin repetir una seccion existente; groupBy plano (HF-77)",
           "ruta": "propuestas/statecalc/",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "ausente",
+          "riesgo": "critico"
         },
         {
           "id": "ART-073",
           "tipo": "prueba",
-          "nombre": "CA1: Data Provisioning consulta la seccion de la ingesta en el XPM",
+          "nombre": "CA1 en el XPM compartido de Colombia: Data Provisioning consulta la seccion de la ingesta; precondicion: lista de verificacion del fork (nombres existentes, modo delta deltaMode/deltaModeAccountLevel/doesComputeXpm: un PIN sin cambios conserva su XPM anterior, aliasEnabled, JDK y Nashorn OQ-TR-2) y casos de PIN de otra fuente sin la seccion (HF-77)",
           "ruta": null,
           "obligatorio": true,
           "estado_artefacto": "ausente",
@@ -864,7 +865,11 @@
         "RG-011",
         "RG-029",
         "RG-030",
-        "RG-031"
+        "RG-031",
+        "RG-007",
+        "RG-025",
+        "RG-028",
+        "RG-032"
       ],
       "transicion_habilitada": false,
       "nota_regla_de_corte": null
@@ -1821,7 +1826,7 @@
     },
     {
       "id": "PA-013",
-      "pregunta": "Hechos del fork para State Calculation: valor de aliasEnabled en el conf de Colombia (SparkStateCalculator.scala:66-67); App y enricher de Colombia (¿flag tipo isSisben? ¿cómo reciben un valor por corrida?); domain y nombres que ya declaran los JSON compartidos y si usan Nashorn; si una sección null se ve como «sin sección» en el XPM y en Data Provisioning. Ampliada (INT-075): (5) modo delta (deltaMode, deltaModeAccountLevel, doesComputeXpm), features de histórico y appenders que puedan reintroducir la sección; (6) si el XPM y la Foundation son compartidos y qué nombres ya declaran; (7) cómo escribe el writer una sección y un atributo null; JDK del runtime de Colombia (OQ-TR-2).",
+      "pregunta": "Hechos del fork para State Calculation: valor de aliasEnabled en el conf de Colombia (SparkStateCalculator.scala:166-171); App y enricher de Colombia (¿flag tipo isSisben? ¿cómo reciben un valor por corrida?); domain y nombres que ya declaran los JSON compartidos y si usan Nashorn; si una sección null se ve como «sin sección» en el XPM y en Data Provisioning. Ampliada (INT-075): (5) modo delta (deltaMode, deltaModeAccountLevel, doesComputeXpm), features de histórico y appenders que puedan reintroducir la sección; (6) si el XPM y la Foundation son compartidos y qué nombres ya declaran; (7) cómo escribe el writer una sección y un atributo null; JDK del runtime de Colombia (OQ-TR-2). Modo de State Calculation: Colombia (configuración compartida; edf-statecalc 1.9.11, prompt 00 paso 2). La numeración de los puntos sigue la de ART-070 (AUD-SC-15).",
       "origen": "Analista (INT-066); ART-071/072 dependen de estos hechos (references/03 §3e no aplica). Dirigida al Desarrollador con Ingesta 3.",
       "etapa_afectada": "state_calculation",
       "bloqueante": true,
@@ -2131,8 +2136,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0195",
-    "eventos_totales": 195,
+    "ultimo_evento": "BIT-0196",
+    "eventos_totales": 196,
     "append_only": true,
     "retencion_meses": 24
   }
