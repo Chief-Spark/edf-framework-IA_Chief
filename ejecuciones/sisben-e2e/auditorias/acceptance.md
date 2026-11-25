@@ -98,3 +98,58 @@ Scratchpad: `/tmp/claude-0/-home-user-edf-framework-IA-Chief/17fd989e-8dfc-5ea8-
 | 8 | `python3 tools/verificar-claves.py --dir EXP/insumos` | rc=0: «Aún no hay source-spec-curation.yaml ni insumos aguas abajo: nada que cruzar». No aplica a Acceptance |
 | 9 | Lectura del motor: `SparkAcceptor.scala:122-460,593-660`, `AcceptanceAST.scala`, `AcceptanceLexer.scala`, `AcceptanceParser.scala`, `AggregatesParser.scala:187-267`, `RecordValidationParser.scala`, `ExternalActionParser.scala`, `AcceptanceIOUtils.scala:38-45`; `SparkValidator.scala:294-316,615-627,642-735`; `SparkCurator.scala:176-177`; Validation aprobada (`SISBENValidationProcessor.scala`, `FieldValidators.scala`, `validation-configs-sisben.conf`, `codigos-error-sisben.csv`) | El orden del motor es E3 → E4 (marcadores; `customReason` evalúa antes `reject`) → `manualReject`/`manualAccept` (no configurados) → `reject` en sintaxis nueva → `accept` en sintaxis antigua (si falla vale `false` y el archivo queda pendiente) → `recordAcceptance` (si falla vale `true`). Coincide con `dsl-config-reference.md:45-50` y con el simulador, salvo lo señalado en AUD-A-05 y AUD-A-08 |
 | 10 | Copia del ejemplo: `diff` de valores entre `assets/examples/sisben/source-spec.sisben.yaml` y el insumo | No hay copias sin declarar (§1) |
+
+## 6. Insumo v2
+
+| Campo | Valor |
+|---|---|
+| Objeto | `insumos/source-spec-acceptance.yaml` v2 (ART-020), sha256 `d42cb05f9eecd86e23d6ea8e518bbcf3a1df58b37cad457cac2041740c71ef7c` (calculado en esta re-auditoría) |
+| Contra qué se compara | Informe de la ronda 1 (§1 a §5), decisión del aprobador INT-024 (`registro-interacciones.md:189-195`), entrega del analista INT-026 (`:205-211`) y framework 1.9.5 (HF-19 a HF-24, `references/decisiones-y-abiertos.md:102-107`) |
+| **Dictamen** | **APROBADO.** Todos los ajustes autorizados están aplicados y citados. Las herramientas dan lo pedido: render sin avisos, 9/9 y 2/2, muestra con 19, 0.95 fuera de los `.conf` y el Spec deriva el umbral alternativo de la configuración. No hay P0 ni P1 nuevos. Los hallazgos nuevos (AUD-A-13 a AUD-A-15) son P2, no cambian ninguna decisión y pueden corregirse en una v3 o al pasar al fork. Para generar falta lo que no depende del insumo: que el orquestador registre la aprobación y el hash de ART-020 (`estado-ingesta.json` no tiene `hash` para ART-020) y que habilite la transición de `validation` (AUD-A-11: sigue `transicion_habilitada: false`) |
+
+### 6.1 Cierre de los ajustes de la ronda 1
+
+| Hallazgo / decisión | Estado en v2 | Evidencia |
+|---|---|---|
+| PA-006 (a) nombre y `reasonCode` | **Aplicado** | `[P]` con comprobación `[PM]` en el fork y RG-017 (`:20-22,74-75`). PA-006 figura `resuelta` en el expediente; RG-017 está abierto |
+| PA-006 (b) archivo sin registros | **Aplicado** | `aceptar_cuerpo_vacio: false`, `[P]`, con la deducción citada (HU R-22, RQ-03, §10.3) y los dos casos reales (`:23-24,96,100,297`) |
+| PA-006 (c) `customReason…` | **Aplicado** | `false`, que es el valor por defecto del motor (`:25,97,99`; `SparkAcceptor.scala:166,169-172`). El HOCON generado lo emite con `false` |
+| AUD-A-01 umbral parametrizable | **Aplicado** | `fixture.umbrales_alternativos` con 0.95: `FQS_095` (19/20) se acepta y `FQS_094` (47/50) se rechaza con `SISBFA00001` (`:192-197`). La configuración desplegable sigue en 0.90 (`:71,78,86`) |
+| AUD-A-02 duplicados | **Aplicado** | Grupo 601: gana E-01 por fecha (E-07 tiene `1766206800000`, es decir 2025-12-20). Grupo 609: gana E-09 por fecha (15/01 frente a 01/01) y tiene sev. 1, que es RG-013. Grupo 611: hay empate y gana E-12 por `eventId` (`:247,259-270`). FQS 11/12 = 0.9167 y 8 aceptados, comprobado a mano y con el simulador |
+| AUD-A-03 marcadores y códigos | **Aplicado, salvo `validatedRecordJson null`** | ERR_024 `FILENAME`/`NOMBRE_ARCHIVO` y ERR_025 `HEADER`/`HEADER` en `errorCodes`, con `asOfDate = receivedDate` (`:283,296,309`). ERR_026 va con `REGISTRO`/`COLUMNAS` (`:269`), y los `messageKey` coinciden con `Causa` de Validation (`FieldValidators.scala:17-30`): `DOMINIO`, `RANGO`, `TIPO_PENDIENTE_CREACION`, `DOCUMENTO_CERO`, `FECHA_FUTURA`. Queda `'{}'` en lugar de `null` porque el esquema solo admite texto (HF-26, P2, aceptado). Ver AUD-A-13 |
+| AUD-A-04 cabecera | **Aplicado** | `:3-4` (APR-008, RG-015) |
+| AUD-A-05 texto de los marcadores | **Aplicado** | `:95-97,150-153` |
+| AUD-A-06 prefijo `RT_` | **Aplicado** | Se agregó `ruta_marcador_prefijo_rt` con `debe_coincidir: true` (`:64`) y el archivo 900006 ahora es `RT_…errorInFileName` (`:271-283`) |
+| AUD-A-07 `errorInEmptyFileBody` | **Aplicado** | `[C]`, con cita a `SparkValidator.scala:626` (`:17-18,121`) |
+| AUD-A-08/09 (framework) | **Aplicado en 1.9.5** | El simulador compara y sale con rc=1 si algo difiere: lo comprobé con una variante errónea (§6.3 #4). El comentario del Spec se corrigió (`AcceptanceExpressionsSpec.scala.tpl:168`). Ver AUD-A-14 |
+| Defectos 1 a 5 (framework) | **Aplicados en 1.9.5** | (1) `SKILL.md:136-148` ahora es «Ejemplo de forma (no es fuente)» y `especificacion-sisben.md:1-9` está rotulado «EJEMPLO HISTÓRICO». (2) Los archivos generados firman `edf-acceptance 0.1.0`. (3) El insumo usa `expresiones_propuestas` (`:138`) y valida. (4) `severidades` lleva solo `habilitado`/`estado` (`:125-127`) y valida. (5) `umbrales_alternativos` (HF-23) |
+| AUD-A-12 / RG-018 | **Registrado** | RG-018 abierto en el expediente, sin cambio en el insumo, como estaba previsto |
+
+### 6.2 Hallazgos nuevos
+
+| ID | Clasificación | Sev. | Evidencia | Corrección |
+|---|---|:-:|---|---|
+| AUD-A-13 | insumo | P2 | En el marcador `RT_` (900006), el insumo pone `fileAsOfDate: 0` y cita FileMetadata (`:271,278`), pero deja `receivedDate: 1770301800000`, `asOfDate: 1770301800000` y `fileTag: REGULAR` (`:277,275,283`). Con un nombre que no cumple la regex, `SISBENFileMetadata` da `receivedDate = 0` y `fileTag = ""` (`SISBENFileMetadata.scala:25-27,35-37`). El lineage del marcador sale de ahí (`ValidationProcessor.scala:195`) y `asOfDate = lineage.receivedDate` (`SparkValidator.scala:303-304`). Por lo tanto ese evento real trae `receivedDate` 0 y `asOfDate` 0. No cambia la decisión, porque el rechazo automático depende del nombre | Poner `receivedDate: 0` y `asOfDate: 0` en 900006. `fileTag` lo deja vacío `SISBENFileMetadata`; ese constructor de marcador no lo fija |
+| AUD-A-14 | framework | P2 | El HOCON generado conserva el comentario fijo «E4 · registra códigos de razón también en el rechazo automático por marcadores» justo encima de `customReasonForAutomaticRejectionEnabled = false` (`acceptance-block.conf.tpl:29`). Con `false` es falso, y engaña a quien lea el `.conf` en el fork. HF-24 solo corrigió el comentario del Spec | Condicionar el comentario al valor, por ejemplo con `{{#si …}}`, o redactarlo neutral: «E4 · con true evalúa además reject sobre los eventos del marcador» |
+| AUD-A-15 | insumo | P2 | Hay citas desfasadas por la regeneración de Validation con 1.9.5 (INT-025): `FieldValidators.scala:229` y `:176` (`:271,284`) ahora están en `:232` (FILENAME) y `:179` (HEADER) | Actualizar las citas o citar por símbolo (`Causa.NombreArchivo`, `Causa.Header`) |
+
+Revisé además estos puntos y no encontré problemas nuevos:
+
+- **Estado de la condición.** `estado: cerrado` en `condiciones[0]` (`:81`) es coherente con la decisión registrada INT-024; la comprobación pendiente se sigue en RG-017.
+- **Cómo toma el umbral el Spec.** No lleva fija ninguna expresión con 0.95. Toma `FileAccept` y `conditions`, que son los mismos literales del HOCON generado, y sustituye solo el número del umbral desplegado (`UmbralDesplegado = "0.90"`, `conUmbral`). Exige además que la sustitución cambie la expresión (`assert(accept != FileAccept)`). El 0.95 aparece solo como dato de los casos de prueba (líneas 231-260 del Spec generado). Límite que no es nuevo: como el resto de ACC-TPL-05, esos literales se copian al generar. Si alguien edita el HOCON en el fork sin regenerar, el Spec no lo detecta.
+- **Ruteo del marcador `RT_`.** `RT_…txt.errorInFileName.900006`, sin sus dos extensiones, coincide con el `filePattern` (`SparkAcceptor.scala:131,152-157`), así que se rechaza automáticamente y no queda en `validated/`.
+
+### 6.3 Verificaciones corridas (insumo v2)
+
+Scratchpad: `/tmp/claude-0/-home-user-edf-framework-IA-Chief/17fd989e-8dfc-5ea8-ad37-44be188bb6cf/scratchpad/aud-acc-v2/`.
+
+| # | Comando | Resultado |
+|:-:|---|---|
+| 1 | `render_templates.py --spec EXP/insumos/source-spec-acceptance.yaml --out <scratch>/ --audit` | **rc=0, 0 líneas `aviso`.** Todos los huecos tienen `schema=True`. Los `ausente` y `nulo` son solo los de ramas deshabilitadas u opcionales: `severidades.*`, `manualReview`, `manual*`, `contextual_override.*` y el `reason_code_esperado?` opcional del caso `FQS_095`. Se generan ACC-TPL-02, -01, 9 directorios de ACC-TPL-06 (900006 con prefijo `RT_`) y ACC-TPL-05. ACC-TPL-03 se omite. Imprime 4 supuestos (S-ACC-01, -03, -04, -05) |
+| 2 | `hocon_check.py <scratch>/hocon/*.conf` | **rc=0.** `customReasonForAutomaticRejectionEnabled = false`; el resto es igual a la ronda 1 |
+| 3 | `grep -rn "0\.95\|0\.94" <scratch>/hocon/` | **Sin coincidencias** (rc=1): el umbral alternativo no llega a los `.conf` |
+| 4 | `simular_decision.py --spec EXP/insumos/source-spec-acceptance.yaml` | **rc=0: «9/9 archivos coinciden con lo esperado; 2/2 casos de umbral alternativo coinciden».** 900005 aceptado con 8 aceptados y 4 rechazados. Con una copia en la que cambié dos valores esperados, el simulador marca `NO COINCIDE` en los dos, informa 8/9 y 1/2, y sale con **rc=1** |
+| 5 | Muestra: `prevalidar_archivo.py … --hoy 2026-11-17 --detalle` y luego `variante-muestra.yaml` (eventos tomados de las líneas reales) con `render_templates` y `simular_decision` | Prevalidación: 20 validados, 1 con sev. 1, 1 filtrado, RQS 0.95. Acceptance: render rc=0 y **aceptado con 19** (= spec §15). El caso de umbral alternativo da 2/2 también en la variante |
+| 6 | `python3 -m pytest .kiro/skills/edf-acceptance/scripts/tests -q` | 146 passed, 1 skipped |
+| 7 | `python3 tools/verificar-claves.py --dir EXP/insumos` | rc=0 (no aplica a Acceptance) |
+| 8 | `sha256sum` del insumo; lectura de `estado-ingesta.json` | El hash coincide con `d42cb05f…`. PA-006 está `resuelta`; RG-017 y RG-018 están abiertos; ART-020 está `prevalidado` y sin `hash` registrado; `validation.transicion_habilitada = false`. El RG-015 duplicado ya no aparece |

@@ -222,6 +222,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:08:12-05:00
 - **Pedido:** Re-auditar ART-020 v2 contra INT-024 y el informe de la ronda 1.
+- **Respuesta:** ART-020 v2 APROBADO: ajustes de INT-024 aplicados y citados; render --audit sin avisos; hocon_check OK; 0.95 fuera de los .conf; simulador 9/9 + 2/2 (y detecta NO COINCIDE con una copia alterada); muestra acepta 19; suite 146; el Spec toma el umbral de la configuración. P2: AUD-A-13 (marcador RT_ con receivedDate/asOfDate/fileTag en 0/vacío), AUD-A-14 (framework: comentario engañoso sobre customReason en acceptance-block.conf.tpl:29), AUD-A-15 (dos citas desfasadas a FieldValidators.scala).
+- **Decisión:** AUD-A-14 → HF-28 (lote de cierre). Consulta consolidada al aprobador: ART-011..015 (§3d), ART-020 (con AUD-A-13/15 como P2) y transición validation→acceptance (riesgo alto, evidencia diferida).
+- **Bitácora:** —
+
+## INT-029 · Aprobador simulado SIM-DEV-01 · `acceptance`
+
+- **Cuándo:** 2026-11-24T19:11:14-05:00
+- **Pedido:** Re-aprobar ART-011..015 (§3d), aprobar ART-020 v2 y la transición validation→acceptance (§3b pasos 2 y 3).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
