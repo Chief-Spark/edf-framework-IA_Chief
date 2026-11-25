@@ -214,8 +214,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:06:32-05:00
 - **Pedido:** Re-auditar por diferencia la propuesta regenerada con 1.9.5 (4 archivos) y la observación del UUID.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Validation sigue APROBADO (ART-011 comportamiento vía Capa A, ART-012, ART-013, ART-015). AUD-V-27/28/29 cerrados; reproducible; muestra = spec §15 (también en CRLF); fixture igual; verificar_hocon OK; suite 227. UUID no es problema (AUD-V-31 informativo: basta clave única; documentar exclusión de eventId/keys al comparar corridas). AUD-V-30 rectifica AUD-V-29: sin `encoding` el motor lee con textFile y ya quita el CR; HF-18 protege la otra ruta.
+- **Decisión:** Pedir al aprobador la nueva aprobación de ART-011..015 (§3d) junto con ART-020 y la transición; RG-016 pasa a mitigado (HF-18 corregido y AUD-V-30); AUD-V-31 al lote de documentación (HF-27).
 - **Bitácora:** —
 
 ## INT-028 · Auditor independiente (acceptance) · insumo v2 · `acceptance`

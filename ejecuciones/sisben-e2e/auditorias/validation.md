@@ -231,3 +231,51 @@ Una regresión que ignore `periodoNoFuturo` no se detectaría.
 
 - La propuesta se puede aprobar en N2 (`06:73`). Al registrarla, citar: los riesgos residuales (F-01; confirmación pendiente en oxygen-core de AUD-V-01 y AUD-V-06), PA-003, PA-004 y PA-005, y los P2 abiertos AUD-V-27, -28 y -29 para la próxima versión del framework.
 - Pasos del ingeniero, fuera de la skill: compilar y probar en el fork (`FieldValidatorsSpec`, `SISBENValidationProcessorSpec`), confirmar `ValidationConfigs`/`LookupElements` y la ubicación de los CSV en `lookupHome`.
+
+## 8. Re-auditoría por diferencia (1.9.5)
+
+| Campo | Valor |
+|---|---|
+| Alcance | Diferencia `HEAD~1..HEAD` (commit `1660d36`) en `propuestas/validation/`, con el framework 1.9.5 (`6cdd122`; HF-16, HF-17 y HF-18). Usé git solo en lectura (`log`, `diff`) |
+| Cambios | 4 archivos: `FieldValidators.scala` (HF-18: `Campos.separar` quita el `\r` final; HF-16: clave `("SIN_CLAVE", <único>)` con un UUID aleatorio), `FieldValidatorsSpec.scala` (+3 pruebas), `SISBENValidationProcessorSpec.scala` (RA-02 aislada con `+1400`, pruebas aisladas de RA-03 y RA-04, prueba de HF-16) y `manifest.json` (los 3 hashes). El insumo de Validation no cambió (sha256 `dd707688…`, `git diff HEAD~1` vacío; solo cambió `source-spec-acceptance.yaml`, que queda fuera de alcance) |
+| **Dictamen** | **Se mantiene APROBADO.** Se conserva el comportamiento aprobado y quedan cerrados AUD-V-27, AUD-V-28 y AUD-V-29. La observación del generador sobre el UUID **no es un defecto** (§8.3) |
+
+### 8.1 Dictamen por artefacto
+
+| Artefacto | Dictamen | Razones |
+|---|---|---|
+| ART-011 | **APROBADO (sin cambios en sus archivos; cambia su comportamiento a través de la Capa A)** | `SISBENValidationProcessor.scala:117` llama a `claveDuplicado(spec, e.valores)` (la sobrecarga con UUID). `SISBENValidatedEvent.scala:15` usa `Campos.separar`, así que `validatedRecordJson` ya no lleva el `\r` final. Las dos cosas son lo buscado |
+| ART-012 | **APROBADO** | `Campos.separar` quita solo un `\r` final (`FieldValidators.scala:50-54`). `claveDuplicado(spec, valores, unico)` hace la clave única por registro cuando falta tipo o número, y la sobrecarga de dos argumentos le pasa `UUID.randomUUID()` (`:286-301`). Las pruebas nuevas de `FieldValidatorsSpec` cubren el CRLF (5 bordes), las filas idénticas sin clave y RA-02, RA-03 y RA-04 aisladas, con la regla apagada como contraprueba |
+| ART-013 | **APROBADO** | RA-02 se prueba aislada con `SISBEN_EXPERIAN_202603.20260301000000+1400.txt` y el reloj del 2026-02-28 23:59:59 en Bogotá. RA-03 y RA-04 llevan su contraprueba. La prueba nueva de HF-16 usa las posiciones de la clave declarada. El fixture y los catálogos no cambian |
+| ART-015 | **APROBADO** | Cambian exactamente 3 hashes y los 18 coinciden con los archivos. Sigue habiendo 8 `supuestos` y 9 `supuestos_resueltos` |
+
+### 8.2 Verificaciones
+
+| # | Comando | Resultado |
+|:-:|---|---|
+| y1 | `render_templates.py --spec EXP/insumos/source-spec-validation.yaml --out <scratchpad>/aud-val/gen4` + `diff -r EXP/propuestas/validation <scratchpad>/aud-val/gen4` | rc 0; `diff` sin diferencias: **reproducible** |
+| y2 | Hashes de `manifest.json` | 18/18 OK; 8 abiertos y 9 resueltos |
+| y3 | `prevalidar_archivo.py` sobre la muestra (`--hoy 2026-11-24`) | 20 validados, 1 filtrado, 1 sev. 1 (`SISBEN_ERR_016`), 0 duplicados, RQS 0.95, `ACEPTARIA` 19: **igual a spec §15** |
+| y4 | `prevalidar_archivo.py` sobre el fixture (`--lookups` de la propuesta, `--hoy 2026-02-05`) | Nombre válido, 23 validados, 3 filtrados, 2 duplicados, 14 códigos, RQS 0.565217: **igual a la ronda §7 (x4)** |
+| y5 | Filas idénticas sin número (`<scratchpad>/aud-val/casos5/`) | Las dos con `ERR_015` y **ninguna** marcada como duplicado (en §7 x6 una salía duplicada): AUD-V-27 cerrado también en la réplica |
+| y6 | La muestra convertida a CRLF (`<scratchpad>/aud-val/casos6/`) | Header válido, 20 validados, `SISBEN_ERR_016` x1, RQS 0.95: el mismo resultado que con LF |
+| y7 | `PYTHONPATH=<scratchpad>/py verificar_hocon.py --generado EXP/propuestas/validation --fuente sisben …` | `HOCON OK` (el HOCON no cambió) |
+| y8 | `PYTHONDONTWRITEBYTECODE=1 … python3 -m pytest scripts/tests -q -p no:cacheprovider` | **227 passed** (antes 216) |
+
+### 8.3 Dictamen sobre la clave con UUID (observación del generador)
+
+**No es un problema. No hay hallazgo de corrección, solo una nota informativa (AUD-V-31).** Razones:
+
+1. **Duplicados en el motor.** El motor calcula `keys` una sola vez por evento, al crearlo (`Validator.scala:202,208-210`, `keysForDuplicate(...).mkString(":")`), lo guarda en `TaggedValidatedEvent.keys` y agrupa por ese campo ya guardado (`SparkValidator.scala:686-705`). Para un registro sin tipo o sin número solo hace falta que la clave sea **única**, no estable. Si Spark recalcula una partición (reintento, especulación o desalojo de caché), vuelve a generar el evento completo con otra clave igualmente única, así que el registro sigue sin agruparse en cualquier cálculo. El resultado (sin marca `OxygenDuplicate`) no cambia.
+2. **Reproducibilidad de la salida.** La salida de Validation ya no se puede reproducir byte a byte: `eventId` sale de `IdGenerator.nextEventId`, que usa el reloj, la partición y una secuencia (`Validator.scala:178`). El UUID agrega otro campo variable, y solo en registros que además tienen ERR_015 o ERR_014 y por eso no pasan Acceptance. Para comparar dos corridas hay que excluir `eventId` (y ahora `keys`) o comparar por `lineage.recordHash`, igual que antes.
+3. **Reproceso y etapas siguientes.** Fuera de los motores de Validation, nadie lee `keys`: `grep` de `.keys` en `oxygen-acceptance`, `oxygen-curation` y `oxygen-validation` solo encuentra la deduplicación de `SparkValidator`/`SparkValidatorCustomMode`. Acceptance decide con códigos y niveles (RQ-04), y el reproceso de un archivo vuelve a validar desde la fuente.
+4. **No hay una alternativa determinística mejor dentro del contrato.** `keysForDuplicate(rawRecord: ValidatedEvent)` (`ValidationProcessor.scala:44`) no recibe `eventId` (se genera fuera del processor) ni el número de línea (la lectura con `textFile` no da índice). `lineage.recordHash` es el SHA-1 de la línea y se repite en filas idénticas, que es justo el caso de AUD-V-27. Un contador por partición depende del particionado, así que tampoco sería reproducible entre corridas.
+
+### 8.4 Hallazgos nuevos
+
+| ID | Artefacto | Clasificación | Sev. | Evidencia | Corrección sugerida |
+|---|---|---|:-:|---|---|
+| AUD-V-30 | AUD-V-29 (rectificación) | — (rectificación del auditor) | P2 (informativo) | En AUD-V-29 dije que Spark `textFile` deja el `\r`. No es así: SISBEN no declara `encoding`, así que se lee con `appContext.sc.textFile` (`SparkValidator.scala:507`), y el `LineRecordReader` de Hadoop reconoce CR, LF y CRLF como fin de línea. El `\r` solo llega en la ruta con `encoding`, que lee con `binaryFiles(...)` y `split("\n")` (`:500-503`); así lo describe bien el comentario de HF-18. HF-18 es correcto y no sobra: protege la otra ruta y la réplica Python. El riesgo real de AUD-V-29 para SISBEN era nulo | Ninguna en el código. Que la bitácora registre la rectificación |
+| AUD-V-31 | ART-012 (`claveDuplicado`) | framework (documentación) | P2 (informativo) | §8.3: `keys` de los eventos `SIN_CLAVE` cambia en cada corrida (`FieldValidators.scala:298-301`), como `eventId` | En `references/interpretar-salida.md` (comparación de corridas), decir que `eventId` y `keys` no se pueden reproducir y que se compara por `lineage.recordHash` |
+
+Quedan abiertos, sin cambios: PA-003, PA-004 y PA-005 (AUD-V-04, -07 y -18), F-01 (RG-006) y la confirmación pendiente en oxygen-core de AUD-V-01 y AUD-V-06.

@@ -31,6 +31,7 @@ acordada: se registran, se corrigen con su prueba de regresión (commit aparte e
 | HF-24 (AUD-A-08..10) | acceptance | P2. El simulador no compara con lo esperado; comentario inexacto del reasonCode en la plantilla del Spec | §2 | Corrector 1.9.5 | 6cdd122 |
 | HF-25 (Orquestador) | validation | P2. No hay procedimiento para regenerar artefactos de una etapa ya aprobada cuando se corrige la skill (HF-16..18 cambian código aprobado de Validation) | 03 §3c solo cubre insumos; regla 7e | `references/03` §3d: regenerar, re-auditar por diferencia, nueva aprobación tipo artefacto | 6cdd122 |
 | HF-26 (analista, Acceptance v2) | acceptance | P2. El esquema del fixture de Acceptance no admite `validatedRecordJson: null`, que es lo que emite Validation en los eventos marcador (`SparkValidator.scala:303`) | `edf-acceptance/assets/schema/source-spec.schema.yaml` (`validatedRecordJson: {type: string}`) | Lote de cierre | pendiente |
+| HF-27 (AUD-V-31) | validation | P2 (documentación). Para comparar corridas hay que excluir `eventId` y `keys` (UUID de registros sin tipo/número) y comparar por `lineage.recordHash` | `auditorias/validation.md` §8 | Lote de cierre: documentar en `interpretar-salida.md` | pendiente |
 | HC-04 (AUD-A-11) | — | Herramienta de la corrida: `etapa --agregar-riesgo` duplicaba RG-015 | Corregido en `orquestador_e2e.py` (BIT-0063) | — |
 
 Hallazgos de la spec (no del framework; se dejan para la próxima versión de la spec, no se corrigen en la corrida):
