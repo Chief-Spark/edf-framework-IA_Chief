@@ -681,3 +681,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
+
+## INT-086 · Analista (edf-analisis) · ajustes §3d-bis · `acceptance`
+
+- **Cuándo:** 2026-11-25T06:35:52-05:00
+- **Pedido:** ART-020 (ruta_otra_fuente, cabecera sin estado), ART-030 y ART-034 (citas a EventPinner) por §3d-bis, con evidencia (a)-(d).
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
