@@ -3,7 +3,7 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:13:27-05:00",
+    "actualizado_en": "2026-11-24T22:13:57-05:00",
     "vista_md_regenerada_en": "2026-11-24T22:13:27-05:00"
   },
   "ingesta": {
@@ -717,7 +717,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Analista (INT-056): YAML parsea con todas las secciones; sin estado; 34 nombres = ART-032; verificar-claves coherente; vista previa del GDD ARTEFACTOS OK",
+            "reportada_por": "Analista (INT-056): YAML parsea con todas las secciones; sin estado; los 34 campos coinciden con ART-032; verificar-claves coherente; vista previa del GDD ARTEFACTOS OK",
             "reportada_en": "2026-11-25"
           }
         },
@@ -1800,8 +1800,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0147",
-    "eventos_totales": 147,
+    "ultimo_evento": "BIT-0148",
+    "eventos_totales": 148,
     "append_only": true,
     "retencion_meses": 24
   }

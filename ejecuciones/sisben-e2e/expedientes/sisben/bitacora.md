@@ -2517,3 +2517,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0148 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Texto de prevalidación de ART-060 reescrito: la heurística anti-PII del validador (regla 6) leyó «nombres = ART-032» como un nombre de persona (falso positivo; HC-05) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:13:57-05:00 |
+| **Por qué** | Regla 6 del validador |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | ART-060 |
+| **Trazabilidad** | R4 |
+| **Corrige** | — |
+
+---
