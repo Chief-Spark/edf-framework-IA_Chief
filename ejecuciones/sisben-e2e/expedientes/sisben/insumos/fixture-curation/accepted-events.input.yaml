@@ -1,0 +1,128 @@
+# FIXTURE SINTÉTICO de Curation · ingesta `sisben` (insumo de `edf-analisis`, ART-030). Ningún dato corresponde a una
+# persona real: nombres inventados, documentos con prefijo 1000000 y códigos DIVIPOLA públicos del DANE.
+# Eventos TaggedValidatedEvent ya ACEPTADOS (salida de Acceptance). validatedRecordJson lleva el valor CRUDO de cada campo
+# (Validation aprobada, AUD-V-05: SISBENValidatedEvent.comoMapa con Campos.crudo). El generador combina base_registro con
+# el `registro` de cada evento.
+# Casos: HU §5.3 (escenarios de Curation), spec §10.1, §10.2, §10.4; riesgos RG-005 y RG-007.
+
+# Registro base: el registro_base del fixture de Validation (Anexo A), sintético.
+base_registro:
+  ID_FICHA_ORIGEN: "0900000101"
+  ID_HOGAR: "1"
+  COD_DPTO: "05"
+  NOM_DPTO: "ANTIOQUIA"
+  COD_MPIO: "05001"
+  NOM_MPIO: "MEDELLIN"
+  ID_CLASE: "1"
+  ID_PERSONA_ORDEN: "1"
+  ID_NACIONAL: "9300000101"
+  PRI_APELLIDO: "PRUEBAUNO"
+  SEG_APELLIDO: "APELLIDOUNO"
+  PRI_NOMBRE: "NOMBREUNO"
+  SEG_NOMBRE: "SEGUNDOUNO"
+  TIP_DOCUMENTO: "3"
+  NUM_DOCUMENTO: "1000000101"
+  ID_GRUPO: "A"
+  ID_NIVEL: "1"
+  FECHA_DIGITACION: "15/11/2025"
+  FECHA_ACTUALIZACION_PERSONA: "20/12/2025"
+  ID_MARCA: "0"
+  ID_ESTADO: "0"
+  FECHA_ACTUALIZACION_CNS: "10/01/2026"
+
+eventos:
+  - id: cur-0001
+    caso: "Base válida. HU §5.3 «Homologación» (3 -> standardizedIdType 1, tipoDocumentoSisben 3), «Fechas a epoch» (10/01/2026 -> 1768021200000), «Fecha de corte y tipo de archivo» (fechaCorte 1769835600000, tipoArchivo REGULAR); subscriberRelation 1_1000000101 (spec §10.1); idFichaOrigen conserva el cero inicial"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {}
+    errores: []
+
+  - id: cur-0002
+    caso: "HU §5.3 «Estandarización de nombres»: García-López -> GARCIA LOPEZ, josé -> JOSE (spec §10.2)"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {PRI_APELLIDO: "García-López", PRI_NOMBRE: "josé", NUM_DOCUMENTO: "1000000102"}
+    errores: []
+
+  - id: cur-0003
+    caso: "HU §5.3 «Nombre completo estandarizado»: ANA, seg_nombre vacío, PEÑA, RUIZ -> standardizedIdName ANA PEÑA RUIZ (conserva Ñ)"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {PRI_NOMBRE: "ANA", SEG_NOMBRE: "", PRI_APELLIDO: "PEÑA", SEG_APELLIDO: "RUIZ", NUM_DOCUMENTO: "1000000103"}
+    errores: []
+
+  - id: cur-0004
+    caso: "HU §5.3 «Número de documento estandarizado»: ' 0001000000101' -> standardizedIdNumber 1000000101. La HU espera numeroDocumentoOriginal ' 0001000000101' (con el espacio); la transformación `original` del framework recorta espacios (ver cabecera del source-spec)"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {NUM_DOCUMENTO: " 0001000000101"}
+    errores: []
+
+  - id: cur-0005
+    caso: "HU §5.3 «Nombre que queda vacío al estandarizar»: pri_apellido '!!!' -> primerApellido nulo y primerApellido:NO_NORMALIZABLE; el registro sigue (spec §10.2 regla 5)"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {PRI_APELLIDO: "!!!", NUM_DOCUMENTO: "1000000105"}
+    errores: []
+
+  - id: cur-0006
+    caso: "HU §5.3 «Campo con inconsistencia de severidad 3»: marca N con SISBEN_INC_020 -> idMarca nulo e idMarca:FORMATO_INVALIDO; seg_apellido Ruíz -> RUIZ; todas las claves de §10.1. PRECONDICIÓN INYECTADA (RG-005): Validation no emite SISBEN_INC_011 para 'Ruíz' (spec §3.1); el código se declara aquí como entrada"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {ID_MARCA: "N", SEG_APELLIDO: "Ruíz", NUM_DOCUMENTO: "1000000106"}
+    errores:
+      - {codigo: SISBEN_INC_020, nivel: "3"}
+      - {codigo: SISBEN_INC_011, nivel: "3"}
+
+  - id: cur-0007
+    caso: "Spec §10.4 regla 1 (ejemplo alcanzable de RG-005): seg_apellido de 31 caracteres con SISBEN_INC_011 se publica estandarizado"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {SEG_APELLIDO: "Sintéticoapellidomuylargoxxxxxx", NUM_DOCUMENTO: "1000000107"}
+    errores:
+      - {codigo: SISBEN_INC_011, nivel: "3"}
+
+  - id: cur-0008
+    caso: "RG-007: Fec_digitacion futura con formato válido (SISBEN_INC_018) se publica como epoch (spec §10.4 regla 1)"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {FECHA_DIGITACION: "01/01/2099", NUM_DOCUMENTO: "1000000108"}
+    errores:
+      - {codigo: SISBEN_INC_018, nivel: "3"}
+
+  - id: cur-0009
+    caso: "Spec §10.4 regla 2: Fec_digitacion inválida (SISBEN_INC_018) y fec_actualizacion_persona inválida (SISBEN_INC_019) -> nulas con FORMATO_INVALIDO"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {FECHA_DIGITACION: "31/02/2025", FECHA_ACTUALIZACION_PERSONA: "2025/12/20", NUM_DOCUMENTO: "1000000109"}
+    errores:
+      - {codigo: SISBEN_INC_018, nivel: "3"}
+      - {codigo: SISBEN_INC_019, nivel: "3"}
+
+  - id: cur-0010
+    caso: "HU R-05: fechas en yyyy-MM-dd dan el mismo epoch que en dd/MM/yyyy"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {FECHA_DIGITACION: "2025-11-15", FECHA_ACTUALIZACION_PERSONA: "2025-12-20", FECHA_ACTUALIZACION_CNS: "2026-01-10", NUM_DOCUMENTO: "1000000110"}
+    errores: []
+
+  - id: cur-0011
+    caso: "PPT -> 11; el número pierde los ceros a la izquierda como cualquier tipo (spec §10.1, sin excepción por tipo)"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {TIP_DOCUMENTO: "PPT", NUM_DOCUMENTO: "0001000000111"}
+    errores: []
+
+  - id: cur-0012
+    caso: "Pasaporte (6 -> 5) alfanumérico en minúsculas -> mayúsculas (spec §10.1)"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {TIP_DOCUMENTO: "6", NUM_DOCUMENTO: "pa1000112"}
+    errores: []
+
+  - id: cur-0013
+    caso: "HU R-09: identificadores de 20 dígitos se publican como texto, sin convertir"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {ID_HOGAR: "12345678901234567890", ID_PERSONA_ORDEN: "98765432109876543210", ID_NACIONAL: "11111111112222222222", NUM_DOCUMENTO: "1000000113"}
+    errores: []
+
+  - id: cur-0014
+    caso: "Extensión TXT en mayúsculas (spec §2): se procesa"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.TXT
+    registro: {NUM_DOCUMENTO: "1000000114"}
+    errores: []
+
+  - id: cur-0015
+    caso: "Archivo de otra fuente: fuera del filePattern, el motor no encuentra processor y lo descarta (CUR-AP02)"
+    archivo: OTRA_FUENTE_202601.20260205093000-0500.txt
+    registro: {NUM_DOCUMENTO: "1000000115"}
+    errores: []

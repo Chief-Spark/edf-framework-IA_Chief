@@ -262,6 +262,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:17:53-05:00
 - **Pedido:** Auditar ART-021..023 y los 4 posibles defectos del generador.
+- **Respuesta:** APROBADO ART-021..023 (sin P0/P1). Reproducible (diff -r vacío); render --audit sin avisos; hocon_check OK con pyhocon real; sin 0.95/0.94 en .conf; simulador 9/9 + 2/2; muestra 19; suite 147; el Spec toma el umbral de la configuración. Los 4 posibles defectos son reales (P2 framework). Nuevos P2: AUD-A-16 (AcceptanceCondition con 4 argumentos frente a 5 del motor), AUD-A-17 (el Spec no prueba el filePattern), AUD-A-18 (hashes se registran al aprobar; PA-006 resuelta sigue listada en la etapa).
+- **Decisión:** Registrar HF-29..33 (lote de cierre). Pedir al aprobador ART-021..023 y la etapa acceptance con evidencia diferida.
+- **Bitácora:** —
+
+## INT-034 · Aprobador simulado SIM-DEV-01 · `acceptance`
+
+- **Cuándo:** 2026-11-24T19:21:56-05:00
+- **Pedido:** Aprobar ART-021..023 y la etapa acceptance con evidencia diferida.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

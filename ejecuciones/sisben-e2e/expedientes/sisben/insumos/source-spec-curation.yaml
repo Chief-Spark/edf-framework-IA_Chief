@@ -1,0 +1,274 @@
+# Insumo de la etapa Curation (`edf-curation`, curation_flow y curation_stock) · ingesta `sisben` · producido por
+# `edf-analisis` (Modo 2, tipo T2). ART-030.
+# Versión 1 · 2026-11-25 · Estado: PROPUESTO (pendiente de aprobación registrada por `edf-orquestador`).
+# BORRADOR respecto de la habilitación: `edf-curation` no genera hasta que Acceptance esté aprobada con transición
+# habilitada y este insumo figure como aprobado (edf-curation SKILL.md, Paso 0).
+# Esquema: .kiro/skills/edf-curation/assets/schema/source-spec.schema.yaml (framework 1.9.6). El ejemplo SISBEN de la
+# skill es solo forma: ningún valor de negocio se copió de él (edf-analisis SKILL.md Modo 2 paso 1; edf-curation SKILL.md
+# §2). Difiere del ejemplo en casi todo (sin RT/EP, política de severidad 3, documento sin excepciones por tipo, nombres
+# de catálogo y columnas, zona de fechas, campos abiertos).
+#
+# Fuentes: fuentes/hu-sisben.md 1.0.2 (R-05, R-08, R-09, R-23, R-24, §5.3, §6 fila Curation) y fuentes/spec-sisben.md
+# 1.0.2 (§1, §2, §9.4, §10.1 a §10.4, §11). La spec NO trae un anexo con el contenido de este insumo: no hay líneas «que
+# se aparten de un anexo». La tabla §10.1 es la lista completa de campos curados: este insumo la sigue fila por fila, en
+# su orden y con sus nombres literales (los citan Pinning, Synthesis y State Calculation).
+# Contrato de entrada: insumos/source-spec-validation.yaml v2 (nombres de dominio y códigos) y la Validation aprobada
+# (APR-008), que conserva el valor CRUDO de cada campo en validatedRecordJson (AUD-V-05; SISBENValidatedEvent.comoMapa,
+# Campos.crudo). Acceptance: insumos/source-spec-acceptance.yaml v3 (solo pasan registros sin sev. 1 ni OxygenDuplicate).
+#
+# Marcadores (steering 05): [C] confirmado por la fuente · [P] patrón / decisión registrada · [PM] propuesta del modelo o
+# convención del framework, sin fuente de la ingesta.
+#   [C]  identidad y event type (spec §1); filePattern (spec §2); campos de entrada y códigos (Anexo A); homologación y
+#        catálogo 202 (spec §9.4); 34 campos curados con nombre, tipo y transformación (spec §10.1); estandarización de
+#        nombres con Ñ (spec §10.2; HU R-23); fechas a epoch ms del inicio del día en America/Bogota (HU R-23; spec
+#        §10.1; HU §5.3: 1768021200000 y 1769835600000); formatos dd/MM/yyyy y yyyy-MM-dd (HU R-05); política de
+#        severidad 3: niveles_no_almacenar [] y niveles_anular [] (spec §10.4, literal); advertencias
+#        `<campo curado>:<MOTIVO>` en advertenciasCuracion (spec 1.0.2 §10.1); subscriberRelation =
+#        <standardizedIdType>_<standardizedIdNumber> (spec §10.1); sin RT/EP (spec §10.3; HU §2).
+#   [PM] paquetes, nombre del processor y rutas_destino (convención de la skill); registrar el catálogo 202 en el
+#        oxygen.lookups[] de Curation (edf-curation SKILL.md:108-109); omitir_si_nulas (ver abajo).
+# Diferencias con la letra de la spec que el analista NO resuelve (se entregan al Orquestador):
+#   1. numeroDocumentoOriginal / tipoDocumentoSisben («Valor original», spec §10.1; HU §5.3 espera
+#      numeroDocumentoOriginal = " 0001000000101"). La transformación `original` del framework recorta los espacios
+#      (CurationProcessor.scala.tpl:137 -> Transformaciones.texto; curation_reference.py, `texto`): publicará
+#      "0001000000101". Defecto del framework; el fixture cur-0004 lo deja visible.
+#   2. omitir_si_nulas: se declaran las tres claves standardizedId* (steering 11 §3: una clave de identidad nula rompe el
+#      matcher; ausente, nunca null). La spec §10.1 dice que standardizedIdName sale «nulo si todos faltan» y §10.4
+#      regla 3 que ninguna clave se omite por severidad 3. Solo difiere cuando los cuatro nombres quedan nulos (p. ej.
+#      pri_apellido y pri_nombre «!!!»); propuesta de riesgo, no de pregunta (deteccion-ambiguedades.md §7: regla que el
+#      steering ya fija).
+# Riesgos del expediente que toca: RG-005 (fixture cur-0006 declara SISBEN_INC_011 como precondición inyectada; cur-0007
+# usa el ejemplo alcanzable de spec §10.4), RG-007 (cur-0008: Fec_digitacion futura se publica), RG-008 (ide_hogar e
+# ide_ficha_origen públicos, spec §10.1), RG-016 (mitigado: Validation ya no deja \r en FECHA_ACTUALIZACION_CNS; no se
+# agrega lógica aquí).
+# Sin preguntas abiertas nuevas: la spec §10 responde todas las dimensiones de Curation.
+# DATOS SINTÉTICOS: el fixture (fixture-curation/) es inventado; los códigos DIVIPOLA son los públicos del DANE.
+
+schema_version: "1.0"
+
+meta:
+  version_skill: "0.1.0"
+  etapa: curation
+  framework: EDF/Oxygen
+  compilacion: no_certificada                  # F-01: sin JAR del framework
+
+fuente:                                        # [C] spec §1
+  Fuente: SISBEN
+  fuente: sisben
+  descripcion: Base SISBEN IV que entrega el DNP (carga completa mensual)
+  datasource: DNP
+  subscriber: "999722"
+  output_event_type: 30
+  output_event_type_estado: cerrado
+
+paquetes:                                      # [PM] convención de la skill (fork de Colombia)
+  fuente: com.experian.edf.oxygen.curation.source.sisben
+  compartido: com.experian.edf.oxygen.curation.source.common
+  compartido_estado: propuesta_de_frontera
+
+processor:                                     # [PM]
+  nombre_clase: SISBENCurationProcessor
+
+archivo:
+  convencion: "SISBEN_EXPERIAN_AAAAMM.yyyyMMddHHmmss±ZZZZ.txt (extensión txt o TXT); sin prefijos RT_/EP_"
+  estado: cerrado
+  # [C] spec §2. El motor compara la ruta del dataset sin su última extensión (quita el .<datasetId>) y cada evento por
+  # lineage.fileName, que conserva .txt (edf-curation/references/dsl-config-reference.md:30-34).
+  file_pattern: '.*SISBEN_EXPERIAN_\d{6}\.\d{14}[+-]\d{4}\.(txt|TXT)'
+  # Grupo 1 = prefijo (siempre vacío), grupo 2 = AAAAMM (spec §2: fecha de corte = último día del periodo).
+  regex_derivacion: '()SISBEN_EXPERIAN_(\d{6})\.\d{14}[+-]\d{4}'
+  tipo_por_prefijo:
+    "": REGULAR                                # [C] spec §2: siempre REGULAR
+  ejemplos_sinteticos:
+    - SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    - SISBEN_EXPERIAN_202601.20260205093000-0500.TXT
+  contraejemplos_sinteticos:
+    - SISBEN_EXPERIAN_202601.txt                       # sin marca de tiempo (PA-003: no llega a Curation)
+    - SISBEN_EXPERIAN_202601.20260205093000-0500       # sin extensión: lineage.fileName la conserva
+    - OTRA_FUENTE_202601.20260205093000-0500.txt
+
+parametros:
+  zona_horaria_fechas: America/Bogota          # [C] HU R-23; spec §10.1 («inicio del día en Bogotá»); HU §5.3 (epoch)
+  zona_horaria_fechas_origen: requisito
+  zona_asofdate_etapa_anterior: America/Bogota # [C] Validation calcula asOfDate en America/Bogota (spec §1; Anexo A)
+  formatos_fecha:                              # [C] HU R-05: solo yyyy-MM-dd o dd/MM/yyyy
+    - "dd/MM/uuuu"
+    - "uuuu-MM-dd"
+  conservar_enie: true                         # [C] spec §10.2 regla 2; HU R-23; HU §5.3 («ANA PEÑA RUIZ»)
+  niveles_no_almacenar: []                     # [C] spec §10.4 (configuración literal)
+  niveles_anular: []                           # [C] spec §10.4 (configuración literal)
+  campo_advertencias: advertenciasCuracion     # [C] spec §10.1
+  # [PM] steering 11 §3 (claves de identidad ausentes, nunca null). Ver la diferencia 2 de la cabecera.
+  omitir_si_nulas: [standardizedIdType, standardizedIdNumber, standardizedIdName]
+
+# [C] Nombres de dominio de Validation (insumos/source-spec-validation.yaml, campos[].nombre; spec §3), en el orden del layout.
+campos_entrada:
+  - ID_FICHA_ORIGEN
+  - ID_HOGAR
+  - COD_DPTO
+  - NOM_DPTO
+  - COD_MPIO
+  - NOM_MPIO
+  - ID_CLASE
+  - ID_PERSONA_ORDEN
+  - ID_NACIONAL
+  - PRI_APELLIDO
+  - SEG_APELLIDO
+  - PRI_NOMBRE
+  - SEG_NOMBRE
+  - TIP_DOCUMENTO
+  - NUM_DOCUMENTO
+  - ID_GRUPO
+  - ID_NIVEL
+  - FECHA_DIGITACION
+  - FECHA_ACTUALIZACION_PERSONA
+  - ID_MARCA
+  - ID_ESTADO
+  - FECHA_ACTUALIZACION_CNS
+
+# [C] Código de Validation -> campo (Anexo A, campos[].codigo; RV-SIS-04 y RV-SIS-05). Con niveles_no_almacenar y
+# niveles_anular vacíos, la tabla solo sirve para advertir un nivel desconocido (AUD-C7). Los códigos de archivo
+# (ERR_024 a ERR_027) y ERR_028 (regla entre campos) no apuntan a un campo; un registro con sev. 1 no llega a Curation.
+codigos_error:
+  SISBEN_INC_001: ID_FICHA_ORIGEN
+  SISBEN_INC_002: ID_HOGAR
+  SISBEN_ERR_003: COD_DPTO
+  SISBEN_ERR_004: NOM_DPTO
+  SISBEN_ERR_005: COD_MPIO
+  SISBEN_ERR_006: NOM_MPIO
+  SISBEN_ERR_007: ID_CLASE
+  SISBEN_INC_008: ID_PERSONA_ORDEN
+  SISBEN_INC_009: ID_NACIONAL
+  SISBEN_ERR_010: PRI_APELLIDO
+  SISBEN_INC_011: SEG_APELLIDO
+  SISBEN_ERR_012: PRI_NOMBRE
+  SISBEN_INC_013: SEG_NOMBRE
+  SISBEN_ERR_014: TIP_DOCUMENTO
+  SISBEN_ERR_015: NUM_DOCUMENTO
+  SISBEN_ERR_016: ID_GRUPO
+  SISBEN_ERR_017: ID_NIVEL
+  SISBEN_INC_018: FECHA_DIGITACION
+  SISBEN_INC_019: FECHA_ACTUALIZACION_PERSONA
+  SISBEN_INC_020: ID_MARCA
+  SISBEN_ERR_021: ID_ESTADO
+  SISBEN_ERR_022: FECHA_ACTUALIZACION_CNS
+  SISBEN_ERR_023: TIP_DOCUMENTO
+  SISBEN_ERR_029: NUM_DOCUMENTO
+
+# [C] spec §9.4 (contenido completo) y §10.1 (tipoDocumento = cod_experian).
+homologacion_tipo_documento:
+  campo_origen: TIP_DOCUMENTO
+  estado: cerrado
+  catalogo:
+    tabla: 202_SISBEN_PROCESS_ID_TYPE_HO
+    columna_clave: cod_sisben
+    columna_valor: cod_experian
+  tabla:
+    "1": "10"
+    "2": "7"
+    "3": "1"
+    "4": "4"
+    "5": "8"
+    "6": "5"
+    "8": "9"
+    "PPT": "11"
+  pendientes: ["7"]                            # salvoconducto: cod_experian vacío (spec §9.4; HU R-17); no llega aceptado (ERR_023)
+  descripciones:                               # spec §9.4 (para el CSV sintético que escribe el generador)
+    "1": REGISTRO CIVIL
+    "2": TARJETA DE IDENTIDAD
+    "3": CEDULA DE CIUDADANIA
+    "4": CEDULA DE EXTRANJERIA
+    "5": DNI PAIS DE ORIGEN
+    "6": PASAPORTE
+    "8": PERMISO ESPECIAL DE PERMANENCIA
+    "PPT": PERMISO DE PROTECCION TEMPORAL
+
+# [C] spec §10.1: numeroDocumento = mayúsculas, sin espacios, sin ceros a la izquierda, para todos los tipos (la spec no
+# hace excepciones; DA-13 de la skill: se eliminan los ceros).
+reglas_documento:
+  campo_tipo: TIP_DOCUMENTO
+  estado: cerrado
+  por_defecto:
+    quitar_ceros_izquierda: true
+    solo_digitos: false
+    conservar_original: false
+    padding: null
+  por_tipo: {}
+
+# [C] spec §9.4 (nombre, columnas, llave, delimitador; archivo como en insumos/source-spec-validation.yaml).
+# Curation solo usa la homologación; los otros cinco catálogos de §9 los consulta Validation.
+catalogos:
+  - tabla: 202_SISBEN_PROCESS_ID_TYPE_HO
+    archivo: 202_SISBEN_PROCESS_ID_TYPE_HO.csv
+    delimitador: ";"
+    columnas: [cod_sisben, cod_experian, descripcion]
+    claves: [cod_sisben]
+    uso_curation: homologar
+    registrar_en_curation: true                # [PM] edf-curation SKILL.md:108-109
+
+# [C] spec §10.1, fila por fila y en su orden. Tipos: texto | entero | largo. "Ninguna" = texto (solo recorte);
+# "Valor original" = original (ver diferencia 1 de la cabecera).
+campos_curados:
+  - {destino: idFichaOrigen, origen: ID_FICHA_ORIGEN, transformacion: {tipo: texto}, tipo_salida: texto, estado: cerrado}
+  - {destino: idHogar, origen: ID_HOGAR, transformacion: {tipo: texto}, tipo_salida: texto, estado: cerrado}
+  - {destino: codDepartamentoSisben, origen: COD_DPTO, transformacion: {tipo: texto}, tipo_salida: texto, estado: cerrado}
+  - {destino: nomDepartamento, origen: NOM_DPTO, transformacion: {tipo: nombre}, tipo_salida: texto, estado: cerrado}
+  - {destino: codMunicipioSisben, origen: COD_MPIO, transformacion: {tipo: texto}, tipo_salida: texto, estado: cerrado}
+  - {destino: nomMunicipio, origen: NOM_MPIO, transformacion: {tipo: nombre}, tipo_salida: texto, estado: cerrado}
+  - {destino: idClase, origen: ID_CLASE, transformacion: {tipo: texto}, tipo_salida: entero, estado: cerrado}
+  - {destino: idPersonaOrden, origen: ID_PERSONA_ORDEN, transformacion: {tipo: texto}, tipo_salida: texto, estado: cerrado}
+  - {destino: idNacional, origen: ID_NACIONAL, transformacion: {tipo: texto}, tipo_salida: texto, estado: cerrado}
+  - {destino: primerApellido, origen: PRI_APELLIDO, transformacion: {tipo: nombre}, tipo_salida: texto, estado: cerrado}
+  - {destino: segundoApellido, origen: SEG_APELLIDO, transformacion: {tipo: nombre}, tipo_salida: texto, estado: cerrado}
+  - {destino: primerNombre, origen: PRI_NOMBRE, transformacion: {tipo: nombre}, tipo_salida: texto, estado: cerrado}
+  - {destino: segundoNombre, origen: SEG_NOMBRE, transformacion: {tipo: nombre}, tipo_salida: texto, estado: cerrado}
+  - {destino: tipoDocumento, origen: TIP_DOCUMENTO, transformacion: {tipo: homologacion}, tipo_salida: entero, estado: cerrado}
+  - {destino: tipoDocumentoSisben, origen: TIP_DOCUMENTO, transformacion: {tipo: original}, tipo_salida: texto, estado: cerrado}
+  - {destino: numeroDocumento, origen: NUM_DOCUMENTO, transformacion: {tipo: documento}, tipo_salida: texto, estado: cerrado}
+  - {destino: numeroDocumentoOriginal, origen: NUM_DOCUMENTO, transformacion: {tipo: original}, tipo_salida: texto, estado: cerrado}
+  - {destino: grupoSisben, origen: ID_GRUPO, transformacion: {tipo: texto}, tipo_salida: texto, estado: cerrado}
+  - {destino: nivelSisben, origen: ID_NIVEL, transformacion: {tipo: texto}, tipo_salida: entero, estado: cerrado}
+  - {destino: fechaDigitacion, origen: FECHA_DIGITACION, transformacion: {tipo: fecha_epoch}, tipo_salida: largo, estado: cerrado}
+  # HU R-08 («se toma como llega») leída junto con spec §10.1 (epoch ms): mapeo-campos.md fila 19.
+  - {destino: fechaActualizacionPersona, origen: FECHA_ACTUALIZACION_PERSONA, transformacion: {tipo: fecha_epoch}, tipo_salida: largo, estado: cerrado}
+  - {destino: idMarca, origen: ID_MARCA, transformacion: {tipo: texto}, tipo_salida: entero, estado: cerrado}
+  - {destino: idEstado, origen: ID_ESTADO, transformacion: {tipo: texto}, tipo_salida: entero, estado: cerrado}
+  - {destino: fechaActualizacionCns, origen: FECHA_ACTUALIZACION_CNS, transformacion: {tipo: fecha_epoch}, tipo_salida: largo, estado: cerrado}
+  - {destino: fechaCorte, origen: "", transformacion: {tipo: desde_archivo, atributo: fecha_corte}, tipo_salida: largo, estado: cerrado}
+  - {destino: tipoArchivo, origen: "", transformacion: {tipo: constante, valor: "REGULAR"}, tipo_salida: texto, estado: cerrado}
+  # Claves de identidad para Pinning (spec §10.1, §11; edf-curation SKILL.md «Claves de identidad para Pinning»).
+  - {destino: standardizedIdType, origen: "", transformacion: {tipo: copia_de, campo: tipoDocumento}, tipo_salida: entero, estado: cerrado}
+  - {destino: standardizedIdNumber, origen: "", transformacion: {tipo: copia_de, campo: numeroDocumento}, tipo_salida: texto, estado: cerrado}
+  - {destino: standardizedIdName, origen: "", transformacion: {tipo: concatenacion, campos: [primerNombre, segundoNombre, primerApellido, segundoApellido], separador: " "}, tipo_salida: texto, estado: cerrado}
+  - {destino: currentPartyType, origen: "", transformacion: {tipo: copia_de, campo: tipoDocumento}, tipo_salida: entero, estado: cerrado}
+  - {destino: currentPartyIdNumber, origen: "", transformacion: {tipo: copia_de, campo: numeroDocumento}, tipo_salida: texto, estado: cerrado}
+  - {destino: subscriberBlockStatus, origen: "", transformacion: {tipo: constante, valor: "NO_BLOQUEADO"}, tipo_salida: texto, estado: cerrado}
+  - {destino: subscriberBlockReason, origen: "", transformacion: {tipo: constante, valor: null}, tipo_salida: texto, estado: cerrado}
+  # advertenciasCuracion (lista de texto, spec §10.1) es parametros.campo_advertencias: no va en campos_curados.
+
+# Ninguno: spec §10.1 es la lista completa («no hay campos internos adicionales»).
+campos_abiertos: []
+
+# [C] spec §10.1: subscriberRelation del evento curado = <standardizedIdType>_<standardizedIdNumber> (steering 11 §6 #8,
+# resuelto para SISBEN). Si falta un componente se conserva el aceptado y se advierte subscriberRelation:COMPONENTE_FALTANTE.
+extension_subscriber_relation:
+  estado: cerrado
+  consumido_por_generador: true
+  campos: [standardizedIdType, standardizedIdNumber]
+  separador: "_"
+
+rutas_destino:                                 # [PM] convención de la skill (fork de Colombia de oxygen-curation)
+  raiz_fuente: "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/"
+  raiz_tests: "src/test/scala/com/experian/edf/oxygen/curation/source/sisben/"
+  raiz_compartido: "src/main/scala/com/experian/edf/oxygen/curation/source/common/"
+  raiz_tests_compartido: "src/test/scala/com/experian/edf/oxygen/curation/source/common/"
+  hocon: "env/application-conf/innersource/curation-common-application-inner.conf"
+  lookups_conf: "env/application-conf/innersource/oxygen-lookup-inner.conf"
+  domain_dictionary: "colombia-domain-dictionary-inner.json"
+  test_resources: "src/test/resources/sisben/"
+
+# entrada: relativa a esta carpeta; lookups_dir: relativa a la carpeta de `entrada` (esquema, fixture).
+fixture:
+  entrada: fixture-curation/accepted-events.input.yaml
+  lookups_dir: lookups
+  sintetico: true
