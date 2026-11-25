@@ -44,9 +44,12 @@ object Texto {
 
 object Campos {
   /** split(delimitador, -1) una sola vez; delimitador literal (no regex). Total: fila nula → Array(""),
-    * delimitador nulo o vacío → la fila entera como un solo campo (AUD-V1). */
+    * delimitador nulo o vacío → la fila entera como un solo campo (AUD-V1). Antes de partir quita SOLO el "\r"
+    * final de una línea CRLF (el motor, al leer con encoding, parte el archivo por "\n" y lo deja), para que no
+    * llegue al último campo de validatedRecordJson; no toca ningún otro espacio (AUD-V-29). */
   def separar(fila: String, delimitador: String): Array[String] = {
-    val texto = Option(fila).getOrElse("")
+    val original = Option(fila).getOrElse("")
+    val texto = if (original.endsWith("\r")) original.dropRight(1) else original
     Option(delimitador).filter(_.nonEmpty).map(d => texto.split(Pattern.quote(d), -1)).getOrElse(Array(texto))
   }
 
@@ -280,16 +283,22 @@ object RecordValidator {
   }
 
   /** Clave de duplicado: valores normalizados de los campos clave. Nunca devuelve un arreglo vacío (VAL-AP03).
-    * RESUELTO VAL-SP03 (spec-sisben.md §6 (un registro sin tipo o sin número no se agrupa)): si algún campo de la clave está vacío, la clave se vuelve única por contenido de la fila
-    * para no agrupar como duplicados registros que solo comparten la ausencia de documento. */
-  def claveDuplicado(spec: SourceSpec, valores: Array[String]): Array[Any] = {
+    * RESUELTO VAL-SP03 (spec-sisben.md §6 (un registro sin tipo o sin número no se agrupa)): si algún campo de la clave está vacío (sin tipo o sin número de documento), la clave es
+    * única POR REGISTRO (`unico`), así que nunca se agrupa, ni siquiera con otra fila idéntica. Antes era única por
+    * contenido de la fila (hashCode) y dos filas idénticas sin número se agrupaban (AUD-V-27). */
+  def claveDuplicado(spec: SourceSpec, valores: Array[String], unico: => String): Array[Any] = {
     val partes = spec.duplicados.clave.map { nombre =>
       spec.campo(nombre).map(c => FieldValidators.normalizar(Campos.valor(valores, c.posicion), c.normalizacion))
         .getOrElse("")
     }
-    if (partes.isEmpty || partes.exists(_.isEmpty)) Array[Any]("SIN_CLAVE", valores.mkString("\u0001").hashCode)
+    if (partes.isEmpty || partes.exists(_.isEmpty)) Array[Any]("SIN_CLAVE", unico)
     else partes.toArray[Any]
   }
+
+  /** claveDuplicado con un identificador aleatorio por llamada: el motor la llama una vez por registro
+    * (Validator.dupCheckForKey) y guarda el resultado en `keys`. */
+  def claveDuplicado(spec: SourceSpec, valores: Array[String]): Array[Any] =
+    claveDuplicado(spec, valores, java.util.UUID.randomUUID().toString)
 
   /** As-of-date del registro en epoch ms; None si el campo no es una fecha válida. Total: fila nula o truncada →
     * None. Con None el motor usa la fecha de recepción y marca didCreateAsOfDateFromReceivedDate (AUD-V2). */

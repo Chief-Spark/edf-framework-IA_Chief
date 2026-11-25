@@ -198,14 +198,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:05:04-05:00
 - **Pedido:** Regenerar la propuesta de Validation con el framework 1.9.5 (HF-16..18), mismo insumo v2.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Regenerada con 1.9.5: cambian FieldValidators.scala (HF-18 \r final; HF-16 clave única «SIN_CLAVE»+UUID), FieldValidatorsSpec.scala (3 pruebas), SISBENValidationProcessorSpec.scala (RA-02 aislada con +1400; prueba HF-16) y manifest.json (3 hashes). El resto idéntico. V1-V7 OK (227 con pyhocon); muestra y fixture iguales; muestra en CRLF igual. Observación: el UUID hace que `keys` de registros sin tipo/número cambie en cada ejecución.
+- **Decisión:** Re-auditoría por diferencia (§3d), incluida la observación del UUID.
 - **Bitácora:** —
 
 ## INT-026 · Analista (edf-analisis) · insumo de Acceptance v2 · `acceptance`
 
 - **Cuándo:** 2026-11-24T19:05:04-05:00
 - **Pedido:** ART-020 v2: PA-006 resuelta, umbrales_alternativos, AUD-A-02/03/04/06/07, claves 1.9.5.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-027 · Auditor independiente (validation) · re-auditoría §3d · `validation`
+
+- **Cuándo:** 2026-11-24T19:06:32-05:00
+- **Pedido:** Re-auditar por diferencia la propuesta regenerada con 1.9.5 (4 archivos) y la observación del UUID.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

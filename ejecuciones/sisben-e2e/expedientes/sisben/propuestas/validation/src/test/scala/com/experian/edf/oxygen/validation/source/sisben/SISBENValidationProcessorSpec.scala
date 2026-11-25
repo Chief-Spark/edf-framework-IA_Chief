@@ -266,16 +266,20 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
     assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/OTRO_ARCHIVO.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
   }
 
-  test("nombre de archivo con periodo posterior al mes de referencia produce el código de nombre (periodo_no_futuro)") {
-    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202702.20260205093000-0500.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+  test("nombre de archivo con periodo posterior al mes de referencia (offset adelantado, solo esta regla) produce el código de nombre (periodo_no_futuro)") {
+    val reloj = java.time.LocalDate.of(2026, 2, 28).atTime(23, 59, 59).atZone(java.time.ZoneId.of(spec.zonaHoraria)).toInstant
+    assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202603.20260301000000+1400.txt", reloj).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+    assert(RecordValidator.validarNombre(spec.copy(nombreArchivo = spec.nombreArchivo.copy(periodoNoFuturo = false)), "/ruta/sintetica/SISBEN_EXPERIAN_202603.20260301000000+1400.txt", reloj).isEmpty, "sin la regla el nombre es válido: la prueba la aísla (AUD-V-28)")
   }
 
   test("nombre de archivo con recepción posterior a la fecha de referencia produce el código de nombre (recepcion_no_futura)") {
     assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202601.20260208120000-0500.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+    assert(RecordValidator.validarNombre(spec.copy(nombreArchivo = spec.nombreArchivo.copy(recepcionNoFutura = false)), "/ruta/sintetica/SISBEN_EXPERIAN_202601.20260208120000-0500.txt", ahora).isEmpty, "sin la regla el nombre es válido: la prueba la aísla (AUD-V-28)")
   }
 
   test("nombre de archivo con recepción anterior al primer día del periodo produce el código de nombre (recepcion_desde_inicio_periodo)") {
     assert(RecordValidator.validarNombre(spec, "/ruta/sintetica/SISBEN_EXPERIAN_202601.20251231120000-0500.txt", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo))
+    assert(RecordValidator.validarNombre(spec.copy(nombreArchivo = spec.nombreArchivo.copy(recepcionDesdeInicioPeriodo = false)), "/ruta/sintetica/SISBEN_EXPERIAN_202601.20251231120000-0500.txt", ahora).isEmpty, "sin la regla el nombre es válido: la prueba la aísla (AUD-V-28)")
   }
 
   test("nombres de archivo inválidos declarados en el fixture producen el código de nombre") {
@@ -286,6 +290,16 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
   test("la clave de duplicado nunca es vacía") {
     assert(RecordValidator.claveDuplicado(spec, Campos.separar(linea(RegistroBase), ";")).nonEmpty)
     assert(RecordValidator.claveDuplicado(spec, Campos.separar("", ";")).nonEmpty)
+  }
+
+  test("dos filas idénticas sin un campo de la clave no se agrupan como duplicadas (VAL-SP03, AUD-V-27)") {
+    // El motor agrupa por keys = keysForDuplicate(...).mkString(":") (Validator.dupCheckForKey).
+    def clave(fila: String): String = RecordValidator.claveDuplicado(spec, Campos.separar(fila, ";")).mkString(":")
+    spec.duplicados.clave.flatMap(n => spec.campo(n).toSeq).foreach { c =>
+      val sinCampo = conValor(c.posicion, "")
+      assert(clave(sinCampo) != clave(sinCampo), "sin " + c.nombre + " dos filas idénticas comparten la clave")
+    }
+    if (spec.duplicados.clave.nonEmpty) assert(clave(linea(RegistroBase)) == clave(linea(RegistroBase)))
   }
 
   // Casos del fixture (filtro de filas, reglas entre campos, duplicados), declarados en el source-spec.
