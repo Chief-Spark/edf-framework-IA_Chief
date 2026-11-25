@@ -1752,3 +1752,88 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0103 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-016 (artefacto): Contrato Curation → Pinning 2.0.0 (insumo de curation_flow) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T21:30:57-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] El lado Curation del contrato es fiel a spec §10.1 y §11 y al steering 11 §3 y §4, y lo confirman el motor (EventPinner.scala:64-65, IdentityMatcher.scala:46-49) y la re-auditoría §6. Lo no verificado afecta solo a Pinning y queda en PA-008, bloqueante para pinning. Marcadores ajustados (INT-044): matcher [C] decisión · [PM] verificación en el fork; lector [A:PA-008]; leyenda [PM] como steering 05:48. 09 §5.1 #2 se mide por la etapa_afectada de PA-008 (HF-46, 1.9.7). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-034 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0104 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-017 (transicion): Transición acceptance → curation_flow con evidencia diferida (references/03 §3b paso 3) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T21:30:57-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Se habilita Curation Flow con la evidencia diferida de Acceptance (APR-013, RG-022): la corrida no tiene pipeline. Curation consume el contrato que fija spec RQ-03/RQ-04 (registros aceptados de un archivo aceptado completo), el mismo de la propuesta de Acceptance aprobada (APR-012 y la revisión §3d de ART-023, APR-014). Los insumos ART-030, ART-034 y ART-035 están aprobados con su hash. Ninguna pregunta bloqueante afecta a acceptance ni a curation_flow. Checklist: c1 cumple (APR-013); c2 cumple; c3 cumple (ART-030/034/035 aprobados); c4 cumple (PA-006 resuelta, PA-007 no bloqueante, PA-008 de pinning, PA-002 de state_calculation); c5 cumple por evidencia diferida; c6 cumple. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-030, ART-034, ART-035 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0105 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `acceptance` → estado `aprobada` · transicion_habilitada=True |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:30:58-05:00 |
+| **Por qué** | Transición acceptance→curation_flow habilitada por APR-017 (diferida). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0106 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `curation_flow` → estado `en_progreso` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:30:58-05:00 |
+| **Por qué** | Inicio de Curation Flow tras APR-017; se encarga la generación a edf-curation. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0107 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:30:58-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

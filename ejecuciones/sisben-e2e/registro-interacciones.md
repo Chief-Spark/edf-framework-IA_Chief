@@ -358,6 +358,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:30:34-05:00
 - **Pedido:** Marcadores de ART-034 según INT-044 (PA-008).
+- **Respuesta:** Solo los cuatro marcadores de INT-044 (matcher [C]·[PM] PA-008; lector [A:PA-008]; leyenda [PM] = pendiente-manual; fila de cambios). verificar-claves rc 0. sha256 6bec3436…
+- **Decisión:** Diff verificado por el Orquestador (solo marcadores). APR-016 (ART-034, alto), APR-017 (transición acceptance→curation_flow, alto, diferida); curation_flow en_progreso (BIT-0103..0106).
+- **Bitácora:** BIT-0103..BIT-0106
+
+## INT-046 · Generador (edf-curation) · `curation_flow`
+
+- **Cuándo:** 2026-11-24T21:31:07-05:00
+- **Pedido:** Generar ART-031..033 desde ART-030/034/035 aprobados con el framework 1.9.7.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
