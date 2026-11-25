@@ -446,8 +446,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:01:51-05:00
 - **Pedido:** Preparar yaml-skill-synthesis.yaml (ART-060) resolviendo C-CUR-05, C-CUR-06 y RG-010.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-060 yaml-skill-synthesis.yaml v1.0.0: 34 campos de spec §10.1 con LFP (sin clave handler), sin dataType ni periodicity (defaults), sin synthesizer/section/enabled; name y description = ART-032; consistencyCheck solo lista de comprobación (conf único de Colombia; eventTypeList no filtra); sin reglas CONS/custom ni processors. RG-010 resuelto con spec §12/HU R-25 (frecuencia Mensual, no Unique). C-CUR-05 cerrado (LFP no escribe nulos; mapa vacío por periodo; propone PROP-SYN-1). C-CUR-06 cerrado sin fijar dataType (solo lo usan reglas de consistencia). Verificaciones OK. Riesgo propuesto (diccionario y conf únicos), VD-SYN-01..05 [PM]. Hallazgo para Validation: SISBENFileMetadata no fija minFrequency. 5 posibles defectos del framework.
+- **Decisión:** ART-060 prevalidado; PA-011 (PROP-SYN-1, no bloqueante) y RG-026 registrados; auditor independiente de Synthesis (incluye el hallazgo de minFrequency).
 - **Bitácora:** —
 
 ## INT-057 · Aprobador simulado SIM-DEV-01 · `pinning`
@@ -478,6 +478,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:12:02-05:00
 - **Pedido:** Auditar ART-053 y los posibles defectos del generador.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-061 · Auditor independiente (synthesis) · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:13:27-05:00
+- **Pedido:** Auditar ART-060, C-CUR-05/06, RG-010, minFrequency de Validation y los 5 posibles defectos.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

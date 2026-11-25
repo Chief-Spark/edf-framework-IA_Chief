@@ -2466,3 +2466,54 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0145 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-011: Para la próxima versión de la spec: dentro de un mismo periodo, si el corte más reciente trae un campo nulo, ¿debe ganar el nulo? Hoy LFP no escribe nulos y el valor anterior del periodo se conserva (ConsistencyCheckOps.scala:118,176-181); entre periodos no se arrastra (mapa vacío por periodo, :125). |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:13:27-05:00 |
+| **Por qué** | Analista (INT-056), C-CUR-05; spec §12, HU R-25, §5.6. Dirigida al PO. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0146 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-026 (medio, synthesis): El domain dictionary y el conf de Synthesis son únicos para Colombia: una corrida lee un solo diccionario y un solo customRulesFile (SparkConsistencyChecker.scala:241-245); un nombre de SISBEN que ya exista con otro handler cambiaría otra fuente |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:13:27-05:00 |
+| **Por qué** | Propuesto por el analista (INT-056) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0147 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:13:27-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

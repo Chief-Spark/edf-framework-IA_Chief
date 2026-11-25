@@ -171,7 +171,7 @@ modo_colombia_compartido:
 # ═════════════════════════════════════════════════════════════
 mapeo_campos_handler:
   nota_general: >
-    Lista completa del evento curado de SISBEN: las 34 claves de spec-sisben.md §10.1 (:245-280), que la spec declara
+    Lista completa del evento curado de SISBEN: las 34 claves de spec-sisben.md §10.1 (:244-280), que la spec declara
     «lista completa» (:282) y con nombres definitivos que Synthesis cita literalmente (:243). Las 34 están literales en
     source-spec-curation.yaml (33 campos_curados[].destino + parametros.campo_advertencias) y en ART-032. Todas usan el
     comportamiento por defecto del motor, LFP, por fuente de la ingesta y no por inferencia: spec §12 (:324) «El
@@ -229,7 +229,7 @@ instruccion_generacion_gdd:
     regla: >
       JSON sin comentarios con raíz {"domain": "sisben", "version": 2, "fields": [...]}. "version": 2 (edf-synthesis
       SKILL.md paso 3; lector DomainDictionaryV2, DomainDictionaryInternal.scala:96-97). "domain" = id de la ingesta
-      (spec §1 :17); solo rotula la propuesta: al integrar se fusionan solo las entradas de fields[], como ART-032.
+      (spec §1 :18); solo rotula la propuesta: al integrar se fusionan solo las entradas de fields[], como ART-032.
       Una entrada por campo, en el orden de spec §10.1, con exactamente las claves name y description, ambas
       copiadas literal de la entrada de ART-032 con el mismo name (así ART-061 y ART-032 son la misma entrada y la
       integración no puede duplicarla). Sin handler (LFP = ausencia de la clave), sin dataType, sin synthesizer, sin
@@ -272,7 +272,7 @@ instruccion_generacion_gdd:
       - {name: "subscriberBlockReason"}
       - {name: "advertenciasCuracion"}
     razon_de_lista_vacia: "no aplica: la lista tiene las 34 entradas"
-    estado: "[C] para las 34 entradas (spec §10.1, §12; HU R-25, §6). Ninguna depende de un [A:*]"
+    estado: "[C] para las 34 entradas (spec §10.1, §12; HU R-25, §6). Ninguna depende de un supuesto abierto"
   verificacion_esperada: "python3 tools/verificar-artefactos-etapa.py synthesis --gdd propuestas/synthesis/domaindictionary.json debe salir sin hallazgos (sin version, nombres repetidos, campos inyectados, handler distinto de EUC/LAP ni claves que la versión 2 ignora); python3 tools/verificar-claves.py --dir insumos coherente"
 
 # ═════════════════════════════════════════════════════════════
