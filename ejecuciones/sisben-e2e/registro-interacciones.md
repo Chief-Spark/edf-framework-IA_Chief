@@ -406,8 +406,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:44:59-05:00
 - **Pedido:** Corregir HF-57..61 con pruebas; framework 1.9.8.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** HF-57..61 corregidos: en modo Colombia la skill no escribe reusePin (SKILL, plantilla del bloque, logica-pinning §8.0, plantilla del insumo con valor_en_fuente / valor_a_escribir texto); advertencia del colapso silencioso; SKILL sin contradicción y evals 1.2.0 con EVAL-PIN-12..14; steering 11 al día; campo modo_colombia.umbral_y_matcher_determinista; tools/verificar-insumo-pinning.py (con el insumo de la corrida da 1 error: reusePin False, AUD-P-01); HF-61 sin citas en .kiro/ (aclarado en steering 11). tests 166; suites de skills en verde; auditar-skills OK.
+- **Decisión:** Más HF-62 (references/03 §3e) por el Orquestador; commit d9d7488 (framework 1.9.8). Ronda 2 del insumo de Pinning.
 - **Bitácora:** —
 
 ## INT-052 · Aprobador simulado SIM-PO-01 / SIM-DEV-01 · `pinning`
@@ -417,3 +417,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** (1, SIM-PO-01) PA-009 opción (a): no escribir reusePin; «reusePIN = false» = ingesta sin PIN previos propios; supuesto del PO; PA-010 no bloqueante para la spec; RG-002 reescrito; escalamiento si en el fork el valor compartido es false. (2) PA-008: (a) resuelta; (b)(c) a verificación diferida (riesgo alto) que bloquea fork y certificación de Pinning, Synthesis y State Calculation, no la corrida; ningún artefacto puede depender de (b)(c). (3) AUD-P-03 como riesgo dentro del mismo. (4) Autoriza AUD-P-01, -02, -04..-08; ART-034 no se revisa por §3c (nota en bitácora). Pide un HF para formalizar la «verificación diferida» en references/03.
 - **Decisión:** PA-009 y PA-008 resueltas, PA-010 abierta, RG-025 (verificación diferida del matcher), RG-002 y RG-019 actualizados, nota de ART-034 (BIT-0125..0131). HF-62 (formalizar la verificación diferida). Ronda 2 del analista cuando 1.9.8 esté publicado.
 - **Bitácora:** BIT-0125..BIT-0131
+
+## INT-053 · Analista (edf-analisis) · insumo de Pinning v2 · `pinning`
+
+- **Cuándo:** 2026-11-24T21:55:07-05:00
+- **Pedido:** ART-050 v2 con 1.9.8 y las decisiones de INT-052 (AUD-P-01, -02, -04..-08).
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
