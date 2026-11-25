@@ -3,7 +3,7 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:19:40-05:00",
+    "actualizado_en": "2026-11-24T22:28:05-05:00",
     "vista_md_regenerada_en": "2026-11-24T22:19:40-05:00"
   },
   "ingesta": {
@@ -718,7 +718,7 @@
           "ruta": "insumos/yaml-skill-synthesis.yaml",
           "obligatorio": true,
           "estado_artefacto": "prevalidado",
-          "riesgo": "medio",
+          "riesgo": "alto",
           "prevalidacion": {
             "compila": null,
             "linting": true,
@@ -754,7 +754,8 @@
       "preguntas_abiertas": [],
       "riesgos": [
         "RG-010",
-        "RG-026"
+        "RG-026",
+        "RG-028"
       ],
       "transicion_habilitada": false,
       "nota_regla_de_corte": null
@@ -1843,7 +1844,7 @@
     },
     {
       "id": "RG-026",
-      "descripcion": "El domain dictionary y el conf de Synthesis son únicos para Colombia: una corrida lee un solo diccionario y un solo customRulesFile (SparkConsistencyChecker.scala:241-245); un nombre de SISBEN que ya exista con otro handler cambiaría otra fuente",
+      "descripcion": "El GDD, el diccionario de consistencia y las reglas custom son únicos para Colombia. Una entrada existente gobierna también a SISBEN, y modificarla afectaría a la otra fuente. Las reglas compartidas se aplican a los eventos de SISBEN (verificación en RG-028)",
       "nivel": "medio",
       "etapa_afectada": "synthesis",
       "mitigacion": "[PM] VD-SYN-01..05 en el fork (nombres existentes y su handler, dateType/customRulesFile/domainDictionaryFile/checkFileTagEnabled, conf compartido, periodo de los eventos, escenario §5.5 con nulo); si un nombre colisiona con otro handler, sube a N3",
@@ -1856,14 +1857,22 @@
       "etapa_afectada": "pinning",
       "mitigacion": "Prompt 05: state-generation (paso Pinning) sobre la salida curada; conteo de personas existentes y nuevas; evidencia RNEC para CC (PENDIENTE_VALIDACION_REGIS); Zephyr; después de RG-025, RG-023 y RG-024",
       "estado": "abierto"
+    },
+    {
+      "id": "RG-028",
+      "descripcion": "Verificación diferida de Synthesis de Colombia (VD-SYN-01..06): nombres existentes en el GDD y su handler; lecturas .get sin defecto (dateType, fieldHandlerHashFunction, orchestration, readWriteFormat, historicAttributeArgs si checkFileTagEnabled); conf compartido; periodicidad efectiva (minFrequency de la clase base); escenario §5.5 con nulo; reglas CONS, custom y relationshipMigrationProcessor de Colombia aplicadas a todos los eventos del HC (ConsistencyCheckOps.scala:150-173, :240-271)",
+      "nivel": "alto",
+      "etapa_afectada": "synthesis",
+      "mitigacion": "Bloquea la integración al fork y la certificación de Synthesis y State Calculation (§3e). Se cierra con VD-SYN-01..06, la mitad dinámica de la prueba de no afectación (síntesis de otra fuente de Colombia igual antes y después) y un solo juego de entradas del GDD integrado. Si una regla compartida se dispara con SISBEN: pregunta bloqueante para la certificación al PO; no se modifica la regla desde la ingesta",
+      "estado": "abierto"
     }
   ],
   "backlog_evolutivo": [],
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0157",
-    "eventos_totales": 157,
+    "ultimo_evento": "BIT-0160",
+    "eventos_totales": 160,
     "append_only": true,
     "retencion_meses": 24
   }

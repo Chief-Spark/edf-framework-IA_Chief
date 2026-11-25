@@ -518,8 +518,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:25:56-05:00
 - **Pedido:** AUD-S-01 (N3), AUD-S-02 (VD-SYN-06), ajustes P2 del insumo, RG-010, RG-026, PA-011.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** (1) ART-060 a N3 con plan de reversión (retirar solo las entradas de SISBEN, hash del GDD antes y después; reprocesar si ya se generaron sintéticos) y prueba de no afectación estática (diff solo agrega, ningún handler existente cambia, JSON v2, --gdd OK, ART-062 sin claves) y dinámica diferida. (2) VD-SYN-06 en un riesgo propio alto de verificación diferida (RG-028) que bloquea fork y certificación de Synthesis y State Calculation. (3) Autoriza AUD-S-03..07, -09..11 (nueva description en ART-061; ART-061 reemplaza las entradas de ART-032 al integrar). (4) RG-010 mitigado al aprobar ART-060 y cerrado al aprobar el insumo de State Calculation; RG-026 redactado; PA-011 ampliada. (5) minFrequency: verificación diferida (VD-SYN-04 en RG-028), no se revisa ART-011.
+- **Decisión:** RG-028 abierto, RG-026 redactado, ART-060 a alto, antecedentes en PA-002/010/011 (BIT-0157..0160). v2 del insumo al analista cuando el framework 1.9.10 esté publicado.
 - **Bitácora:** —
 
 ## INT-066 · Analista (edf-analisis) · insumo de State Calculation (agente nuevo) · `state_calculation`

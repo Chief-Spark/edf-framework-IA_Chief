@@ -2687,3 +2687,54 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0158 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-028 (alto, synthesis): Verificación diferida de Synthesis de Colombia (VD-SYN-01..06): nombres existentes en el GDD y su handler; lecturas .get sin defecto (dateType, fieldHandlerHashFunction, orchestration, readWriteFormat, historicAttributeArgs si checkFileTagEnabled); conf compartido; periodicidad efectiva (minFrequency de la clase base); escenario §5.5 con nulo; reglas CONS, custom y relationshipMigrationProcessor de Colombia aplicadas a todos los eventos del HC (ConsistencyCheckOps.scala:150-173, :240-271) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:28:05-05:00 |
+| **Por qué** | Desarrollador SIM-DEV-01 (SIMULADO, INT-065), AUD-S-02 y punto 5 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0159 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-026 (medio, synthesis): El GDD, el diccionario de consistencia y las reglas custom son únicos para Colombia. Una entrada existente gobierna también a SISBEN, y modificarla afectaría a la otra fuente. Las reglas compartidas se aplican a los eventos de SISBEN (verificación en RG-028) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:28:05-05:00 |
+| **Por qué** | Desarrollador SIM-DEV-01 (SIMULADO, INT-065), punto 4 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0160 · `interaccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Antecedentes: PA-011 suma (2) el motor ordena por (asOfDate, receivedDate) con asOfDate = fec_actualizacion_cns, no por corte (AUD-S-08) y (3) la periodicidad del evento (minFrequency); PA-010 suma que una ruta Pinned propia de SISBEN no se leería (Synthesis toma la última *-pin-hc, AUD-S-05); PA-002 suma el caso de la misma persona con SR distinta (dos sintéticos para un PIN, AUD-S-07) y el fileTag/voidIndicator (AUD-S-04). ART-060 pasa a riesgo alto (AUD-S-01) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:28:05-05:00 |
+| **Por qué** | INT-065 puntos 1, 3, 4 y 5 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 |
+| **Corrige** | — |
+
+---
