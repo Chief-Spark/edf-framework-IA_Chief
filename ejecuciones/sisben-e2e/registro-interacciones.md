@@ -294,8 +294,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:33:59-05:00
 - **Pedido:** Corregir HF-26, 27, 29..33 con pruebas.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** HF-26, 27, 29..33 corregidos con pruebas (acceptance 157, validation 220, tests 137; auditar-skills OK). Regenerar cambia solo SISBENAcceptanceExpressionsSpec.scala (HF-33); Validation no cambia. No corregido: plantillas de etapa 0 con «Estado | PROPUESTO», interpretar-salida.md:71 con customReason true, fila histórica AUD-A3.
+- **Decisión:** Suites verificadas; commit a205649 (1.9.7 parte 1). Acceptance: revisión §3d de ART-023. Los tres restos no corregidos → HF-42 (lote final).
 - **Bitácora:** —
 
 ## INT-038 · Aprobador simulado SIM-DEV-01 · `curation_flow`
@@ -304,4 +304,12 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Pedido:** RG-019 (desviación de spec §10.1), RG-020 (descripción) y ajustes del insumo de Curation AUD-C-02/03/11/12.
 - **Respuesta:** (1) Acepta RG-019 (bajo, [P]; omitir = nulo para el matching; null rompe EventPinner) y pide PA-007 no bloqueante para la spec (más el recorte de «Ninguna» → texto como supuesto). (2) RG-020 redactado sobre el juego de códigos; sigue alto; condiciona el insumo de Pinning. (3) Autoriza AUD-C-02 (NUM_DOCUMENTO único en base_registro), -03 (caso RG-019 y tipos 4, 5, 8), -11 (contrato), -12 ([P] y regex literal de spec §2 si el generador la admite). Los P2 del framework que cambian la salida van en el mismo ciclo que AUD-C-01.
 - **Decisión:** RG-019 aceptado, RG-020 redactado, PA-007 abierta (no bloqueante). Ronda 2 del analista cuando el framework 1.9.7 esté publicado.
+- **Bitácora:** —
+
+## INT-039 · Generador (edf-acceptance) · revisión §3d · `acceptance`
+
+- **Cuándo:** 2026-11-24T21:16:50-05:00
+- **Pedido:** Regenerar Acceptance con a205649 (HF-26, HF-33); mismo insumo v3.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
 - **Bitácora:** —
