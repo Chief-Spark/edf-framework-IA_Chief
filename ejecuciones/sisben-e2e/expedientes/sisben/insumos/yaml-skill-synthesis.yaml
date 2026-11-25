@@ -3,7 +3,7 @@
 # yaml-skill-synthesis.yaml.tpl (framework 1.9.10). Modo Colombia de edf-synthesis (SKILL.md «Modo Colombia», HF-68).
 # El ejemplo assets/examples/sisben/yaml-skill-synthesis.yaml es solo forma: ningún valor se copió de él (su
 # eventTypeList ["sisben"], su dateType y sus handlers EUC/LAP propuestos no aplican; LEEME.md).
-# Sin estado ni aprobador (HF-32). Versión 2 · 2026-11-25.
+# Sin estado ni aprobador (HF-32). Versión 3 · 2026-11-25.
 #
 # Fuentes de la ingesta (únicas): fuentes/hu-sisben.md 1.0.2 (§3, R-07, R-19, R-25, R-26, §5.5, §5.6, §6 fila Synthesis) y
 # fuentes/spec-sisben.md 1.0.2 (§1, §10.1, §10.4, §11, §12, §13). La spec no trae un anexo con el contenido de este insumo.
@@ -19,7 +19,11 @@
 #   riesgo N3 con plan de reversión y prueba de no afectación; VD-SYN-01..06 en RG-028 (alto); RG-010 mitigado, no
 #   cerrado; RG-026 con su redacción vigente; PA-011 ampliada; minFrequency como verificación diferida (VD-SYN-04), sin
 #   revisar ART-011.
-# Cambios respecto de la versión 1 (sha256 881db379…):
+# Cambios respecto de la versión 2 (sha256 1097a0fa…; re-auditoría APROBADO, ajustes de INT-070): AUD-S-12 (hash_antes y
+#   base de la prueba estática = GDD de Colombia sin ninguna entrada de SISBEN; la reversión retira las 34; efecto sobre
+#   Curation [PM]), AUD-S-13 (nunca "handler": null en el JSON), AUD-S-14 (nombre HOCON de datasetFormat [P]; orchestration
+#   y datasetFormat del conf por defecto de la plataforma = N4), AUD-S-16 (cita de VD-SYN-04: SparkValidator.scala:1110, :1136).
+# Cambios de la versión 2 respecto de la versión 1 (sha256 881db379…):
 #   - AUD-S-01: riesgo_del_insumo N3 (alto), con plan_de_reversion y prueba_de_no_afectacion (estática y dinámica [PM]).
 #   - AUD-S-02: VD-SYN-06 (reglas CONS, custom y relationshipMigrationProcessor de Colombia sobre los eventos de SISBEN).
 #   - AUD-S-03: VD-SYN-02 y claves_configuracion_synthesis con todas las lecturas .get sin defecto.
@@ -40,7 +44,7 @@ documento:
   tipo: "intermediario-skill"
   etapa_pipeline: "Synthesis/Consistency"
   ingesta: "sisben"
-  version: "2.0.0"
+  version: "3.0.0"
   fecha: "2026-11-25"
   # Sin estado ni aprobador (HF-32): viven solo en estado-ingesta.json, que registra edf-orquestador con el hash de este archivo.
 
@@ -111,7 +115,7 @@ modo_colombia:
     - "El GDD de Colombia es un solo archivo, colombia-domain-dictionary-inner.json, que se extiende de forma aditiva (steering 07 §6; steering 02 «Domain dictionary / GDD»); Curation también lee consistencyCheck.paths.domainDictionaryFile (SparkCurator.scala:63-64) [C]"
     - "Un campo que no está en el GDD no pasa al evento sintético: synthesize recorre solo los campos del diccionario sobre un mapa nuevo por periodo (EventSynthesizer.scala:105-110) [C]. Por eso las 34 claves de SISBEN van al GDD (también las de identidad, que alimentan NAMES e IDENTIFICATIONS, spec §13 :339)"
     - "Las reglas compartidas (CONS-* de dictionaryFile(0), custom de customRulesFile.head, relationshipMigrationProcessor) se evalúan sobre todos los eventos del HC, también los de SISBEN (ConsistencyCheckOps.scala:150-173, :240-271; SparkConsistencyChecker.scala:241-253) [C]. Su efecto sobre SISBEN es VD-SYN-06 [PM]"
-  conf_compartido_unico: "[P] que el conf de Synthesis de Colombia sea un único *-inner.conf para todas las fuentes (no hay fork) · [PM] su contenido (VD-SYN-02, VD-SYN-03)"
+  conf_compartido_unico: "[P] que el conf de Synthesis de Colombia sea un único *-inner.conf para todas las fuentes (no hay fork) · [PM] su contenido (VD-SYN-02, VD-SYN-03). orchestration y datasetFormat vienen del conf por defecto de la plataforma (oxygen-config-default-local.conf:104-119 en la copia del motor), no del inner de Colombia: tocarlos es N4 (*-common-application / base inmutable, 06 §2.2); si faltan o no sirven a SISBEN se documenta y se escala, nunca se escriben (AUD-S-14)"
   nombres_compartidos:
     descripcion: "El handler es por nombre de campo, no por fuente. Si el GDD de Colombia ya tiene una entrada con un nombre de SISBEN (candidatos: standardizedIdType, standardizedIdNumber, standardizedIdName, que también publica MURIC, curation-muric.md:75-76; currentPartyType, currentPartyIdNumber, subscriberBlockStatus, subscriberBlockReason), esa entrada gobierna también a SISBEN; modificarla afectaría a la otra fuente (RG-026)"
     regla: "No se agrega una segunda entrada con el mismo name ni se modifica la existente (steering 07 §6 «Aditivo»). Un name repetido haría que synthesize procese el campo dos veces y el resultado dependería del orden (EventSynthesizer.scala:110-141; DomainDictionaryInternal.scala:47 fieldsMap)"
@@ -251,6 +255,11 @@ instruccion_generacion_gdd:
       campos_a_generar (AUD-S-10; inerte para el motor). handler null en todas = LFP = sin la clave handler en el JSON.
       Sin dataType, synthesizer, periodicity, section, enabled ni complexTypeDefinition. Sin los campos que inyecta el
       motor.
+    regla_handler_null: >
+      Nunca "handler": null en el JSON: handler: null de campos_a_generar significa LFP y se traduce en OMITIR la clave.
+      Un null literal rompe la lectura del GDD compartido (DomainDictionaryV2.java:32 hace getHandler().identifier()) [P]
+      (AUD-S-13). Prueba asociada: el verificador --modo colombia (una transcripción literal con "handler": null da 34
+      hallazgos). Criterio de aprobación de ART-061: --modo colombia --gdd sin hallazgos y ninguna clave handler en el JSON.
     integracion: >
       ART-061 REEMPLAZA las entradas de ART-032 al integrar: en el GDD compartido queda un solo juego de entradas de
       SISBEN (34 names, cada uno una vez), con la description de ART-061; las de ART-032 no se fusionan aparte (criterio
@@ -346,14 +355,14 @@ claves_configuracion_synthesis:
     - clave: "oxygen.stage.consistencyCheck.orchestration"
       valor_a_escribir: ""
       se_escribe: false
-      regla: "VERIFICAR = presente, con source y target (orchestration.get, SparkConsistencyChecker.scala:68-69)"
+      regla: "VERIFICAR = presente, con source y target (orchestration.get, SparkConsistencyChecker.scala:68-69). Viene del conf por defecto de la plataforma: tocarlo es N4 (modo_colombia.conf_compartido_unico)"
       estado: "[C] que no se escribe · [PM] (VD-SYN-02)"
       fuente: "SparkConsistencyChecker.scala:66-70"
     - clave: "oxygen.stage.consistencyCheck.datasetFormat"
       valor_a_escribir: ""
       se_escribe: false
-      regla: "VERIFICAR = presente (readWriteFormat.get, SynthesisIOUtils.scala:129)"
-      estado: "[C] que no se escribe · [PM] (VD-SYN-02)"
+      regla: "VERIFICAR = presente (readWriteFormat.get, SynthesisIOUtils.scala:129). El nombre HOCON datasetFormat es [P]: el motor lo lee como readWriteFormat y en la copia aparece como datasetFormat (consistency-application.conf:27); se confirma en el fork. Viene del conf por defecto de la plataforma: tocarlo es N4 (modo_colombia.conf_compartido_unico)"
+      estado: "[C] que no se escribe · [P] el nombre HOCON · [PM] (VD-SYN-02)"
       fuente: "SynthesisIOUtils.scala:129"
     - clave: "oxygen.stage.consistencyCheck.paths.domainDictionaryFile"
       valor_a_escribir: ""
@@ -406,7 +415,7 @@ verificaciones_diferidas:
       si_falla: "Si existiera una aplicación propia de SISBEN, el modo pasa a propio: ART-062 escribiría las claves obligatorias con sus valores; se vuelve a edf-analisis"
       estado: "[PM]"
     - id: "VD-SYN-04"
-      descripcion: "Periodicidad efectiva de los eventos de SISBEN: minFrequency lo pone Validation (fileMetadata.minFrequency, SparkValidator.scala:771, :844) y SISBENFileMetadata (ART-011) no lo sobrescribe, así que vale el de domain.internal.FileMetadata de oxygen-domain (fuera del repo). La copia homóloga de oxygen-synthesis tiene Frequency.onceEveryMonth (consistencycheck/domain/FileMetadata.scala:37): mensual es lo probable, pero es inferencia [P]. Con mensual, dos cortes con la misma fec_actualizacion_cns comparten periodo; con Unique, un periodo por evento (HCUtil.scala:109-124). No se revisa ART-011 (INT-065 (5))"
+      descripcion: "Periodicidad efectiva de los eventos de SISBEN: minFrequency lo pone Validation (fileMetadata.minFrequency, SparkValidator.scala:1110, :1136) y SISBENFileMetadata (ART-011) no lo sobrescribe, así que vale el de domain.internal.FileMetadata de oxygen-domain (fuera del repo). La copia homóloga de oxygen-synthesis tiene Frequency.onceEveryMonth (consistencycheck/domain/FileMetadata.scala:37): mensual es lo probable, pero es inferencia [P]. Con mensual, dos cortes con la misma fec_actualizacion_cns comparten periodo; con Unique, un periodo por evento (HCUtil.scala:109-124). No se revisa ART-011 (INT-065 (5))"
       estado: "[PM]"
     - id: "VD-SYN-05"
       descripcion: "Escenario HU §5.5 / §5.6 en el pipeline. La síntesis parcial se agrupa por subscriber + subscriberRelation (= <standardizedIdType>_<standardizedIdNumber>, spec §10.1 :284), no por PIN (ConsistencyCheckOps.scala:125, :177-181). Tres casos"
@@ -434,14 +443,15 @@ riesgo_del_insumo:
     - "ART-062 no escribe claves: el conf compartido no cambia [C]"
     - "Lo que sí puede afectar a SISBEN desde Colombia (reglas compartidas, nombres compartidos, fileTag REGULAR) está en VD-SYN-01, -02 y -06 [PM]"
   plan_de_reversion:
-    - "Antes de integrar: sha256 del GDD compartido de Colombia (hash_antes) y lista de los names que ya existían"
-    - "Integración: se agregan solo los names de SISBEN que no existían; se registra la lista por nombre y el sha256 resultante (hash_despues)"
-    - "Reversión: retirar solo las entradas de SISBEN agregadas, listadas por nombre; nunca retirar una entrada que ya existía (aunque coincida con un name de SISBEN). Comprobar que el sha256 vuelve a hash_antes"
+    - "hash_antes = sha256 del GDD compartido de Colombia SIN ninguna entrada de SISBEN (ni de ART-032 ni de ART-061), y lista de los names que ya existían de otras fuentes. Si ART-032 ya estaba integrado, hash_antes se calcula sobre el GDD con sus 34 entradas retiradas (AUD-S-12)"
+    - "Integración: queda un solo juego de entradas de SISBEN, el de ART-061; un name que ya existía de otra fuente no se agrega ni se toca. Si ART-032 ya estaba integrado, en esas 34 entradas solo puede cambiar la description; se registra la lista por nombre y el sha256 resultante (hash_despues)"
+    - "Reversión: retirar las 34 entradas de SISBEN listadas por nombre, vengan de ART-032 o de ART-061; nunca retirar una entrada que ya existía de otra fuente (aunque coincida con un name de SISBEN). Comprobar que el sha256 vuelve a hash_antes"
+    - "Efecto sobre Curation: ART-032 y ART-061 comparten el archivo (Curation lee consistencyCheck.paths.domainDictionaryFile, SparkCurator.scala:63-64), así que la reversión también retira las entradas que aportó Curation. Que Curation no necesite esas entradas para curar SISBEN queda [PM] (criterio de RG-028)"
     - "ART-062 no requiere reversión (no escribe claves)"
     - "Si ya se generaron sintéticos con el GDD integrado, la reversión exige reprocesar Synthesis (y lo que dependa de ella): es N3 y requiere su propia aprobación"
   prueba_de_no_afectacion:
     estatica_obligatoria:
-      - "diff del GDD compartido antes y después: solo agrega entradas (ninguna línea de una entrada existente cambia ni se borra)"
+      - "diff entre el GDD base (sin ninguna entrada de SISBEN, el de hash_antes) y el resultante: solo agrega las entradas de SISBEN (ninguna entrada de otra fuente cambia ni se borra). Si ART-032 ya estaba integrado, contra él solo cambia la description de sus 34 entradas"
       - "ningún handler existente cambia"
       - "el GDD resultante es JSON válido con version 2"
       - "python3 tools/verificar-artefactos-etapa.py synthesis --modo colombia --gdd <GDD> sin hallazgos (sin names repetidos)"

@@ -566,6 +566,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:46:05-05:00
 - **Pedido:** AUD-S-12/13/14/16 en ART-060 (nada más).
+- **Respuesta:** v3.0.0 con AUD-S-12 (base sin entradas de SISBEN; reversión de las 34; efecto sobre Curation [PM]), AUD-S-13 (regla_handler_null), AUD-S-14, AUD-S-16. Verificaciones OK; la transcripción literal con handler null da 34 hallazgos. sha256 0b6d46cc…
+- **Decisión:** Diff verificado por el Orquestador. Aprobados ART-060 v3 (alto) y la transición pinning→synthesis (alto, diferida); RG-010 mitigado; synthesis en_progreso.
+- **Bitácora:** —
+
+## INT-072 · Generador (edf-synthesis) · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:47:05-05:00
+- **Pedido:** Generar ART-061 y ART-062 en modo Colombia desde ART-060 v3 con el framework 1.9.10.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

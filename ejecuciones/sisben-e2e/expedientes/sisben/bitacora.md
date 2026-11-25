@@ -2874,3 +2874,105 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | BIT-0160 |
 
 ---
+
+## BIT-0169 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-028 (artefacto): Insumo de Synthesis v3 (§3b paso 2) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T22:47:04-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Insumo fiel a spec §10.1 y §12 y a HU R-25. Las 34 entradas van con LFP, sin handler, sin dataType y con la description autorizada, y ninguna clave se escribe. Nada de lo que llega a ART-061/062 depende de RG-025 ni de RG-028, que bloquean la integración al fork y la certificación (§3e). El plan de reversión y la prueba de no afectación toman como base el GDD de Colombia sin entradas de SISBEN. v3 = v2 (re-auditoría APROBADO, synthesis.md §6) + AUD-S-12/13/14/16; verificación por diferencia del Orquestador. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-060 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0170 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-010 (medio, synthesis): La reference curation-pinning-sisben.md §6/§8 dice que SISBEN va sin Synthesis y periodicidad Unique, contra HU R-25 y spec §12 |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:47:04-05:00 |
+| **Por qué** | ART-060 aprobado citando la spec (INT-065, punto 4); se cierra al aprobar el insumo de State Calculation |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0171 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-029 (transicion): Transición pinning → synthesis con evidencia diferida (§3b paso 3) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T22:47:04-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Se habilita Synthesis con la evidencia diferida de Pinning (APR-027, RG-027): la corrida no tiene pipeline ni fork. Synthesis consume el contrato de Pinning (eventos curados con PIN en el HC de Colombia; spec §12, LFP por defecto), no la ejecución. El insumo ART-060 v3 está aprobado con su hash. La verificación del matcher (RG-025) y la de las reglas compartidas de Synthesis (RG-028) quedan diferidas y bloquean la integración al fork y la certificación de Synthesis y State Calculation (§3e). Cita también RG-026 (medio) y RG-010 (mitigado). Checklist: c1 cumple (APR-027); c2 cumple; c3 cumple (ART-060 aprobado); c4 cumple (PA-010 y PA-011 no bloqueantes; PA-002/012/013 de state_calculation); c5 por evidencia diferida (RG-027); c6 cumple. 09 §5.1: sin [A:*] activos, sin acción N4. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-060 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0172 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `pinning` → estado `aprobada` · transicion_habilitada=True |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:47:04-05:00 |
+| **Por qué** | Transición pinning→synthesis habilitada por APR-029 (diferida). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0173 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `synthesis` → estado `en_progreso` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:47:05-05:00 |
+| **Por qué** | Inicio de Synthesis tras APR-029; se encarga la generación a edf-synthesis en modo Colombia. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0174 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:47:05-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

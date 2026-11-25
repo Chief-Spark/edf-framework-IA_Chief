@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:44:50-05:00",
-    "vista_md_regenerada_en": "2026-11-24T22:38:51-05:00"
+    "actualizado_en": "2026-11-24T22:47:05-05:00",
+    "vista_md_regenerada_en": "2026-11-24T22:47:05-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -40,7 +40,7 @@
       "joblogs": "s3://colombia-data/sisben/reports/logs/"
     }
   },
-  "etapa_actual": "pinning",
+  "etapa_actual": "synthesis",
   "etapas": [
     {
       "id": "analisis",
@@ -680,7 +680,7 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": "APR-027",
+      "ref_aprobacion": "APR-029",
       "preguntas_abiertas": [
         "PA-010"
       ],
@@ -691,12 +691,23 @@
         "RG-025",
         "RG-027"
       ],
-      "transicion_habilitada": false,
+      "transicion_habilitada": true,
       "nota_regla_de_corte": null,
       "iniciada_en": "2026-11-24T22:07:17-05:00",
       "cerrada_en": "2026-11-24T22:19:40-05:00",
       "riesgo_evaluado": "alto",
-      "nivel_friccion": "detallada"
+      "nivel_friccion": "detallada",
+      "checklist_bloqueo": {
+        "c1_etapa_previa_aprobada": true,
+        "c2_aprobacion_registrada": true,
+        "c3_dependencias_satisfechas": true,
+        "c4_sin_preguntas_bloqueantes": true,
+        "c5_evidencia_pipeline": true,
+        "c6_justificacion_si_riesgo_alto": true,
+        "resultado": "habilitada",
+        "condiciones_fallidas": [],
+        "evaluado_en": "2026-11-24T22:47:04-05:00"
+      }
     },
     {
       "id": "synthesis",
@@ -706,7 +717,7 @@
       "dag_airflow": "state-generation",
       "clasificacion_compromiso": "exito",
       "riesgo_tipico": "alto",
-      "estado": "no_iniciada",
+      "estado": "en_progreso",
       "depende_de": [
         "pinning"
       ],
@@ -717,14 +728,15 @@
           "nombre": "insumo: yaml-skill-synthesis.yaml (edf-analisis)",
           "ruta": "insumos/yaml-skill-synthesis.yaml",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "alto",
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Analista (INT-067): v2 con 1.9.10; secciones completas; verificar-claves coherente; vista previa del GDD y del bloque con verificar-artefactos-etapa synthesis --modo colombia: ARTEFACTOS OK",
+            "reportada_por": "Analista (INT-071): v3 (AUD-S-12/13/14/16); parse OK; verificar-claves coherente; sin valor_a_escribir con contenido; vista previa --modo colombia OK",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:0b6d46cc792a5d780fbc852a33579f0e354e4bb4e00167c1353600cf8f87dcb3"
         },
         {
           "id": "ART-061",
@@ -759,7 +771,8 @@
         "RG-028"
       ],
       "transicion_habilitada": false,
-      "nota_regla_de_corte": null
+      "nota_regla_de_corte": null,
+      "iniciada_en": "2026-11-24T22:47:05-05:00"
     },
     {
       "id": "state_calculation",
@@ -1517,6 +1530,54 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0154"
+    },
+    {
+      "id": "APR-028",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-060"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T22:47:04-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Insumo fiel a spec §10.1 y §12 y a HU R-25. Las 34 entradas van con LFP, sin handler, sin dataType y con la description autorizada, y ninguna clave se escribe. Nada de lo que llega a ART-061/062 depende de RG-025 ni de RG-028, que bloquean la integración al fork y la certificación (§3e). El plan de reversión y la prueba de no afectación toman como base el GDD de Colombia sin entradas de SISBEN. v3 = v2 (re-auditoría APROBADO, synthesis.md §6) + AUD-S-12/13/14/16; verificación por diferencia del Orquestador.",
+      "condiciones": [
+        "Para aprobar ART-061: --modo colombia --gdd sin hallazgos, ninguna clave handler en el JSON, 34 entradas en el orden de spec §10.1",
+        "Para aprobar ART-062: 0 claves activas fuera de comentarios y las líneas VERIFICAR",
+        "La advertencia de handler null va también a la plantilla y al SKILL de edf-synthesis en el lote final"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0169"
+    },
+    {
+      "id": "APR-029",
+      "tipo": "transicion",
+      "desde_etapa": "pinning",
+      "hacia_etapa": "synthesis",
+      "artefactos": [
+        "ART-060"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T22:47:04-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Se habilita Synthesis con la evidencia diferida de Pinning (APR-027, RG-027): la corrida no tiene pipeline ni fork. Synthesis consume el contrato de Pinning (eventos curados con PIN en el HC de Colombia; spec §12, LFP por defecto), no la ejecución. El insumo ART-060 v3 está aprobado con su hash. La verificación del matcher (RG-025) y la de las reglas compartidas de Synthesis (RG-028) quedan diferidas y bloquean la integración al fork y la certificación de Synthesis y State Calculation (§3e). Cita también RG-026 (medio) y RG-010 (mitigado). Checklist: c1 cumple (APR-027); c2 cumple; c3 cumple (ART-060 aprobado); c4 cumple (PA-010 y PA-011 no bloqueantes; PA-002/012/013 de state_calculation); c5 por evidencia diferida (RG-027); c6 cumple. 09 §5.1: sin [A:*] activos, sin acción N4.",
+      "condiciones": [
+        "No aprueba ART-061 ni ART-062: se generan con 1.9.10 desde la v3"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0171"
     }
   ],
   "preguntas_abiertas": [
@@ -1756,7 +1817,7 @@
       "nivel": "medio",
       "etapa_afectada": "synthesis",
       "mitigacion": "La spec manda (00 §6; 03 §9 #11): citar siempre la spec en los insumos de Synthesis y State Calculation",
-      "estado": "abierto"
+      "estado": "mitigado"
     },
     {
       "id": "RG-011",
@@ -1923,8 +1984,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0168",
-    "eventos_totales": 168,
+    "ultimo_evento": "BIT-0174",
+    "eventos_totales": 174,
     "append_only": true,
     "retencion_meses": 24
   }
