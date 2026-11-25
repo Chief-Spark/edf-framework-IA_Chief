@@ -1,0 +1,108 @@
+{
+  "sintetico": true,
+  "eventos_entrada": 19,
+  "eventos_curados": 18,
+  "eventos_descartados_por_motor": [
+    {
+      "eventId": "cur-0015",
+      "fileName": "OTRA_FUENTE_202601.20260205093000-0500.txt",
+      "motivo": "sin processor para lineage.fileName (CUR-AP02, descarte sin log)"
+    }
+  ],
+  "eventos_con_advertencias": 4,
+  "advertencias": {
+    "cur-0005": [
+      "primerApellido:NO_NORMALIZABLE"
+    ],
+    "cur-0006": [
+      "idMarca:FORMATO_INVALIDO"
+    ],
+    "cur-0009": [
+      "fechaDigitacion:FORMATO_INVALIDO",
+      "fechaActualizacionPersona:FORMATO_INVALIDO"
+    ],
+    "cur-0016": [
+      "primerApellido:NO_NORMALIZABLE",
+      "primerNombre:NO_NORMALIZABLE"
+    ]
+  },
+  "claves_omitidas_por_severidad": {
+    "cur-0016": [
+      "standardizedIdName"
+    ]
+  },
+  "homologacion_tipo_documento": {
+    "cur-0001": [
+      "3",
+      1
+    ],
+    "cur-0002": [
+      "3",
+      1
+    ],
+    "cur-0003": [
+      "3",
+      1
+    ],
+    "cur-0004": [
+      "3",
+      1
+    ],
+    "cur-0005": [
+      "3",
+      1
+    ],
+    "cur-0006": [
+      "3",
+      1
+    ],
+    "cur-0007": [
+      "3",
+      1
+    ],
+    "cur-0008": [
+      "3",
+      1
+    ],
+    "cur-0009": [
+      "3",
+      1
+    ],
+    "cur-0010": [
+      "3",
+      1
+    ],
+    "cur-0011": [
+      "PPT",
+      11
+    ],
+    "cur-0012": [
+      "6",
+      5
+    ],
+    "cur-0013": [
+      "3",
+      1
+    ],
+    "cur-0014": [
+      "3",
+      1
+    ],
+    "cur-0016": [
+      "3",
+      1
+    ],
+    "cur-0017": [
+      "4",
+      4
+    ],
+    "cur-0018": [
+      "5",
+      8
+    ],
+    "cur-0019": [
+      "8",
+      9
+    ]
+  }
+}

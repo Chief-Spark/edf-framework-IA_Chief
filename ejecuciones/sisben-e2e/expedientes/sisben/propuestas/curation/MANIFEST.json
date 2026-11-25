@@ -1,0 +1,128 @@
+{
+  "skill": "edf-curation",
+  "version": "0.1.0",
+  "compilacion": "no_certificada",
+  "sintetico": true,
+  "archivos": [
+    {
+      "plantilla": "CUR-TPL-01",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/common/FieldMapping.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-02",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/common/Transformaciones.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-10",
+      "archivo": "src/test/scala/com/experian/edf/oxygen/curation/source/common/TransformacionesSpec.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-03",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/config/SISBENCurationSpec.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-04",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCuratedEvent.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-05",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENAcceptedRecord.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-08",
+      "archivo": "fragmentos/colombia-domain-dictionary-inner.sisben.json",
+      "fusionar": true
+    },
+    {
+      "plantilla": "CUR-TPL-12",
+      "archivo": "src/test/resources/sisben/accepted-events.json",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-06",
+      "archivo": "src/main/scala/com/experian/edf/oxygen/curation/source/sisben/processor/SISBENCurationProcessor.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-11",
+      "archivo": "src/test/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCurationProcessorSpec.scala",
+      "fusionar": false
+    },
+    {
+      "plantilla": "CUR-TPL-07",
+      "archivo": "fragmentos/curation-common-application-inner.sisben.conf",
+      "fusionar": true
+    },
+    {
+      "plantilla": "CUR-TPL-09",
+      "archivo": "fragmentos/oxygen-lookup-inner.sisben.conf",
+      "fusionar": true
+    }
+  ],
+  "marcas_sintetico": [
+    "src/test/resources/sisben/lookups/LEEME.md"
+  ],
+  "otros_archivos": [
+    {
+      "ruta": "src/test/resources/sisben/lookups/202_SISBEN_PROCESS_ID_TYPE_HO.csv",
+      "sha256": "b365484f903dd63983b920fae3cb22a75f3b7c11bec2d2e71051bd713991ec61"
+    },
+    {
+      "ruta": "expected/curated-events.json",
+      "sha256": "7b4f9b229d6d0bca8539ecb0d87c3ad7ea2491198a057802a48e313818ff651a"
+    },
+    {
+      "ruta": "expected/resumen.json",
+      "sha256": "f6df86cb7b8cfc04e97c36eb871531e53ad86a22a494b7de1b28962fd9951373"
+    }
+  ],
+  "zona_horaria_fechas": {
+    "valor": "America/Bogota",
+    "origen": "requisito"
+  },
+  "advertencias": [],
+  "supuestos_resueltos": [
+    {
+      "id": "C-CUR-03",
+      "fuente": "spec-sisben.md §10.2 regla 2 (la Ñ se conserva); HU R-23"
+    },
+    {
+      "id": "C-CUR-04",
+      "fuente": "spec-sisben.md §10.1 (inicio del día en Bogotá); HU R-23"
+    },
+    {
+      "id": "C-CUR-07",
+      "fuente": "Validation aprobada APR-009 (SISBENValidatedEvent.comoMapa: claves = nombres de dominio)"
+    },
+    {
+      "id": "C-CUR-08",
+      "fuente": "spec-sisben.md §10.1 (numeroDocumento sin padding ni excepción por tipo)"
+    },
+    {
+      "id": "CUR-PA04",
+      "fuente": "spec-sisben.md §1 (event type 30)"
+    },
+    {
+      "id": "CUR-PT05",
+      "fuente": "spec-sisben.md §10.1 (advertenciasCuracion)"
+    },
+    {
+      "id": "D8",
+      "fuente": "spec-sisben.md §2 (nombre del archivo)"
+    },
+    {
+      "id": "F-07",
+      "fuente": "spec-sisben.md §2 (tipo de archivo siempre REGULAR)"
+    },
+    {
+      "id": "F-12",
+      "fuente": "spec-sisben.md §9 (delimitador) y §9.4 (columnas y llave del catálogo 202)"
+    }
+  ]
+}

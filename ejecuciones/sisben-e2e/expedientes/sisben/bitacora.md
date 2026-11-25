@@ -1837,3 +1837,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0108 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-009: oxygen.stage.pinning.reusePin es una sola clave para toda la aplicación de Pinning de Colombia (SparkPinner.scala:223,409), que lee las curadas de todas las fuentes: escribir false regenera los PIN de todas las fuentes. ¿(a) no tocar la clave (SISBEN es ingesta nueva sin generación previa propia), (b) escribir false en el conf de Colombia (riesgo N4 sobre las demás fuentes) o (c) una aplicación de Pinning propia para SISBEN? |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:35:47-05:00 |
+| **Por qué** | Analista (INT-047); spec §11; RG-002; logica-pinning.md §8. Dirigida al Desarrollador con Ingesta 3; cierra el PO. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---

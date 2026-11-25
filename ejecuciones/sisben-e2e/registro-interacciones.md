@@ -374,6 +374,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:31:31-05:00
 - **Pedido:** Preparar insumos/yaml-skill-pinning.yaml (ART-050) con lo verificable de PA-008 en Motor-Oxigen/.
+- **Respuesta:** ART-050 yaml-skill-pinning.yaml (modo Colombia: piezas compartidas, sin matcher ni identifying-attributes propios; atributos standardizedId*; subscriberRelation tipo_número; reusePin false con ubicación [A:PA-009]; salida spec §14). PA-008: (a) resuelta con el motor (PinningIOUtils.scala:23-46 lee las curadas; clave ausente = ""; null lanza; matcher único por Class.forName); (b) ColombiaIdentityMatcher no está en Motor-Oxigen (solo IS/RI/Test y matchers de Brasil); (c) Ñ no verificable. Peligro silencioso: con ISIdentityMatcher por defecto todos los SISBEN caerían en un solo PIN (1.1 ≥ 0.6). Propone PA-009 (reusePin es global de la aplicación). 5 posibles defectos (P1: SKILL.md:34 manda reusePin=false en el bloque de una ingesta nueva en modo Colombia).
+- **Decisión:** ART-050 prevalidado; PA-009 bloqueante para pinning; auditor independiente de Pinning.
+- **Bitácora:** —
+
+## INT-048 · Auditor independiente (pinning) · `pinning`
+
+- **Cuándo:** 2026-11-24T21:35:47-05:00
+- **Pedido:** Auditar ART-050, PA-008/PA-009 y los 5 posibles defectos del framework.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
