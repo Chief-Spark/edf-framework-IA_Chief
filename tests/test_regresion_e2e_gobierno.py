@@ -53,3 +53,9 @@ def test_ref03_documenta_revision_de_artefactos_de_etapa_aprobada():
     for frase in ("no** se desaprueba", "Re-auditoría por diferencia", "Nueva aprobación `tipo: artefacto`",
                   "evento `correccion`", "aplica §3c"):
         assert frase in seccion, frase
+
+
+def test_ref03_3d_conserva_el_estado_aprobado_durante_la_revision():
+    """HF-43: durante la revisión §3d el artefacto sigue aprobado con su hash anterior (regla 7e)."""
+    seccion = REF03.read_text(encoding="utf-8").split("### 3d.")[1].split("Además aplican")[0]
+    assert "siguen `aprobado` con el hash anterior" in seccion and "regla 7e" in seccion

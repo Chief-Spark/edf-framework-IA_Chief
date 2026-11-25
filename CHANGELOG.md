@@ -4,6 +4,9 @@
 
 Correcciones de la corrida E2E SISBEN: lote de cierre (commit a205649) y Curation (commit 955bed3).
 
+### Orquestador
+- **HF-43. §3d no decía qué estado tiene el artefacto durante la revisión.** Sigue `aprobado` con el hash anterior hasta la nueva aprobación (regla 7e). Prueba: `tests/test_regresion_e2e_gobierno.py`.
+
 ### Corregido (lote de cierre de la corrida E2E SISBEN: HF-26, HF-27, HF-29 a HF-33)
 
 - **HF-26 (`edf-acceptance`).** El schema admite `validatedRecordJson: null`, que es lo que emite Validation en los

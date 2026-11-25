@@ -80,7 +80,7 @@ El validador lo exige con la regla 7b (ninguna transición habilitada con un ins
 
 Si los artefactos de una etapa ya `aprobada` tienen que regenerarse —por ejemplo, porque se corrigió un defecto de la skill que los genera—, la etapa **no** se desaprueba y la transición no se suspende, siempre que el insumo no cambie:
 
-1. Se regeneran los artefactos en `propuestas/<etapa>/` con la versión corregida de la skill.
+1. Se regeneran los artefactos en `propuestas/<etapa>/` con la versión corregida de la skill. En el expediente los artefactos **siguen `aprobado` con el hash anterior** hasta el paso 3 (regla 7e: una etapa aprobada exige sus artefactos aprobados); la diferencia entre el hash registrado y el archivo es, justamente, lo que se está revisando.
 2. **Re-auditoría por diferencia**: el auditor revisa solo lo que cambió frente a lo aprobado y confirma que el comportamiento aprobado se conserva (mismas verificaciones de la etapa).
 3. **Nueva aprobación `tipo: artefacto`** (prompt `03`, mismo riesgo que la primera) con los hashes nuevos, y evento `correccion` que cite la aprobación anterior y el motivo (versión del framework y hallazgo).
 4. Si el cambio altera el alcance, el riesgo o la decisión de la etapa (no solo su implementación), se re-aprueba también la etapa (`tipo: contexto`); si cambia el insumo, aplica §3c.
