@@ -216,3 +216,62 @@ Condición §3e: los valores que llegan a un artefacto son el bloque HOCON sin c
 | Emulación en Python de `verificar-artefacto.ps1:169` | FAIL por la `:72` (defecto 1) |
 | Lectura del motor: `SparkPinner.scala:192-242,409-421,665-723,979-985`; `PinningIOUtils.scala:21-46`; `pinning-application.conf`; `oxygen-config-default.conf:193,355,363,370-373` | §7.2 |
 | Lectura de INT-057 (`:453-459`), APR-023..025, RG-019, RG-025, ART-050..053 en `estado-ingesta.json` | Etapa `pinning` `en_progreso`; ART-051/052 `obligatorio: false`; ART-053 `prevalidado`, alto |
+
+## 8. Re-auditoría por diferencia (1.9.12)
+
+| Campo | Valor |
+|---|---|
+| Alcance | Revisión por diferencia (`references/03` §3d) de ART-053. La versión aprobada (APR-026, sha256 `cccd06cf…`, `git show c317cc7:…` = `scratchpad/gen-pin/v2-aprobado.conf`) se compara con la regenerada (`propuestas/pinning/pinning-application-block.sisben.conf`, 70 líneas, sha256 `d63da96c…`), producida por `edf-pinning/scripts/render_bloque_colombia.py` (framework 1.9.12, commit `c7174ba`, HF-65..67) desde ART-050 v3 (sha256 `9c548c3e…`, sin cambios) |
+| **Dictamen** | **AJUSTES (framework); no aprobar `d63da96c` todavía.** En lo mecánico, la versión regenerada es correcta: `--verificar` da BLOQUE OK, es reproducible byte a byte, no tiene líneas activas y sus 13 rutas `VERIFICAR` coinciden con el motor. Pero pierde los marcadores `[PM] (RG-025)` del FQCN y del contenido de la lista. `references/03` §3e, regla 2, exige esos marcadores también en los artefactos (`03…md:95`). También pierde el disparador de escalamiento «si el valor vigente es false → PO e Ingesta 3 (RG-002)», que es justo la instrucción que necesita quien ejecute la verificación en el fork. No es una pérdida aceptable, y no hay conflicto con la reproducibilidad: esos datos ya están como **datos** (no como comentarios YAML) en el insumo, y un generador determinista puede tomarlos. Es un defecto del generador (AUD-P-26, P1). Hay que corregirlo antes de aprobar, regenerar y volver a auditar por diferencia. El resto de referencias perdidas sí puede vivir en el expediente (AUD-P-28) |
+
+### 8.1 Verificaciones
+
+| Comprobación | Resultado |
+|---|---|
+| `render_bloque_colombia.py --verificar <bloque> --dir-propuesta propuestas/pinning` | `BLOQUE OK (modo Colombia)`, rc=0 |
+| Regeneración en el scratchpad (`--insumo … --contrato … --out scratchpad/aud-pin-r3/regen.conf`) | rc=0; sha256 `d63da96c…`; `cmp` idéntico: reproducible |
+| pyhocon (`gen-pin/pylib`) / `edf-curation/scripts/hocon_check.py` | `{}` / `OK` |
+| Líneas activas; claves compartidas fuera de comentarios (en cualquier grafía, las 8); `{{` | 0; 0; 0 |
+| `--verificar` sobre la versión aprobada `cccd06cf` | rc=1, 5 hallazgos: faltan `VERIFICAR` de `nearNeighborBlockSize`, `pinningVleRange` y `groupSSR` con su ruta completa, `INPUT_REF_DIR` y `*-common-application.conf` |
+| `pytest tests/test_regresion_e2e_pinning.py tests/test_verificar_insumo_pinning.py` | 29 passed |
+| `verificar-artefacto.ps1 -Modo colombia` | No ejecutado: PowerShell no está permitido. El script declara como equivalente el `--verificar` de Python (`:28-33`) |
+
+Rutas contra el motor (versión regenerada). Todas correctas:
+
+| Línea | Ruta | Evidencia |
+|---|---|---|
+| `:21-24` | `paths.identifyingAttributesFile` | `SparkPinner.scala:222`, `:315`; `pinning-application.conf:21` |
+| `:25-27` | `identityMatcher` | `:220`, `:657`; `oxygen-config-default.conf:370` |
+| `:28-36` | `reusePin` | `:223`, `:409`, `:979-985`, `:888-905`; `pinning-application.conf:27` |
+| `:37-38` | `paths.domainDictionaryFile` | `:192-198` |
+| `:39-42` | `nearNeighborBlockSize`, `pinningVleRange`, `groupSSR` | `:719-723`, `:982`, `:665-676`; `oxygen-config-default.conf:372`, `:373`, `:363` |
+| `:43-44` | `paths.pinnedReferenceDir` | `:409`; `oxygen-config-default.conf:355` |
+| `:45-47` | `oxygen.stage.curation.paths.curatedDir` | `PinningIOUtils.scala:27`; `oxygen-config-default.conf:193` |
+| `:48-50` | HBase | `:224`, `:410` (`Constants.features.ENABLE_HF_BATCH_STATIC_PIN_INTERGRATION`) |
+| `:51-56` | `clusterSplitter`, `INPUT_REF_DIR` | `[PM]`; `:221`, `PinningIOUtils.scala:21,24-25` |
+| `:57-58` | `*-common-application.conf` | `06:59` |
+| `:63` | colapso | `[P]` (`logica-pinning.md` §9) |
+
+AUD-P-18..21 y AUD-P-23..24 quedan cerrados en el framework y en el artefacto.
+
+### 8.2 Referencias propias de la ingesta: aprobada frente a regenerada
+
+| Referencia de la versión aprobada | En la regenerada | ¿Está como dato en el insumo v3? | Juicio |
+|---|---|---|---|
+| `[PM] (RG-025)` del contenido de `identifying-attributes-new.json` (aprobada `:35-36`) | No aparece (`:21-24`, sin marcador) | Sí: `claves_configuracion_pinning[identifyingAttributesFile].estado` «… contenido de la lista [PM] (RG-025)» (`:200`); `pendientes_del_mapeo[0].id` = `RG-025` (`:154`) | **Necesaria** (§3e, regla 2) |
+| `[PM] (RG-025)` del FQCN y del comportamiento del matcher (aprobada `:39-40`) | No aparece. `:26-27` dice «Insumo: ColombiaIdentityMatcher (steering 11 §6 #7)» sin marcador y cita una fila genérica que sigue `[A:matcher-colombia]` (`11:130`) | Sí: `claves_configuracion_pinning[identityMatcher].estado` «[C] decisión (spec §11) · [PM] FQCN en el fork (RG-025)» (`:204`) | **Necesaria** (§3e, regla 2) |
+| Escalamiento si el valor vigente es false (RG-002) (aprobada `:52-53`) | Solo la regla general «Cambiar la clave es N4: se documenta y se escala» (`:34-35`). Falta el disparador «si lo que encuentras en el fork es false, escala», que es otro caso: el conf compartido ya renumera en cada corrida | Sí: `precondiciones_bloqueantes[PA-009].hallazgo_N4_escalado` (`:85`); `pendientes_de_configuracion[2].estado` (`:214`) | **Necesaria**: es la instrucción operativa de la propia lista `VERIFICAR` |
+| PA-009 (decisión del PO, opción a) | Implícita en «NO SE ESCRIBE (HF-57)» y en el valor de la fuente | `precondiciones_bloqueantes[PA-009]` (`:82-86`); `estado` de reusePin (`:209`) | Conveniente (el ID); el efecto ya está |
+| PA-010 (sentido de «reusePIN = false» y ruta Pinned de spec §14) | No aparece | `pendiente_spec` (`:86`) | Aceptable que viva en el expediente |
+| «Sin bandera de fuente (regla 2)» | No aparece | `modo_colombia.bandera_fuente_regla_1` | Aceptable: es una regla del matcher, no una clave del conf |
+| ~28 M frente a `nearNeighborBlockSize` | Solo «los bloques >= este valor se descartan sin error» | `pendientes_de_configuracion[1]` (`:213`) | Aceptable: los bloques salen por `standardizedIdNumber` (nivel 3), no por volumen de archivo |
+| ART-050 / ART-034 / APR-023 | La cabecera nombra el insumo con su versión y su sha256 (`:6-7`) | — | Aceptable: el sha256 une el bloque con ART-050 v3 aprobado |
+
+### 8.3 Hallazgos
+
+| ID | Clasificación | Sev. | Hallazgo | Evidencia | Corrección |
+|---|---|---|---|---|---|
+| AUD-P-26 | framework (generador y plantilla) | **P1** | `render_bloque_colombia.py` solo rellena cinco huecos (`valores()`, `:108-131`). No lleva al bloque el `estado` de las entradas de `claves_configuracion_pinning`, ni las precondiciones y los riesgos del insumo, aunque son datos. El artefacto pierde los `[PM] (RG-025)` que §3e, regla 2, exige en los artefactos, y el disparador de escalamiento RG-002. `verificar_bloque()` no lo detecta | `render_bloque_colombia.py:108-131`, `:141-162`; plantilla `:20-36`; insumo `:85`, `:154`, `:200`, `:204`, `:209`, `:214`; `03…md:95` | Leer de forma determinista del insumo: (a) el `estado` de `identifyingAttributesFile`, `identityMatcher` y `reusePin`, que se copia en su `VERIFICAR`; (b) una línea «Referencias de la ingesta» con los `id`/`estado` de `precondiciones_bloqueantes` y `pendientes_del_mapeo`; (c) el escalamiento desde `hallazgo_N4_escalado`. Que `--verificar --insumo` exija `[PM]` y el ID del riesgo cuando el insumo los tenga. Añadir una prueba. Después: regenerar y re-auditar por diferencia |
+| AUD-P-27 | framework (plantilla) | P2 | La plantilla (`:27`) fija «(steering 11 §6 #7)» como fuente del matcher del insumo. Esa fila sigue `[A:matcher-colombia]` para cualquier ingesta (`11:130`), así que el artefacto cita un pendiente abierto donde el insumo cita spec §11 / HU R-24 | regenerada `:26-27`; insumo `:204-205` | Tomar la `fuente` de la entrada `identityMatcher` del insumo |
+| AUD-P-28 | expediente | P2 (aceptado) | PA-010, «sin bandera», el volumen de ~28 M y los IDs ART-034/APR-023 dejan de estar en el bloque. Viven en el insumo (unido por sha256), en `estado-ingesta.json` y en la entrega del generador | §8.2 | Ninguna en el artefacto. La entrega del generador debe listarlos (SKILL.md `:40`: «lo que el script no decide … sigue siendo tu respuesta») |
+| AUD-P-29 | estado (Orquestador) | P2 | Con la etapa `pinning` aprobada, ART-053 figura `aprobado` con hash `cccd06cf…`, pero el archivo en `propuestas/` ya es `d63da96c…`. Ninguna de las dos versiones cumple a la vez el verificador de 1.9.12 (la aprobada da 5 hallazgos) y §3e (la regenerada pierde los `[PM]`). Mientras dure la revisión §3d, el artefacto vigente es el de `c317cc7` | `estado-ingesta.json` ART-053; §8.1 | Mantener el registro según §3d hasta regenerar con AUD-P-26 corregido; aprobar entonces el nuevo hash |

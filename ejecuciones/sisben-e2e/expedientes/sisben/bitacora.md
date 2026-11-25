@@ -3401,3 +3401,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0200 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | La regeneración de ART-053 con 1.9.12 (d63da96c…) queda en AJUSTES (AUD-P-26: pierde marcadores [PM] RG-025 y el escalamiento de RG-002); el archivo de propuestas vuelve a la versión aprobada (cccd06cf…, APR-026) mientras se corrige el generador (HF-81) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-25T06:33:15-05:00 |
+| **Por qué** | references/03 §3d (vale la versión aprobada durante la revisión); AUD-P-29 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | ART-053 |
+| **Trazabilidad** | references/03 §3d |
+| **Corrige** | — |
+
+---

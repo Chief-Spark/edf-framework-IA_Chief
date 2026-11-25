@@ -662,14 +662,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:30:56-05:00
 - **Pedido:** Re-auditar por diferencia ART-053 regenerado con 1.9.12 y la pérdida de referencias de la ingesta.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-053 regenerado en AJUSTES: lo mecánico OK (BLOQUE OK, reproducible byte a byte, pyhocon {}, 13 rutas = motor; AUD-P-18..21, -23..24 cerrados), pero AUD-P-26 (P1, generador): pierde el [PM] (RG-025) del FQCN y de la lista de atributos (03 §3e regla 2 lo exige en los artefactos) y el disparador «si el valor vigente es false, escalar (RG-002)»; los datos están en el insumo como campos, así que un generador determinista puede tomarlos. P2: AUD-P-27 (plantilla cita steering 11 §6 #7 como fuente del matcher), AUD-P-28 (PA-010, sin bandera, volumen e IDs pueden vivir en el expediente: aceptado), AUD-P-29 (mientras dure la revisión vale la versión de c317cc7).
+- **Decisión:** HF-81 (AUD-P-26) y HF-82 (AUD-P-27) al corrector (render_bloque_colombia.py y plantilla); luego regenerar y re-auditar. ART-053 sigue aprobado con cccd06cf (regla 7e); el archivo de propuestas se restaura a la versión aprobada mientras tanto.
 - **Bitácora:** —
 
 ## INT-084 · Corrector del framework (HF-80) · `acceptance`
 
 - **Cuándo:** 2026-11-25T06:31:25-05:00
 - **Pedido:** Formalizar la revisión no sustantiva de un insumo (§3d-bis) en references/03 y en el validador, con pruebas; 1.9.13.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-085 · Corrector del framework (HF-81/82) · `pinning`
+
+- **Cuándo:** 2026-11-25T06:33:15-05:00
+- **Pedido:** Generador de Pinning con marcadores del insumo y plantilla corregida.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
