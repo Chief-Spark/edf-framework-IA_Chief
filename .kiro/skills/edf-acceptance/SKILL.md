@@ -4,7 +4,7 @@ description: |
   Genera y verifica la configuración de la etapa Acceptance de EDF/Oxygen para una fuente nueva
   (bloque HOCON de ingesta, condiciones con nombre, lookup de severidades opcional, pruebas de
   expresiones y fixture sintético), a partir de una source-spec. Acceptance es 100 % configuración:
-  no genera código Scala de producción. Caso piloto prellenado: SISBEN V4. Úsalo cuando un
+  no genera código Scala de producción. Ejemplo de forma: SISBEN (no es fuente). Úsalo cuando un
   ingeniero de datos deba decidir qué archivos y registros validados pasan a Curation.
 metadata:
   stage: acceptance
@@ -67,7 +67,7 @@ Este skill es autocontenido: todo lo que necesita está en esta carpeta.
 | `references/alcance-y-glosario.md` | Qué hace y qué no; glosario |
 | `references/patrones.md` | Patrones ACC-P*, antipatrones ACC-AP*, superficie de extensión, techo |
 | `references/inventario-plantillas.md` | IN-01..IN-08, ACC-TPL-01..06, orden, motor de plantillas |
-| `references/especificacion-sisben.md` | Valores SISBEN V4 con su estado |
+| `references/especificacion-sisben.md` | EJEMPLO HISTÓRICO: explica el ejemplo de forma; no es la spec de ninguna ingesta ni se cita como fuente |
 | `references/dsl-config-reference.md` | Claves HOCON, `orden_real_de_evaluacion`, `expresiones_dsl` |
 | `references/runbook-ejecucion.md` | Local, Docker, EMR; problemas frecuentes |
 | `references/interpretar-salida.md` | Logs, rutas, métricas, señales de alarma |
@@ -112,7 +112,8 @@ Esta skill **solo genera archivos**, con Python 3:
 - En una ingesta real (también SISBEN), la source-spec es el insumo aprobado de `edf-analisis` (Paso 0.3); sus
   valores salen de la HU y la spec de la ingesta (`.kiro/steering/00-framework-edf.md` §6).
 - `assets/examples/sisben/source-spec.sisben.yaml` es solo referencia de **forma**: nunca se copian sus
-  valores, tampoco para SISBEN. Si difiere del insumo, manda el insumo.
+  valores, tampoco para SISBEN. Si difiere del insumo, manda el insumo. `references/especificacion-sisben.md`
+  es un ejemplo histórico (otra versión de SISBEN): no se cita como fuente (HF-19).
 - Para revisar un borrador de otra fuente, sigue la forma del ejemplo y pide al ingeniero cada entrada IN-01..IN-08
   (`references/inventario-plantillas.md`). Pregunta solo lo que falte; muestra el estado de cada
   valor (`cerrado`, `propuesta_de_frontera`, `inferido`, `abierto`).
@@ -134,23 +135,27 @@ aplica → (3) ACC-TPL-01 bloque de ingesta → (4) ACC-TPL-04 `contextualOverri
 (5) ACC-TPL-06 fixture y ACC-TPL-05 pruebas. Las condiciones van primero porque `reject` las cita.
 
 Las expresiones siguen el orden en que el motor las evalúa
-(`references/dsl-config-reference.md` §2):
+(`references/dsl-config-reference.md` §2). La tercera columna muestra solo la **forma** de cada valor, tomada del
+ejemplo histórico `assets/examples/sisben/`; no son los valores de SISBEN ni de ninguna ingesta: los valores salen
+de la HU y la spec de la ingesta, a través del insumo aprobado (Paso 1).
 
-| Etapa | Qué se configura | SISBEN |
+| Etapa | Qué se configura | Ejemplo de forma (no es fuente) |
 |---|---|---|
-| E3 | `filePattern` (ruta sin extensión y `lineage.fileName`) | `.*(RT_\|EP_)?SISBEN_EXPERIAN_\d{6}\.\d{14}[+-]\d{4}\.txt` |
-| E4 | Rechazo automático por marcadores; `customReasonForAutomaticRejectionEnabled` | `true`; `accept` sin `isEmptyBodyFile` |
+| E3 | `filePattern` (ruta sin extensión y `lineage.fileName`) | `.*<NOMBRE>_\d{6}\.\d{14}[+-]\d{4}\.txt` (prefijos y extensiones, los de la spec de la ingesta) |
+| E4 | Rechazo automático por marcadores; `customReasonForAutomaticRejectionEnabled` | `true`; `accept` sin `isEmptyBodyFile`. Con `true` el motor evalúa además `reject` sobre los eventos del marcador: registra el `reasonCode` solo si alguna condición es verdadera sobre ellos (sin el QS, no registra ninguno) |
 | E5/E7 | `manualReject` / `manualAccept` | no se configuran |
 | E8 | `reject` en sintaxis nueva sobre `fileConditions` | `anyOf(RQS_BAJO_UMBRAL_SISBEN)`; condición `average("qs.RQS") < 0.90`, `SISBFA00001` |
 | E9 | `accept` en sintaxis antigua, misma escala | `average("qs.RQS") >= 0.90` |
 | E10 | `recordAcceptance` | `errorlevelNotIn("1") and errorcodeNotIn("OxygenDuplicate")` |
-| E12 | `contextualOverride` | abierto (D2) ⇒ no se emite |
+| E12 | `contextualOverride` | sin decisión humana (D2) ⇒ no se emite |
 
 El generador falla (código 1) si la spec no valida contra el schema, si una verificación del inventario falla o si queda
 un hueco sin resolver. Reglas que verifica: ACC-R01 (subcadenas), ACC-R02 (nombres de QS),
 ACC-R03 (dos claves del `filePattern`), escala única del umbral, umbral en [0, 1], `reject` en
 sintaxis nueva, condiciones citadas definidas y con nombre de la fuente, `manual*` solo con
-`externalAction`, QS por registro binario (0 o 1) en el fixture (AC-ACC-05).
+`externalAction`, QS por registro binario (0 o 1) en el fixture (AC-ACC-05) y, si hay
+`fixture.umbrales_alternativos`, que cada umbral esté en [0, 1], sea distinto de `calidad.umbral` y se pueda
+sustituir en `accept` y en cada condición (HF-23).
 
 Si la spec trae el bloque opcional `supuestos` (AC-27, ADR-G2), el generador imprime una línea
 `supuesto  S-ACC-xx  impacto=…  donde=…  texto=…` por supuesto: con `--audit`, después de los huecos;
@@ -159,10 +164,32 @@ sin `--audit`, después de las líneas `generado`/`omitido`. Una spec sin el blo
 ### Paso 3 · Verificar
 
 ```bash
-python scripts/simular_decision.py --spec <spec>.yaml          # decisión por archivo del fixture
+python scripts/simular_decision.py --spec <spec>.yaml          # decisión por archivo, comparada con lo esperado
 python scripts/hocon_check.py <salida>/hocon/*.conf            # parse del HOCON generado
 python -m pytest scripts/tests -q                              # pruebas del skill (generador, simulador, hocon_check)
 ```
+
+`simular_decision.py` compara cada archivo con `decision_esperada`, `reason_code_esperado` y el `esperado_registro`
+de cada evento (`coincide`/`diferencias` en la salida JSON, resumen en stderr) y sale con código 1 si alguno no
+coincide (HF-24).
+
+**Umbral alternativo (HF-23).** La configuración desplegable tiene una sola escala de umbral (`reject` y `accept`
+complementarios, D7). Para probar otro umbral sin generar otra configuración, por ejemplo el escenario «umbral
+parametrizable» de una HU, declara en el fixture:
+
+```yaml
+fixture:
+  umbrales_alternativos:                 # opcional; sin la clave no cambia nada
+    - umbral: "0.95"                     # distinto de calidad.umbral, en [0, 1]
+      casos:
+        - {id: FQS_095, registros_validos: 19, registros_totales: 20, esperado: aceptado}
+        - {id: FQS_094, registros_validos: 47, registros_totales: 50, esperado: rechazado, reason_code_esperado: <reasonCode>}
+```
+
+ACC-TPL-05 genera la prueba «umbral alternativo …»: evalúa `accept` y las condiciones con el umbral sustituido sobre
+`registros_totales` registros sintéticos con QS binario (`registros_validos` con 1). `reason_code_esperado` es
+obligatorio con `esperado: rechazado` (los `reasonCode` registrados, unidos por coma) y vale `""` si se omite.
+`simular_decision.py` evalúa los mismos casos.
 
 La cobertura de los scripts Python se mide por script: `python -m coverage run -m pytest scripts/tests -q`
 y luego `python -m coverage report --include=scripts/<script>.py --fail-under=80` para

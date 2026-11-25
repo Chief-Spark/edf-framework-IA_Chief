@@ -280,6 +280,16 @@ class SISBENValidationProcessorSpec extends AnyFunSuite {
     assert(RecordValidator.claveDuplicado(spec, Campos.separar("", ";")).nonEmpty)
   }
 
+  test("dos filas idénticas sin un campo de la clave no se agrupan como duplicadas (VAL-SP03, AUD-V-27)") {
+    // El motor agrupa por keys = keysForDuplicate(...).mkString(":") (Validator.dupCheckForKey).
+    def clave(fila: String): String = RecordValidator.claveDuplicado(spec, Campos.separar(fila, ";")).mkString(":")
+    spec.duplicados.clave.flatMap(n => spec.campo(n).toSeq).foreach { c =>
+      val sinCampo = conValor(c.posicion, "")
+      assert(clave(sinCampo) != clave(sinCampo), "sin " + c.nombre + " dos filas idénticas comparten la clave")
+    }
+    if (spec.duplicados.clave.nonEmpty) assert(clave(linea(RegistroBase)) == clave(linea(RegistroBase)))
+  }
+
   // Casos del fixture (filtro de filas, reglas entre campos, duplicados), declarados en el source-spec.
   test("fixture BASE: registro válido") {
     assert(!RecordValidator.debeFiltrar(spec, "FICHA-SINT-0001;1;05;ANTIOQUIA;05001;MEDELLIN;1;1;900000001;PRUEBA;SINTETICO;ANA;MARIA;3;1000000001;A;3;15/05/2024;20/05/2024;0;10;2024-06-01 00:00:00"))

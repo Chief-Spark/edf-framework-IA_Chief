@@ -15,6 +15,15 @@ Contrato de entrada (AC-ACC-05, regla "QS por registro binario"): cada quality s
 con código 1, igual que el generador (render_templates.py) rechaza esa spec.
 No sustituye las pruebas ACC-TPL-05 contra los parsers reales; sirve para revisar la propuesta y
 para el resumen esperado del fixture. Uso: python simular_decision.py --spec <spec.yaml>
+
+Comparación con lo esperado (HF-24, AUD-A-08): cada resultado lleva `coincide` y `diferencias` frente a
+`decision_esperada`, `reason_code_esperado` (los reasonCode registrados, unidos por coma; en un rechazo automático
+solo se exige vacío si customReasonForAutomaticRejectionEnabled es false, como ACC-TPL-05) y el `esperado_registro`
+de cada evento. Si la spec declara `fixture.umbrales_alternativos` (HF-23, AUD-A-01), evalúa además cada caso con
+accept y las condiciones con el umbral sustituido, sobre registros sintéticos con QS binario. Imprime la lista JSON
+en stdout y un resumen en stderr; sale con código 1 si algún resultado no coincide.
+Diferencia con el log del motor: aquí `reason_codes` son solo los de las condiciones isLogged que dan true; el
+motor registra todas las condiciones isLogged con su resultado (SparkAcceptor.scala:335).
 """
 from __future__ import annotations
 
@@ -146,18 +155,99 @@ def simulate(spec: dict) -> list[dict]:
     return [{"directorio": a["directorio"], **decide_file(spec, a)} for a in spec["fixture"]["archivos"]]
 
 
+def diferencias_archivo(spec: dict, archivo: dict, resultado: dict) -> list[str]:
+    """HF-24 (AUD-A-08): lo que difiere entre la simulación y lo esperado del fixture (vacío = coincide)."""
+    out = []
+    if resultado["decision"] != archivo["decision_esperada"]:
+        out.append(f"decisión {resultado['decision']} (esperada {archivo['decision_esperada']})")
+    registrados = ",".join(resultado["reason_codes"])
+    if resultado["decision"] == "rechazo_automatico":
+        # Como ACC-TPL-05: con customReason… el motor evalúa reject sobre el marcador y puede registrar un reasonCode.
+        reason_ok = spec["rechazo_automatico"]["customReasonForAutomaticRejectionEnabled"] or not archivo["reason_code_esperado"]
+    else:
+        reason_ok = registrados == archivo["reason_code_esperado"]
+    if not reason_ok:
+        out.append(f"reasonCode {registrados!r} (esperado {archivo['reason_code_esperado']!r})")
+    for event in archivo["eventos"]:
+        obtenido = eval_record(spec["registro"]["recordAcceptance"], event)
+        if obtenido != event["esperado_registro"]:
+            out.append(f"registro {event['eventId']}: {obtenido} (esperado {event['esperado_registro']})")
+    return out
+
+
+def con_umbral(expr: str, umbral: str, alternativo: str) -> str:
+    """HF-23: misma sustitución que render_templates.con_umbral y conUmbral de ACC-TPL-05."""
+    return re.sub(r"(?<![\w.])" + re.escape(umbral) + r"(?![\w.])", lambda _: alternativo, expr)
+
+
+def simular_umbrales_alternativos(spec: dict) -> list[dict]:
+    """HF-23 (AUD-A-01): cada caso de fixture.umbrales_alternativos con accept y las condiciones evaluados con el
+    umbral sustituido, sobre registros_totales eventos sintéticos (registros_validos con QS 1 y el resto con 0).
+    Sin la clave, lista vacía."""
+    umbral = spec["calidad"]["umbral"]
+    qs = spec["calidad"]["quality_score"]
+    out = []
+    for alt in spec["fixture"].get("umbrales_alternativos") or []:
+        valor = alt["umbral"]
+        variante = {**spec,
+                    "condiciones": [{**c, "expresion": con_umbral(c["expresion"], umbral, valor)} for c in spec["condiciones"]],
+                    "fileActions": {**spec["fileActions"], "accept": con_umbral(spec["fileActions"]["accept"], umbral, valor)}}
+        for caso in alt["casos"]:
+            eventos = [{"eventId": f"SINT-UMBRAL-{i}", "qualityScores": [{"name": qs, "score": 1 if i <= caso["registros_validos"] else 0}],
+                        "errorCodes": []} for i in range(1, caso["registros_totales"] + 1)]
+            conditions = {c["nombre"]: c for c in variante["condiciones"]}
+            rejected, logged = eval_reject(variante["fileActions"]["reject"], conditions, eventos)
+            if rejected:
+                decision = "rechazado"
+            else:
+                try:
+                    decision = "aceptado" if eval_aggregate(variante["fileActions"]["accept"], eventos) else "pendiente"
+                except EvalError:
+                    decision = "pendiente"
+            diferencias = []
+            if decision != caso["esperado"]:
+                diferencias.append(f"decisión {decision} (esperada {caso['esperado']})")
+            esperado_rc = caso.get("reason_code_esperado", "")
+            if ",".join(logged) != esperado_rc:
+                diferencias.append(f"reasonCode {','.join(logged)!r} (esperado {esperado_rc!r})")
+            out.append({"umbral_alternativo": valor, "caso": caso["id"],
+                        "fqs": round(caso["registros_validos"] / caso["registros_totales"], 6),
+                        "decision": decision, "reason_codes": logged,
+                        "coincide": not diferencias, "diferencias": diferencias})
+    return out
+
+
+def simular_y_comparar(spec: dict) -> list[dict]:
+    """simulate + comparación con lo esperado (HF-24) + umbrales alternativos (HF-23)."""
+    resultados = []
+    for archivo, resultado in zip(spec["fixture"]["archivos"], simulate(spec)):
+        diferencias = diferencias_archivo(spec, archivo, resultado)
+        resultados.append({**resultado, "coincide": not diferencias, "diferencias": diferencias})
+    return resultados + simular_umbrales_alternativos(spec)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Simula la decisión de Acceptance sobre el fixture")
     parser.add_argument("--spec", required=True, type=Path)
     args = parser.parse_args(argv)
     spec = yaml.safe_load(args.spec.read_text(encoding="utf-8"))
     try:
-        result = simulate(spec)
+        result = simular_y_comparar(spec)
     except ContratoError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0
+    archivos = [r for r in result if "directorio" in r]
+    umbrales = [r for r in result if "umbral_alternativo" in r]
+    for r in result:
+        if not r["coincide"]:
+            quien = r.get("directorio") or f"umbral {r['umbral_alternativo']} caso {r['caso']}"
+            print(f"NO COINCIDE  {quien}: " + "; ".join(r["diferencias"]), file=sys.stderr)
+    resumen = f"{sum(r['coincide'] for r in archivos)}/{len(archivos)} archivos coinciden con lo esperado"
+    if umbrales:
+        resumen += f"; {sum(r['coincide'] for r in umbrales)}/{len(umbrales)} casos de umbral alternativo coinciden"
+    print(resumen, file=sys.stderr)
+    return 0 if all(r["coincide"] for r in result) else 1
 
 
 if __name__ == "__main__":

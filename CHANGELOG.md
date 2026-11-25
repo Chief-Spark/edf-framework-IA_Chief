@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.9.5 — 2026-11-25
+
+
+### Orquestador
+- **HF-25. Revisión de artefactos de una etapa ya aprobada** (corrida E2E SISBEN: las correcciones HF-16..18 cambian código de Validation ya aprobado). `references/03` §3d: regenerar, re-auditar por diferencia y nueva aprobación `tipo: artefacto` con hashes nuevos; la etapa no se desaprueba si no cambian insumo, alcance ni riesgo. Prueba: `tests/test_regresion_e2e_gobierno.py`.
+Defectos del framework que encontró la corrida E2E SISBEN en la etapa Acceptance (`ejecuciones/sisben-e2e/auditorias/acceptance.md` §2-§3) y el lote pendiente de la re-auditoría de Validation (`validation.md` §7). Las claves nuevas son opcionales y la clave vieja sigue aceptada: el insumo de Validation de la corrida sigue dando `source-spec OK (22 campos, 29 códigos)` y el de Acceptance genera con `--audit` (rc 0) y simula 9/9. Las propuestas de `ejecuciones/` no se regeneraron.
+
+### Corregido (`edf-acceptance`)
+- **HF-19 (corrida E2E SISBEN, AUD-A-10 / defecto 1). La skill presentaba otra versión de SISBEN como «SISBEN».** La columna de la tabla de expresiones del `SKILL.md` pasa a «Ejemplo de forma (no es fuente)» y dice que los valores salen de la HU y la spec de la ingesta. `references/especificacion-sisben.md` queda rotulada «EJEMPLO HISTÓRICO» (como AUD-V-13 en Validation), ya no fija precedencias y el SKILL no la cita como fuente. Se quitó «prellenado» de la descripción. Prueba: `tests/test_regresion_e2e_acceptance.py`.
+- **HF-20 (defecto 2).** Plantillas, `manifest.yaml`, el schema, `render_templates.py` y el ejemplo firman `edf-acceptance` (antes `edf-acceptance-stage`), como AUD-V-10. Prueba: `test_hf20_*`.
+- **HF-21 (defecto 3).** El schema genérico exigía `expresiones_propuestas_sisben`. La clave es `expresiones_propuestas`; la vieja se acepta como alias deprecado (una de las dos, no ambas) y el generador imprime `aviso  expresiones_propuestas_sisben está deprecada…`. Prueba: `test_hf21_*`.
+- **HF-22 (defecto 4).** Con `severidades.habilitado: false` basta `{habilitado, estado}`; el resto se exige solo al habilitarla (`if/then`, como `contextual_override`). Prueba: `test_hf22_*`.
+- **HF-23 (AUD-A-01 / defecto 5). Umbral alternativo.** Clave opcional `fixture.umbrales_alternativos: [{umbral, casos: [{id, registros_validos, registros_totales, esperado: aceptado|rechazado, reason_code_esperado?}]}]`. ACC-TPL-05 genera la prueba «umbral alternativo …», que evalúa `accept` y las condiciones con el umbral sustituido sobre registros sintéticos con QS binario, sin otra configuración desplegable. `simular_decision.py` evalúa los mismos casos. La regla de una sola escala de la configuración no cambia. El generador exige que el umbral esté en [0, 1], sea distinto de `calidad.umbral` y se pueda sustituir, y que `registros_validos <= registros_totales`. `reason_code_esperado` es obligatorio con `rechazado`. Sin la clave, la salida es igual. Prueba: `test_hf23_*` (HU §5.2: con 0.95, 19/20 se acepta y 47/50 se rechaza con `SISBFA00001`).
+- **HF-24 (AUD-A-08, -09).** `simular_decision.py` compara cada archivo con `decision_esperada`, `reason_code_esperado` y el `esperado_registro` de cada evento: agrega `coincide`/`diferencias` a la salida JSON, imprime un resumen en stderr y sale con 1 si algo no coincide. El comentario de ACC-TPL-05 ya no dice que con `customReasonForAutomaticRejectionEnabled` el motor siempre registra el `reasonCode`: lo registra solo si alguna condición de `reject` es verdadera sobre los eventos del marcador. Prueba: `test_hf24_*`.
+
+### Corregido (`edf-validation`)
+- **HF-16 (corrida E2E SISBEN, AUD-V-27).** Sin tipo o sin número, la clave de duplicado era el contenido de la fila, así que dos filas idénticas sin número se agrupaban (spec §6, VAL-SP03). Ahora es única por registro: `claveDuplicado(spec, valores, unico)` y la sobrecarga del processor con un UUID (el motor la calcula una vez por registro), y en la réplica el número de línea. Pruebas: Scala en `FieldValidatorsSpec` y `<Fuente>ValidationProcessorSpec`; Python `test_hf16_dos_filas_identicas_sin_numero_no_se_agrupan`.
+- **HF-17 (AUD-V-28).** Ninguna prueba aislaba RA-02. `nombres_de_prueba` deriva ahora un nombre que viola solo RA-02, con offset adelantado (`+1400`, el 1.º del mes siguiente a las 00:00:00 y el reloj en el último día del mes de referencia). Cada prueba generada del nombre comprueba además que sin su regla el nombre es válido. `FieldValidatorsSpec` prueba las tres reglas aisladas. Pruebas: `test_hf17_*` (generador y réplica, incluido `SISBEN_EXPERIAN_202612.20261201000000+1400.txt` con reloj 2026-11-30).
+- **HF-18 (AUD-V-29).** `Campos.separar` y `split_row` quitan solo el `\r` final de una línea CRLF antes de partir. Con `encoding`, el motor parte el archivo por `"\n"` (`SparkValidator.scala:503`) y dejaba el `\r` en el último campo de `validatedRecordJson`. Pruebas: Scala en `FieldValidatorsSpec`; Python `test_hf18_*`, donde CRLF da lo mismo que LF.
+
+### Pruebas
+- Acceptance 146 + 1 omitida (antes 127 + 1), 147 con `pyhocon`. Validation 220 + 7 omitidas (antes 209 + 7), 227 con `pyhocon`. Curation 106 + 2, sin cambios. Herramientas 126 (antes 123). `auditar-skills.py`: 0 silencios y 0 obsoletas.
+- Ejemplos regenerados. En Acceptance (`assets/examples/sisben/generated/`) cambian la firma de las cabeceras (HF-20) y el comentario del Spec (AUD-A-09); `expected-output.yaml` no cambia. En Validation cambian `FieldValidators.scala` (HF-16, HF-18), `FieldValidatorsSpec.scala` (pruebas de HF-16, -17 y -18), `SISBENValidationProcessorSpec.scala` (prueba de HF-16) y los hashes de `manifest.json`; `resumen-prevalidacion.json` no cambia.
+
+### Sin corregir aquí
+- AUD-A-02..07 y AUD-A-11 son del insumo o del expediente, AUD-A-12 es del motor y PA-006 la decide el Desarrollador. Para cubrir AUD-A-01 en la corrida, el insumo debe declarar `fixture.umbrales_alternativos` y la propuesta debe regenerarse.
+- La compilación de los Scala generados sigue sin certificar (F-01).
+
 ## 1.9.4 — 2026-11-24
 
 ### Corregido

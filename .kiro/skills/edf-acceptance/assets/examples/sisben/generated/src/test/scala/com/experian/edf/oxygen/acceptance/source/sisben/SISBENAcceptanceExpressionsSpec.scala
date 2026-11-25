@@ -1,5 +1,5 @@
 // ACC-TPL-05 · Casos de prueba de las expresiones de Acceptance de SISBEN.
-// Generado por edf-acceptance-stage 0.1.0. Tipo: ESQUELETO.
+// Generado por edf-acceptance 0.1.0. Tipo: ESQUELETO.
 // Compilación NO certificada (F-01): sin acceso al JAR del framework no se pudo compilar.
 // Destino: src/test/scala/com/experian/edf/oxygen/acceptance/source/sisben/  ·  Fixture: src/test/resources/sisben/validated/
 // Motivo: un error de sintaxis no falla en ejecución; acepta todos los registros o deja el archivo
@@ -162,7 +162,9 @@ class SISBENAcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfterAll
       assert(marker.isEmpty || dir.contains(marker), "el marcador " + marker + " no está en el directorio " + dir)
       assert(automaticReject(dir) == (expected == "rechazo_automatico"), dir)
       if (automaticReject(dir)) {
-        // Con customReasonForAutomaticRejectionEnabled el motor además registra el reasonCode (E4).
+        // Con customReasonForAutomaticRejectionEnabled el motor evalúa además reject sobre los eventos del marcador
+        // y registra el reasonCode solo si alguna condición de reject es verdadera sobre ellos (E4). Si los eventos
+        // del marcador no traen el QS de la condición, la condición vale false y no registra ninguno (AUD-A-09).
         assert(CustomReasonForAutomaticRejection || reasonCode.isEmpty, dir)
       } else {
         val parser = aggregatesParser(dir)

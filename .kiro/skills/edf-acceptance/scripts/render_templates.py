@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Renderiza las plantillas del skill edf-acceptance-stage a partir de una source-spec.
+"""Renderiza las plantillas del skill edf-acceptance a partir de una source-spec.
 
 Generador VIGENTE de la skill (desde la versión 1.6.0 del framework, 2026-11-18). No requiere compilar nada:
 solo Python 3 con PyYAML y jsonschema. Equivale al generador Java deprecado que se usó hasta la 1.5.x
@@ -421,7 +421,55 @@ def verify_spec(spec: dict) -> list[str]:
                 errors.append(f"{key} solo admite expresiones con externalAction(...) (IN-07)")
     errors += qs_no_binarios(spec)
     errors += marcadores_coherentes(spec)
+    errors += umbrales_alternativos_coherentes(spec)
     return errors
+
+
+def con_umbral(expr: str, umbral: str, alternativo: str) -> str:
+    """HF-23: la expresión con el literal del umbral cambiado por `alternativo`. Solo se usa sobre expresiones que
+    pasan la regla "escala única" (el umbral es su único número), así que no toca nada más. Misma sustitución que
+    hace conUmbral en ACC-TPL-05 y simular_decision.con_umbral."""
+    return re.sub(r"(?<![\w.])" + re.escape(umbral) + r"(?![\w.])", lambda _: alternativo, expr)
+
+
+def umbrales_alternativos_coherentes(spec: dict) -> list[str]:
+    """HF-23 (AUD-A-01): fixture.umbrales_alternativos (opcional). Cada umbral en [0, 1] y distinto del desplegado;
+    accept y cada condición quedan con ese umbral como único número; casos con registros_validos <= registros_totales e
+    id único por umbral. La decisión esperada la comprueban ACC-TPL-05 y simular_decision.py, no el generador."""
+    errors: list[str] = []
+    umbral = spec["calidad"]["umbral"]
+    exprs = [spec["fileActions"]["accept"]] + [c["expresion"] for c in spec["condiciones"]]
+    vistos: set[str] = set()
+    for i, alt in enumerate(spec["fixture"].get("umbrales_alternativos") or []):
+        donde = f"fixture/umbrales_alternativos/{i}"
+        valor = alt["umbral"]
+        fuera = umbral_fuera_de_rango(valor)
+        if fuera:
+            errors.append(f"{donde}: {fuera}")
+        if valor == umbral:
+            errors.append(f"{donde}: el umbral {valor} es el de calidad.umbral; un umbral alternativo debe ser otro")
+        if valor in vistos:
+            errors.append(f"{donde}: umbral {valor} repetido")
+        vistos.add(valor)
+        for expr in exprs:
+            if NUM_RE.findall(con_umbral(expr, umbral, valor)) != [valor]:
+                errors.append(f"{donde}: no se pudo sustituir el umbral {umbral} por {valor} en: {expr}")
+        ids = [c["id"] for c in alt["casos"]]
+        for dup in sorted({x for x in ids if ids.count(x) > 1}):
+            errors.append(f"{donde}: caso {dup} repetido")
+        for caso in alt["casos"]:
+            if caso["registros_validos"] > caso["registros_totales"]:
+                errors.append(f"{donde}: caso {caso['id']}: registros_validos > registros_totales")
+    return errors
+
+
+def avisos(spec: Any) -> list[str]:
+    """Avisos que no impiden generar (claves deprecadas)."""
+    out = []
+    if isinstance(spec, dict) and "expresiones_propuestas_sisben" in spec:
+        out.append("aviso  expresiones_propuestas_sisben está deprecada desde 1.9.5 (HF-21): renómbrela a "
+                   "expresiones_propuestas")
+    return out
 
 
 def marcadores_coherentes(spec: dict) -> list[str]:
@@ -563,6 +611,8 @@ def main(argv: list[str] | None = None) -> int:
         print("ERROR: la spec no pasa las verificaciones:", *problems, sep="\n  - ")
         return 1
     lista_supuestos = supuestos(spec)
+    for aviso in avisos(spec):
+        print(aviso)
     if args.audit:
         rows = audit(spec, schema, args.templates)
         undefined = [r for r in rows if not r["en_schema"]]

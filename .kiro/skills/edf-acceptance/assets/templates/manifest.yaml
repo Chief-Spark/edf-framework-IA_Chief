@@ -1,4 +1,4 @@
-# Manifiesto de plantillas del skill edf-acceptance-stage (inventario acceptance_template.config).
+# Manifiesto de plantillas del skill edf-acceptance (inventario acceptance_template.config).
 # El orden de la lista ES el orden de generación del inventario (pasos 1 a 5).
 # Sintaxis de plantilla: ver references/inventario-plantillas.md §Motor de plantillas.
 #   salida      ruta relativa al directorio de salida; admite {{huecos}}

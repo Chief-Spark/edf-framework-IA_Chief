@@ -206,6 +206,43 @@ class FieldValidatorsSpec extends AnyFunSuite {
     assert(Campos.crudo(valores, 9) == "")
   }
 
+  test("Campos.separar quita solo el \\r final de una línea CRLF; los demás espacios se conservan (AUD-V-29)") {
+    val crlf = Campos.separar("a; 0001 ;10/01/2026\r", ";")
+    assert(crlf.toSeq == Seq("a", " 0001 ", "10/01/2026"))
+    assert(Campos.separar("a;b \r", ";").toSeq == Seq("a", "b "))
+    assert(Campos.separar("a;b\r\r", ";").toSeq == Seq("a", "b\r"))
+    assert(Campos.separar("a;\rb", ";").toSeq == Seq("a", "\rb"))
+    assert(Campos.separar("a;b", ";").toSeq == Seq("a", "b"))
+  }
+
+  test("claveDuplicado: sin un campo de la clave es única por registro aunque la fila sea idéntica (VAL-SP03, AUD-V-27)") {
+    val clave = Seq(campo().copy(nombre = "TIPO", posicion = 1, aliasHeader = Seq("TIPO")),
+      campo().copy(nombre = "NUMERO", posicion = 2, aliasHeader = Seq("NUMERO")))
+    val s = fuente(clave).copy(duplicados = DuplicadosSpec(habilitado = true, Seq("TIPO", "NUMERO"), None))
+    def k(fila: String): String = RecordValidator.claveDuplicado(s, Campos.separar(fila, ";")).mkString(":")
+    assert(k("1;123") == k("1;123"))
+    for (fila <- Seq("1;", ";123", ";", "1; ")) assert(k(fila) != k(fila), fila)
+    assert(RecordValidator.claveDuplicado(s, Campos.separar("1;", ";"), "R1").toSeq == Seq("SIN_CLAVE", "R1"))
+  }
+
+  test("cada regla de fecha del nombre se prueba aislada: el nombre viola solo esa regla (AUD-V-28)") {
+    val ahora = java.time.ZonedDateTime.of(2024, 6, 30, 23, 59, 59, 0, java.time.ZoneId.of("America/Bogota")).toInstant
+    val base = fuente(Seq(campo()))
+    val todas = base.copy(nombreArchivo = base.nombreArchivo.copy(periodoNoFuturo = true, recepcionNoFutura = true,
+      recepcionDesdeInicioPeriodo = true))
+    val n = todas.nombreArchivo
+    val casos = Seq(
+      // RA-02: periodo 2024-07 futuro en Bogotá; recibido 2024-07-01 00:00 +14:00 = 2024-06-30 10:00Z (no futuro) y
+      // no anterior al 1.º del periodo. El offset adelantado aísla la regla.
+      "X20240720240701000000+1400" -> todas.copy(nombreArchivo = n.copy(periodoNoFuturo = false)),
+      "X20240620240703120000-0500" -> todas.copy(nombreArchivo = n.copy(recepcionNoFutura = false)), // RA-03
+      "X20240620240531120000-0500" -> todas.copy(nombreArchivo = n.copy(recepcionDesdeInicioPeriodo = false))) // RA-04
+    for ((nombre, sinLaRegla) <- casos) {
+      assert(RecordValidator.validarNombre(todas, nombre, ahora).map(_.codigo) == Seq("TEST_ERR_0091"), nombre)
+      assert(RecordValidator.validarNombre(sinLaRegla, nombre, ahora).isEmpty, nombre)
+    }
+  }
+
   test("reglas de fecha del nombre: apagadas no cambian nada; encendidas rechazan periodo futuro y recepción fuera de rango (AUD-V-02)") {
     val ahora = java.time.ZonedDateTime.of(2024, 6, 30, 23, 59, 59, 0, java.time.ZoneId.of("America/Bogota")).toInstant
     val base = fuente(Seq(campo()))

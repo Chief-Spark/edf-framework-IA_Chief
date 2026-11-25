@@ -197,6 +197,8 @@ def build_fixture_line(spec: dict, case: dict) -> str:
 # Reglas de fecha opcionales de archivo.nombre. Sin ellas (o en false) el nombre se valida como antes: regex,
 # periodo AAAAMM legible, marca de tiempo legible y offset que acepta java.time.ZoneOffset.of.
 REGLAS_NOMBRE = ("periodo_no_futuro", "recepcion_no_futura", "recepcion_desde_inicio_periodo")
+REGLA_SCALA = {"periodo_no_futuro": "periodoNoFuturo", "recepcion_no_futura": "recepcionNoFutura",
+               "recepcion_desde_inicio_periodo": "recepcionDesdeInicioPeriodo"}
 # Formas que acepta java.time.ZoneOffset.of, por longitud del texto (sin contar la Z).
 _OFFSET_FORMAS = {2: r"([+-])(\d)", 3: r"([+-])(\d\d)", 5: r"([+-])(\d\d)(\d\d)", 6: r"([+-])(\d\d):(\d\d)",
                   7: r"([+-])(\d\d)(\d\d)(\d\d)", 9: r"([+-])(\d\d):(\d\d):(\d\d)"}
@@ -292,9 +294,29 @@ def nombre_valido_el_dia(spec: dict, ruta: str, hoy: date) -> bool:
     return not reglas_nombre_violadas(spec, info, ahora)
 
 
-def nombres_de_prueba(spec: dict) -> list[tuple[str, str, str]]:
-    """(regla, descripción, nombre) SINTÉTICOS que violan cada regla de fecha activa, derivados del nombre del
-    fixture cambiando solo los dígitos del periodo o de la marca de tiempo. Vacío si no hay reglas activas."""
+def viola_solo(spec: dict, regla: str, ruta: str, hoy: date) -> bool:
+    """AUD-V-28: con las TRES reglas de fecha activas, `ruta` viola exactamente `regla` con el reloj de `hoy`."""
+    todas = {**spec, "archivo": {**spec["archivo"], "nombre": {**spec["archivo"]["nombre"],
+                                                               **{r: True for r in REGLAS_NOMBRE}}}}
+    info = info_nombre(todas, ruta)
+    if info is None:
+        return False
+    try:
+        ahora = ahora_de_referencia(spec, hoy)
+    except Exception:  # noqa: BLE001 - zona inválida: no se puede aislar (check_name_rules lo informa aparte)
+        return False
+    return reglas_nombre_violadas(todas, info, ahora) == [regla]
+
+
+def nombres_de_prueba(spec: dict) -> list[tuple[str, str, str, date]]:
+    """(regla, descripción, nombre, día del reloj) SINTÉTICOS que violan cada regla de fecha activa, derivados del
+    nombre del fixture cambiando solo los dígitos del periodo, de la marca de tiempo y, para RA-02, del offset.
+    Vacío si no hay reglas activas.
+
+    AUD-V-28: cada nombre viola SOLO su regla (con las tres activas). RA-02 (periodo no futuro) se aísla con un
+    offset adelantado: periodo = mes siguiente al de referencia, recibido el 1.º de ese mes a las 00:00:00 con +1400
+    y reloj = último día del mes de referencia (su instante cae antes del reloj y su fecha local no es anterior al
+    periodo). Si el regex no admite ese nombre se usa el de antes (periodo un año después), que también viola RA-04."""
     nombre = spec["archivo"]["nombre"]
     activas = [r for r in REGLAS_NOMBRE if nombre.get(r)]
     fixture = spec["fixture"]["nombre_archivo"]
@@ -305,17 +327,30 @@ def nombres_de_prueba(spec: dict) -> list[tuple[str, str, str]]:
     ref = date.fromisoformat(spec["fixture"]["fecha_referencia"])
     periodo = datetime.strptime(match.group(grupos["periodo"]), "%Y%m")
 
-    def con(grupo: str, valor: str) -> str:
-        i, j = match.span(grupos[grupo])
-        return fixture[:i] + valor + fixture[j:]
+    def con(**valores: str) -> str:
+        texto = fixture
+        for grupo, valor in sorted(valores.items(), key=lambda kv: match.span(grupos[kv[0]])[0], reverse=True):
+            i, j = match.span(grupos[grupo])
+            texto = texto[:i] + valor + texto[j:]
+        return texto
 
+    siguiente = date(ref.year + ref.month // 12, ref.month % 12 + 1, 1)
+    fin_de_mes = siguiente - timedelta(days=1)
+    aislado = con(periodo=siguiente.strftime("%Y%m"), marca_tiempo=siguiente.strftime("%Y%m%d") + "000000",
+                  offset="+1400")
+    if viola_solo(spec, "periodo_no_futuro", "/ruta/sintetica/" + aislado, fin_de_mes):
+        periodo_futuro = ("periodo posterior al mes de referencia (offset adelantado, solo esta regla)", aislado,
+                          fin_de_mes)
+    else:
+        periodo_futuro = ("periodo posterior al mes de referencia",
+                          con(periodo=f"{ref.year + 1:04d}{ref.month:02d}"), ref)
     candidatos = {
-        "periodo_no_futuro": ("periodo posterior al mes de referencia",
-                              con("periodo", f"{ref.year + 1:04d}{ref.month:02d}")),
+        "periodo_no_futuro": periodo_futuro,
         "recepcion_no_futura": ("recepción posterior a la fecha de referencia",
-                                con("marca_tiempo", (ref + timedelta(days=3)).strftime("%Y%m%d") + "120000")),
+                                con(marca_tiempo=(ref + timedelta(days=3)).strftime("%Y%m%d") + "120000"), ref),
         "recepcion_desde_inicio_periodo": ("recepción anterior al primer día del periodo",
-                                           con("marca_tiempo", (periodo - timedelta(days=1)).strftime("%Y%m%d") + "120000")),
+                                           con(marca_tiempo=(periodo - timedelta(days=1)).strftime("%Y%m%d") + "120000"),
+                                           ref),
     }
     return [(regla, *candidatos[regla]) for regla in activas]
 
@@ -523,8 +558,8 @@ def check_name_rules(spec: dict) -> list[str]:
     else:
         errors += [f"fixture.nombre_archivo no cumple archivo.nombre.{r} a la fecha de referencia"
                    for r in reglas_nombre_violadas(spec, info, ahora)]
-    for regla, _, prueba in nombres_de_prueba(spec):
-        if nombre_valido(spec, prueba, ahora):
+    for regla, _, prueba, hoy in nombres_de_prueba(spec):
+        if nombre_valido(spec, prueba, ahora_de_referencia(spec, hoy)):
             errors.append(f"archivo.nombre.{regla}: no se pudo derivar del fixture un nombre que la viole ({prueba})")
     for invalido in fixture.get("nombres_invalidos") or []:
         if nombre_valido(spec, invalido, ahora):
@@ -717,11 +752,25 @@ def render_name_tests(spec: dict) -> str:
     """Pruebas del nombre de archivo que dependen de la spec (AUD-V-02, AUD-V-09): una por regla de fecha activa
     (nombre derivado del fixture) y una por fixture.nombres_invalidos. Vacío si no hay ninguna."""
     blocks = []
-    for regla, descripcion, nombre in nombres_de_prueba(spec):
+    ref = date.fromisoformat(spec["fixture"]["fecha_referencia"])
+    for regla, descripcion, nombre, hoy in nombres_de_prueba(spec):
+        ruta = f"\"/ruta/sintetica/{scala_str(nombre)}\""
+        reloj = "ahora"
+        cuerpo = ""
+        if hoy != ref:
+            reloj = "reloj"
+            cuerpo = (f"    val reloj = java.time.LocalDate.of({hoy.year}, {hoy.month}, {hoy.day}).atTime(23, 59, 59)"
+                      ".atZone(java.time.ZoneId.of(spec.zonaHoraria)).toInstant\n")
+        cuerpo += (f"    assert(RecordValidator.validarNombre(spec, {ruta}, {reloj}).map(_.codigo) == "
+                   "Seq(spec.codigos.nombreArchivo))\n")
+        if viola_solo(spec, regla, "/ruta/sintetica/" + nombre, hoy):
+            # AUD-V-28: sin esa regla el nombre es válido, así que la prueba aísla la regla.
+            sin = f"spec.nombreArchivo.copy({REGLA_SCALA[regla]} = false)"
+            cuerpo += (f"    assert(RecordValidator.validarNombre(spec.copy(nombreArchivo = {sin}), {ruta}, {reloj}).isEmpty, "
+                       "\"sin la regla el nombre es válido: la prueba la aísla (AUD-V-28)\")\n")
         blocks.append(
             f"  test(\"nombre de archivo con {scala_str(descripcion)} produce el código de nombre ({regla})\") {{\n"
-            f"    assert(RecordValidator.validarNombre(spec, \"/ruta/sintetica/{scala_str(nombre)}\", ahora).map(_.codigo) == "
-            "Seq(spec.codigos.nombreArchivo))\n"
+            f"{cuerpo}"
             "  }")
     invalidos = spec["fixture"].get("nombres_invalidos") or []
     if invalidos:

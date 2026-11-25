@@ -132,6 +132,16 @@ class {{Fuente}}ValidationProcessorSpec extends AnyFunSuite {
     assert(RecordValidator.claveDuplicado(spec, Campos.separar("", "{{delimitador_scala}}")).nonEmpty)
   }
 
+  test("dos filas idénticas sin un campo de la clave no se agrupan como duplicadas (VAL-SP03, AUD-V-27)") {
+    // El motor agrupa por keys = keysForDuplicate(...).mkString(":") (Validator.dupCheckForKey).
+    def clave(fila: String): String = RecordValidator.claveDuplicado(spec, Campos.separar(fila, "{{delimitador_scala}}")).mkString(":")
+    spec.duplicados.clave.flatMap(n => spec.campo(n).toSeq).foreach { c =>
+      val sinCampo = conValor(c.posicion, "")
+      assert(clave(sinCampo) != clave(sinCampo), "sin " + c.nombre + " dos filas idénticas comparten la clave")
+    }
+    if (spec.duplicados.clave.nonEmpty) assert(clave(linea(RegistroBase)) == clave(linea(RegistroBase)))
+  }
+
   // Casos del fixture (filtro de filas, reglas entre campos, duplicados), declarados en el source-spec.
 {{bloque_casos_fixture}}
 }

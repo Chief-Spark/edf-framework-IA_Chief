@@ -1,8 +1,12 @@
-# Especificación SISBEN V4 para Acceptance
+# Especificación SISBEN V4 para Acceptance · EJEMPLO HISTÓRICO
 
-Valores prellenados en `assets/examples/sisben/source-spec.sisben.yaml`. Precedencia: decisiones
-confirmadas (D1-D14) > HU > entendimiento funcional > reglas EDF > código Oxygen; **para el
-comportamiento del motor, el código gana**.
+> **Histórico, no es la spec de ninguna ingesta (HF-19, 1.9.5; igual que AUD-V-13 en `edf-validation`).** Esta
+> página explica el ejemplo de forma `assets/examples/sisben/source-spec.sisben.yaml` tal como se escribió en la
+> versión 0.1.0 de la skill. Difiere de la spec SISBEN vigente: aquí `RT_`/`EP_` son tipos válidos, el
+> `filePattern` no acepta `TXT`, los códigos son `SISBEN_ERR_001…` y se supone `inferDelete`. En una ingesta
+> mandan su HU y su spec (`expedientes/<id>/fuentes/`) a través del insumo aprobado de `edf-analisis`; esta página
+> no se cita como fuente ni fija precedencias (Paso 1 de `SKILL.md`). Para el comportamiento del motor, el código
+> gana.
 
 ## Identidad (contexto)
 
@@ -62,7 +66,7 @@ se rechaza. `manualReject`/`manualAccept` no se configuran.
 
 ## IN-08 Borrados (D2, abierto)
 
-SISBEN usaría `inferDelete` (carga completa) y/o `explicitDelete` (EP). Faltan modos, clave
+En este ejemplo histórico, SISBEN usaría `inferDelete` (carga completa) y/o `explicitDelete` (EP). Faltan modos, clave
 (`deletePredicates`) y ventana (`lookBackPeriod`), pendientes con el equipo Ingesta 3 / Pinning. El
 skill **no** emite `contextualOverride` hasta que exista una decisión registrada.
 

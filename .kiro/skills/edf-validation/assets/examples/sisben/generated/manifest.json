@@ -11,11 +11,11 @@
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/common/FieldValidators.scala",
-      "sha256": "9d221edd60bc6a8cd2b965b67810e6e236825351923addb2af281a04e4deb5e6"
+      "sha256": "648bb10aaf7cd79a5585b18e367589bbb56fe2cfc123a36ac86d0699b571083b"
     },
     {
       "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/common/FieldValidatorsSpec.scala",
-      "sha256": "2ac49d91692d45161ec419ed75e86eeab1207ba6ef3b51a8b4e0d95e509f755e"
+      "sha256": "0810182dd1a4405ea7fe76d011d8be0005d70789f418760a60f443e29b5e4bc0"
     },
     {
       "ruta": "src/main/scala/com/experian/edf/oxygen/validation/source/sisben/config/SISBENSpec.scala",
@@ -35,7 +35,7 @@
     },
     {
       "ruta": "src/test/scala/com/experian/edf/oxygen/validation/source/sisben/SISBENValidationProcessorSpec.scala",
-      "sha256": "451287ce87e1f616a5ba3573750db75c0a3983ae730c3860a31666907950523e"
+      "sha256": "d1c626f7922b9a6c8162e254fba8d73c23e4ad82048326db2b459b9496b3dac0"
     },
     {
       "ruta": "src/test/resources/sisben/SISBEN_EXPERIAN_202406.20240630120000-0500.txt",

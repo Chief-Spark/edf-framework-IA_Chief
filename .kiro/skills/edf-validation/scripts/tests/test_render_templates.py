@@ -760,18 +760,19 @@ def test_aud_v02_reglas_de_fecha_del_nombre_se_generan_y_prueban(spec, tmp_path)
     alt = spec_con_reglas_nombre(spec)
     assert rt.verify_spec(alt) == []
     pruebas = rt.nombres_de_prueba(alt)
-    assert [(r, n) for r, _, n in pruebas] == [
-        ("periodo_no_futuro", "SISBEN_EXPERIAN_202506.20240630120000-0500.txt"),
+    # AUD-V-28 (1.9.5): RA-02 se aísla con un offset adelantado (antes 202506.20240630…, que violaba también RA-04).
+    assert [(r, n) for r, _, n, _ in pruebas] == [
+        ("periodo_no_futuro", "SISBEN_EXPERIAN_202407.20240701000000+1400.txt"),
         ("recepcion_no_futura", "SISBEN_EXPERIAN_202406.20240703120000-0500.txt"),
         ("recepcion_desde_inicio_periodo", "SISBEN_EXPERIAN_202406.20240531120000-0500.txt")]
     hoy = rt.date(2024, 6, 30)
-    assert not any(rt.nombre_valido_el_dia(alt, n, hoy) for _, _, n in pruebas)
+    assert not any(rt.nombre_valido_el_dia(alt, n, d) for _, _, n, d in pruebas)
     assert rt.nombre_valido_el_dia(alt, alt["fixture"]["nombre_archivo"], hoy)
     rt.render_all(alt, tmp_path)
     fuente = _archivo(tmp_path, "SISBENSpec.scala")
     assert ("periodoNoFuturo = true,\n      recepcionNoFutura = true,\n      recepcionDesdeInicioPeriodo = true" in fuente)
     pruebas_scala = _archivo(tmp_path, "SISBENValidationProcessorSpec.scala")
-    for regla, _, nombre in pruebas:
+    for regla, _, nombre, _ in pruebas:
         assert f'"/ruta/sintetica/{nombre}", ahora).map(_.codigo) == Seq(spec.codigos.nombreArchivo)' in pruebas_scala
         assert f"({regla})" in pruebas_scala
     processor = _archivo(tmp_path, "ValidationProcessor.scala")
@@ -966,3 +967,74 @@ def test_hf15_supuesto_resuelto_no_pide_confirmacion():
     assert primera == "# RESUELTO F-12 (spec §9): archivo y columnas."
     assert "confirmar en el ambiente" in segunda and "ASSUMPTION F-04" in segunda
     assert usados == {"F-12"}
+
+
+# ------------------------------------------------------------------ 1.9.5: corrida E2E SISBEN (HF-16, -17, -18)
+FV_TPL = SKILL / "assets" / "templates" / "capa-a" / "FieldValidators.scala.tpl"
+
+
+def test_hf17_cada_nombre_de_prueba_viola_solo_su_regla(spec):
+    """AUD-V-28: con las tres reglas activas, cada nombre derivado viola exactamente su regla con su reloj."""
+    alt = spec_con_reglas_nombre(spec)
+    for fecha in ("2024-06-30", "2024-06-05", "2024-12-31", "2026-02-05"):
+        alt["fixture"]["fecha_referencia"] = fecha
+        alt["fixture"]["nombre_archivo"] = "SISBEN_EXPERIAN_202406.20240605120000-0500.txt"
+        assert rt.verify_spec(alt) == [], fecha
+        pruebas = rt.nombres_de_prueba(alt)
+        assert [r for r, *_ in pruebas] == list(rt.REGLAS_NOMBRE)
+        for regla, _, nombre, hoy in pruebas:
+            assert rt.viola_solo(alt, regla, "/x/" + nombre, hoy), (fecha, regla, nombre, hoy)
+        ra02 = pruebas[0]
+        assert ra02[2].endswith("000000+1400.txt") and ra02[3].month == rt.date.fromisoformat(fecha).month
+
+
+def test_hf17_caso_de_la_auditoria_aisla_ra02(spec):
+    """x7 de la auditoría: SISBEN_EXPERIAN_202612.20261201000000+1400.txt con reloj 2026-11-30 (America/Bogota)."""
+    alt = spec_con_reglas_nombre(spec)
+    nombre = "/x/SISBEN_EXPERIAN_202612.20261201000000+1400.txt"
+    hoy = rt.date(2026, 11, 30)
+    assert rt.viola_solo(alt, "periodo_no_futuro", nombre, hoy)
+    assert not rt.nombre_valido_el_dia(alt, nombre, hoy)
+    alt["archivo"]["nombre"]["periodo_no_futuro"] = False
+    assert rt.nombre_valido_el_dia(alt, nombre, hoy)
+    # El caso anterior del generador violaba también RA-04: no aislaba RA-02.
+    assert not rt.viola_solo(spec_con_reglas_nombre(spec), "periodo_no_futuro",
+                             "/x/SISBEN_EXPERIAN_202506.20240630120000-0500.txt", rt.date(2024, 6, 30))
+
+
+def test_hf17_prueba_scala_generada_aisla_cada_regla(spec, tmp_path):
+    alt = spec_con_reglas_nombre(spec)
+    alt["fixture"]["fecha_referencia"] = "2024-06-29"
+    alt["fixture"]["nombre_archivo"] = "SISBEN_EXPERIAN_202406.20240605120000-0500.txt"
+    rt.render_all(alt, tmp_path)
+    scala = _archivo(tmp_path, "SISBENValidationProcessorSpec.scala")
+    assert "val reloj = java.time.LocalDate.of(2024, 6, 30).atTime(23, 59, 59)" in scala
+    assert '"/ruta/sintetica/SISBEN_EXPERIAN_202407.20240701000000+1400.txt", reloj).map(_.codigo)' in scala
+    for campo in ("periodoNoFuturo", "recepcionNoFutura", "recepcionDesdeInicioPeriodo"):
+        assert f"spec.copy(nombreArchivo = spec.nombreArchivo.copy({campo} = false))" in scala, campo
+    fv = (tmp_path / "src/test/scala/com/experian/edf/oxygen/validation/source/common/FieldValidatorsSpec.scala")
+    texto = fv.read_text(encoding="utf-8")
+    assert "cada regla de fecha del nombre se prueba aislada" in texto and '"X20240720240701000000+1400"' in texto
+
+
+def test_hf17_regex_sin_offset_positivo_usa_el_caso_anterior(spec):
+    alt = spec_con_reglas_nombre(spec)
+    alt["archivo"]["nombre"]["regex"] = alt["archivo"]["nombre"]["regex"].replace("[+-]", "-")
+    alt["archivo"]["file_pattern"] = alt["archivo"]["file_pattern"].replace("[+-]", "-")
+    regla, _, nombre, hoy = rt.nombres_de_prueba(alt)[0]
+    assert (regla, nombre, hoy) == ("periodo_no_futuro", "SISBEN_EXPERIAN_202506.20240630120000-0500.txt",
+                                    rt.date(2024, 6, 30))
+
+
+def test_hf16_clave_sin_documento_unica_por_registro_en_la_plantilla():
+    tpl = FV_TPL.read_text(encoding="utf-8")
+    assert 'Array[Any]("SIN_CLAVE", unico)' in tpl
+    assert "java.util.UUID.randomUUID().toString" in tpl
+    assert 'valores.mkString("\\u0001").hashCode' not in tpl
+    proc = (SKILL / "assets" / "templates" / "SourceProcessorSpec.scala.tpl").read_text(encoding="utf-8")
+    assert "dos filas idénticas sin un campo de la clave no se agrupan como duplicadas" in proc
+
+
+def test_hf18_separar_quita_solo_el_cr_final_en_la_plantilla():
+    tpl = FV_TPL.read_text(encoding="utf-8")
+    assert 'if (original.endsWith("\\r")) original.dropRight(1) else original' in tpl

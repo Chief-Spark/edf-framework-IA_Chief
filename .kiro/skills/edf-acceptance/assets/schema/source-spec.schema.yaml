@@ -1,13 +1,18 @@
-# JSON Schema (draft 2020-12, escrito en YAML) de la source-spec del skill edf-acceptance-stage.
+# JSON Schema (draft 2020-12, escrito en YAML) de la source-spec del skill edf-acceptance.
 # Define TODOS los huecos {{...}} de assets/templates/*.tpl (lo comprueba scripts/render_templates.py --audit
 # y el test test_todo_hueco_definido_en_schema). Las entradas IN-xx son las del inventario.
 $schema: "https://json-schema.org/draft/2020-12/schema"
-title: source-spec edf-acceptance-stage
+title: source-spec edf-acceptance
 type: object
 additionalProperties: false
 required: [schema_version, version_skill, etapa, Fuente, fuente, identidad, rutas_destino, archivo, calidad,
            condiciones, fileActions, registro, rechazo_automatico, intervencion_manual,
-           diagnostico_validation, severidades, contextual_override, expresiones_propuestas_sisben, fixture]
+           diagnostico_validation, severidades, contextual_override, fixture]
+# HF-21 (1.9.5, corrida E2E SISBEN): la clave genérica es `expresiones_propuestas`. `expresiones_propuestas_sisben`
+# queda como alias DEPRECADO (insumos anteriores a 1.9.5): se acepta una de las dos, no ambas.
+oneOf:
+  - required: [expresiones_propuestas]
+  - required: [expresiones_propuestas_sisben]
 $defs:
   estado: {type: string, enum: [cerrado, propuesta_de_frontera, inferido, abierto]}
   nombre_dsl: {type: string, pattern: "^[A-Za-z_][A-Za-z0-9_]*$"}
@@ -22,6 +27,17 @@ $defs:
       enabled: {$ref: "#/$defs/nullable_bool"}
       lookBackPeriod: {$ref: "#/$defs/nullable_int", description: "ventana en meses"}
       deletePredicates: {$ref: "#/$defs/predicados"}
+  umbral: {type: string, pattern: "^(0\\.\\d+|1\\.0+)$", description: "escala 0..1 como texto, en [0, 1]"}
+  expresiones_propuestas:
+    type: array
+    items:
+      type: object
+      required: [regla, evidencia]
+      properties:
+        regla: {type: string}
+        expresion: {type: string}
+        detalle: {type: string}
+        evidencia: {type: string}
   error_code:
     type: object
     additionalProperties: false
@@ -85,7 +101,7 @@ properties:
       quality_score: {type: string}
       agregacion: {enum: [average, min, max, sum]}
       # AC-04 / P-3: en [0, 1]. Antes "^(0|1)\\.\\d+$", que aceptaba "1.50" (CP-ACC-G-05, fila 12).
-      umbral: {type: string, pattern: "^(0\\.\\d+|1\\.0+)$", description: "escala 0..1 como texto, en [0, 1]"}
+      umbral: {$ref: "#/$defs/umbral"}
       estado: {$ref: "#/$defs/estado"}
   condiciones:
     description: IN-03 / ACC-TPL-02 (oxygen.stage.acceptance.fileConditions[])
@@ -161,7 +177,12 @@ properties:
     description: ACC-TPL-03 (solo si reject usa hasErrorlevelIn/NotIn)
     type: object
     additionalProperties: false
-    required: [habilitado, tableName, archivo, fileFormat, delimiter, mapFromColumn, mapToColumn, filas, estado]
+    # HF-22 (1.9.5): con habilitado = false basta {habilitado, estado}; el resto solo se exige al habilitar la tabla
+    # (mismo patrón if/then que contextual_override).
+    required: [habilitado, estado]
+    if: {properties: {habilitado: {const: true}}}
+    then:
+      required: [tableName, archivo, fileFormat, delimiter, mapFromColumn, mapToColumn, filas]
     properties:
       habilitado: {type: boolean}
       tableName: {type: string}
@@ -197,16 +218,10 @@ properties:
         decision_ref: {type: string, minLength: 1}
         inferDelete: {properties: {enabled: {type: boolean}, lookBackPeriod: {type: integer}, deletePredicates: {type: array}}}
         explicitDelete: {properties: {enabled: {type: boolean}, lookBackPeriod: {type: integer}, deletePredicates: {type: array}}}
+  expresiones_propuestas: {$ref: "#/$defs/expresiones_propuestas"}
   expresiones_propuestas_sisben:
-    type: array
-    items:
-      type: object
-      required: [regla, evidencia]
-      properties:
-        regla: {type: string}
-        expresion: {type: string}
-        detalle: {type: string}
-        evidencia: {type: string}
+    $ref: "#/$defs/expresiones_propuestas"
+    description: DEPRECADA desde 1.9.5 (HF-21); use expresiones_propuestas. Se acepta para no romper insumos existentes
   # AC-27 / ADR-G2 (2026-10-21). Bloque OPCIONAL: una spec sin él sigue siendo válida (copias negativas de
   # G-03, G-05 y G-06). No es un hueco de plantilla: lo lee RenderTemplates.run, que lo lista con --audit
   # (después de los huecos) y en el reporte normal (después de generado/omitido).
@@ -228,6 +243,38 @@ properties:
     additionalProperties: false
     required: [archivos]
     properties:
+      # HF-23 (1.9.5, AUD-A-01): OPCIONAL. Casos que prueban la MISMA configuración con otro umbral (p. ej. el
+      # escenario «Umbral parametrizable» de una HU), sin generar otra configuración desplegable: ACC-TPL-05 evalúa
+      # accept y las condiciones con el umbral sustituido sobre registros sintéticos con QS binario
+      # (registros_validos con 1 y el resto con 0) y simular_decision.py hace lo mismo. Sin la clave no cambia nada.
+      umbrales_alternativos:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          required: [umbral, casos]
+          properties:
+            umbral: {$ref: "#/$defs/umbral"}
+            casos:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                additionalProperties: false
+                required: [id, registros_validos, registros_totales, esperado]
+                properties:
+                  id: {type: string, pattern: "^[A-Za-z0-9_.-]+$"}
+                  registros_validos: {type: integer, minimum: 0}
+                  registros_totales: {type: integer, minimum: 1}
+                  esperado: {enum: [aceptado, rechazado]}
+                  reason_code_esperado:
+                    type: string
+                    description: >-
+                      reasonCode(s) registrados, unidos por coma (condiciones isLogged que dan true). Obligatorio con
+                      esperado = rechazado; ausente = "" (ninguno)
+                  descripcion: {type: string}
+                if: {properties: {esperado: {const: rechazado}}}
+                then: {required: [reason_code_esperado]}
       archivos:
         type: array
         minItems: 1

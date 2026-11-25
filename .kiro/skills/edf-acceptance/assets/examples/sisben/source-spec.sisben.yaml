@@ -1,7 +1,7 @@
 # EJEMPLO DE FORMA, NO ES FUENTE. Este archivo enseña la estructura y el nivel de detalle del insumo.
 # Sus valores NO se copian a ninguna ingesta, tampoco a SISBEN: pueden diferir de la HU y la spec vigentes
 # (00-framework-edf.md §6). Los valores salen siempre de expedientes/<id>/fuentes/ (HU y spec).
-# Especificación de fuente para el skill edf-acceptance-stage — caso piloto SISBEN V4.
+# Especificación de fuente para el skill edf-acceptance — caso piloto SISBEN V4.
 # Valida contra assets/schema/source-spec.schema.yaml.
 # DATOS SINTÉTICOS: todos los nombres de archivo, documentos, fechas e ids del bloque `fixture`
 # son ficticios (prefijo SINT). Ningún valor proviene de un archivo real de la fuente.
@@ -111,7 +111,8 @@ contextual_override:
   estado: abierto
 
 # Expresiones propuestas (acceptance_patrones.yaml#expresiones_propuestas_sisben), con la corrección de nombre.
-expresiones_propuestas_sisben:
+# Clave genérica desde 1.9.5 (HF-21); el nombre anterior expresiones_propuestas_sisben se acepta como alias deprecado.
+expresiones_propuestas:
   - regla: Registro bueno = sin severidad 1 y no duplicado
     expresion: 'recordAcceptance = "errorlevelNotIn(\"1\") and errorcodeNotIn(\"OxygenDuplicate\")"'
     evidencia: documentado

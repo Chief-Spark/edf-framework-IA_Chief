@@ -91,3 +91,18 @@ comentario de arriba. Los no intencionales se corrigen. Lo revisan `tools/audita
 | AUD-A5 | 2026-11-24 | Referencias al generador Java deprecado como si fuera vigente (`test_simulador.py` decía que el renderizador y sus pruebas estaban en Java) | Apuntan a `render_templates.py` y a `test_render_templates.py`, o quedan marcadas como históricas | cabeceras de `test_render_templates.py`, `test_simulador.py` y `render_templates.py`; `assets/checklist-entrega.md` |
 | AUD-A6 | 2026-11-24 | Silencio intencional sin marca | El único (`accept` en la decisión de archivo) queda marcado `SILENCIO-INTENCIONAL AUD-A3` | `AcceptanceExpressionsSpec.scala.tpl` |
 
+## Corrida E2E SISBEN (1.9.5, 2026-11-25)
+
+Defectos del framework que encontró la auditoría de la etapa Acceptance de la corrida E2E SISBEN
+(`ejecuciones/sisben-e2e/auditorias/acceptance.md` §2-§3). Las claves nuevas son opcionales y la vieja sigue
+aceptada: el insumo de la corrida sigue generando con rc 0.
+
+| Id | Qué estaba mal | Qué cambió | Dónde |
+|---|---|---|---|
+| HF-19 (AUD-A-10, defecto 1) | La columna «SISBEN» del SKILL y `especificacion-sisben.md` describían otra versión de SISBEN (`RT_`/`EP_` válidos, sin `TXT`, `inferDelete`) y fijaban precedencias | La reference queda rotulada «EJEMPLO HISTÓRICO» y no se cita como fuente; la columna es «Ejemplo de forma (no es fuente)» y dice que los valores salen de la HU y la spec de la ingesta | `SKILL.md`, `references/especificacion-sisben.md`; `tests/test_regresion_e2e_acceptance.py` |
+| HF-20 (defecto 2) | Plantillas, manifiesto, schema y script firmaban `edf-acceptance-stage` | Firman `edf-acceptance <version_skill>` | `assets/templates/*`, schema, `render_templates.py`; `test_hf20_*` |
+| HF-21 (defecto 3) | El schema genérico exigía `expresiones_propuestas_sisben` | Clave `expresiones_propuestas`; la vieja se acepta como alias deprecado (una de las dos, no ambas) y el generador imprime un `aviso` | schema, `render_templates.avisos`; `test_hf21_*` |
+| HF-22 (defecto 4) | `severidades` exigía todos sus campos con `habilitado: false` | `if habilitado: true then required […]`, como `contextual_override` | schema; `test_hf22_*` |
+| HF-23 (AUD-A-01, defecto 5) | No había forma de probar otro umbral (HU §5.2 «Umbral parametrizable») sin otra configuración | `fixture.umbrales_alternativos` (opcional): ACC-TPL-05 evalúa `accept` y las condiciones con el umbral sustituido sobre registros sintéticos con QS binario; `simular_decision.py` hace lo mismo. La escala única de la configuración desplegable no cambia | schema, `AcceptanceExpressionsSpec.scala.tpl`, `render_templates.py` (`con_umbral`, `umbrales_alternativos_coherentes`), `simular_decision.py`; `test_hf23_*` |
+| HF-24 (AUD-A-08, -09) | El simulador no comparaba con lo esperado (rc 0 aunque difiriera); el Spec decía que con `customReason…` el motor siempre registra el `reasonCode` | El simulador informa `coincide`/`diferencias` por archivo y sale con 1 si algo no coincide; el comentario dice que solo lo registra si alguna condición de `reject` es verdadera sobre los eventos del marcador | `simular_decision.py`, `AcceptanceExpressionsSpec.scala.tpl`, `SKILL.md`; `test_hf24_*` |
+

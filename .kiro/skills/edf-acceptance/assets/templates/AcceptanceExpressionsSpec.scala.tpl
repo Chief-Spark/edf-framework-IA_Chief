@@ -1,5 +1,5 @@
 // ACC-TPL-05 · Casos de prueba de las expresiones de Acceptance de {{Fuente}}.
-// Generado por edf-acceptance-stage {{version_skill}}. Tipo: ESQUELETO.
+// Generado por edf-acceptance {{version_skill}}. Tipo: ESQUELETO.
 // Compilación NO certificada (F-01): sin acceso al JAR del framework no se pudo compilar.
 // Destino: {{rutas_destino.raiz_tests}}  ·  Fixture: {{rutas_destino.recursos_tests}}validated/
 // Motivo: un error de sintaxis no falla en ejecución; acepta todos los registros o deja el archivo
@@ -164,7 +164,9 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
       assert(marker.isEmpty || dir.contains(marker), "el marcador " + marker + " no está en el directorio " + dir)
       assert(automaticReject(dir) == (expected == "rechazo_automatico"), dir)
       if (automaticReject(dir)) {
-        // Con customReasonForAutomaticRejectionEnabled el motor además registra el reasonCode (E4).
+        // Con customReasonForAutomaticRejectionEnabled el motor evalúa además reject sobre los eventos del marcador
+        // y registra el reasonCode solo si alguna condición de reject es verdadera sobre ellos (E4). Si los eventos
+        // del marcador no traen el QS de la condición, la condición vale false y no registra ninguno (AUD-A-09).
         assert(CustomReasonForAutomaticRejection || reasonCode.isEmpty, dir)
       } else {
         val parser = aggregatesParser(dir)
@@ -179,6 +181,48 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
     }
   }
 
+{{#si fixture.umbrales_alternativos?}}
+  // HF-23 (AUD-A-01): fixture.umbrales_alternativos. Prueba la MISMA configuración con otro umbral sin generar otra
+  // configuración desplegable: accept y cada condición se evalúan con el literal del umbral sustituido (la regla
+  // "escala única" garantiza que es su único número) sobre registros sintéticos con QS binario: registros_validos
+  // con 1 y el resto con 0.
+  private val UmbralDesplegado = "{{calidad.umbral}}"
+
+  // (umbral, caso, registros válidos, registros totales, decisión esperada, reasonCode esperado)
+  private val umbralesAlternativos: Seq[(String, String, Int, Int, String, String)] = Seq(
+{{#cada fixture.umbrales_alternativos}}
+{{#cada casos}}
+    ("{{umbral}}", "{{id}}", {{registros_validos}}, {{registros_totales}}, "{{esperado}}", "{{#si reason_code_esperado?}}{{reason_code_esperado|scala}}{{/si}}"),
+{{/cada}}
+{{/cada}}
+  )
+
+  /** Misma sustitución que render_templates.con_umbral y simular_decision.con_umbral. */
+  private def conUmbral(expr: String, umbral: String): String =
+    ("(?<![\\w.])" + java.util.regex.Pattern.quote(UmbralDesplegado) + "(?![\\w.])").r
+      .replaceAllIn(expr, scala.util.matching.Regex.quoteReplacement(umbral))
+
+  test("umbral alternativo: la misma configuración con otro umbral acepta y rechaza lo esperado (HF-23)") {
+    import spark.implicits._
+    umbralesAlternativos.foreach { case (umbral, caso, validos, totales, expected, reasonCode) =>
+      val accept = conUmbral(FileAccept, umbral)
+      assert(accept != FileAccept, "accept no contiene el umbral " + UmbralDesplegado)
+      val alt = conditions.map { case (n, c) => n -> AcceptanceCondition(c.name, conUmbral(c.expression, umbral), c.reasonCode, c.isLogged) }
+      val qs = (1 to totales).map(i => Tuple1(QualityScoreNames.map(_ -> (if (i <= validos) 1.0 else 0.0)).toMap)).toDF("qs")
+      val parser = new AggregatesParserDF(spark.sqlContext, qs)
+      val evaluator = new AcceptanceEvaluator
+      evaluator.apply(alt, ReasonSeverities)
+      val (rejected, partials) = evaluator.execute(evaluator.compile(FileReject).get, alt.values.toList, parser)
+      // SILENCIO-INTENCIONAL AUD-A3: igual que el motor (SparkAcceptor.isFileActionValid), un accept que lanza vale false.
+      val accepted = !rejected && Try(parser.parseAll(parser.boolExpr, accept).get).getOrElse(false)
+      val decision = if (rejected) "rechazado" else if (accepted) "aceptado" else "pendiente"
+      assert(decision == expected, "umbral " + umbral + ", caso " + caso)
+      val logged = partials.filter(p => p.isLogged && p.result).map(_.reasonCode).mkString(",")
+      assert(logged == reasonCode, "umbral " + umbral + ", caso " + caso)
+    }
+  }
+
+{{/si}}
   // PARTE MANUAL (ACC-TPL-05): si se activa ACC-TPL-04 (contextualOverride), agregue aquí un caso que
   // falle cuando la inferencia de borrados devuelve vacío en silencio (ACC-AP03).
 }

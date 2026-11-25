@@ -334,3 +334,58 @@ def test_aud_v03_reglas_por_lista_no_cambian(spec, catalog):
     for documento, emite in ((" 0000", True), ("0000000000000000", False), ("00 00", False)):
         values[14] = documento
         assert ("SISBEN_ERR_029" in [e["codigo"] for e in pv.validate_record(alt, ";".join(values), catalog, HOY)]) is emite
+
+
+# ------------------------------------------------------------------ 1.9.5: corrida E2E SISBEN (HF-16, -17, -18)
+def test_hf16_dos_filas_identicas_sin_numero_no_se_agrupan(spec, catalog, tmp_path):
+    """AUD-V-27: sin tipo o sin número la clave es única por registro, aunque las filas sean idénticas."""
+    for campo in spec["duplicados"]["clave"]:
+        values = base_row(spec)
+        pos = next(c["posicion"] for c in spec["campos"] if c["nombre"] == campo)
+        values[pos - 1] = ""
+        fila = ";".join(values)
+        path = write_file(tmp_path, spec, [fila, fila])
+        resumen = pv.prevalidate(spec, path, catalog, HOY, detail=True)
+        assert resumen["duplicados_marcados"] == 0, campo
+        assert [d["duplicado"] for d in resumen["detalle"]] == [False, False]
+        assert pv.duplicate_key(spec, fila) != pv.duplicate_key(spec, fila)
+        assert pv.duplicate_key(spec, fila, 7) == ("SIN_CLAVE", 7)
+    fila = ";".join(base_row(spec))  # con documento completo sí se agrupan
+    assert pv.duplicate_key(spec, fila) == pv.duplicate_key(spec, fila)
+    assert pv.prevalidate(spec, write_file(tmp_path, spec, [fila, fila]), catalog, HOY)["duplicados_marcados"] == 1
+
+
+@pytest.mark.parametrize("regla,nombre,hoy", [
+    # RA-02 aislada con un offset adelantado (x7 de la auditoría): periodo futuro en Bogotá, recibido no futuro y
+    # no anterior al inicio del periodo.
+    ("periodo_no_futuro", "SISBEN_EXPERIAN_202612.20261201000000+1400.txt", date(2026, 11, 30)),
+    ("recepcion_no_futura", "SISBEN_EXPERIAN_202611.20261201093000-0500.txt", date(2026, 11, 30)),
+    ("recepcion_desde_inicio_periodo", "SISBEN_EXPERIAN_202611.20261031093000-0500.txt", date(2026, 11, 30)),
+])
+def test_hf17_cada_regla_del_nombre_aislada(spec, regla, nombre, hoy):
+    """AUD-V-28: con las tres reglas activas el nombre se rechaza, y sin SOLO su regla es válido."""
+    todas = con_reglas(spec)
+    assert [e["codigo"] for e in pv.validate_name(todas, "/x/" + nombre, hoy)] == ["SISBEN_ERR_024"]
+    sin_la_regla = copy.deepcopy(todas)
+    sin_la_regla["archivo"]["nombre"][regla] = False
+    assert pv.validate_name(sin_la_regla, "/x/" + nombre, hoy) == []
+    import render_templates as rt  # la réplica del nombre vive en el generador (spec_utils la reexporta)
+
+    info = rt.info_nombre(todas, "/x/" + nombre)
+    assert rt.reglas_nombre_violadas(todas, info, rt.ahora_de_referencia(todas, hoy)) == [regla]
+
+
+def test_hf18_split_row_quita_solo_el_cr_final(spec, catalog, tmp_path):
+    """AUD-V-29: réplica de Campos.separar; un archivo CRLF valida igual que uno LF."""
+    assert pv.split_row("a; 0001 ;10/01/2026\r", ";") == ["a", " 0001 ", "10/01/2026"]
+    assert pv.split_row("a;b \r", ";") == ["a", "b "]
+    assert pv.split_row("a;b\r\r", ";") == ["a", "b\r"]
+    assert pv.split_row("a;\rb", ";") == ["a", "\rb"]
+    fila = ";".join(base_row(spec))
+    assert pv.validate_record(spec, fila + "\r", catalog, HOY) == pv.validate_record(spec, fila, catalog, HOY)
+    assert pv.duplicate_key(spec, fila + "\r") == pv.duplicate_key(spec, fila)
+    lf = write_file(tmp_path, spec, [fila, fila])
+    crlf = tmp_path / "crlf" / lf.name
+    crlf.parent.mkdir()
+    crlf.write_bytes(lf.read_bytes().replace(b"\n", b"\r\n"))
+    assert pv.prevalidate(spec, crlf, catalog, HOY, detail=True) == pv.prevalidate(spec, lf, catalog, HOY, detail=True)

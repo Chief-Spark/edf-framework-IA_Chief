@@ -43,7 +43,9 @@ def comparable(value: str | None) -> str:
 
 
 def split_row(row: str | None, delimiter: str) -> list[str]:
-    return (row or "").split(delimiter)  # equivale a split(Pattern.quote(d), -1)
+    """Réplica de Campos.separar: split(Pattern.quote(d), -1), quitando antes SOLO el \\r final de una línea CRLF
+    (AUD-V-29); los demás espacios se conservan."""
+    return (row or "").removesuffix("\r").split(delimiter)
 
 
 def value_at(values: list[str], position: int) -> str:
@@ -218,13 +220,16 @@ def validate_name(spec: dict, path: str, today: date | None = None) -> list[dict
              "causa": "NOMBRE_ARCHIVO"}]
 
 
-def duplicate_key(spec: dict, row: str) -> tuple:
+def duplicate_key(spec: dict, row: str, unico: object | None = None) -> tuple:
+    """Réplica de RecordValidator.claveDuplicado. Sin tipo o sin número (algún campo de la clave vacío) la clave es
+    única POR REGISTRO (`unico`; por defecto un objeto nuevo), así que nunca agrupa, ni siquiera dos filas idénticas
+    (VAL-SP03, AUD-V-27). Antes la clave era el contenido de la fila."""
     values = split_row(row, spec["archivo"]["delimitador"])
     fields = field_by_name(spec)
     parts = [normalize(value_at(values, fields[n]["posicion"]), fields[n].get("normalizacion", []))
              for n in spec["duplicados"]["clave"]]
     if not parts or any(not p for p in parts):
-        return ("SIN_CLAVE", row)  # nunca agrupa registros sin documento
+        return ("SIN_CLAVE", object() if unico is None else unico)
     return tuple(parts)
 
 
@@ -356,7 +361,7 @@ def prevalidate(spec: dict, path: Path, catalog: Catalog, today: date, detail: b
     if dup["habilitado"]:
         groups: dict[tuple, list[dict]] = {}
         for rec in records:
-            groups.setdefault(duplicate_key(spec, rec["row"]), []).append(rec)
+            groups.setdefault(duplicate_key(spec, rec["row"], rec["linea"]), []).append(rec)
         for group in groups.values():
             if len(group) < 2:
                 continue

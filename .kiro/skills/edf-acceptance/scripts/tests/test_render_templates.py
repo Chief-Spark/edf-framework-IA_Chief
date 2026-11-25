@@ -113,8 +113,12 @@ def test_todo_hueco_definido_en_schema(spec, schema):
 def test_huecos_de_ramas_activas_llenos_en_spec(spec, schema):
     # Ramas deshabilitadas en SISBEN; fileActions.manualReview es opcional y no se declara (AUD-A4).
     disabled = ("intervencion_manual.manual", "contextual_override.", "fileActions.manualReview")
+    # fixture.umbrales_alternativos es opcional (HF-23) y el ejemplo no lo declara: sus huecos quedan ausentes.
+    opcionales = {"fixture.umbrales_alternativos?", "fixture.umbrales_alternativos", "casos", "umbral", "id",
+                  "registros_validos", "registros_totales", "esperado", "reason_code_esperado?", "reason_code_esperado"}
     rows = rt.audit(spec, schema)
-    empty = [r for r in rows if r["en_spec"] != "lleno" and not r["hueco"].startswith(disabled)]
+    empty = [r for r in rows if r["en_spec"] != "lleno" and not r["hueco"].startswith(disabled)
+             and r["hueco"] not in opcionales]
     assert empty == []
 
 

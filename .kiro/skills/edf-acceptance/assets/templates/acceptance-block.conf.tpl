@@ -1,4 +1,4 @@
-# ACC-TPL-01 · Bloque de ingesta de {{Fuente}} · generado por edf-acceptance-stage {{version_skill}}
+# ACC-TPL-01 · Bloque de ingesta de {{Fuente}} · generado por edf-acceptance {{version_skill}}
 # Destino: {{rutas_destino.hocon}}
 # REGLA ADITIVA: copie el elemento { ... } dentro de la lista existente oxygen.stage.acceptance.configs
 # del archivo inner. No toque el *-common-application.conf base ni otros elementos de la lista.

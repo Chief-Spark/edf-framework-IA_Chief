@@ -1,4 +1,4 @@
-# ACC-TPL-03 · Registro del lookup de severidades de {{Fuente}} · edf-acceptance-stage {{version_skill}}
+# ACC-TPL-03 · Registro del lookup de severidades de {{Fuente}} · edf-acceptance {{version_skill}}
 # REGLA ADITIVA: copie el elemento dentro de la lista existente oxygen.lookups del archivo inner.
 # La severidad debe ser entera: el motor la convierte con toInt.
 oxygen {

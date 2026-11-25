@@ -43,3 +43,13 @@ def test_regla_7b_bloquea_transicion_con_insumo_en_revision():
     assert any("sin transicion" in f for f in mod.reglas_gobierno(estado))  # en_progreso no se admite
     estado["etapas"][1]["estado"] = "no_iniciada"
     assert not any(f.startswith("7b.") for f in mod.reglas_gobierno(estado))
+
+
+def test_ref03_documenta_revision_de_artefactos_de_etapa_aprobada():
+    """HF-25: regenerar artefactos de una etapa aprobada sin desaprobarla (re-auditoría por diferencia)."""
+    txt = REF03.read_text(encoding="utf-8")
+    assert "### 3d. Revisión de artefactos de una etapa ya aprobada" in txt
+    seccion = txt.split("### 3d.")[1].split("Además aplican")[0]
+    for frase in ("no** se desaprueba", "Re-auditoría por diferencia", "Nueva aprobación `tipo: artefacto`",
+                  "evento `correccion`", "aplica §3c"):
+        assert frase in seccion, frase

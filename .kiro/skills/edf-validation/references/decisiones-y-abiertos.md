@@ -143,3 +143,13 @@ la salida de una spec existente solo cambia por las correcciones de forma (AUD-V
 | AUD-V-17 | `listDuplicateEvents` reconstruía `TaggedValidatedEvent` con 15 argumentos y perdía `fileTag` | Se pasan los 17 del motor (`Validator.scala:208-210`): `tve.inferredAsDeleted` y `tve.fileTag` (accesores usados por `Curator.scala:182-183`, mismo framework 24040573). Compilación no certificada (F-01) | `ValidationProcessor.scala.tpl` |
 | AUD-V-19 | `codigos-error-<fuente>.csv` en la carpeta que se pega en el fork y sin `OxygenDuplicate` | Se genera en `docs/` y lista `OxygenDuplicate` cuando hay duplicados | `TEMPLATE_TARGETS`, `render_error_codes` |
 | AUD-V-21 | Steering y skill con nombres distintos del inner | `validation-common-application-inner.conf`, como `07-contratos-frontera.md` §6 y la referencia del fork de Curation; el repo del motor no trae los inner | `.kiro/steering/10-piloto-sisben.md` |
+
+## Corrida E2E SISBEN (1.9.5, 2026-11-25)
+
+Lote pendiente de la re-auditoría de la propuesta (`ejecuciones/sisben-e2e/auditorias/validation.md` §7).
+
+| Id | Qué estaba mal | Qué cambió | Dónde |
+|---|---|---|---|
+| AUD-V-27 (HF-16) | Sin tipo o sin número la clave de duplicado era el contenido de la fila (`hashCode`; en la réplica, la fila): dos filas idénticas sin número se agrupaban, contra VAL-SP03 / spec §6 | La clave es única por registro: `claveDuplicado(spec, valores, unico)`; el processor usa la sobrecarga con un UUID (el motor la llama una vez por registro, `Validator.dupCheckForKey`); la réplica usa el número de línea | `capa-a/FieldValidators.scala.tpl`, `SourceProcessorSpec.scala.tpl`, `FieldValidatorsSpec.scala.tpl`, `prevalidar_archivo.py`; `test_hf16_*` |
+| AUD-V-28 (HF-17) | Ninguna prueba aislaba RA-02: el caso derivado y el de la Capa A violaban también RA-04 | RA-02 se aísla con un offset adelantado (mes siguiente, 1.º a las 00:00:00 `+1400`, reloj = último día del mes de referencia). Cada prueba generada del nombre comprueba además que sin su regla el nombre es válido; la Capa A prueba las tres reglas aisladas | `render_templates.py` (`nombres_de_prueba`, `viola_solo`, `render_name_tests`), `FieldValidatorsSpec.scala.tpl`; `test_hf17_*` |
+| AUD-V-29 (HF-18) | `Campos.crudo` dejaba el `\r` de una línea CRLF en el último campo de `validatedRecordJson` (el motor, con `encoding`, parte el archivo por `"\n"`, `SparkValidator.scala:503`) | `Campos.separar` (y `split_row`) quitan SOLO el `\r` final antes de partir | `capa-a/FieldValidators.scala.tpl`, `prevalidar_archivo.py`; `test_hf18_*` |
