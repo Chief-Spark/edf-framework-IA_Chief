@@ -622,8 +622,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:59:11-05:00
 - **Pedido:** Corregir HF-13, 42, 44, 45, 47..55, 65..67, 78, 79 (HF-56 solo propuesta).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Corregidos HF-13, 42, 44, 45, 47..55, 65..67, 78, 79 (HF-56 como propuesta). Insumos de la corrida siguen verificando (acceptance con un aviso nuevo por otra_fuente, HF-44). Notas: ART-053 aprobado daría 5 hallazgos con el verificador nuevo de Pinning (lista sin rutas completas, el defecto de HF-65; el artefacto de la corrida no se toca); el MANIFEST de Curation cambia de forma (marcas_sintetico con sha256). Suites: validation 222, acceptance 161, curation 141, tests 258; auditar-skills OK.
+- **Decisión:** Commit c7174ba (framework 1.9.12). Los artefactos aprobados de la corrida no se regeneran: los cambios del lote son de forma o del framework (anotado en el informe).
 - **Bitácora:** —
 
 ## INT-079 · Auditor independiente (state_calculation) · insumo v2 · `state_calculation`
