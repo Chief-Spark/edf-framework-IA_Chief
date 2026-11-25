@@ -109,7 +109,7 @@ Ninguna etapa queda certificada ni integrada al fork mientras sigan abiertos los
 
 | Archivo | Contenido |
 |---|---|
-| `expedientes/sisben/bitacora.md` | 197 eventos append-only (BIT-0001..BIT-0197) |
+| `expedientes/sisben/bitacora.md` | 199 eventos append-only (BIT-0001..BIT-0199) |
 | `expedientes/sisben/estado-ingesta.json` | 32 aprobaciones, 14 preguntas, 32 riesgos y 3 ítems de backlog |
 | `expedientes/sisben/estado-ingesta.md` | Vista generada desde el JSON |
 | `registro-interacciones.md` | 80 interacciones con agentes (INT-001..INT-080): qué se pidió, qué se respondió, qué se decidió y su BIT asociado |
@@ -119,4 +119,21 @@ Ninguna etapa queda certificada ni integrada al fork mientras sigan abiertos los
 
 ## 7. Verificación final
 
-Ver la sección «Verificación del cierre» al final de este archivo, que se completa en el último commit.
+Comandos corridos al cierre (framework 1.9.12):
+
+```
+validation: 222 passed, 7 skipped in 9.73s
+acceptance: 161 passed, 1 skipped in 2.81s
+curation: 141 passed, 2 skipped in 2.71s
+tests: 258 passed in 2.33s
+auditar-skills: AUDITORIA OK
+verificar-claves (insumos de la corrida): RESULTADO: claves coherentes.
+verificar-insumo-pinning: RESULTADO: insumo de Pinning OK.
+validar-expediente (con --cruzado): EXPEDIENTE VALIDO: ninguna transicion habilitada sin aprobacion registrada.
+```
+
+Notas del lote 1.9.12 que no cambian lo aprobado:
+
+- El verificador nuevo de Pinning (`render_bloque_colombia.py --verificar`) daría 5 hallazgos sobre ART-053 aprobado, porque su lista VERIFICAR tiene varias claves por línea sin la ruta completa (es el defecto HF-65). El artefacto de la corrida no se regenera; se rehace con el generador nuevo antes de integrar al fork.
+- El insumo de Acceptance da ahora un aviso por la clave `otra_fuente` sin prefijo `ruta_` (HF-44 y AUD-A-19). Queda para su próxima versión.
+- Las citas a `EventPinner` en ART-030 y ART-034 se corrigen en su próxima versión (AUD-P-25, INT-052).

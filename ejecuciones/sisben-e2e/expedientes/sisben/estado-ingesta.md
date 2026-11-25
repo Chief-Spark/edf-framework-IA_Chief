@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:59:11-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T23:19:42-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 195 eventos, último BIT-0195 |
+| Bitácora | 199 eventos, último BIT-0199 |
 
 ## Etapas
 
@@ -57,9 +57,9 @@
 | synthesis | ART-061 | entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68) | `aprobado` | sha256:65e2b4829274 |
 | synthesis | ART-062 | bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68) | `aprobado` | sha256:1751c72b5fc3 |
 | state_calculation | ART-070 | insumo: yaml-skill-statecalc.yaml (edf-analisis) | `prevalidado` | — |
-| state_calculation | ART-071 | fields[] de statecalc-foundation-local.json | `ausente` | — |
-| state_calculation | ART-072 | CalculationSection de statecalc-calculation-local.json | `ausente` | — |
-| state_calculation | ART-073 | CA1: Data Provisioning consulta la seccion de la ingesta en el XPM | `ausente` | — |
+| state_calculation | ART-071 | entradas fields[] de la ingesta en modo Colombia: campos Foundation para integrar en el statecalc-foundation compartido de Colombia, sin repetir un name ni alias existente (un nombre duplicado gana para todas las fuentes), DERIVED con name = clave curada publicada, CALCULATED solo sobre campos Foundation declarados (HF-77) | `ausente` | — |
+| state_calculation | ART-072 | secciones de la ingesta en modo Colombia: CalculationSection para integrar en el statecalc-calculation compartido de Colombia, cada una con where de filtro por fuente ([A:OQ-TR-2]), name valido como identificador JavaScript (sin #) y sin repetir una seccion existente; groupBy plano (HF-77) | `ausente` | — |
+| state_calculation | ART-073 | CA1 en el XPM compartido de Colombia: Data Provisioning consulta la seccion de la ingesta; precondicion: lista de verificacion del fork (nombres existentes, modo delta deltaMode/deltaModeAccountLevel/doesComputeXpm: un PIN sin cambios conserva su XPM anterior, aliasEnabled, JDK y Nashorn OQ-TR-2) y casos de PIN de otra fuente sin la seccion (HF-77) | `ausente` | — |
 
 ## Aprobaciones
 
@@ -112,7 +112,7 @@
 - PA-010 (abierta, no bloqueante): Para la próxima versión de HU y spec: (1) ¿qué significa «reusePIN = false» (ingesta sin PIN previos propios, no la clave global de la aplicación compartida)? (2) La ruta Pinned propia de spec §14 frente al pinnedDir único de la aplicación de Pinning de Colombia (AUD-P-07). Antecedente (BIT-0160): Synthesis toma la última carpeta *-pin-hc, así que una ruta Pinned propia de SISBEN no se leería (AUD-S-05).
 - PA-011 (abierta, no bloqueante): Para la próxima versión de la spec: dentro de un mismo periodo, si el corte más reciente trae un campo nulo, ¿debe ganar el nulo? Hoy LFP no escribe nulos y el valor anterior del periodo se conserva (ConsistencyCheckOps.scala:118,176-181); entre periodos no se arrastra (mapa vacío por periodo, :125). Antecedentes (BIT-0160, INT-065): el motor ordena por (asOfDate, receivedDate) con asOfDate = fec_actualizacion_cns, no por corte (AUD-S-08); periodicidad del evento (minFrequency, VD-SYN-04).
 - PA-012 (resuelta, bloqueante): Forma de la sección del XPM: (a) ¿la clave es «sisben» o «#sisben»? (b) si un PIN tiene varios documentos SISBEN, ¿un solo objeto o una lista por documento? (c) ¿«no tiene sección» (HU §5.6) se cumple con la sección en null, que es lo que produce el motor?
-- PA-013 (abierta, bloqueante): Hechos del fork para State Calculation: valor de aliasEnabled en el conf de Colombia (SparkStateCalculator.scala:66-67); App y enricher de Colombia (¿flag tipo isSisben? ¿cómo reciben un valor por corrida?); domain y nombres que ya declaran los JSON compartidos y si usan Nashorn; si una sección null se ve como «sin sección» en el XPM y en Data Provisioning. Ampliada (INT-075): (5) modo delta (deltaMode, deltaModeAccountLevel, doesComputeXpm), features de histórico y appenders que puedan reintroducir la sección; (6) si el XPM y la Foundation son compartidos y qué nombres ya declaran; (7) cómo escribe el writer una sección y un atributo null; JDK del runtime de Colombia (OQ-TR-2).
+- PA-013 (abierta, bloqueante): Hechos del fork para State Calculation: valor de aliasEnabled en el conf de Colombia (SparkStateCalculator.scala:166-171); App y enricher de Colombia (¿flag tipo isSisben? ¿cómo reciben un valor por corrida?); domain y nombres que ya declaran los JSON compartidos y si usan Nashorn; si una sección null se ve como «sin sección» en el XPM y en Data Provisioning. Ampliada (INT-075): (5) modo delta (deltaMode, deltaModeAccountLevel, doesComputeXpm), features de histórico y appenders que puedan reintroducir la sección; (6) si el XPM y la Foundation son compartidos y qué nombres ya declaran; (7) cómo escribe el writer una sección y un atributo null; JDK del runtime de Colombia (OQ-TR-2). Modo de State Calculation: Colombia (configuración compartida; edf-statecalc 1.9.11, prompt 00 paso 2). La numeración de los puntos sigue la de ART-070 (AUD-SC-15).
 - PA-014 (abierta, bloqueante): Para negocio (próxima versión de HU y spec), bloqueante para la certificación de state_calculation: (1) ¿El DNP puede re-entregar un REGULAR del mismo periodo? ¿«Vigente» es el mayor periodo o la última recepción? Si hay re-entrega, ¿se cura la identidad del archivo (spec §10.1) o se usa el borrado inferido (e)? (2) ¿Data Provisioning exige literalmente «#sisben» como clave? (3) Con dos documentos SISBEN vigentes en un mismo PIN, ¿uno (el más reciente) o una lista? (4) ¿Debe anularse o marcarse en el XPM una fechaEncuesta futura (RG-007)?
 
 ## Riesgos

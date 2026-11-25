@@ -3367,3 +3367,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0198 · `interaccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Cierre de la corrida autónoma: analisis a synthesis aprobadas (validation en adelante con evidencia diferida); state_calculation bloqueada, no aprobada (APR-030; escalamiento N4 BIT-0184); framework 1.9.12; informe-ejecucion.md |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T23:19:42-05:00 |
+| **Por qué** | Fin del plan de la corrida |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0199 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T23:19:42-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
