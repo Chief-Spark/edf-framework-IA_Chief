@@ -1,50 +1,66 @@
 # Insumo de la etapa Curation (`edf-curation`, curation_flow y curation_stock) · ingesta `sisben` · producido por
-# `edf-analisis` (Modo 2, tipo T2). ART-030.
-# Versión 1 · 2026-11-25 · Estado: PROPUESTO (pendiente de aprobación registrada por `edf-orquestador`).
-# BORRADOR respecto de la habilitación: `edf-curation` no genera hasta que Acceptance esté aprobada con transición
-# habilitada y este insumo figure como aprobado (edf-curation SKILL.md, Paso 0).
-# Esquema: .kiro/skills/edf-curation/assets/schema/source-spec.schema.yaml (framework 1.9.6). El ejemplo SISBEN de la
+# `edf-analisis` (Modo 2, tipo T2). ART-030. Fixture: insumos/fixture-curation/ (ART-035).
+# Versión 2 · 2026-11-25. El estado y la aprobación viven solo en estado-ingesta.json (HF-32).
+# Esquema: .kiro/skills/edf-curation/assets/schema/source-spec.schema.yaml (framework 1.9.7). El ejemplo SISBEN de la
 # skill es solo forma: ningún valor de negocio se copió de él (edf-analisis SKILL.md Modo 2 paso 1; edf-curation SKILL.md
 # §2). Difiere del ejemplo en casi todo (sin RT/EP, política de severidad 3, documento sin excepciones por tipo, nombres
 # de catálogo y columnas, zona de fechas, campos abiertos).
 #
-# Fuentes: fuentes/hu-sisben.md 1.0.2 (R-05, R-08, R-09, R-23, R-24, §5.3, §6 fila Curation) y fuentes/spec-sisben.md
-# 1.0.2 (§1, §2, §9.4, §10.1 a §10.4, §11). La spec NO trae un anexo con el contenido de este insumo: no hay líneas «que
-# se aparten de un anexo». La tabla §10.1 es la lista completa de campos curados: este insumo la sigue fila por fila, en
-# su orden y con sus nombres literales (los citan Pinning, Synthesis y State Calculation).
+# Fuentes: fuentes/hu-sisben.md 1.0.2 (R-05, R-08, R-09, R-17, R-19, R-23, R-24, §5.3, §6 fila Curation) y
+# fuentes/spec-sisben.md 1.0.2 (§1, §2, §6, §9.4, §10.1 a §10.4, §11). La spec NO trae un anexo con el contenido de este
+# insumo. La tabla §10.1 es la lista completa de campos curados: este insumo la sigue fila por fila, en su orden y con sus
+# nombres literales (los citan Pinning, Synthesis y State Calculation).
 # Contrato de entrada: insumos/source-spec-validation.yaml v2 (nombres de dominio y códigos) y la Validation aprobada
 # (APR-008), que conserva el valor CRUDO de cada campo en validatedRecordJson (AUD-V-05; SISBENValidatedEvent.comoMapa,
 # Campos.crudo). Acceptance: insumos/source-spec-acceptance.yaml v3 (solo pasan registros sin sev. 1 ni OxygenDuplicate).
 #
 # Marcadores (steering 05): [C] confirmado por la fuente · [P] patrón / decisión registrada · [PM] propuesta del modelo o
 # convención del framework, sin fuente de la ingesta.
-#   [C]  identidad y event type (spec §1); filePattern (spec §2); campos de entrada y códigos (Anexo A); homologación y
-#        catálogo 202 (spec §9.4); 34 campos curados con nombre, tipo y transformación (spec §10.1); estandarización de
-#        nombres con Ñ (spec §10.2; HU R-23); fechas a epoch ms del inicio del día en America/Bogota (HU R-23; spec
-#        §10.1; HU §5.3: 1768021200000 y 1769835600000); formatos dd/MM/yyyy y yyyy-MM-dd (HU R-05); política de
-#        severidad 3: niveles_no_almacenar [] y niveles_anular [] (spec §10.4, literal); advertencias
-#        `<campo curado>:<MOTIVO>` en advertenciasCuracion (spec 1.0.2 §10.1); subscriberRelation =
-#        <standardizedIdType>_<standardizedIdNumber> (spec §10.1); sin RT/EP (spec §10.3; HU §2).
+#   [C]  identidad y event type (spec §1); filePattern y regex_derivacion (spec §2); campos de entrada y códigos
+#        (Anexo A); homologación y catálogo 202 con el 7 pendiente (spec §9.4; HU R-17); 34 claves del evento curado con
+#        nombre, tipo y transformación (spec §10.1); estandarización de nombres con Ñ (spec §10.2; HU R-23); fechas a
+#        epoch ms del inicio del día en America/Bogota (HU R-23; spec §10.1; HU §5.3: 1768021200000 y 1769835600000);
+#        formatos dd/MM/yyyy y yyyy-MM-dd (HU R-05); severidad 3: niveles_no_almacenar [] y niveles_anular [] (spec
+#        §10.4, literal); advertencias `<campo curado>:<MOTIVO>` en advertenciasCuracion (spec 1.0.2 §10.1);
+#        subscriberRelation = <standardizedIdType>_<standardizedIdNumber> (spec §10.1); sin RT/EP (spec §10.3; HU §2).
+#   [P]  omitir_si_nulas: steering 11 §3; EventPinner.scala:64-65; diferencia de forma con spec §10.1 aceptada por el
+#        Desarrollador (INT-038; PA-007). RG-019 aceptado.
 #   [PM] paquetes, nombre del processor y rutas_destino (convención de la skill); registrar el catálogo 202 en el
-#        oxygen.lookups[] de Curation (edf-curation SKILL.md:108-109); omitir_si_nulas (ver abajo).
-# Diferencias con la letra de la spec que el analista NO resuelve (se entregan al Orquestador):
-#   1. numeroDocumentoOriginal / tipoDocumentoSisben («Valor original», spec §10.1; HU §5.3 espera
-#      numeroDocumentoOriginal = " 0001000000101"). La transformación `original` del framework recorta los espacios
-#      (CurationProcessor.scala.tpl:137 -> Transformaciones.texto; curation_reference.py, `texto`): publicará
-#      "0001000000101". Defecto del framework; el fixture cur-0004 lo deja visible.
-#   2. omitir_si_nulas: se declaran las tres claves standardizedId* (steering 11 §3: una clave de identidad nula rompe el
-#      matcher; ausente, nunca null). La spec §10.1 dice que standardizedIdName sale «nulo si todos faltan» y §10.4
-#      regla 3 que ninguna clave se omite por severidad 3. Solo difiere cuando los cuatro nombres quedan nulos (p. ej.
-#      pri_apellido y pri_nombre «!!!»); propuesta de riesgo, no de pregunta (deteccion-ambiguedades.md §7: regla que el
-#      steering ya fija).
-# Riesgos del expediente que toca: RG-005 (fixture cur-0006 declara SISBEN_INC_011 como precondición inyectada; cur-0007
-# usa el ejemplo alcanzable de spec §10.4), RG-007 (cur-0008: Fec_digitacion futura se publica), RG-008 (ide_hogar e
-# ide_ficha_origen públicos, spec §10.1), RG-016 (mitigado: Validation ya no deja \r en FECHA_ACTUALIZACION_CNS; no se
-# agrega lógica aquí).
-# Sin preguntas abiertas nuevas: la spec §10 responde todas las dimensiones de Curation.
+#        oxygen.lookups[] de Curation (edf-curation SKILL.md, «Qué hace Curation»). «Ninguna» de spec §10.1 = `texto`
+#        (recorta los bordes): supuesto del aprobador simulado, PA-007 (2) no bloqueante.
+# Supuestos de plantilla resueltos por la spec o la Validation aprobada: bloque `supuestos_resueltos` (HF-36). Quedan
+# abiertos CUR-PT01 (paquete del código compartido) y CUR-PT02 (lookup caído -> tabla embebida; API de Util.getLookup):
+# la HU y la spec no los fijan.
+#
+# Cambios respecto de la versión 1 (auditorias/curation.md, AJUSTES; INT-038; framework 1.9.7):
+#   - Cabecera sin estado (HF-32).
+#   - Diferencia 1 de la v1 (numeroDocumentoOriginal recortado) resuelta por el framework: `original` publica el valor tal
+#     cual (HF-34); el fixture cur-0004 cumple HU §5.3 (" 0001000000101").
+#   - omitir_si_nulas pasa de [PM] a [P] (AUD-C-12, INT-038).
+#   - regex_derivacion = regex literal de spec §2 (AUD-C-12); el generador la admite (grupo 1 prefijo, grupo 2 AAAAMM).
+#   - homologacion: "7": null con pendientes ["7"] (HF-38): el CSV sintético trae la fila del salvoconducto (spec §9.4).
+#   - supuestos_resueltos nuevo (HF-36, AUD-C-06).
+#   - Fixture: NUM_DOCUMENTO del base_registro único (AUD-C-02); casos nuevos cur-0016 (RG-019) y cur-0017 a cur-0019
+#     (tipos 4, 5 y 8) (AUD-C-03). Ningún par de eventos comparte tipo + número normalizado (spec §6).
+# Riesgos del expediente que toca: RG-005 (cur-0006 declara SISBEN_INC_011 como precondición inyectada; cur-0007 usa el
+# ejemplo alcanzable de spec §10.4), RG-007 (cur-0008), RG-008 (ide_hogar e ide_ficha_origen públicos), RG-016
+# (mitigado), RG-019 (cur-0016).
 # DATOS SINTÉTICOS: el fixture (fixture-curation/) es inventado; los códigos DIVIPOLA son los públicos del DANE.
 
 schema_version: "1.0"
+
+# HF-36: marcas ASSUMPTION de las plantillas cuyo valor ya fija la spec o la Validation aprobada.
+supuestos_resueltos:
+  - {id: CUR-PA04, fuente: "spec-sisben.md §1 (event type 30)"}
+  - {id: CUR-PT05, fuente: "spec-sisben.md §10.1 (advertenciasCuracion)"}
+  - {id: C-CUR-03, fuente: "spec-sisben.md §10.2 regla 2 (la Ñ se conserva); HU R-23"}
+  - {id: C-CUR-04, fuente: "spec-sisben.md §10.1 (inicio del día en Bogotá); HU R-23"}
+  - {id: C-CUR-05, fuente: "spec-sisben.md §10.2 regla 5 y §10.4 reglas 2 y 3 (campo nulo, ninguna clave se omite)"}
+  - {id: C-CUR-07, fuente: "Validation aprobada APR-008 (SISBENValidatedEvent.comoMapa: claves = nombres de dominio)"}
+  - {id: C-CUR-08, fuente: "spec-sisben.md §10.1 (numeroDocumento sin padding ni excepción por tipo)"}
+  - {id: F-07, fuente: "spec-sisben.md §2 (tipo de archivo siempre REGULAR)"}
+  - {id: F-12, fuente: "spec-sisben.md §9.4 (columnas, llave y delimitador del catálogo 202)"}
+  - {id: D8, fuente: "spec-sisben.md §2 (nombre del archivo)"}
 
 meta:
   version_skill: "0.1.0"
@@ -73,10 +89,11 @@ archivo:
   convencion: "SISBEN_EXPERIAN_AAAAMM.yyyyMMddHHmmss±ZZZZ.txt (extensión txt o TXT); sin prefijos RT_/EP_"
   estado: cerrado
   # [C] spec §2. El motor compara la ruta del dataset sin su última extensión (quita el .<datasetId>) y cada evento por
-  # lineage.fileName, que conserva .txt (edf-curation/references/dsl-config-reference.md:30-34).
+  # lineage.fileName, que conserva .txt (edf-curation/references/dsl-config-reference.md, «Matching»).
   file_pattern: '.*SISBEN_EXPERIAN_\d{6}\.\d{14}[+-]\d{4}\.(txt|TXT)'
-  # Grupo 1 = prefijo (siempre vacío), grupo 2 = AAAAMM (spec §2: fecha de corte = último día del periodo).
-  regex_derivacion: '()SISBEN_EXPERIAN_(\d{6})\.\d{14}[+-]\d{4}'
+  # [C] regex literal de spec §2: grupo 1 = prefijo (siempre vacío), grupo 2 = AAAAMM (fecha de corte = último día del
+  # periodo); los grupos 3 a 5 no los usa el generador.
+  regex_derivacion: '()SISBEN_EXPERIAN_(\d{6})\.(\d{14})([+-]\d{4})\.(txt|TXT)'
   tipo_por_prefijo:
     "": REGULAR                                # [C] spec §2: siempre REGULAR
   ejemplos_sinteticos:
@@ -98,7 +115,8 @@ parametros:
   niveles_no_almacenar: []                     # [C] spec §10.4 (configuración literal)
   niveles_anular: []                           # [C] spec §10.4 (configuración literal)
   campo_advertencias: advertenciasCuracion     # [C] spec §10.1
-  # [PM] steering 11 §3 (claves de identidad ausentes, nunca null). Ver la diferencia 2 de la cabecera.
+  # [P] steering 11 §3; EventPinner.scala:64-65; diferencia de forma con spec §10.1 aceptada por el Desarrollador
+  # (INT-038; PA-007). Si los cuatro nombres quedan nulos, standardizedIdName se omite (fixture cur-0016).
   omitir_si_nulas: [standardizedIdType, standardizedIdNumber, standardizedIdName]
 
 # [C] Nombres de dominio de Validation (insumos/source-spec-validation.yaml, campos[].nombre; spec §3), en el orden del layout.
@@ -170,9 +188,10 @@ homologacion_tipo_documento:
     "4": "4"
     "5": "8"
     "6": "5"
+    "7": null                                  # HF-38: salvoconducto sin cod_experian (spec §9.4; HU R-17)
     "8": "9"
     "PPT": "11"
-  pendientes: ["7"]                            # salvoconducto: cod_experian vacío (spec §9.4; HU R-17); no llega aceptado (ERR_023)
+  pendientes: ["7"]                            # nunca un código arbitrario; no llega aceptado (ERR_023)
   descripciones:                               # spec §9.4 (para el CSV sintético que escribe el generador)
     "1": REGISTRO CIVIL
     "2": TARJETA DE IDENTIDAD
@@ -180,6 +199,7 @@ homologacion_tipo_documento:
     "4": CEDULA DE EXTRANJERIA
     "5": DNI PAIS DE ORIGEN
     "6": PASAPORTE
+    "7": SALVOCONDUCTO PARA REFUGIADO
     "8": PERMISO ESPECIAL DE PERMANENCIA
     "PPT": PERMISO DE PROTECCION TEMPORAL
 
@@ -204,10 +224,10 @@ catalogos:
     columnas: [cod_sisben, cod_experian, descripcion]
     claves: [cod_sisben]
     uso_curation: homologar
-    registrar_en_curation: true                # [PM] edf-curation SKILL.md:108-109
+    registrar_en_curation: true                # [PM] edf-curation SKILL.md, «Qué hace Curation»
 
-# [C] spec §10.1, fila por fila y en su orden. Tipos: texto | entero | largo. "Ninguna" = texto (solo recorte);
-# "Valor original" = original (ver diferencia 1 de la cabecera).
+# [C] spec §10.1, fila por fila y en su orden. Tipos: texto | entero | largo. "Ninguna" = texto (recorta los bordes:
+# supuesto del aprobador simulado, PA-007 (2)); "Valor original" = original (tal cual, sin recortar: HF-34).
 campos_curados:
   - {destino: idFichaOrigen, origen: ID_FICHA_ORIGEN, transformacion: {tipo: texto}, tipo_salida: texto, estado: cerrado}
   - {destino: idHogar, origen: ID_HOGAR, transformacion: {tipo: texto}, tipo_salida: texto, estado: cerrado}

@@ -48,6 +48,7 @@ acordada: se registran, se corrigen con su prueba de regresión (commit aparte e
 | HF-41 (AUD-C-13) | curation | P2. El efecto «vaciado con preservación» del steering 07 no está implementado en `edf-curation` (no aplica a SISBEN; resuelve la observación de HF-04) | `07-contratos-frontera.md` §5.1 | Corrector 1.9.7: documentar como no soportado | 955bed3 |
 | HF-42 (resto del lote) | analisis / validation | P2. Las plantillas de etapa 0 de `edf-analisis` siguen con «Estado \| PROPUESTO»; `edf-validation/references/interpretar-salida.md:71` dice `customReason… = true` (SISBEN histórico) | INT-037 | Lote final | pendiente |
 | HF-43 (Orquestador) | acceptance | P2. `references/03` §3d no decía que el artefacto sigue `aprobado` (hash anterior) durante la revisión; pasarlo a `prevalidado` rompe la regla 7e | Validador: «Etapa acceptance aprobada con artefactos obligatorios sin aprobar: ART-023» (BIT-0094 → BIT-0095) | §3d paso 1 aclarado | f99d39c |
+| HF-44 (generador/auditor Acceptance 1.9.7) | acceptance | P2. El recorte de extensión en la prueba del `filePattern` depende de que la clave empiece por `ruta_`, sin que el esquema lo declare; una clave mal nombrada pasa sin probar nada (AUD-A-19) | `render_templates.py:353-355`; `auditorias/acceptance.md` §8 | Lote final | pendiente |
 | HC-04 (AUD-A-11) | — | Herramienta de la corrida: `etapa --agregar-riesgo` duplicaba RG-015 | Corregido en `orquestador_e2e.py` (BIT-0063) | — |
 
 Hallazgos de la spec (no del framework; se dejan para la próxima versión de la spec, no se corrigen en la corrida):

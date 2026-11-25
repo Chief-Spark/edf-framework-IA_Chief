@@ -211,3 +211,48 @@ Scratchpad: `/tmp/claude-0/-home-user-edf-framework-IA-Chief/17fd989e-8dfc-5ea8-
 | 6 | `python3 -m pytest .kiro/skills/edf-acceptance/scripts/tests -q` | 147 passed, 1 skipped |
 | 7 | Revisión del fixture generado: JSON válido, `SINT-*`, QS, lineage. Búsqueda de `{{`, `}}`, rutas locales y credenciales | 60 eventos válidos, sin huecos sin llenar, sin rutas locales, sin credenciales |
 | 8 | `sha256sum` de los 12 archivos | Primeros 8 caracteres: hocon `957f935d` / `520b19dc`; Spec `41ed49c1`; fixture 900001 `4c407961`, 900002 `6141a658`, 900003 `01dcf8fd`, 900004 `2a175836`, 900005 `4f925873`, 900006 `b2049a62`, 900007 `a6275564`, 900008 `424473f8`, 900009 `cc95a0c6` |
+
+## 8. Re-auditoría por diferencia (1.9.7)
+
+| Campo | Valor |
+|---|---|
+| Objeto | `propuestas/acceptance/` regenerada con el framework 1.9.7 desde el mismo ART-020 v3 (sha256 `d8ac9e7d…`, verificado). `git diff 652d152` (solo lectura) muestra que solo cambia `SISBENAcceptanceExpressionsSpec.scala`, ahora con sha256 `1f7838dbf9cc36d71a548271646c01dd1d983502b5d1b018dd7a9bb8990876af` (+36/−2 líneas). Los demás 11 archivos no cambian (hashes de §7.4 #8) |
+| Método | `references/03` §3d: se revisa la diferencia, se repiten las verificaciones de comportamiento y se cierran AUD-A-16 y AUD-A-17 |
+| **Dictamen ART-023** | **APROBADO.** El comportamiento aprobado en §7 se conserva y AUD-A-16 y AUD-A-17 quedan cerrados. ART-021 y ART-022 no cambian y siguen **APROBADO**. Dictamen global de la propuesta: **APROBADO**. Las condiciones para pasar al fork siguen siendo RG-017, F-01 y la parte B del checklist. Hay un hallazgo nuevo P2 (AUD-A-19) y dos observaciones del generador confirmadas como P2; ninguno impide aprobar |
+
+### 8.1 Cierre de AUD-A-16 y AUD-A-17
+
+| Hallazgo | Estado | Evidencia |
+|---|---|---|
+| AUD-A-16 (`AcceptanceCondition` con 4 argumentos) | **Cerrado** | Las dos construcciones pasan ahora 5 argumentos con `/* result = */ false` (`SISBENAcceptanceExpressionsSpec.scala:38,283`). Es la misma firma que usa el motor (`AcceptanceAST.scala:75`; `SparkDatasetAcceptor.scala:284`). No queda ninguna construcción con 4 |
+| AUD-A-17 (el Spec no probaba el `filePattern`) | **Cerrado** | Nueva prueba «filePattern: cada clave de prueba del insumo…» (`:177-185`) con las 7 `claves_de_prueba` del insumo (`:126-135`). `engineFileKey` (`:158-164`) recorta como `SparkAcceptor.removeFileExtension` (`SparkAcceptor.scala:152-157`, que importa `FilenameUtils._` en `:13`) y compara con `String.matches`, que exige coincidencia total, como `:131`. Repliqué la prueba en Python con la misma regla y las 7 claves dan el resultado declarado. `FilePattern` (`:124`) es el literal de ART-021. Queda el mismo límite de §6.2 y §7.1: el literal se copia al generar, de modo que un cambio en el `.conf` del fork sin regenerar no se detecta. Ver AUD-A-19 sobre el caso `otra_fuente` |
+
+### 8.2 Las tres observaciones del generador
+
+| # | Observación | Veredicto | Sev. | Evidencia y comentario |
+|:-:|---|---|:-:|---|
+| 1 | El Spec trae rutas `/home/app/validation/validated/...` copiadas de las claves de prueba. ¿Viola el criterio C («sin rutas de máquina locales», `checklist-entrega.md:40`)? | **Descartado: no lo viola** | — | No es la ruta de una máquina o de un workspace concreto: no identifica a ningún usuario ni equipo, y no aparece en ningún `.conf` ni en la configuración del motor (`oxygen-acceptance/src/main/resources/local/*.conf` y `Dockerfile` no contienen `/home/app`). Es una ruta sintética de ejemplo del insumo aprobado (`source-spec-acceptance.yaml:59-64`) y solo sirve para probar `removeFileExtension` + `matches`. Como el `filePattern` empieza con `.*`, el prefijo no importa. Mejora opcional (framework, P2 cosmética): que el criterio C aclare que «se permiten rutas sintéticas de ejemplo en las claves de prueba», o usar `<appHome>/validation/validated/...` en las claves |
+| 2 | El recorte de extensión depende de que la clave empiece por `ruta_`, y el esquema no lo declara | **Real** | P2 (framework) | El esquema solo exige `clave: {type: string}` (`source-spec.schema.yaml:84-92`). La convención aparece únicamente en un comentario de código (`render_templates.py:353-355`), y ahora también en el Spec. Si una clave que contiene una ruta de validados no empieza por `ruta_`, se compara sin recortar. Con `debe_coincidir: true` el error es visible (rc=1 y la prueba Scala falla). Con `debe_coincidir: false` la prueba pasa siempre, porque la ruta termina en `.<datasetId>`, y es un **falso negativo silencioso**. Eso ya ocurre en este insumo (AUD-A-19). Corrección: declarar el tipo en el esquema, por ejemplo `tipo: ruta_validados \| lineage_fileName` (obligatorio), o un `pattern` para `clave`, y documentarlo en `inventario-plantillas.md` IN-01 |
+| 3 | El classpath de pruebas depende de commons-io (`FilenameUtils`) sin certificar (F-01) | **Real, riesgo mínimo** | P2 (motor/entorno; informativo) | `SparkAcceptor.scala:13,29` importa `org.apache.commons.io.FilenameUtils`, así que commons-io ya está en el classpath de compilación de `oxygen-acceptance`. Las pruebas del mismo módulo lo heredan. El `pom.xml` no la declara directamente (es transitiva), así que su presencia en el scope de pruebas no se puede certificar sin compilar (F-01). Corrección: ninguna en el artefacto. Si el ingeniero ve que falta al compilar en el fork, se declara `commons-io` en scope `test`. Agregarlo al runbook como verificación de F-01 |
+
+### 8.3 Hallazgos nuevos
+
+| ID | Clasificación | Sev. | Evidencia | Corrección |
+|---|---|:-:|---|---|
+| AUD-A-19 | insumo (y se refleja en el Spec, ART-023 `:131`) | P2 | La clave `otra_fuente` es una ruta de validados (`/home/app/validation/validated/RUNT_EXPERIAN_….txt.900010`, `source-spec-acceptance.yaml:63`), pero no lleva el prefijo `ruta_`. Por eso tanto `verify_spec` como la prueba Scala la comparan **sin recortar**. El resultado sale correcto (`false`) por la razón equivocada: el sufijo `.900010` impide cualquier coincidencia, y el caso no prueba que el patrón excluye `RUNT_`. Lo comprobé: recortada, también da `false`, así que hoy no se pierde nada, pero el caso negativo no protege contra un `filePattern` demasiado amplio | En la próxima versión del insumo, renombrarla a `ruta_otra_fuente`. No cambia ninguna decisión ni ningún `.conf`, así que no bloquea la aprobación de ART-023. Con la corrección de la observación 2 este error no se puede repetir |
+
+### 8.4 Verificaciones repetidas
+
+Scratchpad: `/tmp/claude-0/-home-user-edf-framework-IA-Chief/17fd989e-8dfc-5ea8-ad37-44be188bb6cf/scratchpad/aud-acc-v4/`.
+
+| # | Comando | Resultado |
+|:-:|---|---|
+| 1 | `render_templates.py --spec EXP/insumos/source-spec-acceptance.yaml --out <scratch>/gen/ --audit` | rc=0, 0 avisos |
+| 2 | `diff -r <scratch>/gen EXP/propuestas/acceptance` | **Sin diferencias (rc=0)**: reproducible. Contra mi generación con 1.9.6 (`aud-acc-v3/gen`) solo difiere el Spec |
+| 3 | `git diff --stat 652d152 -- EXP/propuestas/acceptance/` (solo lectura) | 1 archivo: el Spec, +36/−2. Los hocon y el fixture no cambian |
+| 4 | `simular_decision.py --spec …` | rc=0, **9/9 y 2/2** |
+| 5 | `hocon_check.py` con pyhocon por `PYTHONPATH`, más `pyhocon.ConfigFactory.parse_file` | rc=0; los dos `.conf` parsean |
+| 6 | `grep -rn "0\.9[45]" EXP/propuestas/acceptance/hocon` | Sin coincidencias |
+| 7 | `python3 -m pytest .kiro/skills/edf-acceptance/scripts/tests -q` | 157 passed, 1 skipped |
+| 8 | Réplica en Python de la prueba nueva del Spec (`engineFileKey` + coincidencia total) con las 7 claves | 7/7 dan el resultado declarado. `otra_fuente` recortada también da `false` (AUD-A-19) |
+| 9 | Lectura del Spec: `AcceptanceCondition(`, número de `test(`, fuente del umbral alternativo | 2 construcciones, las dos con 5 argumentos. 8 pruebas (antes 7). El umbral alternativo sigue derivándose de la configuración (`conUmbral`, `:280-283`) |

@@ -318,8 +318,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:18:22-05:00
 - **Pedido:** Re-auditar por diferencia ART-023 regenerado con 1.9.7.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-023 sigue APROBADO por diferencia (reproducible; solo cambia el Spec +36/−2; simulador 9/9 + 2/2; pyhocon OK; suite 157). AUD-A-16/17 cerrados. Observaciones: rutas /home/app/... descartada (sintéticas, filePattern con .*); prefijo ruta_ implícito real P2 de framework; commons-io real P2 informativo (transitiva del motor). Nuevo AUD-A-19 (insumo P2): clave otra_fuente sin prefijo ruta_ no prueba el caso negativo.
+- **Decisión:** HF-44 (convención ruta_ sin declarar) al lote final; AUD-A-19 para la próxima versión del insumo (no bloquea); re-aprobación de ART-023 junto con la consulta de Curation.
 - **Bitácora:** —
 
 ## INT-041 · Analista (edf-analisis) · insumos de Curation v2 · `curation_flow`
