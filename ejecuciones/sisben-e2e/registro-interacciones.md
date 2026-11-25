@@ -478,14 +478,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:12:02-05:00
 - **Pedido:** Auditar ART-053 y los posibles defectos del generador.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-053 APROBADO (P2 no bloqueantes): sin claves activas (pyhocon {}; hocon_check OK); claves prohibidas solo en comentarios (el criterio de INT-057 debe decir «fuera de comentarios»); sin {{; RG-025 solo [PM]; EVAL-PIN-12..14 pasan; fiel a la plantilla pero no reproducible mecánicamente. P2: AUD-P-18 (nombres de la lista VERIFICAR que no son la clave del motor: paths.identifyingAttributesFile/domainDictionaryFile, INPUT_REF_DIR constante, clusterSplitter), AUD-P-19 (faltan curatedDir, HBase estático y *-common-application.conf), AUD-P-20 (cabecera genérica falsa y mecanismo sin [P]), AUD-P-21 (sin generador), AUD-P-22 (prevalidación de ART-050), AUD-P-23/24 (verificar-artefacto.ps1), AUD-P-25 (EventPinner en ART-030). Defecto 3 descartado.
+- **Decisión:** AUD-P-22 y -25 registrados (BIT-0150); HF-65..67; consulta al aprobador sobre ART-053 y la etapa pinning.
 - **Bitácora:** —
 
 ## INT-061 · Auditor independiente (synthesis) · `synthesis`
 
 - **Cuándo:** 2026-11-24T22:13:27-05:00
 - **Pedido:** Auditar ART-060, C-CUR-05/06, RG-010, minFrequency de Validation y los 5 posibles defectos.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-062 · Aprobador simulado SIM-DEV-01 · `pinning`
+
+- **Cuándo:** 2026-11-24T22:16:27-05:00
+- **Pedido:** Aprobar ART-053 (¿v2 con AUD-P-18/19 primero?) y la etapa pinning con evidencia diferida.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

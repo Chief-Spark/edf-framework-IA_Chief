@@ -144,3 +144,75 @@ Condición §3e: los valores que llegan a un artefacto son el bloque HOCON sin c
 | `pytest tests/test_verificar_insumo_pinning.py tests/test_regresion_e2e_pinning.py` | 23 passed |
 | Recorrido del YAML parseado: valores que no son texto y apariciones de `[A:` y `EventPinner` | Sin booleanos ni números en claves compartidas; `[A:` solo en `:13` y `:89`; `EventPinner` ausente |
 | Lectura de `edf-pinning/SKILL.md` «Modo Colombia», `pinning-application-block.conf.template:15-49`, steering `11:27-32,125`, `references/03` §3e, INT-052, PA-008/009/010, RG-002 y RG-025 en el expediente | HF-57..62 aplicados en la skill, la plantilla y el steering. Lo que queda está en AUD-P-14 y AUD-P-16 |
+
+## 7. Propuesta
+
+| Campo | Valor |
+|---|---|
+| Alcance | ART-053 `propuestas/pinning/pinning-application-block.sisben.conf` (76 líneas, sha256 `fabaa4b4…`), generado por `edf-pinning` con el framework 1.9.9 (`VERSION`; commit `43bf3c7`, HF-63/64). Contraste con el insumo ART-050 v3 (sha256 `9c548c3e…` = APR-023; frente a la v2 solo cambian la versión y la línea 229, según `git diff`), `edf-pinning/SKILL.md` «Modo Colombia» (`:21-45`), `assets/pinning-application-block.conf.template:1-49`, `logica-pinning.md` §8.0 (`:210-219`) y §9, `evals/evals.json` EVAL-PIN-12..14, y el motor (`SparkPinner.scala`, `PinningIOUtils.scala`, `pinning-application.conf`, `oxygen-config-default.conf`). Criterio de INT-057 (`registro-interacciones.md:457`): solo comentarios `VERIFICAR` y referencias, sin claves con valor; grep/pyhocon y `hocon_check`. ART-051/052 no aplican (`obligatorio: false`) |
+| **Dictamen de ART-053** | **APROBADO**, con observaciones P2 que no bloquean. El bloque cumple el criterio de INT-057 y EVAL-PIN-12..14: pyhocon da `{}`, `hocon_check` da `OK`/`{}`, no hay claves activas y no queda ningún `{{`. Ningún valor depende de RG-025: los hechos del matcher solo aparecen como `[PM] (RG-025)` en comentarios. `ISIdentityMatcher` e `identifying-attributes.json` solo aparecen en la advertencia HF-58. El texto de la plantilla se conserva literal, y cada línea añadida sale de una línea del insumo. Las observaciones se refieren a la exactitud de la lista `VERIFICAR` frente a lo que lee el motor (AUD-P-18, -19) y a defectos de la plantilla y del verificador PowerShell. Conviene recogerlas en los criterios de cierre de RG-025 o en la próxima generación, sin regenerar ahora |
+
+### 7.1 Verificación del bloque
+
+| Comprobación | Resultado |
+|---|---|
+| Líneas que no son comentario ni están en blanco (`grep -vE '^\s*(#\|//\|$)'`) | 0 |
+| Claves prohibidas en cualquier grafía (`grep -iE 'reuse_?pin\|identity_?matcher\|identifying_?attributes_?file'`) | Fuera de comentarios: 0. En todo el archivo: 12, todas en comentarios `VERIFICAR` o en la advertencia HF-58, que el propio criterio exige. Un grep que no excluya comentarios nunca da vacío: el criterio de INT-057 debe decir «fuera de comentarios» |
+| `{{` | 0 |
+| pyhocon (`gen-pin/pylib`) | `ConfigTree` vacío: `{}` |
+| `hocon_check.py` (`edf-curation` y `edf-acceptance`) | `OK`, rc=0; `{}` |
+| Valores que dependen de RG-025 | Ninguno activo. FQCN, contenido de la lista y valores vigentes van como `[PM] (RG-025)` (`:36`, `:40`, `:63-64`) |
+| Reproducibilidad (la skill no tiene generador; comparación a mano con `diff`) | Las líneas 1-48 de la plantilla aparecen literales, con `{{INGESTA_NOMBRE}}` → `SISBEN` y `{{REUSE_PIN_VALOR_FUENTE}}` → el valor de la fuente. Lo añadido sale del insumo v3: `:5-12` (cabecera: ART-050 v3, APR-023, PA-008/009); `:35-36` ← insumo `:77`, `:98`; `:39-40` ← `:99`, `:105`; `:49-51` ← `:207`; `:52-53` ← `:85`, `:214`; `:54-56` ← `:86`; `:59-62` ← `:212-213`; `:63-64` ← `:214`; `:75-76` ← plantilla `:18-19`. Fiel, pero no reproducible mecánicamente (AUD-P-21) |
+| EVAL-PIN-12 | No hay `reusePin = …` activo. El comentario explica `:223`/`:409`, `:979-985` y `:888-905`, registra el valor de la fuente como dato (`:49-51`) y trata cambiar la clave como N4 escalado (`:47-48`, `:52-53`). Pasa |
+| EVAL-PIN-13 | `ISIdentityMatcher`, `RIIdentityMatcher` e `identifying-attributes.json` solo aparecen en la advertencia del colapso (`:66-73`). Pasa |
+| EVAL-PIN-14 | No hay ninguna clave compartida activa, ni `IdentityMatcher.scala`, ni `identifying-attributes.json` en `propuestas/pinning/` (solo el `.conf`). Pasa en lo que muestran los archivos; la respuesta de texto del generador (INT-059) no se audita |
+
+### 7.2 Lo que el bloque pide verificar frente a lo que el motor lee
+
+| `VERIFICAR` | Lo que lee el motor | Clave HOCON en la copia | Resultado |
+|---|---|---|---|
+| `identifyingAttributesFile` | `IDENTIFYING_ATTRIBUTES_FILE` (`SparkPinner.scala:222`); solo `.head` (`:315`) | `oxygen.stage.pinning.paths.identifyingAttributesFile` (`pinning-application.conf:21`) | Correcto, pero sin la ruta `paths.` (AUD-P-18) |
+| `identityMatcher` | `IDENTITY_MATCHER` (`:220`), `Class.forName` (`:657`) | `oxygen.stage.pinning.identityMatcher` (`pinning-application.conf:25`; por defecto `""`, `oxygen-config-default.conf:370`) | Correcto |
+| `reusePin` | `REUSE_PIN` (`:223`), `:409` | `oxygen.stage.pinning.reusePin` (`pinning-application.conf:27`; no está en `oxygen-config-default.conf`) | Correcto |
+| `domainDictionaryFile` | `configMap("oxygen.stage.pinning.paths.domainDictionaryFile")` (`:192-198`) | bajo `paths` | Correcto, sin `paths.` (AUD-P-18) |
+| `clusterSplitter` | `CLUSTER_SPLITTER` (`:221`) | **ninguna** en la copia (AUD-P1 de la plantilla, sección fuera de modo Colombia) | El aviso «nombre de la clave sin evidencia» no llega a la sección Colombia (AUD-P-18) |
+| `nearNeighborBlockSize`, `pinningVleRange`, `groupSSR` | `:238`, `:242`, `:241`; uso en `:719-723`, `:982`, `:665-676` | `oxygen-config-default.conf:372`, `:373`, `:363` (`groupSSR = true`; el ejemplo dice `false`, `pinning-application.conf:30`) | Correcto |
+| `pinnedReferenceDir` | `PINNED_REFERENCE_DIR.isDefined` (`:409`) | `oxygen.stage.pinning.paths.pinnedReferenceDir` (`oxygen-config-default.conf:355`, siempre definido por defecto) | Correcto. Matiz: con el default cargado, `:409` depende en la práctica solo de `reusePin` y de que haya un identity-pin-map único (`:413-421`) |
+| `INPUT_REF_DIR` | `oxygenConf.oxygen.INPUT_REF_DIR` (`PinningIOUtils.scala:21`, `:24-25`) | **ninguna** en la copia: `INPUT_REF_DIR` es el nombre de la constante, no una clave HOCON | El nombre de la clave es `[PM]` (oxygen-global) (AUD-P-18) |
+| (no listado) `curatedDir` | `oxygen.stage.curation.paths.curatedDir` + `/*/*` (`PinningIOUtils.scala:27`) | `oxygen-config-default.conf:193` | **Falta** (AUD-P-19) |
+| (no listado) integración HF estática | `ENABLE_HF_BATCH_STATIC_PIN_INTERGRATION` (`:224`), mapa desde HBase (`:410`) | feature de oxygen-global | **Falta** (AUD-P-19) |
+
+### 7.3 Posibles defectos del generador
+
+| # | Veredicto | Sev. · clasificación | Evidencia |
+|---|---|---|---|
+| 1 | **Real** (AUD-P-23) | P2 · framework (evals) | `verificar-artefacto.ps1:169`: `$hocon -match 'groupSSR\s*=\s*(true\|false)\b'` sobre el texto completo, comentarios incluidos (`-match` no distingue mayúsculas), y `-notmatch 'TODO.*groupSSR\|groupSSR.*TODO'`. El comentario obligatorio de la plantilla `:46` («filtra con groupSSR = true (:676)») aparece en ART-053 `:72` y no lleva `TODO`. Emulado con la misma regex en Python: **FAIL**. En modo Colombia el falso positivo es seguro. Corrección: quitar las líneas de comentario antes de evaluar (y lo mismo en `Test-Contains` del HOCON) |
+| 2 | **Real** (AUD-P-24) | P2 · framework (evals) | `verificar-artefacto.ps1:161-180` solo revisa `groupSSR` y `{{`. Los `falla_si` de EVAL-PIN-12..14 son mecánicos y no tienen chequeo: línea activa `reusePin =`, clave compartida activa, `ISIdentityMatcher`/`RIIdentityMatcher`/`identifying-attributes.json` como valor, presencia de `*IdentityMatcher.scala` o `identifying-attributes.json` en modo Colombia. El aviso final (`:196-198`) tampoco los nombra como manuales. El criterio de INT-057 se aplicó a mano y no queda en ninguna herramienta Python. Corrección: un modo `--colombia` (o una suborden `pinning` en `tools/verificar-artefactos-etapa.py`) con pyhocon o `hocon_check`, grep fuera de comentarios y presencia de archivos |
+| 3 | **Descartado** como defecto | — (observación P2 en el artefacto) | `steering 11:120` da #7 por resuelto **para SISBEN** por su spec; la tabla de pendientes del framework mantiene #7 `[A:matcher-colombia]` para cualquier otra ingesta (`11:130`). Que `SKILL.md:28` y la plantilla `:27` nombren las dos clases es correcto en una pieza genérica. En ART-053, la `:38` hereda la alternativa y la `:39` la aclara («Insumo: ColombiaIdentityMatcher (spec §11; HU R-24)»). Matiz útil para el framework: los `IdentityImpl*` de la copia son de Brasil (`IdentityImplPerson.scala:6-7,14`) |
+| 4 | **Real** (AUD-P-25) | P2 · expediente (ART-030) | `insumos/source-spec-curation.yaml:26` («[P] omitir_si_nulas: steering 11 §3; EventPinner.scala:64-65») mantiene la evidencia mal atribuida (AUD-P-05). RG-019 ya está corregido en `estado-ingesta.json`. Precisión: INT-052 dice «ART-034 no se revisa por §3c»; ART-030 no aparece. Falta la nota que extiende esa decisión a ART-030. Corregir en la próxima versión de ART-030 |
+
+### 7.4 Hallazgos
+
+| ID | Clasificación | Sev. | Hallazgo | Evidencia | Corrección |
+|---|---|---|---|---|---|
+| AUD-P-18 | artefacto · framework (plantilla) | P2 | Varios nombres de la lista `VERIFICAR` no son la clave HOCON que el motor lee. `identifyingAttributesFile` y `domainDictionaryFile` viven bajo `oxygen.stage.pinning.paths`. `INPUT_REF_DIR` es una constante sin clave HOCON en la copia. De `clusterSplitter` no hay clave en ningún conf: el aviso AUD-P1 solo está en la sección «fuera de modo Colombia». Quien verifique en el fork puede buscar el nombre equivocado y concluir que «no está» | ART-053 `:33`, `:57-58`, `:63-64`; plantilla `:24-38`; §7.2 | Rutas completas en la sección Colombia de la plantilla; `[PM]` para los nombres que la copia no trae (`clusterSplitter`, `INPUT_REF_DIR`). En ART-053, en la próxima generación |
+| AUD-P-19 | insumo · artefacto | P2 | La lista `VERIFICAR` (igual que el insumo `:214`) omite tres de los criterios de cierre de RG-025 (`estado-ingesta.json`). Primero, `curatedDir`: si la salida curada de SISBEN (spec §14) no cae bajo el `curatedDir/*/*` de la aplicación compartida, SISBEN no se pinea y no hay error. Segundo, la integración HF estática (`:224`, `:410`). Tercero, si el conf es un `*-common-application.conf` (tocarlo es N4, `06:59`) | ART-053 `:57-64`; insumo `:214`; RG-025 | Añadir los tres a la lista, o remitir de forma explícita a los criterios de RG-025 |
+| AUD-P-20 | framework (plantilla) | P2 | La sección Colombia arrastra la cabecera genérica («Es el bloque de claves con efecto directo…», «Cada clave trae su propio comentario», plantilla `:5-13`), que es falsa sin claves. El mecanismo del colapso se afirma sin el `[P]` que sí lleva `logica-pinning.md` §9 (construcción de `Identity` en oxygen-core) | ART-053 `:14-22`, `:69-71`; plantilla `:5-13`, `:43-45` | Cabecera propia del modo Colombia; `[P]` en el mecanismo |
+| AUD-P-21 | framework | P2 | `edf-pinning` no tiene generador y la sección Colombia tiene un solo placeholder de valor. Las líneas «Insumo: …» son texto libre: dos generaciones con el mismo insumo pueden diferir. Hoy son fieles, según la comparación a mano de §7.1 | plantilla `:24-38`; `ls .kiro/skills/edf-pinning` (sin `scripts/`) | Un placeholder por cada `VERIFICAR` (valor esperado y marcador, tomados del insumo) o un renderizador mínimo |
+| AUD-P-22 | estado (Orquestador) | P2 | La prevalidación de ART-050 en el expediente sigue diciendo «Analista (INT-053): v2…» con el hash de la v3 (`9c548c3e…`) | `estado-ingesta.json` ART-050 | Actualizar `reportada_por` a INT-058 (v3) |
+| AUD-P-23 | framework (evals) | P2 | Defecto 1 | §7.3 | §7.3 |
+| AUD-P-24 | framework (evals / herramientas) | P2 | Defecto 2. Además, el criterio de grep de INT-057 no dice «fuera de comentarios» | §7.1, §7.3 | §7.3, y redactar el criterio como «sin claves activas fuera de comentarios» |
+| AUD-P-25 | expediente (ART-030) | P2 | Defecto 4 | §7.3 | §7.3 |
+
+### 7.5 Verificaciones (sin compilar, sin PowerShell, git solo de lectura)
+
+| Verificación | Resultado |
+|---|---|
+| `sha256sum` de ART-053 y ART-050 | `fabaa4b43aee…49ec`; `9c548c3e5b76…4330` (= APR-023) |
+| `git diff f6075b6 a688ed4 -- insumos/yaml-skill-pinning.yaml` | Solo la cabecera (versión 3), `documento.version` y la línea 229 |
+| `diff` de la plantilla (`:1-48`, con `INGESTA_NOMBRE` sustituido) contra ART-053 | Solo inserciones y la sustitución de `{{REUSE_PIN_VALOR_FUENTE}}` (§7.1) |
+| pyhocon (`scratchpad/gen-pin/pylib`), `edf-curation/scripts/hocon_check.py`, `edf-acceptance/scripts/hocon_check.py` | `{}` / `OK` / `{}` |
+| greps de §7.1 | 0 claves fuera de comentarios, 0 `{{`, 0 `TODO` |
+| Emulación en Python de `verificar-artefacto.ps1:169` | FAIL por la `:72` (defecto 1) |
+| Lectura del motor: `SparkPinner.scala:192-242,409-421,665-723,979-985`; `PinningIOUtils.scala:21-46`; `pinning-application.conf`; `oxygen-config-default.conf:193,355,363,370-373` | §7.2 |
+| Lectura de INT-057 (`:453-459`), APR-023..025, RG-019, RG-025, ART-050..053 en `estado-ingesta.json` | Etapa `pinning` `en_progreso`; ART-051/052 `obligatorio: false`; ART-053 `prevalidado`, alto |

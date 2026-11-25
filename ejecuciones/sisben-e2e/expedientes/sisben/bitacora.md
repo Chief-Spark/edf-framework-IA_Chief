@@ -2568,3 +2568,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0151 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Prevalidación de ART-050 apunta a INT-058 (v3) en lugar de INT-053 (v2) (AUD-P-22). La decisión de INT-052 de no revisar ART-034 por la cita a EventPinner se extiende a ART-030 (source-spec-curation.yaml:26), que se corregirá en su próxima versión (AUD-P-25) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:16:27-05:00 |
+| **Por qué** | Auditoría de la propuesta de Pinning §7 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | ART-050, ART-030 |
+| **Trazabilidad** | prompt 08 |
+| **Corrige** | BIT-0136 |
+
+---
