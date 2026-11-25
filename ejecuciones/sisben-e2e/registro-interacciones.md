@@ -382,8 +382,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:35:47-05:00
 - **Pedido:** Auditar ART-050, PA-008/PA-009 y los 5 posibles defectos del framework.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-050 AJUSTES (sin P0). P1: AUD-P-01 (reusePin false listo para generar; la orden de esperar PA-009 solo en comentario; SKILL.md:34 manda escribirlo), AUD-P-02 (false contradice HU §5.4 «persona existente recibe ese PIN»: con false se renumera, SparkPinner.scala:979-985), AUD-P-03 (spec: sin bandera de fuente el matcher exige nombre). Peligro silencioso confirmado pero con otra mecánica (AUD-P-04: matcher vacío por defecto falla al arrancar; colapso por identidades iguales antes de comparar). AUD-P-05: EventPinner no se usa en batch (la evidencia es ISIdentityMatcher.scala:46-54). Defectos 1-5 reales (1 P1). PA-008: (a) resuelta con el motor; (b)(c) imposibles sin fork. PA-009: (a) no escribir la clave es la segura; (b) N4; (c) rompe el cruce entre fuentes (y spec §14 apunta a ella, AUD-P-07).
+- **Decisión:** Framework (HF-57..61) a un corrector; PA-008/PA-009 al aprobador (PA-009 la cierra el PO).
 - **Bitácora:** —
 
 ## INT-049 · Auditor independiente (curation) · propuesta · `curation_flow`
@@ -401,3 +401,19 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** Aprueba ART-031..033 (medio) con hashes por archivo (AUD-C-24), supuesto HF-52 (vale el Scala), C-CUR-05/06 condicionan Synthesis, AUD-C-22 a PA-007, HF-54 al checklist B. Aprueba curation_flow con evidencia diferida (alto, RG nuevo) y tabla de escenarios. curation_stock: transición acceptance→curation_stock (alto, diferida; HF-56), ART-040 por referencia (mismo hash que ART-031) y etapa con evidencia diferida (RG propio); nota para PA-002.
 - **Decisión:** Registradas APR-018 (ART-031..033), APR-019 (curation_flow, RG-023), APR-020 (transición a curation_stock), APR-021 (ART-040), APR-022 (curation_stock, RG-024); hashes por archivo en hashes/curation.sha256; antecedentes de PA-002 y PA-007 (BIT-0123).
 - **Bitácora:** BIT-0111..BIT-0123
+
+## INT-051 · Corrector del framework (pinning) · `pinning`
+
+- **Cuándo:** 2026-11-24T21:44:59-05:00
+- **Pedido:** Corregir HF-57..61 con pruebas; framework 1.9.8.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-052 · Aprobador simulado SIM-PO-01 / SIM-DEV-01 · `pinning`
+
+- **Cuándo:** 2026-11-24T21:44:59-05:00
+- **Pedido:** Decidir PA-009 (reusePin), PA-008 sin fork y los ajustes de ART-050.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
