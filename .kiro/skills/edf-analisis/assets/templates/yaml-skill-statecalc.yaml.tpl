@@ -1,10 +1,23 @@
 # yaml-skill-statecalc.yaml — insumo de edf-statecalc para la ingesta {{ingesta-id}}
 # Estructura derivada de assets/examples/sisben/yaml-skill-statecalc.yaml (ejemplo completo de referencia).
-# Secciones que edf-statecalc lee: decision_formato, mapeo_campos (filtra nivel_confianza "A"),
+# Secciones que edf-statecalc lee: modo_colombia, decision_formato, mapeo_campos (filtra nivel_confianza "A"),
 # instruccion_generacion_foundation, instruccion_generacion_calculation.
 # State Calculation es riesgo N4 (steering 06 §2.2): el YAML lo aprueba el PO o el Aprobador designado.
 
 # ── Cabecera: copiar _cabecera-yaml-skill.yaml.tpl con etapa_pipeline: "State Calculation" ──
+
+modo_colombia:                                      # edf-statecalc SKILL «Modo Colombia» (HF-77)
+  aplica: null                                      # true si la ingesta usa la configuración de State Calculation compartida
+                                                    # de Colombia (un foundation y un calculation para todas las fuentes);
+                                                    # el modo lo fija el expediente (orquestador, prompt 00, paso 2)
+  regla: ""                                         # en modo Colombia: ART-071 son entradas fields[] sin nombres existentes;
+                                                    # ART-072 secciones con where de filtro por fuente ([A:OQ-TR-2]) y name
+                                                    # válido como identificador JavaScript (sin «#»)
+  filtro_fuente: ""                                 # predicado confirmado (field.dataSource / field.subscriber o bandera)
+  nombres_existentes_verificados: ""                # foundation y calculation compartidos contra los que se comprobó el choque
+  modo_delta: ""                                    # deltaMode / deltaModeAccountLevel / doesComputeXpm del conf de Colombia:
+                                                    # en modo delta un PIN sin cambios conserva su XPM anterior
+  estado: ""
 
 decision_formato:
   descripcion: ""                                   # passthrough MOST_RECENT_VALUE u otro tipo, y por qué
@@ -16,9 +29,11 @@ mapeo_campos:
   campos:
     - campo_xpm_destino: ""
       campo_curado_{{ingesta}}_origen: ""           # clave publicada por Curation / sintetizada
-      nombre_en_foundation: ""                      # [PM] si no está confirmado: NO se infiere del nombre de negocio
+      nombre_en_foundation: ""                      # [PM] si no está confirmado: NO se infiere del nombre de negocio.
+                                                    # Un DERIVED se lee por name: su name ES la clave curada (HF-74)
       tipo_foundation: ""                           # DERIVED | CALCULATED
-      valor_calculated: ""                          # solo si CALCULATED, script confirmado por fuente
+      valor_calculated: ""                          # solo si CALCULATED, script confirmado por fuente. `field` es el
+                                                    # registro Foundation: cada field.X necesita su DERIVED declarado
       dataType: ""
       nivel_confianza: ""                           # A = cadena completa confirmada (se genera) | B = solo nombre XPM (no se genera)
       estado: ""
@@ -30,7 +45,8 @@ instruccion_generacion_foundation:
   seccion: "fields[]"
   contenido_a_escribir:
     regla: "solo campos nivel_confianza A"
-    campos_a_generar: []                            # - {name, type, value, dataType}
+    campos_a_generar: []                            # - {name, type, value, dataType}. DERIVED: name = clave curada, sin
+                                                    # value. CALCULATED: field.X = DERIVED declarado o campo inyectado (pin…)
     campos_excluidos_hasta_resolver: []
     advertencia: ""
     estado: ""

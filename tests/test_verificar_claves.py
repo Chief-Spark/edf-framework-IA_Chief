@@ -61,19 +61,107 @@ def test_synthesis_campos_a_generar_y_entradas_no_confirmadas(base, capsys):
 
 
 def test_statecalc_derived_y_scripts(base, capsys):
+    """HF-74: el DERIVED se cruza por `name` (no por `value`) y field.X contra los campos Foundation."""
     escribir(base, "yaml-skill-statecalc.yaml", {
         "mapeo_campos": {"campos": [
             {"campo_curado_sisben_origen": "standardizedIdType", "valor_calculated": "return field.standardizedIdTipo",
              "nivel_confianza": "A"}]},
         "instruccion_generacion_foundation": {"contenido_a_escribir": {"campos_a_generar": [
-            {"name": "grupo", "type": "DERIVED", "value": "grupoSisben"},
-            {"name": "numero", "type": "DERIVED", "value": "numeroDoc"},
-            {"name": "sub", "type": "DERIVED", "value": "subscriber"},
-            {"name": "calc", "type": "CALCULATED", "value": "return field.standardizedIdNumber"}]}}})
+            {"name": "grupoSisben", "type": "DERIVED"},
+            {"name": "numero", "type": "DERIVED", "value": "standardizedIdNumber"},
+            {"name": "calc", "type": "CALCULATED", "value": "return field.grupoSisben + field.pin"}]}}})
     codigo, out = correr(base, capsys)
     assert codigo == 1
-    assert "standardizedIdTipo" in out and "numeroDoc" in out
-    assert "'subscriber'" not in out and "'grupoSisben'" not in out
+    assert "X NO EXISTE  'numero'" in out and "(foundation DERIVED name)" in out    # el name, no el value
+    assert "'standardizedIdNumber' citada" not in out and "trae `value`" in out      # value: aviso, no cita
+    assert "X NO ES CAMPO FOUNDATION  'standardizedIdTipo'" in out
+    assert "'grupoSisben'" not in out and "'pin'" not in out                        # DERIVED declarado e inyectado
+
+
+# ── HF-74 (AUD-SC defecto 2): las dos mitades del cruce de State Calculation ──
+
+def statecalc(campos, mapeo=None):
+    return {"mapeo_campos": {"campos": mapeo or []},
+            "instruccion_generacion_foundation": {"contenido_a_escribir": {"campos_a_generar": campos}}}
+
+
+def test_hf74_derived_con_nombre_de_alias_no_curado_falla(base, capsys):
+    """El caso de la auditoría (§6): un DERIVED `fechaEncuesta` lee una clave inexistente y vale null siempre."""
+    escribir(base, "yaml-skill-statecalc.yaml", statecalc([{"name": "grupoSisben"}, {"name": "fechaEncuesta", "type": "DERIVED"}]))
+    codigo, out = correr(base, capsys)
+    assert codigo == 1 and "X NO EXISTE  'fechaEncuesta'" in out and "vale null siempre" in out
+
+
+def test_hf74_field_x_sin_derived_falla_y_pin_no(base, capsys):
+    escribir(base, "yaml-skill-statecalc.yaml", statecalc([
+        {"name": "personIdType", "type": "CALCULATED", "value": "return field.standardizedIdType"},
+        {"name": "dueno", "type": "CALCULATED", "value": "return field.pin + field.dataSource + field.subscriberRelation"}]))
+    codigo, out = correr(base, capsys)
+    # Antes: standardizedIdType es clave curada y pasaba; field.pin daba «NO EXISTE».
+    assert codigo == 1 and "X NO ES CAMPO FOUNDATION  'standardizedIdType'" in out
+    assert "'pin'" not in out and "'dataSource'" not in out and "'subscriberRelation'" not in out
+    assert "referencias field.X: 4" in out
+
+
+def test_hf74_field_x_con_derived_previo_y_calculated_anterior_pasa(base, capsys):
+    escribir(base, "yaml-skill-statecalc.yaml", statecalc([
+        {"name": "personIdType", "type": "CALCULATED", "value": "return field.standardizedIdType"},
+        {"name": "doble", "type": "CALCULATED", "value": "return field.personIdType * 2"},
+        {"name": "standardizedIdType", "dataType": "INTEGER"}]))       # el orden de los DERIVED no importa
+    codigo, out = correr(base, capsys)
+    assert codigo == 0 and "NO ES CAMPO FOUNDATION" not in out, out
+
+
+def test_hf74_field_x_de_un_calculated_posterior_falla(base, capsys):
+    escribir(base, "yaml-skill-statecalc.yaml", statecalc([
+        {"name": "doble", "type": "CALCULATED", "value": "return field.personIdType * 2"},
+        {"name": "personIdType", "type": "CALCULATED", "value": "return field.pin"}]))
+    codigo, out = correr(base, capsys)
+    assert codigo == 1 and "'personIdType' leída como field.personIdType" in out
+
+
+def test_hf74_alias_avisa_y_mapeo_nivel_b_solo_avisa(base, capsys):
+    escribir(base, "yaml-skill-statecalc.yaml", statecalc(
+        [{"name": "grupoSisben", "aliases": ["grupo"]},
+         {"name": "g", "type": "CALCULATED", "value": "return field.grupo"}],
+        mapeo=[{"campo_curado_sisben_origen": "grupoSisben", "valor_calculated": "return field.otro",
+                "nivel_confianza": "B"}]))
+    codigo, out = correr(base, capsys)
+    assert codigo == 0, out
+    assert "field.grupo en" in out and "aliasEnabled" in out and "field.otro" in out and "no confirmada" in out
+
+
+def test_hf74_mapeo_derived_se_cruza_por_nombre_en_foundation(base, capsys):
+    escribir(base, "yaml-skill-statecalc.yaml", statecalc([], mapeo=[
+        {"campo_curado_sisben_origen": "grupoSisben", "nombre_en_foundation": "grupo", "tipo_foundation": "DERIVED",
+         "nivel_confianza": "A"},
+        {"campo_curado_sisben_origen": "standardizedIdType", "nombre_en_foundation": "fechaDigitacion, con alias [A:X]",
+         "tipo_foundation": "DERIVED + aliases [\"x\"] (propuesto)", "nivel_confianza": "B"}]))
+    codigo, out = correr(base, capsys)
+    assert codigo == 1 and "X NO EXISTE  'grupo'" in out and "(mapeo DERIVED name)" in out
+    assert "fechaDigitacion" not in out                                 # texto libre, no un nombre
+
+
+# ── HF-75 (AUD-SC defecto 3): el golden declara el DERIVED que lee el CALCULATED ──
+
+GOLDEN = RAIZ / ".kiro/skills/edf-statecalc/evals/fixtures/golden"
+
+
+def test_hf75_golden_declara_el_derived_y_una_copia_sin_el_falla(base, capsys):
+    import json
+    for carpeta in ("sisben-camino-feliz", "sisben-camino-feliz-corrida2"):
+        campos = json.loads((GOLDEN / carpeta / "statecalc-foundation-local.json").read_text(encoding="utf-8"))["fields"]
+        nombres = [c["name"] for c in campos]
+        assert nombres[:2] == ["standardizedIdType", "standardizedIdNumber"], carpeta
+        assert all(vc.es_derived(c.get("type")) and "value" not in c for c in campos[:2])
+        escribir(base, "yaml-skill-statecalc.yaml", statecalc(campos))
+        codigo, out = correr(base, capsys)
+        assert codigo == 0 and "referencias field.X: 2" in out, out
+        escribir(base, "yaml-skill-statecalc.yaml", statecalc(campos[2:]))      # sin los DERIVED
+        codigo, out = correr(base, capsys)
+        assert codigo == 1, out
+        assert "X NO ES CAMPO FOUNDATION  'standardizedIdType'" in out
+        assert "X NO ES CAMPO FOUNDATION  'standardizedIdNumber'" in out
 
 
 def test_pendientes_y_contrato(base, capsys):

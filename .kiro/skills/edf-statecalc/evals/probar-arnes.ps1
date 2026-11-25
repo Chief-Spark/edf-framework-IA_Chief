@@ -37,20 +37,20 @@ function Par($dir, $caso, [string[]]$extra) {
 # Cada prueba: Nombre, Args, Exit esperado, Patrón esperado en la salida (vacío = no se exige)
 $pruebas = @(
     # --- Golden: deben ser aceptados ---
-    @{ N = 'golden sisben-camino-feliz / EVAL-SC-04';   A = (Par (G 'sisben-camino-feliz') 'EVAL-SC-04');   E = 0; P = 'P04: Foundation tiene exactamente 2 campos' },
+    @{ N = 'golden sisben-camino-feliz / EVAL-SC-04';   A = (Par (G 'sisben-camino-feliz') 'EVAL-SC-04');   E = 0; P = 'P04: Foundation tiene exactamente 4 campos' },
     @{ N = 'golden sisben-camino-feliz / EVAL-SC-02';   A = (Par (G 'sisben-camino-feliz') 'EVAL-SC-02');   E = 0; P = 'P02: hay una secci' },
     @{ N = 'golden agregados-sintetico / EVAL-SC-03';   A = (Par (G 'agregados-sintetico') 'EVAL-SC-03');   E = 0; P = 'P03: hay un aggregate SUM' },
     @{ N = 'golden agregados-sintetico / GENERAL';      A = (Par (G 'agregados-sintetico') 'GENERAL');      E = 0; P = 'C08: todo contains' },
     @{ N = 'golden sin-confirmaciones / EVAL-SC-01';    A = (Par (G 'sin-confirmaciones') 'EVAL-SC-01');    E = 0; P = 'P01: Foundation no activa' },
     @{ N = 'sin artefactos / EVAL-SC-05 (permitido)';   A = @('-Caso', 'EVAL-SC-05', '-SinArtefactos');     E = 0; P = 'admite que el skill no entregue' },
-    @{ N = 'comparar camino-feliz vs corrida2';         A = @('-Comparar', ((G 'sisben-camino-feliz') + ',' + (G 'sisben-camino-feliz-corrida2'))); E = 0; P = 'mismos 2 elemento' },
-    @{ N = 'comparar camino-feliz vs si mismo';         A = @('-Comparar', ((G 'sisben-camino-feliz') + ',' + (G 'sisben-camino-feliz'))); E = 0; P = 'mismos 2 elemento' },
+    @{ N = 'comparar camino-feliz vs corrida2';         A = @('-Comparar', ((G 'sisben-camino-feliz') + ',' + (G 'sisben-camino-feliz-corrida2'))); E = 0; P = 'mismos 4 elemento' },
+    @{ N = 'comparar camino-feliz vs si mismo';         A = @('-Comparar', ((G 'sisben-camino-feliz') + ',' + (G 'sisben-camino-feliz'))); E = 0; P = 'mismos 4 elemento' },
     @{ N = 'defectuoso 08 con -PermitirWhere';          A = (Par (D '08-where-sin-autorizacion') 'EVAL-SC-11' @('-PermitirWhere')); E = 0; P = 'autorizado por -PermitirWhere' },
     @{ N = 'golden sisben-camino-feliz / EVAL-SC-05';   A = (Par (G 'sisben-camino-feliz') 'EVAL-SC-05');   E = 0; P = 'P05: .scoreRiesgo. y .segmento.' },
     @{ N = 'golden sisben-camino-feliz / EVAL-SC-07';   A = (Par (G 'sisben-camino-feliz') 'EVAL-SC-07');   E = 0; P = 'P07: fields\[\] solo contiene' },
     @{ N = 'golden sisben-camino-feliz / EVAL-SC-08';   A = (Par (G 'sisben-camino-feliz') 'EVAL-SC-08');   E = 0; P = 'G02: Calculation no contiene' },
     @{ N = 'golden sisben-camino-feliz / EVAL-SC-10';   A = (Par (G 'sisben-camino-feliz') 'EVAL-SC-10');   E = 0; P = 'P10: Calculation no referencia' },
-    @{ N = 'golden sisben-camino-feliz / EVAL-SC-13';   A = (Par (G 'sisben-camino-feliz') 'EVAL-SC-13');   E = 0; P = 'P04: Foundation tiene exactamente 2 campos' },
+    @{ N = 'golden sisben-camino-feliz / EVAL-SC-13';   A = (Par (G 'sisben-camino-feliz') 'EVAL-SC-13');   E = 0; P = 'P04: Foundation tiene exactamente 4 campos' },
     @{ N = 'golden agregados-sintetico / EVAL-SC-11';   A = (Par (G 'agregados-sintetico') 'EVAL-SC-11');   E = 0; P = 'C07: ninguna secci' },
     @{ N = 'sin artefactos / EVAL-SC-08 (permitido)';   A = @('-Caso', 'EVAL-SC-08', '-SinArtefactos');     E = 0; P = 'admite que el skill no entregue' },
 
@@ -69,7 +69,7 @@ $pruebas = @(
     @{ N = 'defectuoso 09 contains a seccion inexistente'; A = (Par (D '09-contains-a-seccion-posterior') 'EVAL-SC-11'); E = 1; P = 'FAIL \[C08\].*no existe' },
     @{ N = 'defectuoso 10 qualityThreshold';            A = (Par (D '10-clave-quality-threshold') 'EVAL-SC-08'); E = 1; P = 'FAIL \[G02\]' },
     @{ N = 'defectuoso 11 bestName XPM';                A = (Par (D '11-xpm-bestname') 'EVAL-SC-08');       E = 1; P = 'FAIL \[G02\]' },
-    @{ N = 'defectuoso 12 camino feliz con 3 campos';   A = (Par (D '12-camino-feliz-campo-extra') 'EVAL-SC-04'); E = 1; P = 'FAIL \[P04\].*exactamente 2' },
+    @{ N = 'defectuoso 12 camino feliz con campo extra';   A = (Par (D '12-camino-feliz-campo-extra') 'EVAL-SC-04'); E = 1; P = 'FAIL \[P04\].*exactamente 4' },
     @{ N = 'defectuoso 12 fields no vacio / SC-01';     A = (Par (D '12-camino-feliz-campo-extra') 'EVAL-SC-01'); E = 1; P = 'FAIL \[P01\]' },
     @{ N = 'defectuoso 13 JSON con comentarios';        A = @('-FoundationPath', (Join-Path (D '13-json-con-comentarios') $F), '-Caso', 'GENERAL'); E = 1; P = 'FAIL \[V01\]' },
     @{ N = 'defectuoso 14 value/dataType incorrectos';  A = (Par (D '14-value-incorrecto') 'EVAL-SC-04');   E = 1; P = 'FAIL \[P04\].*personIdType' },

@@ -22,10 +22,13 @@ Cada elemento de `fields[]` (DTO `FoundationField`):
 
 **Este skill solo genera campos `type=DERIVED` (implícito, sin la clave `type`) o `type=CALCULATED` con un `value` confirmado por fuente.** Nunca genera `CUSTOM`, `CUSTOM_WITH_HISTORY` ni `UNKNOWN` — los dos primeros requieren una clase Scala que este skill no produce (es config-driven puro, ver `references/decisiones-pendientes.md`), y el tercero está deprecado y siempre falla.
 
-Ejemplos reales transcritos del fixture (`Diseño/logica-statecalc.md` §5.1):
+Ejemplos reales transcritos del fixture (`Motor-Oxigen/oxygen-statecalculation/src/main/resources/local/statecalc-foundation-local.json:369-379`): el DERIVED `standardizedIdType` va declarado y el CALCULATED lo lee del registro Foundation.
 ```json
+{ "name": "standardizedIdType", "dataType": "INTEGER" },
 { "name": "personIdType", "dataType": "INTEGER", "type": "CALCULATED", "value": "return field.standardizedIdType" }
 ```
+
+**Un DERIVED se lee por `name`; un CALCULATED lee el registro Foundation (HF-74, HF-75).** El DERIVED busca en `curatedRecordJson` la clave igual a su `name` (`FoundationFunctions.scala:24-35`; un `name` con punto `a.b` lee el anidado y se guarda como `b`, `:63-71`): el `name` de un DERIVED **es** la clave curada publicada, y un `value` en un DERIVED no se usa. En un CALCULATED, `field` es el registro Foundation que se está armando (`FoundationStateCalculator.scala:52-63`), no el evento curado: `field.X` solo vale si `X` es un DERIVED declarado en `fields[]` (todos los DERIVED se calculan antes que cualquier CALCULATED), un no DERIVED declarado **antes** o un campo inyectado (`pin`, `dataSource`, `subscriber`, `subscriberRelation`, `asOfPeriod`, `parentEventIds`). Sin el DERIVED, `field.standardizedIdType` es `undefined`, el campo no se escribe (`:86-90`) y el XPM lo muestra nulo en silencio. Verificación: `tools/verificar-artefactos-etapa.py statecalc --foundation … --source-spec …` y `tools/verificar-claves.py`.
 
 **Convención de nombre de función Nashorn para campos `CALCULATED`:** el motor compila el `value` dentro de `function foundation_calculated_<name>(field){ ... }`, donde `<name>` es el nombre exacto del campo. El script recibe el registro homogéneo actual como `field` (notación de punto sobre el `HashMap` del evento). Un error en el script se envuelve en `StateCalculationScriptExecutionException` citando el nombre del campo.
 
@@ -60,7 +63,7 @@ Cada elemento de `calculations[]` (DTO `CalculationSection`):
 - `aggregates[]` no vacío (OXY-SC-1).
 - `select` solo si hay `groupBy` (OXY-SC-2), y todo campo de `select` debe estar en `groupBy` (OXY-SC-3).
 
-Verificación en Python, además del `.ps1`: `python tools/verificar-artefactos-etapa.py statecalc --calculation <calc.json> --foundation <foundation.json>`.
+Verificación en Python, además del `.ps1`: `python tools/verificar-artefactos-etapa.py statecalc --calculation <calc.json> --foundation <foundation.json> --source-spec <source-spec-curation.yaml>` (en modo Colombia, además `--modo colombia --campos-existentes … --secciones-existentes …`, `references/modo-colombia.md` §3).
 
 ### 2.1 Regla dura: `groupBy` siempre plano, nunca `grouping.groupBy`
 
@@ -85,7 +88,7 @@ Ejemplo real verificado que usa la forma correcta (plana):
 
 ### 2.2 Convención de nombre de función Nashorn para `where`
 
-El motor compila cada `where` dentro de `function aggregated_where_<name>(field){ ... }`, donde `<name>` es el nombre exacto de la sección. Filtra registro por registro, convirtiendo el resultado a booleano. **Si la lista filtrada queda vacía, el resultado es `null`, no `[]`** — distinción que cualquier artefacto generado debe tener presente si documenta el comportamiento esperado.
+El motor compila cada `where` dentro de `function aggregated_where_<name>(field){ ... }`, donde `<name>` es el nombre exacto de la sección. Filtra registro por registro, convirtiendo el resultado a booleano. **Si la lista filtrada queda vacía, sin `groupBy` la sección vale `null`; con `groupBy` los grupos vacíos no salen y la sección es una lista vacía `[]`** (`QueryFunctions.scala:61`; `CalculationStateCalculator.scala:123-143`, `:162`) — distinción que cualquier artefacto generado debe tener presente si documenta el comportamiento esperado. Como `<name>` es parte de un identificador JavaScript, el `name` de una sección con `where` no lleva `#`, espacios ni otros caracteres inválidos: la función se compila al construir el calculador (`CalculationStateCalculator.scala:50-52`) y la etapa falla al arrancar (HF-77).
 
 ### 2.3 Funciones de agregación válidas para `type=AGGREGATES`
 
@@ -98,4 +101,4 @@ Igual que en `edf-pinning` (dimensión 9, `contrato-identitymatcher.md` §2) y e
 - **Nivel A — cadena de mapeo completa y verificada:** existe un campo curado SISBEN real de origen, confirmado por una fuente verificable (código real, HU formal, o decisión explícita del usuario en la conversación), Y un nombre de campo Foundation/Calculation confirmado. Solo estos campos se generan.
 - **Nivel B — solo nombre XPM de destino propuesto:** el documento de negocio (`Levantamiento.md` §8.3) propone un nombre de campo final para el XPM, pero no confirma el campo curado real de origen ni el nombre que debería tener en Foundation. **Estos campos NUNCA se generan** — se reportan como pendientes.
 
-Para la ingesta de referencia de este proyecto (SISBEN), de 25 campos de negocio esperados, **solo 2 alcanzan nivel A**: `personIdType` (origen `standardizedIdType`) y `personIdNumber` (origen `standardizedIdNumber`), ver `Diseño/yaml-skill-statecalc.yaml` (`mapeo_campos`). Los 23 restantes son nivel B — ver `references/decisiones-pendientes.md` §1.
+En el ejemplo histórico del piloto SISBEN (no es fuente: la ingesta SISBEN vigente se rige por su spec §13), de 25 campos de negocio esperados, **solo 2 alcanzaban nivel A**: `personIdType` (origen `standardizedIdType`) y `personIdNumber` (origen `standardizedIdNumber`), CALCULATED que leen los DERIVED `standardizedIdType` y `standardizedIdNumber` (HF-75), ver `Diseño/yaml-skill-statecalc.yaml` (`mapeo_campos`). Los 23 restantes son nivel B — ver `references/decisiones-pendientes.md` §1.

@@ -114,9 +114,18 @@ La semilla (`templates/estado-ingesta.seed.json`) trae el modo Colombia. En modo
 | Dir. | Elemento | Oblig. |
 |------|----------|:------:|
 | In (insumo) | `insumos/yaml-skill-statecalc.yaml` | ✅ |
-| Out | Bloque `fields[]` de `statecalc-foundation-local.json` | ✅ |
-| Out | Sección `CalculationSection` de `statecalc-calculation-local.json` (`groupBy` plano) | ✅ |
-| Evidencia | `evals/verificar-artefacto.ps1` y `evals/probar-arnes.ps1` | ✅ |
+| Out | Artefactos según el **modo de State Calculation** de la ingesta (tabla siguiente) | ✅ |
+| Evidencia | `evals/verificar-artefacto.ps1`, `evals/probar-arnes.ps1` y `tools/verificar-artefactos-etapa.py statecalc --modo <propio\|colombia> --source-spec insumos/source-spec-curation.yaml` | ✅ |
+
+Los artefactos dependen del modo, que el Orquestador fija al abrir el expediente (prompt `00`, paso 2) y que coincide con `modo_colombia.aplica` del insumo (HF-77). En modo Colombia la configuración de State Calculation es compartida: la corrida lee todo el sintetizado de Colombia, el registro Foundation de un PIN mezcla todas las fuentes y los foundation y calculation se fusionan (`ContextUtils.scala:15-30`), así que la ingesta aporta entradas, no archivos propios (`edf-statecalc` SKILL «Modo Colombia», `references/modo-colombia.md`):
+
+| Artefacto (id de la semilla) | Modo propio (configuración de State Calculation propia) | Modo Colombia (configuración compartida) |
+|---|---|---|
+| ART-071 Foundation | ✅ bloque `fields[]` de `statecalc-foundation-local.json` | ✅ **entradas `fields[]` de la ingesta** para integrar en el foundation compartido, **sin repetir un `name` ni alias existente** (un nombre duplicado se procesa dos veces y el último gana para todas las fuentes, `ContextUtils.scala:15-19`) |
+| ART-072 Calculation | ✅ `CalculationSection` de `statecalc-calculation-local.json` (`groupBy` plano) | ✅ **secciones de la ingesta** para integrar en el calculation compartido: **cada una con `where` de filtro por fuente** (sin él MOST_RECENT_VALUE toma el registro más reciente de cualquier fuente, `MostRecentValue.scala:20-24`), `name` válido como identificador JavaScript (sin `#`, `QueryFunctions.scala:75-82`) y sin repetir una sección existente (`--modo colombia`); el `where` depende de `[A:OQ-TR-2]`; riesgo `critico` |
+| ART-073 CA1 | ✅ CA1: Data Provisioning consulta la sección en el XPM | ✅ CA1 en el **XPM compartido**, con la **lista de verificación del fork** como precondición: nombres existentes, **modo delta** (`deltaMode`, `deltaModeAccountLevel`, `doesComputeXpm`: en modo delta un PIN sin cambios conserva su XPM anterior, `SparkStateCalculator.scala:187-188, 207-213, 246-271`), `aliasEnabled`, JDK y Nashorn (OQ-TR-2), y un caso de PIN de otra fuente sin la sección |
+
+La semilla (`templates/estado-ingesta.seed.json`) trae el modo Colombia. En modo propio, el Orquestador cambia el nombre de ART-071 a «fields[] de statecalc-foundation-local.json», el de ART-072 a «CalculationSection de statecalc-calculation-local.json» y el de ART-073 a «CA1: Data Provisioning consulta la seccion de la ingesta en el XPM». En los dos modos, el passthrough `MOST_RECENT_VALUE` es la forma de la sección; no cumple por sí solo una regla de vigencia ni de fuente (p. ej. HU SISBEN R-26), y la lógica propia que haga falta es `[A:CQ-006]`.
 
 **Criterio de aceptación CA1:** Data Provisioning consulta los datos de la ingesta en XPM. Es la única etapa cuya aprobación final referencia CA1. Al ser N4, la aprobación la da el PO o el Aprobador designado (`03-gobierno-riesgo-aprobacion.md` §2).
 
@@ -129,7 +138,7 @@ El contrato anterior se derivó de `especificacion_requerimientos_skills.md`. La
 | DIF-1 | Acceptance: árbol `ACCEPTED/REJECTED/MANUAL_REVIEW` y cola de revisión manual | Diseño aceptado por el PO (2026-11-04): banda de revisión **a nivel de archivo** con el estado pendiente del motor + `manualAccept`/`manualReject` (`edf-acceptance` SKILL.md, "Revisión manual") | **Parcial:** abiertos el piso de calidad (DIF-1.2), la fuente de `externalAction` (DIF-1.3) y quién decide y en qué plazo (DIF-1.4). Hasta cerrarlos, `MANUAL_REVIEW` no se configura y la etapa se aprueba registrando el faltante |
 | DIF-2 | Pinning: reglas de deduplicación | `edf-pinning` no genera `keep-together.json` / `keep-apart.json` sin caso de negocio confirmado | ¿Se exige deduplicación explícita para el piloto? |
 | DIF-3 | Synthesis: consistency checks C-001 → C-005 | `edf-synthesis` genera GDD + bloque HOCON; no genera `consistency-checks.json` | ¿Quién produce los checks C-001..C-005? |
-| DIF-4 | State Calculation: procesador de scoring (risk, trust, completeness) y constructor del perfil XPM | `edf-statecalc` **nunca** genera Scala; solo configuración declarativa (passthrough `MOST_RECENT_VALUE` confirmado para SISBEN) | **Cerrada (2026-11-04):** el scoring queda **fuera del alcance** del framework por decisión del PO, comunicada por el usuario. El perfil XPM se cubre con la configuración declarativa; CA1 sigue vigente. El Orquestador no exige artefactos de scoring |
+| DIF-4 | State Calculation: procesador de scoring (risk, trust, completeness) y constructor del perfil XPM | `edf-statecalc` **nunca** genera Scala; solo configuración declarativa (passthrough `MOST_RECENT_VALUE` de atributos; si la ingesta necesita lógica propia, como el corte vigente de SISBEN R-26, es `[A:CQ-006]`, HF-77) | **Cerrada (2026-11-04):** el scoring queda **fuera del alcance** del framework por decisión del PO, comunicada por el usuario. El perfil XPM se cubre con la configuración declarativa; CA1 sigue vigente. El Orquestador no exige artefactos de scoring |
 | DIF-5 | Curation: referencia a `nvdt_utls_edf_fork` y `Bureau.Colombia_IFR` | No consta en el source-spec de Curation | ¿Es un insumo obligatorio? |
 
 ## Requerimientos transversales que el Orquestador verifica en todo artefacto

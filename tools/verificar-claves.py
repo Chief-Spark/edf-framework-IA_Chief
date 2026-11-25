@@ -22,8 +22,16 @@ Lee (de expedientes/<ingesta-id>/insumos/ o de --dir):
                                    instruccion_generacion_gdd.contenido_a_escribir.campos_a_generar[].name
                                    (forma del GDD v2: name + description; HF-71). `nombre_en_gdd` en
                                    campos_a_generar se acepta como alias deprecado, con aviso
-  - yaml-skill-statecalc.yaml   -> (1.9.0) value de los campos DERIVED y las referencias field.X de los scripts
-                                   CALCULATED (mapeo nivel A e instruccion_generacion_foundation)
+  - yaml-skill-statecalc.yaml   -> (HF-74) el `name` de los campos DERIVED de
+                                   instruccion_generacion_foundation...campos_a_generar (y `nombre_en_foundation` de un
+                                   DERIVED de mapeo_campos): el motor lee un DERIVED por `name`
+                                   (FoundationFunctions.scala:24-35); `value` no se usa (aviso si viene)
+
+Referencias field.X de los scripts CALCULATED (HF-74): en un CALCULATED `field` es el registro Foundation
+(FoundationStateCalculator.scala:52-63), no el evento curado. Cada field.X se cruza con los campos Foundation del
+insumo (DERIVED de campos_a_generar y de mapeo_campos, no DERIVED declarados antes, alias con aviso) y los que inyecta
+el motor (pin, dataSource, subscriber, subscriberRelation, asOfPeriod, parentEventIds), no con las claves curadas.
+Un field.X sin campo Foundation sale «X NO ES CAMPO FOUNDATION» (vale null en silencio).
 
 Regla (steering 11 §6 #5): toda clave citada como confirmada aguas abajo debe existir LITERAL en
 campos_curados[].destino o en parametros.campo_advertencias (HF-37), o ser un campo que el motor inyecta,
@@ -70,6 +78,8 @@ def campo_curado(item, sufijo=""):
 INYECTADOS = {"dataSource", "subscriber", "subscriberRelation", "asOfPeriod", "asOfDate", "fileTag",
               "subscriberRelationStartDate", "subscriberRelationEndDate", "firstEventDate"}
 IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+# HF-74: campos que el motor pone en el registro Foundation antes de los configurados (FoundationStateCalculator.scala:46-51).
+BASE_FOUNDATION = {"pin", "dataSource", "subscriber", "subscriberRelation", "asOfPeriod", "parentEventIds"}
 REF_FIELD = re.compile(r"\bfield\.([A-Za-z_][A-Za-z0-9_]*)")
 
 
@@ -120,26 +130,87 @@ def avisos_synthesis(syn):
     return out
 
 
+def es_derived(tipo):
+    """`type` omitido es DERIVED; en mapeo_campos el tipo puede venir como «DERIVED + aliases [...]»."""
+    return str(tipo or "DERIVED").strip().upper().startswith("DERIVED")
+
+
+def nombre_registro(nombre):
+    """`a.b` lee el anidado `a` y se guarda como `b` en el registro (FoundationFunctions.scala:63-71)."""
+    partes = str(nombre).split(".")
+    return partes[1] if len(partes) == 2 else str(nombre)
+
+
+def clave_leida(nombre):
+    """Clave curada que lee un DERIVED: su `name`, o la raíz `a` de un `name` anidado `a.b`."""
+    partes = str(nombre).strip().split(".")
+    return partes[0] if len(partes) == 2 else str(nombre).strip()
+
+
+def _gen_statecalc(sc):
+    gen = (((sc.get("instruccion_generacion_foundation") or {}).get("contenido_a_escribir") or {})
+           .get("campos_a_generar") or [])
+    return [c for c in gen if isinstance(c, dict)]
+
+
 def citas_statecalc(sc):
-    """(archivo, clave, obligatoria) de yaml-skill-statecalc.yaml."""
+    """(archivo, clave, obligatoria) de yaml-skill-statecalc.yaml que deben ser claves curadas publicadas.
+
+    HF-74: un DERIVED se lee por `name` (FoundationFunctions.scala:24-35), así que la clave que se cruza es su `name`,
+    no su `value`. Las referencias field.X de un CALCULATED no son claves curadas: ver refs_foundation_statecalc.
+    """
     out = []
     for c in ((sc.get("mapeo_campos") or {}).get("campos") or []):
         ok = str(c.get("nivel_confianza")) == "A"
         origen = campo_curado(c, "_origen")
         if origen and concreto(origen):
             out.append(("yaml-skill-statecalc.yaml", origen.strip(), ok))
-        for ref in REF_FIELD.findall(str(c.get("valor_calculated") or "")):
-            out.append(("yaml-skill-statecalc.yaml (field.X)", ref, ok))
-    gen = (((sc.get("instruccion_generacion_foundation") or {}).get("contenido_a_escribir") or {})
-           .get("campos_a_generar") or [])
+        nombre = c.get("nombre_en_foundation")
+        if es_derived(c.get("tipo_foundation")) and concreto(nombre) and nombre.strip() != (origen or "").strip():
+            out.append(("yaml-skill-statecalc.yaml (mapeo DERIVED name)", nombre.strip(), ok))
+    for c in _gen_statecalc(sc):
+        nombre = c.get("name")
+        if es_derived(c.get("type")) and isinstance(nombre, str) and concreto(clave_leida(nombre)):
+            out.append(("yaml-skill-statecalc.yaml (foundation DERIVED name)", clave_leida(nombre), True))
+    return out
+
+
+def avisos_statecalc(sc):
+    """HF-74: un `value` en un DERIVED no se usa (el motor lee la clave `name`)."""
+    out = []
+    for i, c in enumerate(_gen_statecalc(sc)):
+        if es_derived(c.get("type")) and str(c.get("value") or "").strip():
+            out.append(f"campos_a_generar[{i}] (`{c.get('name')}`) es DERIVED y trae `value` {c['value']!r}: el motor no "
+                       "lo usa, lee la clave curada igual a `name` (FoundationFunctions.scala:24-35)")
+    return out
+
+
+def refs_foundation_statecalc(sc):
+    """HF-74: (archivo, X, obligatoria, campos_validos, alias) por cada field.X de un CALCULATED.
+
+    `field` es el registro Foundation (FoundationStateCalculator.scala:52-63): valen los DERIVED declarados (todos se
+    calculan antes que cualquier CALCULATED), los no DERIVED declarados antes y los campos que inyecta el motor.
+    """
+    gen = _gen_statecalc(sc)
+    derivados = {nombre_registro(c["name"]) for c in gen if es_derived(c.get("type")) and c.get("name")}
+    alias = {a for c in gen for a in (c.get("aliases") or []) if isinstance(a, str)}
+    mapeo = (sc.get("mapeo_campos") or {}).get("campos") or []
+    derivados_mapeo = {c["nombre_en_foundation"].strip() for c in mapeo
+                       if es_derived(c.get("tipo_foundation")) and concreto(c.get("nombre_en_foundation"))}
+    out = []
+    previos = set()
     for c in gen:
-        if not isinstance(c, dict):
-            continue
-        valor = str(c.get("value") or "")
-        if str(c.get("type", "")).upper() == "DERIVED" and concreto(valor):
-            out.append(("yaml-skill-statecalc.yaml (foundation DERIVED)", valor.strip(), True))
-        for ref in REF_FIELD.findall(valor):
-            out.append(("yaml-skill-statecalc.yaml (foundation field.X)", ref, True))
+        if not es_derived(c.get("type")):
+            validos = BASE_FOUNDATION | derivados | previos
+            for ref in REF_FIELD.findall(str(c.get("value") or "")):
+                out.append(("yaml-skill-statecalc.yaml (foundation field.X)", ref, True, validos, alias))
+            if c.get("name"):
+                previos.add(c["name"])
+    todos = BASE_FOUNDATION | derivados | derivados_mapeo | previos
+    for c in mapeo:
+        ok = str(c.get("nivel_confianza")) == "A"
+        for ref in REF_FIELD.findall(str(c.get("valor_calculated") or "")):
+            out.append(("yaml-skill-statecalc.yaml (field.X)", ref, ok, todos, alias))
     return out
 
 
@@ -218,7 +289,21 @@ def main(argv=None):
                 citas.append(("yaml-skill-pinning.yaml", campo_curado(a)))
     syn = cargar(base / "yaml-skill-synthesis.yaml")
     sc = cargar(base / "yaml-skill-statecalc.yaml")
-    avisos_forma = avisos_synthesis(syn) if syn else []
+    avisos_forma = [("yaml-skill-synthesis.yaml", a) for a in (avisos_synthesis(syn) if syn else [])]
+    avisos_forma += [("yaml-skill-statecalc.yaml", a) for a in (avisos_statecalc(sc) if sc else [])]
+    # HF-74: field.X de un CALCULATED se cruza con los campos Foundation, no con las claves curadas.
+    sin_foundation, avisos_foundation, refs = [], [], 0
+    for archivo, ref, obligatoria, validos, alias in (refs_foundation_statecalc(sc) if sc else []):
+        refs += 1
+        if ref in validos:
+            continue
+        if ref in alias:
+            avisos_foundation.append((archivo, ref, "es un alias: solo existe con aliasEnabled = true en el conf "
+                                                    "(FoundationStateCalculator.scala:103-105) [PM]"))
+        elif obligatoria:
+            sin_foundation.append((archivo, ref))
+        else:
+            avisos_foundation.append((archivo, ref, "(entrada no confirmada) no es un campo Foundation del insumo"))
     for archivo, clave, obligatoria in (citas_synthesis(syn) if syn else []) + (citas_statecalc(sc) if sc else []):
         if clave in INYECTADOS:
             continue
@@ -235,16 +320,28 @@ def main(argv=None):
             continue
         (pendientes if clave in abiertas else faltan).append((archivo, clave))
 
-    print(f"Claves publicadas por Curation: {len(publicadas)} · citas revisadas: {len(citas)}")
-    for aviso in avisos_forma:
-        print(f"  ! AVISO      yaml-skill-synthesis.yaml: {aviso}")
+    print(f"Claves publicadas por Curation: {len(publicadas)} · citas revisadas: {len(citas)}"
+          + (f" · referencias field.X: {refs}" if refs else ""))
+    for archivo, aviso in avisos_forma:
+        print(f"  ! AVISO      {archivo}: {aviso}")
+    for archivo, ref, motivo in avisos_foundation:
+        print(f"  ! AVISO      field.{ref} en {archivo}: {motivo}")
     for archivo, clave in avisos_previos:
         if clave not in publicadas:
             print(f"  ! AVISO      {clave!r} citada en {archivo} (entrada no confirmada): no está en campos_curados[].destino")
     for archivo, clave in pendientes:
         print(f"  ! PENDIENTE  {clave!r} citada en {archivo}: está en campos_abiertos (Curation aún no la publica)")
     for archivo, clave in faltan:
-        print(f"  X NO EXISTE  {clave!r} citada en {archivo}: no está en campos_curados[].destino")
+        detalle = (": el motor lee el DERIVED por `name` (FoundationFunctions.scala:24-35); vale null siempre"
+                   if "DERIVED name" in archivo else "")
+        print(f"  X NO EXISTE  {clave!r} citada en {archivo}: no está en campos_curados[].destino{detalle}")
+    for archivo, ref in sin_foundation:
+        print(f"  X NO ES CAMPO FOUNDATION  {ref!r} leída como field.{ref} en {archivo}: `field` es el registro Foundation "
+              "(FoundationStateCalculator.scala:52-63), no el evento curado; declara el DERIVED "
+              f"{ref!r} (si es una clave publicada) o usa un campo inyectado (pin, dataSource…). Sin él vale null")
+    if sin_foundation and not faltan:
+        print("RESULTADO: referencias field.X sin campo Foundation. Declarar el DERIVED en campos_a_generar.")
+        return 1
     if faltan:
         print("RESULTADO: claves incoherentes. Corregir el insumo o marcar la cita como [A:mapeo-claves-curation-pinning].")
         return 1

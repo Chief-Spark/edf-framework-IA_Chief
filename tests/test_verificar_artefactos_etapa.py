@@ -164,3 +164,140 @@ def test_hf68_cli_modo(tmp_path, capsys):
     with pytest.raises(SystemExit):
         va.main(["synthesis", "--modo", "otro", "--hocon", str(b)])
     assert "--modo colombia" in va.__doc__ and "--modo propio" in va.__doc__
+
+
+# ── HF-73 (AUD-SC defecto 1): select contra name o alias; DERIVED cuyo name no es clave curada ──
+
+GOLDEN_SC = RAIZ / ".kiro/skills/edf-statecalc/evals/fixtures/golden/sisben-camino-feliz"
+F_ALIAS = {"fields": [{"name": "fechaDigitacion", "dataType": "LONG", "aliases": ["fechaEncuesta"]},
+                      {"name": "grupoSisben"}]}
+
+
+def mrv(**kw):
+    base = {"name": "sisben", "type": "MOST_RECENT_VALUE", "select": ["grupoSisben", "fechaEncuesta"]}
+    base.update(kw)
+    return {"domain": "d", "calculations": [base]}
+
+
+def test_hf73_select_por_alias_pasa_con_aviso():
+    hall, avisos = va.verificar_statecalc(mrv(), F_ALIAS)
+    assert hall == [], hall          # antes: «`fechaEncuesta` no existe en fields[] de Foundation» (error por exceso)
+    assert len(avisos) == 1 and "alias de `fechaDigitacion`" in avisos[0] and "aliasEnabled" in avisos[0]
+
+
+def test_hf73_nombre_con_punto_usa_el_nombre_final():
+    f = {"fields": [{"name": "domicilio.codMunicipio"}]}
+    assert va.verificar_calculation(mrv(select=["codMunicipio"]), f) == []
+    assert va.verificar_calculation(mrv(select=["domicilio.codMunicipio"]), f) == [
+        "sección `sisben`: `domicilio.codMunicipio` no existe en fields[] de Foundation"]
+
+
+def test_hf73_derived_con_nombre_de_alias_falla_con_source_spec():
+    """La «salida natural» del falso positivo: un DERIVED `fechaEncuesta` vale null siempre."""
+    f = {"fields": [{"name": "fechaEncuesta", "dataType": "LONG"}, {"name": "grupoSisben"},
+                    {"name": "x", "value": "grupoSisben"}]}
+    publicadas = {"grupoSisben", "fechaDigitacion", "x"}
+    hall, avisos = va.verificar_statecalc(mrv(), f, publicadas=publicadas)
+    assert hall == [next(h for h in hall if "`fechaEncuesta`" in h)] and "que Curation no publica" in hall[0]
+    assert any("trae `value`" in a for a in avisos)
+    assert va.verificar_statecalc(mrv(), f)[0] == []        # sin --source-spec no se cruza
+
+
+def test_hf73_cli_source_spec(tmp_path, capsys):
+    import yaml
+    (tmp_path / "f.json").write_text(json.dumps({"fields": [{"name": "fechaEncuesta"}, {"name": "grupoSisben"}]}), encoding="utf-8")
+    (tmp_path / "c.json").write_text(json.dumps(mrv()), encoding="utf-8")
+    (tmp_path / "ss.yaml").write_text(yaml.safe_dump({"campos_curados": [{"destino": "grupoSisben"}],
+                                                      "parametros": {"campo_advertencias": "advertenciasCuracion"}}),
+                                      encoding="utf-8")
+    args = ["statecalc", "--calculation", str(tmp_path / "c.json"), "--foundation", str(tmp_path / "f.json")]
+    assert va.main(args) == 0
+    assert va.main(args + ["--source-spec", str(tmp_path / "ss.yaml")]) == 1
+    assert "`fechaEncuesta` lee la clave curada" in capsys.readouterr().out
+    assert va.main(args + ["--source-spec", str(tmp_path / "no.yaml")]) == 2
+
+
+# ── HF-74/HF-75: field.X de un CALCULATED es un campo Foundation ──
+
+def test_hf75_golden_pasa_y_una_copia_sin_el_derived_falla():
+    f = json.loads((GOLDEN_SC / "statecalc-foundation-local.json").read_text(encoding="utf-8"))
+    c = json.loads((GOLDEN_SC / "statecalc-calculation-local.json").read_text(encoding="utf-8"))
+    publicadas = {"standardizedIdType", "standardizedIdNumber"}
+    assert va.verificar_statecalc(c, f, publicadas=publicadas) == ([], [])
+    sin = {"fields": [x for x in f["fields"] if x.get("type") == "CALCULATED"]}
+    hall = va.verificar_calculation(c, sin, publicadas=publicadas)
+    assert len(hall) == 2 and all("no es un campo del registro Foundation" in h for h in hall), hall
+    assert "field.standardizedIdType" in hall[0] and "field.standardizedIdNumber" in hall[1]
+
+
+def test_hf74_calculated_con_campos_inyectados_y_orden():
+    f = {"fields": [{"name": "a", "type": "CALCULATED", "value": "return field.pin + field['dataSource']"},
+                    {"name": "b", "type": "CALCULATED", "value": "return field.a + field.c"},
+                    {"name": "c", "type": "CALCULATED", "value": "return 1"}]}
+    hall = va.verificar_calculation({"calculations": []}, f)
+    assert hall == [next(h for h in hall if "field.c" in h)] and "se calcula después" in hall[0]
+    hall = va.verificar_calculation({"calculations": []}, {"fields": [{"name": "#x", "type": "CALCULATED", "value": "return 1"}]})
+    assert any("foundation_calculated_<name>" in h for h in hall)
+
+
+# ── HF-77: name de sección con where y modo Colombia ──
+
+F_COL = {"fields": [{"name": "grupoSisben"}, {"name": "nivelSisben", "dataType": "INTEGER"}]}
+
+
+def col(**kw):
+    base = {"name": "sisben", "type": "MOST_RECENT_VALUE", "select": ["grupoSisben", "nivelSisben"],
+            "where": "return field.dataSource == 'DNP' && field.subscriber == '999722'"}
+    base.update(kw)
+    return {"domain": "d", "calculations": [base]}
+
+
+def test_hf77_seccion_con_where_y_nombre_invalido_falla_en_los_dos_modos():
+    for modo in ("propio", "colombia"):
+        hall = va.verificar_calculation(col(name="#sisben"), F_COL, modo=modo)
+        assert any("aggregated_where_<name>" in h and "`#sisben`" in h for h in hall), (modo, hall)
+    # sin where, el name no forma una función: no se exige identificador (modo propio)
+    assert va.verificar_calculation(col(name="#sisben", where=None), F_COL) == []
+
+
+def test_hf77_modo_colombia_exige_filtro_por_fuente():
+    assert va.verificar_statecalc(col(), F_COL, modo="colombia", campos_existentes=set(),
+                                  secciones_existentes=set()) == ([], [])
+    sin_where = va.verificar_calculation(col(where=None), F_COL, modo="colombia")
+    assert len(sin_where) == 1 and "sin `where` en modo Colombia" in sin_where[0] and "MostRecentValue.scala:20-24" in sin_where[0]
+    otro = va.verificar_calculation(col(where="return field.grupoSisben != null"), F_COL, modo="colombia")
+    assert len(otro) == 1 and "no filtra por fuente" in otro[0]
+    bandera = col(where="return field.isSisben == true")
+    assert va.verificar_calculation(bandera, F_COL, modo="colombia")          # sin --campo-fuente: hallazgo
+    assert va.verificar_calculation(bandera, F_COL, modo="colombia", campos_fuente=("isSisben",)) == []
+    assert va.verificar_calculation(col(where=None), F_COL) == []           # modo propio: no se exige
+    assert va.verificar_calculation(col(where=None, enabled=False), F_COL, modo="colombia") == []
+
+
+def test_hf77_modo_colombia_nombres_que_chocan(tmp_path):
+    compartido = {"domain": "colombia", "fields": [{"name": "nivelSisben", "dataType": "STRING"},
+                                                   {"name": "otra.grupoSisben"}]}
+    (tmp_path / "fc.json").write_text(json.dumps(compartido), encoding="utf-8")
+    (tmp_path / "secc.txt").write_text("# secciones de Colombia\nsisben\nregistraduria\n", encoding="utf-8")
+    existentes = va.nombres_de(tmp_path / "fc.json", "fields")
+    assert existentes == {"nivelSisben", "grupoSisben"}
+    hall, _ = va.verificar_statecalc(col(), F_COL, modo="colombia", campos_existentes=existentes,
+                                     secciones_existentes=va.nombres_de(tmp_path / "secc.txt", "calculations"))
+    assert sum("ya existe en el foundation compartido" in h for h in hall) == 2
+    assert sum("ya existe en el calculation compartido" in h for h in hall) == 1
+    _, avisos = va.verificar_statecalc(col(), F_COL, modo="colombia")
+    assert any("--campos-existentes" in a for a in avisos) and any("--secciones-existentes" in a for a in avisos)
+
+
+def test_hf77_cli_modo_colombia(tmp_path, capsys):
+    (tmp_path / "f.json").write_text(json.dumps(F_COL), encoding="utf-8")
+    (tmp_path / "c.json").write_text(json.dumps(col(where=None)), encoding="utf-8")
+    (tmp_path / "fc.txt").write_text("nivelSisben\n", encoding="utf-8")
+    base = ["statecalc", "--calculation", str(tmp_path / "c.json"), "--foundation", str(tmp_path / "f.json")]
+    assert va.main(base) == 0
+    capsys.readouterr()
+    assert va.main(base + ["--modo", "colombia", "--campos-existentes", str(tmp_path / "fc.txt")]) == 1
+    out = capsys.readouterr().out
+    assert "sin `where` en modo Colombia" in out and "`nivelSisben` ya existe" in out and "! AVISO" in out
+    assert va.main(base + ["--modo", "colombia", "--campos-existentes", str(tmp_path / "no.txt")]) == 2
+    assert "--modo colombia" in va.__doc__ and "--campos-existentes" in va.__doc__ and "--source-spec" in va.__doc__

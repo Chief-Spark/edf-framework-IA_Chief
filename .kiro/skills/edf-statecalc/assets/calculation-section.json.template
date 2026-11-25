@@ -23,13 +23,27 @@
 // "aggregates[]" van siempre en MAYÚSCULAS exactas (SUM, MIN, MAX, COUNT,
 // AVERAGE) -- a diferencia de "type", este campo NO es case-insensitive en el
 // motor real.
+//
+// REGLA DE NOMBRE CON where (HF-77): el motor compila cada where como
+// function aggregated_where_<name>(field){...} (QueryFunctions.scala:75-82): el
+// "name" de una sección con where no lleva "#", espacios ni caracteres inválidos
+// para un identificador JavaScript (con "#sisben" la etapa falla al arrancar).
+//
+// MODO COLOMBIA (HF-77, references/modo-colombia.md): estas secciones se integran
+// en el calculation compartido de Colombia. TODA sección lleva un where que filtra
+// por fuente (field.dataSource / field.subscriber o una bandera de fuente): sin él
+// MOST_RECENT_VALUE toma el registro más reciente de CUALQUIER fuente del PIN
+// (MostRecentValue.scala:20-24). El where es Nashorn: depende de [A:OQ-TR-2]; si
+// sigue abierta, la sección queda pendiente, nunca se entrega sin filtro. Ningún
+// "name" repite una sección existente. Verificar con
+// tools/verificar-artefactos-etapa.py statecalc --modo colombia.
 
 {
   "domain": "{{DOMINIO_NOMBRE}}",
   "calculations": [
 
-    // --- Opción A: sección MOST_RECENT_VALUE (passthrough, igual criterio que
-    //     el caso de referencia SISBEN -- Diseño/yaml-skill-statecalc.yaml) ---
+    // --- Opción A: sección MOST_RECENT_VALUE (passthrough de atributos; en modo
+    //     Colombia, con su where de filtro por fuente) ---
     {
       "name": "{{NOMBRE_SECCION}}",
       // "description": "...",   // propuesto por el skill si el usuario no da uno; nunca es [C] por fuente, aclarar en la respuesta
@@ -58,7 +72,8 @@
     //   ]
     // }
 
-    // -- NO agregues "where" sin que el usuario confirme el predicado exacto --
+    // -- NO agregues "where" sin que el usuario confirme el predicado exacto (en modo
+    //    Colombia, sin where confirmado la sección queda pendiente) --
     // -- NO agregues "contains" sin que la sección referenciada ya exista antes en este array --
   ]
 }

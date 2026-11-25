@@ -501,7 +501,7 @@
         {
           "id": "ART-071",
           "tipo": "configuracion",
-          "nombre": "fields[] de statecalc-foundation-local.json",
+          "nombre": "entradas fields[] de la ingesta en modo Colombia: campos Foundation para integrar en el statecalc-foundation compartido de Colombia, sin repetir un name ni alias existente (un nombre duplicado gana para todas las fuentes), DERIVED con name = clave curada publicada, CALCULATED solo sobre campos Foundation declarados (HF-77)",
           "ruta": "propuestas/statecalc/",
           "obligatorio": true,
           "estado_artefacto": "ausente"
@@ -509,15 +509,16 @@
         {
           "id": "ART-072",
           "tipo": "configuracion",
-          "nombre": "CalculationSection de statecalc-calculation-local.json",
+          "nombre": "secciones de la ingesta en modo Colombia: CalculationSection para integrar en el statecalc-calculation compartido de Colombia, cada una con where de filtro por fuente ([A:OQ-TR-2]), name valido como identificador JavaScript (sin #) y sin repetir una seccion existente; groupBy plano (HF-77)",
           "ruta": "propuestas/statecalc/",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "ausente",
+          "riesgo": "critico"
         },
         {
           "id": "ART-073",
           "tipo": "prueba",
-          "nombre": "CA1: Data Provisioning consulta la seccion de la ingesta en el XPM",
+          "nombre": "CA1 en el XPM compartido de Colombia: Data Provisioning consulta la seccion de la ingesta; precondicion: lista de verificacion del fork (nombres existentes, modo delta deltaMode/deltaModeAccountLevel/doesComputeXpm: un PIN sin cambios conserva su XPM anterior, aliasEnabled, JDK y Nashorn OQ-TR-2) y casos de PIN de otra fuente sin la seccion (HF-77)",
           "ruta": null,
           "obligatorio": true,
           "estado_artefacto": "ausente",

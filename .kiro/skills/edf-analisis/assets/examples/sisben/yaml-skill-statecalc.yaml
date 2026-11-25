@@ -316,4 +316,6 @@ fuera_de_alcance_frontera_xpm:
     Por este mismo motivo, no se generó ningún template Scala para esta etapa (ni de
     CustomOnSectionProcessor del motor genérico, sin caso de uso confirmado dado el passthrough
     de SISBEN, ni de ColombiaCustomOnSectionProcessorAlpha, fuera de alcance y Z2 no verificable).
-    Explicación completa en Diseño/templates-scala/statecalc/README.md.
+    SUPERADO (HF-77): la cita original a Diseño/templates-scala/statecalc/README.md no existe en el
+    repositorio, y el passthrough solo no cumple la regla del corte vigente (HU SISBEN R-26): ver
+    edf-statecalc/references/modo-colombia.md y decisiones-pendientes.md §5.

@@ -90,8 +90,11 @@ Ejemplos reales transcritos del fixture:
 { "name": "subscriber", "description": "Subscriber code", "aliases": ["subscriberCode", "counterpartyCode"] }
 { "name": "numberOfChecksReturned", "description": "Number of checks returned", "dataType": "INTEGER" }
 { "name": "isNovedat", "description": "is Novedat", "defaultValue": "false", "dataType": "BOOLEAN" }
+{ "name": "standardizedIdType", "description": "The Idtype Schema", "dataType": "INTEGER" }
 { "name": "personIdType", "dataType": "INTEGER", "type": "CALCULATED", "value": "return field.standardizedIdType" }
 ```
+
+El CALCULATED `personIdType` funciona porque el fixture declara el DERIVED `standardizedIdType` (`statecalc-foundation-local.json:369-379`): en un CALCULATED, `field` es el **registro Foundation** (`FoundationStateCalculator.scala:52-63`), no el evento curado, y un DERIVED se lee por su `name` (`FoundationFunctions.scala:24-35`). Un `field.X` sin un DERIVED (o un campo inyectado como `pin`) que lo ponga en el registro vale `null` en silencio (HF-74, HF-75). `[C]`
 
 El ejemplo real más complejo de `CALCULATED` (`typeOfData`) encadena múltiples `if/else if` dentro del script JS para resolver un código numérico según banderas booleanas del evento (`isCredit`, `isExpress`, `isCheckingAndSaving`, ..., `isDian`) — confirma que el DSL de Nashorn soporta control de flujo completo, no solo expresiones de una línea. `[C]`
 
@@ -188,13 +191,15 @@ Confirmado por lectura directa de `FoundationFunctions.scala`:
 
 Confirmado por lectura directa de `QueryFunctions.scala`:
 
-1. Convención de nombre: **`aggregated_where_` + nombre exacto de la sección.**
+1. Convención de nombre: **`aggregated_where_` + nombre exacto de la sección** (`QueryFunctions.scala:75-82`). El `name` de una sección con `where` debe servir como parte de un identificador JavaScript: con `#` (p. ej. `#sisben`), espacios u otros caracteres inválidos la compilación falla al construir el calculador (`CalculationStateCalculator.scala:50-52`) y la etapa no arranca (HF-77).
 2. Se compila/evalúa una sola vez por sección que declare `where`.
 3. `where(...)` filtra la lista de registros invocando la función **registro por registro**, convirtiendo el resultado JS a `Boolean` vía `.toString.toBoolean`.
-4. **Si la lista filtrada queda vacía, el resultado es `null`, no una lista vacía `[]`.** Detalle operable importante: una sección sin matches propaga `null`, lo cual el Skill y cualquier consumidor posterior debe distinguir de "sección calculada con cero resultados" de forma explícita.
+4. **Si la lista filtrada queda vacía, `where` devuelve `null`** (`QueryFunctions.scala:61`): sin `groupBy` la sección vale `null`; con `groupBy` los grupos vacíos no salen y la sección es una lista vacía `[]` (`CalculationStateCalculator.scala:123-143`, `:162`). Detalle operable importante: una sección sin matches propaga `null`, lo cual el Skill y cualquier consumidor posterior debe distinguir de "sección calculada con cero resultados" de forma explícita.
 5. Errores se envuelven en `StateCalculationScriptExecutionException` con el nombre de la sección.
 
 `[C]`
+
+**Modo Colombia (HF-77).** Con la configuración compartida de Colombia el registro Foundation de un PIN mezcla todas las fuentes y los foundation y calculation de la corrida se fusionan (`ContextUtils.scala:15-30`). El insumo declara `modo_colombia` (plantilla `yaml-skill-statecalc.yaml.tpl`): el filtro por fuente confirmado de cada sección (sin él MOST_RECENT_VALUE toma el registro más reciente de cualquier fuente, `MostRecentValue.scala:20-24`), los nombres existentes contra los que se comprobó el choque y el modo delta del conf de Colombia (`deltaMode`, `deltaModeAccountLevel`, `doesComputeXpm`: en modo delta un PIN sin cambios conserva su XPM anterior, `SparkStateCalculator.scala:187-188, 207-213, 246-271`). Detalle: `edf-statecalc/references/modo-colombia.md`.
 
 ### 5.7 Funciones de agregación disponibles (`AGGREGATES`)
 

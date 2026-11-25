@@ -27,9 +27,10 @@
       G01-G02  sin handler/clazz/class en ningún nivel; sin claves de calidad ni de
                prioridad de fuentes XPM
       P**      perfil específico del caso (-Caso): P01 (fields vacío), P02 (groupBy plano),
-               P03 (SUM exacto sobre balance), P04 (camino feliz 2/25; también se aplica a
-               EVAL-SC-13), P05 (scoreRiesgo/segmento no sustituidos), P07 (solo los 2
-               campos de nivel A), P10 (telefono ausente)
+               P03 (SUM exacto sobre balance), P04 (camino feliz 2/25 con sus 2 DERIVED de
+               origen; también se aplica a EVAL-SC-13), P05 (scoreRiesgo/segmento no
+               sustituidos), P07 (solo los 2 campos de nivel A y sus DERIVED de origen),
+               P10 (telefono ausente)
 
 .PARAMETER FoundationPath
     Ruta a statecalc-foundation-local.json generado por el skill.
@@ -440,10 +441,21 @@ function Test-PerfilCaso {
     if ($Id -eq 'EVAL-SC-04' -or $Id -eq 'EVAL-SC-13') {
         if ($null -eq $F -or $null -eq $C) { Add-Fail 'P04' "$Id exige ambos artefactos (Foundation y Calculation)"; return }
         $campos = @(Get-Lista $F 'fields')
-        if ($campos.Count -ne 2) {
-            Add-Fail 'P04' "se esperaban exactamente 2 campos activos en Foundation y hay $($campos.Count): $((@($campos | ForEach-Object { Get-Prop $_ 'name' })) -join ', ')"
+        # HF-75 (1.9.11): 2 CALCULATED de nivel A + los 2 DERIVED de origen que leen. `field` es el registro
+        # Foundation (FoundationStateCalculator.scala:52-63): sin el DERIVED, field.standardizedIdType vale null.
+        if ($campos.Count -ne 4) {
+            Add-Fail 'P04' "se esperaban exactamente 4 campos activos en Foundation (2 DERIVED de origen + 2 CALCULATED) y hay $($campos.Count): $((@($campos | ForEach-Object { Get-Prop $_ 'name' })) -join ', ')"
         } else {
-            Add-Pass "P04: Foundation tiene exactamente 2 campos activos"
+            Add-Pass "P04: Foundation tiene exactamente 4 campos activos (2 DERIVED de origen + 2 CALCULATED)"
+        }
+        foreach ($d in @(@{ Name = 'standardizedIdType'; DataType = 'INTEGER' }, @{ Name = 'standardizedIdNumber'; DataType = 'STRING' })) {
+            $m = @($campos | Where-Object { [string](Get-Prop $_ 'name') -ceq $d.Name })
+            if ($m.Count -ne 1) { Add-Fail 'P04' "falta el DERIVED de origen '$($d.Name)' (o está repetido): sin él el CALCULATED que lo lee vale null"; continue }
+            $tipo = [string](Get-Prop $m[0] 'type'); if ([string]::IsNullOrEmpty($tipo)) { $tipo = 'DERIVED' }
+            $dt = Get-Prop $m[0] 'dataType'; if ($null -eq $dt) { $dt = 'STRING' }
+            if ($tipo.ToUpperInvariant() -ne 'DERIVED') { Add-Fail 'P04' "'$($d.Name)': type '$tipo' (se esperaba DERIVED)" }
+            elseif ([string]$dt -cne $d.DataType) { Add-Fail 'P04' "'$($d.Name)': dataType efectivo '$dt' (se esperaba $($d.DataType))" }
+            else { Add-Pass "P04: '$($d.Name)' es DERIVED, $($d.DataType)" }
         }
         $esperados = @(
             @{ Name = 'personIdType';   DataType = 'INTEGER'; Value = 'return field.standardizedIdType' },
@@ -535,12 +547,12 @@ function Test-PerfilCaso {
     }
 
     if ($Id -eq 'EVAL-SC-07') {
-        # Debe quedar exactamente el contenido de nivel A: ningun nombre fuera de los 2 campos confirmados.
-        $permitidos = @('personIdType', 'personIdNumber')
+        # Debe quedar exactamente el contenido de nivel A: los 2 campos confirmados y los 2 DERIVED de origen que leen (HF-75).
+        $permitidos = @('standardizedIdType', 'standardizedIdNumber', 'personIdType', 'personIdNumber')
         if ($null -eq $F) { Add-Fail 'P07' "EVAL-SC-07 exige el artefacto Foundation"; return }
         $extra = @(@(Get-Lista $F 'fields') | ForEach-Object { [string](Get-Prop $_ 'name') } | Where-Object { $permitidos -cnotcontains $_ })
-        if ($extra.Count -gt 0) { Add-Fail 'P07' "fields[] contiene nombres fuera de los 2 de nivel A: $($extra -join ', ')" }
-        else { Add-Pass "P07: fields[] solo contiene campos de nivel A (personIdType, personIdNumber)" }
+        if ($extra.Count -gt 0) { Add-Fail 'P07' "fields[] contiene nombres fuera de los 2 de nivel A y sus 2 DERIVED de origen: $($extra -join ', ')" }
+        else { Add-Pass "P07: fields[] solo contiene campos de nivel A (personIdType, personIdNumber) y sus DERIVED de origen" }
     }
 
     if ($Id -eq 'EVAL-SC-10') {

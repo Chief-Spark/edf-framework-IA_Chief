@@ -1,6 +1,6 @@
 # Catálogo de decisiones de negocio que este skill NUNCA resuelve solo
 
-Lee esto completo antes de generar cualquier artefacto. Es el documento más importante del skill, igual que en `edf-pinning` y `edf-synthesis` — pero State Calculation tiene el bloqueo de completitud **más severo de las tres etapas**: para la ingesta de referencia de este proyecto (SISBEN), de 25 campos de negocio esperados, **solo 2 tienen cadena de mapeo verificada de principio a fin**.
+Lee esto completo antes de generar cualquier artefacto. Es el documento más importante del skill, igual que en `edf-pinning` y `edf-synthesis` — pero State Calculation tiene el bloqueo de completitud **más severo de las tres etapas**: en el ejemplo histórico del piloto SISBEN (no es fuente: la ingesta SISBEN vigente se rige por su spec §13), de 25 campos de negocio esperados, **solo 2 tienen cadena de mapeo verificada de principio a fin**.
 
 ## 1. Mapeo de campos: el bloqueo principal, con precedente numérico exacto
 
@@ -25,9 +25,9 @@ A diferencia del punto anterior, esto **no se vuelve a plantear como pregunta ab
 
 El documento de negocio describe decisiones que pertenecen a la capa de prioridad entre fuentes del XPM compartido (`ColombiaCustomOnSectionProcessorAlpha.scala`, priorización de SISBEN frente a RNEC/Migración Colombia/DAS) y a la pregunta abierta de si SISBEN participa en `bestName`. **Ninguna de las dos es responsabilidad de este skill.** Ver `Diseño/yaml-skill-statecalc.yaml` (`fuera_de_alcance_frontera_xpm`) para el detalle completo de qué se excluyó y por qué. Si el usuario pide generar configuración de prioridad de fuentes o resolver `bestName`, el skill señala que eso vive en una capa distinta (frontera con Hydration/XPM, no State Calculation per se) y no genera nada para ese pedido.
 
-## 5. Sin template Scala — ya decidido, con condición explícita para retomarlo
+## 5. Sin código Scala — la necesidad de lógica propia es una decisión de alcance
 
-Este skill nunca genera código Scala, ni `CustomOnSectionProcessor` del motor genérico ni `ColombiaCustomOnSectionProcessorAlpha` (Z2, no verificable). Para SISBEN ya se confirmó que el passthrough directo (`type=MOST_RECENT_VALUE`) resuelve el caso sin processor custom — ver `Diseño/templates-scala/statecalc/README.md` para la justificación completa y la condición exacta bajo la cual se retomaría esa tarea (que no es responsabilidad de este skill, sino una decisión de alcance nueva).
+Este skill nunca genera código Scala: ni un enricher (`FoundationStateEnrichmentProcessor`), ni un `CustomOnSectionProcessor` del motor genérico, ni `ColombiaCustomOnSectionProcessorAlpha` (Z2, no verificable). Que la ingesta lo necesite **no** se da por descartado: el passthrough `MOST_RECENT_VALUE` describe la forma de una sección, pero no cumple por sí solo una regla de vigencia ni de fuente. Para SISBEN, la regla del corte vigente (HU SISBEN R-26) exige filtrar por fuente y por corte (`references/modo-colombia.md`), y si eso requiere lógica propia en el fork es `[A:CQ-006]`, una decisión de alcance del PO (o una regla de corte, `edf-orquestador/references/03` §4). La versión anterior de este párrafo daba el passthrough por suficiente para SISBEN citando `Diseño/templates-scala/statecalc/README.md`, que no existe en el repositorio y que R-26 contradice (HF-77).
 
 ## 6. Ausencia de motor de calidad de datos de 4 dimensiones
 

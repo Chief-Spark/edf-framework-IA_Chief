@@ -1,9 +1,9 @@
 {
   "skill": "skill-configgen-statecalc",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "fecha": "2026-10-16",
   "estado": "PROPUESTO",
-  "nota": "Casos de prueba funcionales del componente 3 de la regla de 3 componentes (04-reglas-analisis.md §8, ámbito A). Verifican que el skill respeta sus propias restricciones declaradas en SKILL.md y en references/decisiones-pendientes.md, no solo que produce un artefacto con forma correcta. Versión 1.1.0 agrega EVAL-SC-04, 05, 07, 08, 10, 11 y 13 (Diseño/criterios-aceptacion-skill-statecalc.md §6.2): camino feliz 2/25, tipos prohibidos, campos base, fuera de alcance (XPM y calidad), referencias a Foundation, where/contains y entrega como propuesta. Los casos EVAL-SC-06, 09 y 12 del documento de criterios NO tienen entrada propia: se fusionaron en EVAL-SC-05, 08 y 04 respectivamente (ver Diseño/casos-prueba-skill-statecalc.md §2). EVAL-SC-01/02/03 no se modifican. Nota sobre EVAL-SC-03: su prompt agrega 'balance' agrupado por 'subscriber' sin insumo; para ejecutarlo de forma aislada se recomienda aportar como contexto evals/fixtures/yaml-skill-statecalc-agregados-sintetico.yaml (ver Diseño/casos-prueba-skill-statecalc.md §7). Verificación mecánica: evals/verificar-artefacto.ps1. Documento explicativo completo: Diseño/casos-prueba-skill-statecalc.md.",
+  "nota": "Casos de prueba funcionales del componente 3 de la regla de 3 componentes (04-reglas-analisis.md §8, ámbito A). Verifican que el skill respeta sus propias restricciones declaradas en SKILL.md y en references/decisiones-pendientes.md, no solo que produce un artefacto con forma correcta. Versión 1.1.0 agrega EVAL-SC-04, 05, 07, 08, 10, 11 y 13 (Diseño/criterios-aceptacion-skill-statecalc.md §6.2): camino feliz 2/25, tipos prohibidos, campos base, fuera de alcance (XPM y calidad), referencias a Foundation, where/contains y entrega como propuesta. Los casos EVAL-SC-06, 09 y 12 del documento de criterios NO tienen entrada propia: se fusionaron en EVAL-SC-05, 08 y 04 respectivamente (ver Diseño/casos-prueba-skill-statecalc.md §2). EVAL-SC-01/02/03 no se modifican. Nota sobre EVAL-SC-03: su prompt agrega 'balance' agrupado por 'subscriber' sin insumo; para ejecutarlo de forma aislada se recomienda aportar como contexto evals/fixtures/yaml-skill-statecalc-agregados-sintetico.yaml (ver Diseño/casos-prueba-skill-statecalc.md §7). Verificación mecánica: evals/verificar-artefacto.ps1. Documento explicativo completo: Diseño/casos-prueba-skill-statecalc.md. Versión 1.2.0 (HF-75, HF-77): EVAL-SC-04 y EVAL-SC-07 esperan, además de los 2 CALCULATED de nivel A, los 2 DERIVED de origen (standardizedIdType, standardizedIdNumber) que leen, porque en un CALCULATED `field` es el registro Foundation (FoundationStateCalculator.scala:52-63); EVAL-SC-14 cubre el modo Colombia (configuración compartida).",
   "casos": [
     {
       "id": "EVAL-SC-01",
@@ -55,7 +55,7 @@
       "prompt": "Genera el paquete de State Calculation para SISBEN usando Diseño/yaml-skill-statecalc.yaml tal cual. No tengo confirmaciones adicionales que darte.",
       "insumo": "Diseño/yaml-skill-statecalc.yaml",
       "expected_behavior": [
-        "El skill genera fields[] de Foundation con exactamente 2 entradas: personIdType (type CALCULATED, dataType INTEGER, value 'return field.standardizedIdType') y personIdNumber (type CALCULATED, dataType STRING —puede omitirse por ser el default—, value 'return field.standardizedIdNumber').",
+        "El skill genera fields[] de Foundation con exactamente 4 entradas: los 2 DERIVED de origen standardizedIdType (dataType INTEGER) y standardizedIdNumber (STRING, puede omitirse), sin `value`, y los 2 campos de nivel A personIdType (type CALCULATED, dataType INTEGER, value 'return field.standardizedIdType') y personIdNumber (type CALCULATED, dataType STRING —puede omitirse por ser el default—, value 'return field.standardizedIdNumber'). Los DERIVED no son una inferencia: en un CALCULATED `field` es el registro Foundation (FoundationStateCalculator.scala:52-63) y sin ellos el valor sale null (HF-75).",
         "El skill genera una sola sección de Calculation de type MOST_RECENT_VALUE con select y groupBy planos iguales a ['personIdType','personIdNumber'].",
         "En la respuesta de texto nombra los 23 campos restantes como pendientes (puede agruparlos, pero debe nombrarlos), usando el formato 'Pendiente de confirmar: <campo o sección> — <qué falta>. Fuente consultada: <cita o \"ninguna\">'; no basta con decir que hay pendientes en genérico.",
         "Declara el nombre de la sección como propuesta del skill, no como valor confirmado por fuente."
@@ -66,7 +66,7 @@
         "references/decisiones-pendientes.md#1",
         "references/decisiones-pendientes.md#formato-de-la-nota-en-el-artefacto-generado"
       ],
-      "falla_si": "El resultado tiene un número de campos activos distinto de 2, los valores de personIdType/personIdNumber difieren de los del YAML, o la respuesta no permite identificar cuáles de los 25 campos esperados quedaron fuera (o no sigue el formato de nota)."
+      "falla_si": "El resultado no tiene los 2 campos de nivel A más sus 2 DERIVED de origen (un CALCULATED que lee field.X sin el DERIVED X declarado falla), los valores de personIdType/personIdNumber difieren de los del YAML, o la respuesta no permite identificar cuáles de los 25 campos esperados quedaron fuera (o no sigue el formato de nota)."
     },
     {
       "id": "EVAL-SC-05",
@@ -93,7 +93,7 @@
       "expected_behavior": [
         "El skill no declara subscriber, pin ni asOfPeriod (ni dataSource, subscriberRelation, parentEventIds) en fields[], aunque el usuario los pida por nombre.",
         "Explica que el motor los inyecta automáticamente antes de resolver los campos configurados y que declararlos es redundante / error de generación (references/esquema-foundation-calculation.md §1; references/convenciones-oxygen-statecalc.md §7).",
-        "Mantiene los 2 campos de nivel A (personIdType, personIdNumber) como único contenido de fields[]."
+        "Mantiene los 2 campos de nivel A (personIdType, personIdNumber) y sus 2 DERIVED de origen (standardizedIdType, standardizedIdNumber) como único contenido de fields[]."
       ],
       "files_relevantes": [
         "references/esquema-foundation-calculation.md#1",
@@ -167,6 +167,24 @@
         "01-restricciones-principios.md#5"
       ],
       "falla_si": "El skill da a entender que el artefacto está listo para producción sin revisión, o sugiere comandos de transcripción/despliegue."
+    },
+    {
+      "id": "EVAL-SC-14",
+      "nombre": "Modo Colombia: entradas para la configuración compartida, filtro por fuente y nombres sin choque",
+      "prompt": "La ingesta va en la configuración de State Calculation compartida de Colombia. Genera la sección '#sisben' con MOST_RECENT_VALUE sobre grupoSisben y nivelSisben, sin where (no hace falta filtrar), y agrega a Foundation nivelSisben aunque ya exista en el foundation de Colombia.",
+      "insumo": "insumo con modo_colombia.aplica: true (sintético)",
+      "expected_behavior": [
+        "Entrega solo las entradas de la ingesta para integrar en el foundation y el calculation compartidos (ART-071 y ART-072 de modo Colombia), no archivos autónomos que reemplacen los de Colombia.",
+        "No declara un campo Foundation con un nombre que ya existe en el foundation compartido: explica que el nombre duplicado se procesa dos veces y el último gana para todas las fuentes (ContextUtils.scala:15-19; FoundationStateCalculator.scala:52-59), y lo deja como verificación o bloqueo N4.",
+        "No genera una sección sin filtro por fuente: explica que sin él MOST_RECENT_VALUE toma el registro más reciente de cualquier fuente (MostRecentValue.scala:20-24) y que el where depende de [A:OQ-TR-2] (Nashorn); si el predicado no está confirmado, la sección queda pendiente.",
+        "No usa '#sisben' como name de una sección con where: el motor compila aggregated_where_<name> (QueryFunctions.scala:75-82) y la etapa falla al arrancar.",
+        "Incluye en la lista de verificación del fork el modo delta (deltaMode, deltaModeAccountLevel, doesComputeXpm: un PIN sin eventos nuevos conserva su XPM anterior, SparkStateCalculator.scala:187-188, 207-213, 246-271) y verifica con tools/verificar-artefactos-etapa.py statecalc --modo colombia."
+      ],
+      "files_relevantes": [
+        "SKILL.md#modo-colombia",
+        "references/modo-colombia.md"
+      ],
+      "falla_si": "El skill genera una sección sin where o sin filtro por fuente, una sección con where llamada '#sisben', o un campo Foundation con un nombre que ya existe en el foundation compartido, o afirma que el passthrough basta para SISBEN."
     }
   ]
 }

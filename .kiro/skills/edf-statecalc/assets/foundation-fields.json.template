@@ -15,6 +15,11 @@
 // automáticamente antes de resolver los campos configurados; declararlos es
 // redundante y es un error de generación.
 //
+// MODO COLOMBIA (HF-77, references/modo-colombia.md): estos fields[] se integran
+// en el foundation compartido de Colombia. NINGÚN "name" ni alias repite uno
+// existente: un nombre duplicado se procesa dos veces y el último gana para todas
+// las fuentes (ContextUtils.scala:15-19). El "domain" de este archivo se ignora.
+//
 // REGLA DE TIPO: este skill solo genera type=DERIVED (omitir la clave "type" por
 // completo, es el default) o type=CALCULATED con un "value" (script Nashorn)
 // confirmado por fuente. NUNCA genera CUSTOM, CUSTOM_WITH_HISTORY ni UNKNOWN --
@@ -24,8 +29,9 @@
   "domain": "{{DOMINIO_NOMBRE}}",
   "fields": [
     // --- Un objeto por campo DERIVED con cadena de mapeo confirmada ---
-    // DERIVED lee directo del evento curado; usar cuando el campo Foundation
-    // debe tomar el valor tal cual viene, sin transformación.
+    // DERIVED lee directo del evento curado la clave igual a su "name"
+    // (FoundationFunctions.scala:24-35): el name ES la clave curada publicada; no
+    // lleva "value" (no se usa). Usar cuando el campo debe tomar el valor tal cual.
     {
       "name": "{{NOMBRE_CAMPO_FOUNDATION_1}}"
       // "dataType": "STRING",      // omitir si STRING (default); usar INTEGER/LONG/DOUBLE/BOOLEAN si corresponde
@@ -35,7 +41,12 @@
     }
 
     // --- Un objeto por campo CALCULATED con script Nashorn confirmado ---
-    // Ejemplo real verificado (Diseño/logica-statecalc.md §5.1):
+    // `field` es el REGISTRO FOUNDATION (FoundationStateCalculator.scala:52-63), no el
+    // evento curado: cada field.X debe ser un DERIVED declarado en este fields[], un
+    // CALCULATED declarado antes o un campo inyectado (pin, dataSource, subscriber,
+    // subscriberRelation, asOfPeriod, parentEventIds). Sin él vale null en silencio.
+    // Ejemplo real verificado (fixture del motor, statecalc-foundation-local.json:369-379):
+    // { "name": "standardizedIdType", "dataType": "INTEGER" },   // DERIVED: name = clave curada
     // {
     //   "name": "personIdType",
     //   "dataType": "INTEGER",

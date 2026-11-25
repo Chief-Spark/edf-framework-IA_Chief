@@ -117,7 +117,7 @@ Extracto operable del registro de riesgos del proyecto. La lista completa vive e
 |---|---|---|---|---|
 | 1 | State Calculation afecta el XPM visible al cliente | N4 | Ingesta 3 / PO | Certificación obligatoria de 4 dimensiones antes de producción |
 | 2 | Credencial en texto plano en `settings-artifactory.xml` | N4 | DevSecOps Experian | Prohibición absoluta (`01` §4) + rotación pendiente `[PM]` |
-| 3 | Nashorn eliminado en JDK 15; versión de Java del repo sin confirmar | N3 | Experian | No generar configuración dependiente de Nashorn `[A:OQ-TR-2]` |
+| 3 | Nashorn eliminado en JDK 15; versión de Java del repo sin confirmar (antecedente: el motor InnerSource exige JDK 11, `oxygen-statecalculation/migrate.md:12-16`; falta el runtime del fork de Colombia y la decisión de Experian) | N3 | Experian | No generar configuración dependiente de Nashorn (`CALCULATED`, `where`, patrón de flag `isSisben`) `[A:OQ-TR-2]` |
 | 4 | Regla "no cross subscriber validation special" no confiable | N4 | Julio Morales | Prohibido codificarla `[A:OQ-TR-1]` |
 | 5 | Tipo documental "Salvoconducto refugiado" (código 7) no existe en el catálogo | N3 | Experian | Crear antes del despliegue `[A:OQ-TR-2b]` |
 | 6 | Contrato Curation → Pinning documentado parcialmente (`11`) | N3 | Ingesta 3 | No certificar la costura 3→4 hasta cerrar los pendientes de `11` §6 `[A:OQ-IL-3]` |
