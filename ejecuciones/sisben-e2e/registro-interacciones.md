@@ -462,6 +462,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:06:47-05:00
 - **Pedido:** Solo la línea 229 (AUD-P-13).
+- **Respuesta:** v3: línea de «Persona existente» con [C] escenario · [PM] cumplimiento (RG-025); versión 3.0.0. Verificadores OK. sha256 9c548c3e…
+- **Decisión:** Diff verificado por el Orquestador. APR-023 (ART-050 v3, alto), APR-024 (curation_flow→pinning), APR-025 (curation_stock→pinning), pinning en_progreso (BIT-0136..0141).
+- **Bitácora:** BIT-0136..BIT-0141
+
+## INT-059 · Generador (edf-pinning) · `pinning`
+
+- **Cuándo:** 2026-11-24T22:07:25-05:00
+- **Pedido:** Generar ART-053 (modo Colombia) desde ART-050 v3 con el framework 1.9.9.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

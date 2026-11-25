@@ -2313,3 +2313,122 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | BIT-0134 |
 
 ---
+
+## BIT-0136 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-023 (artefacto): Insumo de Pinning v3 (§3b paso 2) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T22:07:17-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Insumo fiel a spec §11, HU R-24 y ART-034. Las decisiones PA-008 y PA-009 están aplicadas. Ningún valor que llegue a un artefacto depende de RG-025, cuyos hechos quedan [PM]. No se escribe ninguna clave compartida, y por eso no hay acción N4. RG-025 bloquea la integración al fork y la certificación (§3e). v3 = v2 (re-auditoría APROBADO, pinning.md §6) + AUD-P-13; verificación por diferencia del Orquestador: solo esa línea y la versión; verificar-insumo-pinning y verificar-claves rc 0. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-050 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0137 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-024 (transicion): Transición curation_flow → pinning con evidencia diferida (§3b paso 3) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T22:07:17-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Se habilita Pinning con la evidencia diferida de curation_flow (APR-019, RG-023). Pinning consume el contrato aprobado ART-034: tres claves standardizedId*, tipos y normalización de spec §10.1 y §11. El insumo ART-050 v3 está aprobado. La verificación del matcher de Colombia queda diferida en RG-025, que bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation (§3e). RG-002: la clave reusePin es global y no se escribe. Checklist: c1 cumple (APR-019); c2 cumple; c3 cumple (curation_flow y curation_stock aprobadas, ART-050 aprobado); c4 cumple (PA-007 no bloqueante; PA-008/009 resueltas; PA-010 no bloqueante; PA-002 de state_calculation); c5 por evidencia diferida (RG-023); c6 cumple. 09 §5.1: sin [A:*] activos en el insumo, RG-025 bloquea el despliegue, ninguna acción N4. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-050 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0138 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `curation_flow` → estado `aprobada` · transicion_habilitada=True |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:07:17-05:00 |
+| **Por qué** | Transición curation_flow→pinning habilitada por APR-024 (diferida). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0139 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-025 (transicion): Transición curation_stock → pinning con evidencia diferida (§3b paso 3) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T22:07:17-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Se habilita Pinning con la evidencia diferida de curation_stock (APR-022, RG-024). Pinning consume el contrato aprobado ART-034: tres claves standardizedId*, tipos y normalización de spec §10.1 y §11. El insumo ART-050 v3 está aprobado. La verificación del matcher de Colombia queda diferida en RG-025, que bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation (§3e). RG-002: la clave reusePin es global y no se escribe. Checklist: c1 cumple (APR-022); c2 cumple; c3 cumple (curation_flow y curation_stock aprobadas, ART-050 aprobado); c4 cumple (PA-007 no bloqueante; PA-008/009 resueltas; PA-010 no bloqueante; PA-002 de state_calculation); c5 por evidencia diferida (RG-024); c6 cumple. 09 §5.1: sin [A:*] activos en el insumo, RG-025 bloquea el despliegue, ninguna acción N4. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_stock` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-050 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0140 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `curation_stock` → estado `aprobada` · transicion_habilitada=True |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:07:17-05:00 |
+| **Por qué** | Transición curation_stock→pinning habilitada por APR-025 (diferida). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_stock` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0141 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `pinning` → estado `en_progreso` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:07:17-05:00 |
+| **Por qué** | Inicio de Pinning tras las dos transiciones (curation_flow y curation_stock); se encarga la generación a edf-pinning en modo Colombia. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0142 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:07:17-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

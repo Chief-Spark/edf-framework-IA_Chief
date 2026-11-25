@@ -3,7 +3,7 @@
 # yaml-skill-pinning.yaml.tpl (framework 1.9.8). El ejemplo assets/examples/sisben/yaml-skill-pinning.yaml es solo forma:
 # ningún valor se copió de él (esta ingesta es de Colombia y reutiliza las piezas compartidas, edf-pinning SKILL.md
 # «Modo Colombia»).
-# Sin estado ni aprobador (HF-32). Versión 2 · 2026-11-25.
+# Sin estado ni aprobador (HF-32). Versión 3 · 2026-11-25.
 #
 # Fuentes de la ingesta: fuentes/hu-sisben.md 1.0.2 (§3, R-24, §5.4, §6 fila Pinning) y fuentes/spec-sisben.md 1.0.2 (§1,
 # §10.1, §11, §14). Contrato aprobado: insumos/contrato-curation-pinning.md 2.0.0 (ART-034). Claves publicadas:
@@ -25,12 +25,13 @@
 # contrato frente a comportamiento; rama INPUT_REF_DIR; NullIdentityMatcher), AUD-P-07 (ruta Pinned de la spec frente al
 # pinnedDir único, PA-010), AUD-P-08 (estados de PA-008 y PA-009; la opción (b) de PA-009 como hallazgo N4 escalado);
 # campo nuevo modo_colombia.umbral_y_matcher_determinista (HF-60).
+# Cambio de la versión 3: AUD-P-13 (INT-057), cumplimiento del escenario «Persona existente» marcado [PM] (RG-025).
 
 documento:
   tipo: "intermediario-skill"
   etapa_pipeline: "Pinning"
   ingesta: "sisben"
-  version: "2.0.0"
+  version: "3.0.0"
   fecha: "2026-11-25"
   # Sin estado ni aprobador (HF-32): viven solo en estado-ingesta.json, que registra edf-orquestador con el hash de este archivo.
 
@@ -226,7 +227,7 @@ artefactos_salida_hacia_synthesis:
     estado: "[C] ruta de la spec · [P] marcador · relación con el pinnedDir remitida a PA-010"
     fuente: "spec-sisben.md §14; 07-contratos-frontera.md §4; steering 11 §6 #1"
   escenarios_hu:
-    - "Persona existente (tipo + número que ya existe en EDF) → recibe ese PIN; persona nueva → PIN nuevo (HU §5.4) [C]. Se cumple con el pinning estático de la aplicación compartida (SparkPinner.scala:881-905), que no se modifica (PA-009); con nombre distinto ver AUD-P-03 (RG-025)"
+    - "Persona existente (tipo + número que ya existe en EDF) → recibe ese PIN; persona nueva → PIN nuevo (HU §5.4) [C] escenario · cumplimiento [PM] (RG-025: valor vigente de `reusePin`, `pinnedReferenceDir`, identity-pin-map único); con nombre distinto ver AUD-P-03 (RG-025)"
     - "Cédula (standardizedIdType = 1) sin coincidencia en BDIIREGI → PENDIENTE_VALIDACION_REGIS y compra RNEC nocturna (HU §5.4; spec §11) [C]; fuera de Motor-Oxigen/oxygen-pinning [PM]"
 
 comportamiento_del_motor_a_tener_en_cuenta:

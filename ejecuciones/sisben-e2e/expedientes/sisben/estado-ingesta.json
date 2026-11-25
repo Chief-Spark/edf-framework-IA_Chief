@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:06:47-05:00",
-    "vista_md_regenerada_en": "2026-11-24T21:47:14-05:00"
+    "actualizado_en": "2026-11-24T22:07:17-05:00",
+    "vista_md_regenerada_en": "2026-11-24T22:07:17-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -40,7 +40,7 @@
       "joblogs": "s3://colombia-data/sisben/reports/logs/"
     }
   },
-  "etapa_actual": "curation_flow",
+  "etapa_actual": "pinning",
   "etapas": [
     {
       "id": "analisis",
@@ -529,7 +529,7 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": "APR-019",
+      "ref_aprobacion": "APR-024",
       "preguntas_abiertas": [],
       "riesgos": [
         "RG-005",
@@ -539,12 +539,23 @@
         "RG-019",
         "RG-023"
       ],
-      "transicion_habilitada": false,
+      "transicion_habilitada": true,
       "nota_regla_de_corte": null,
       "iniciada_en": "2026-11-24T21:30:58-05:00",
       "cerrada_en": "2026-11-24T21:43:23-05:00",
       "riesgo_evaluado": "alto",
-      "nivel_friccion": "detallada"
+      "nivel_friccion": "detallada",
+      "checklist_bloqueo": {
+        "c1_etapa_previa_aprobada": true,
+        "c2_aprobacion_registrada": true,
+        "c3_dependencias_satisfechas": true,
+        "c4_sin_preguntas_bloqueantes": true,
+        "c5_evidencia_pipeline": true,
+        "c6_justificacion_si_riesgo_alto": true,
+        "resultado": "habilitada",
+        "condiciones_fallidas": [],
+        "evaluado_en": "2026-11-24T22:07:17-05:00"
+      }
     },
     {
       "id": "curation_stock",
@@ -576,17 +587,28 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": "APR-022",
+      "ref_aprobacion": "APR-025",
       "preguntas_abiertas": [],
       "riesgos": [
         "RG-024"
       ],
-      "transicion_habilitada": false,
+      "transicion_habilitada": true,
       "nota_regla_de_corte": null,
       "iniciada_en": "2026-11-24T21:43:42-05:00",
       "cerrada_en": "2026-11-24T21:43:42-05:00",
       "riesgo_evaluado": "alto",
-      "nivel_friccion": "detallada"
+      "nivel_friccion": "detallada",
+      "checklist_bloqueo": {
+        "c1_etapa_previa_aprobada": true,
+        "c2_aprobacion_registrada": true,
+        "c3_dependencias_satisfechas": true,
+        "c4_sin_preguntas_bloqueantes": true,
+        "c5_evidencia_pipeline": true,
+        "c6_justificacion_si_riesgo_alto": true,
+        "resultado": "habilitada",
+        "condiciones_fallidas": [],
+        "evaluado_en": "2026-11-24T22:07:17-05:00"
+      }
     },
     {
       "id": "pinning",
@@ -596,7 +618,7 @@
       "dag_airflow": "state-generation",
       "clasificacion_compromiso": "exito",
       "riesgo_tipico": "alto",
-      "estado": "no_iniciada",
+      "estado": "en_progreso",
       "depende_de": [
         "curation_flow",
         "curation_stock"
@@ -608,14 +630,15 @@
           "nombre": "insumo: yaml-skill-pinning.yaml (edf-analisis)",
           "ruta": "insumos/yaml-skill-pinning.yaml",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "alto",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Analista (INT-053): v2; verificar-insumo-pinning OK sin errores ni avisos; verificar-claves coherente",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:9c548c3e5b764e720f22a8d141c5b06e42c433a19a01fc69608b4509bcb04330"
         },
         {
           "id": "ART-051",
@@ -661,7 +684,8 @@
         "RG-025"
       ],
       "transicion_habilitada": false,
-      "nota_regla_de_corte": null
+      "nota_regla_de_corte": null,
+      "iniciada_en": "2026-11-24T22:07:17-05:00"
     },
     {
       "id": "synthesis",
@@ -1343,6 +1367,75 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0120"
+    },
+    {
+      "id": "APR-023",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-050"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T22:07:17-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Insumo fiel a spec §11, HU R-24 y ART-034. Las decisiones PA-008 y PA-009 están aplicadas. Ningún valor que llegue a un artefacto depende de RG-025, cuyos hechos quedan [PM]. No se escribe ninguna clave compartida, y por eso no hay acción N4. RG-025 bloquea la integración al fork y la certificación (§3e). v3 = v2 (re-auditoría APROBADO, pinning.md §6) + AUD-P-13; verificación por diferencia del Orquestador: solo esa línea y la versión; verificar-insumo-pinning y verificar-claves rc 0.",
+      "condiciones": [
+        "AUD-P-15 ya corregido en 1.9.9 (HF-64): el verificador exige «no se escribe/redefine» al inicio y compara claves sin mayúsculas"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0136"
+    },
+    {
+      "id": "APR-024",
+      "tipo": "transicion",
+      "desde_etapa": "curation_flow",
+      "hacia_etapa": "pinning",
+      "artefactos": [
+        "ART-050"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T22:07:17-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Se habilita Pinning con la evidencia diferida de curation_flow (APR-019, RG-023). Pinning consume el contrato aprobado ART-034: tres claves standardizedId*, tipos y normalización de spec §10.1 y §11. El insumo ART-050 v3 está aprobado. La verificación del matcher de Colombia queda diferida en RG-025, que bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation (§3e). RG-002: la clave reusePin es global y no se escribe. Checklist: c1 cumple (APR-019); c2 cumple; c3 cumple (curation_flow y curation_stock aprobadas, ART-050 aprobado); c4 cumple (PA-007 no bloqueante; PA-008/009 resueltas; PA-010 no bloqueante; PA-002 de state_calculation); c5 por evidencia diferida (RG-023); c6 cumple. 09 §5.1: sin [A:*] activos en el insumo, RG-025 bloquea el despliegue, ninguna acción N4.",
+      "condiciones": [
+        "No aprueba ART-053: se genera con 1.9.9 y se audita"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0137"
+    },
+    {
+      "id": "APR-025",
+      "tipo": "transicion",
+      "desde_etapa": "curation_stock",
+      "hacia_etapa": "pinning",
+      "artefactos": [
+        "ART-050"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T22:07:17-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Se habilita Pinning con la evidencia diferida de curation_stock (APR-022, RG-024). Pinning consume el contrato aprobado ART-034: tres claves standardizedId*, tipos y normalización de spec §10.1 y §11. El insumo ART-050 v3 está aprobado. La verificación del matcher de Colombia queda diferida en RG-025, que bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation (§3e). RG-002: la clave reusePin es global y no se escribe. Checklist: c1 cumple (APR-022); c2 cumple; c3 cumple (curation_flow y curation_stock aprobadas, ART-050 aprobado); c4 cumple (PA-007 no bloqueante; PA-008/009 resueltas; PA-010 no bloqueante; PA-002 de state_calculation); c5 por evidencia diferida (RG-024); c6 cumple. 09 §5.1: sin [A:*] activos en el insumo, RG-025 bloquea el despliegue, ninguna acción N4.",
+      "condiciones": [
+        "No aprueba ART-053: se genera con 1.9.9 y se audita"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0139"
     }
   ],
   "preguntas_abiertas": [
@@ -1673,8 +1766,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0135",
-    "eventos_totales": 135,
+    "ultimo_evento": "BIT-0142",
+    "eventos_totales": 142,
     "append_only": true,
     "retencion_meses": 24
   }

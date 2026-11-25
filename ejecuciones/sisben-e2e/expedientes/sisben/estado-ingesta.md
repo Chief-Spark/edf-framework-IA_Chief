@@ -1,15 +1,15 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T21:47:14-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:07:17-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
 |---|---|
-| Etapa actual | `curation_flow` |
+| Etapa actual | `pinning` |
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 132 eventos, último BIT-0132 |
+| Bitácora | 142 eventos, último BIT-0142 |
 
 ## Etapas
 
@@ -18,9 +18,9 @@
 | 0 | Analisis de Requerimiento y Contexto | `aprobada` | bajo | 4/4 | APR-006 | ✅ |
 | 1 | Validation | `aprobada` | alto | 6/6 | APR-011 | ✅ |
 | 2 | Acceptance | `aprobada` | alto | 4/4 | APR-017 | ✅ |
-| 3 | Curation - Flow | `aprobada` | alto | 6/6 | APR-019 | 🔒 |
-| 4 | Curation - Stock | `aprobada` | alto | 1/1 | APR-022 | 🔒 |
-| 5 | Pinning | `no_iniciada` | alto | 0/4 | — | 🔒 |
+| 3 | Curation - Flow | `aprobada` | alto | 6/6 | APR-024 | ✅ |
+| 4 | Curation - Stock | `aprobada` | alto | 1/1 | APR-025 | ✅ |
+| 5 | Pinning | `en_progreso` | alto | 1/4 | — | 🔒 |
 | 6 | Synthesis / Consistency | `no_iniciada` | alto | 0/3 | — | 🔒 |
 | 7 | State Calculation | `no_iniciada` | critico | 0/4 | — | 🔒 |
 
@@ -49,10 +49,10 @@
 | curation_flow | ART-034 | contrato Curation -> Pinning de la ingesta (steering 11 §4) | `aprobado` | sha256:6bec343692a7 |
 | curation_flow | ART-035 | insumo: fixture-curation/ (accepted-events.input.yaml + lookups/) | `aprobado` | sha256:5d7381ef2327 |
 | curation_stock | ART-040 | mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock) | `aprobado` | sha256:29130301d9fe |
-| pinning | ART-050 | insumo: yaml-skill-pinning.yaml (edf-analisis) | `prevalidado` | — |
-| pinning | ART-051 | SISBENIdentityMatcher.scala (o matcher compartido) (con verificacion aritmetica del umbral) | `ausente` | — |
-| pinning | ART-052 | identifying-attributes.json | `ausente` | — |
-| pinning | ART-053 | bloque HOCON de pinning-application.conf con reusePIN = false (ingesta nueva) | `ausente` | — |
+| pinning | ART-050 | insumo: yaml-skill-pinning.yaml (edf-analisis) | `aprobado` | sha256:9c548c3e5b76 |
+| pinning | ART-051 | <Fuente>IdentityMatcher.scala con la verificacion aritmetica del umbral (solo modo propio; no aplica en modo Colombia: se reutiliza el matcher compartido, edf-pinning SKILL «Modo Colombia») | `ausente` | — |
+| pinning | ART-052 | identifying-attributes.json (solo modo propio; no aplica en modo Colombia: se reutiliza la lista compartida identifying-attributes-new.json) | `ausente` | — |
+| pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `ausente` | — |
 | synthesis | ART-060 | insumo: yaml-skill-synthesis.yaml (edf-analisis) | `ausente` | — |
 | synthesis | ART-061 | GDD domaindictionary.json (campo -> handler LFP/LAP/EUC, solo confirmados) | `ausente` | — |
 | synthesis | ART-062 | bloque HOCON oxygen.stage.consistencyCheck | `ausente` | — |
@@ -87,6 +87,9 @@
 | APR-020 | transicion | acceptance → curation_stock | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0116 |
 | APR-021 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0118 |
 | APR-022 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0120 |
+| APR-023 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0136 |
+| APR-024 | transicion | curation_flow → pinning | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0137 |
+| APR-025 | transicion | curation_stock → pinning | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0139 |
 
 ## Preguntas abiertas
 
