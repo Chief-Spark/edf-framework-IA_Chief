@@ -590,8 +590,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:51:12-05:00
 - **Pedido:** Corregir HF-73..77 con pruebas; framework 1.9.11.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** HF-73..77 corregidos: verificador statecalc con alias, --source-spec, field.X, nombres válidos y --modo colombia; verificar-claves por name y campos Foundation; golden con DERIVED previo; steering 07 condicionado a OQ-TR-2; modo Colombia de edf-statecalc (SKILL, references/modo-colombia.md, plantillas, EVAL-SC-14) y Orquestador (semilla, 04, 00). tests 240; suites en verde; auditar-skills OK; verificar-claves del insumo de la corrida coherente (119 citas).
+- **Decisión:** Commit 8db046a (1.9.11). Re-auditoría de ART-070 v2 con los verificadores corregidos.
 - **Bitácora:** —
 
 ## INT-075 · PO simulado SIM-PO-01 · `state_calculation`
