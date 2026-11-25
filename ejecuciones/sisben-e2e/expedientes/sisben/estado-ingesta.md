@@ -1,23 +1,23 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T19:12:47-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T19:13:32-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
 |---|---|
-| Etapa actual | `validation` |
+| Etapa actual | `acceptance` |
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 72 eventos, último BIT-0072 |
+| Bitácora | 77 eventos, último BIT-0077 |
 
 ## Etapas
 
 | # | Etapa | Estado | Riesgo | Artefactos aprobados | Aprobación | Transición |
 |---|---|---|---|---|---|---|
 | 0 | Analisis de Requerimiento y Contexto | `aprobada` | bajo | 4/4 | APR-006 | ✅ |
-| 1 | Validation | `aprobada` | alto | 6/6 | APR-008 | 🔒 |
-| 2 | Acceptance | `no_iniciada` | medio | 0/4 | — | 🔒 |
+| 1 | Validation | `aprobada` | alto | 6/6 | APR-011 | ✅ |
+| 2 | Acceptance | `en_progreso` | medio | 1/4 | — | 🔒 |
 | 3 | Curation - Flow | `no_iniciada` | medio | 0/5 | — | 🔒 |
 | 4 | Curation - Stock | `no_iniciada` | medio | 0/1 | — | 🔒 |
 | 5 | Pinning | `no_iniciada` | alto | 0/4 | — | 🔒 |
@@ -38,7 +38,7 @@
 | validation | ART-013 | SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv | `aprobado` | sha256:e7990c96146f |
 | validation | ART-014 | HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf | `aprobado` | sha256:7f80dd2717c3 |
 | validation | ART-015 | manifest.json | `aprobado` | sha256:735a2624cf47 |
-| acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `prevalidado` | — |
+| acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `aprobado` | sha256:d8ac9e7d2422 |
 | acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `ausente` | — |
 | acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `ausente` | — |
 | acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `ausente` | — |
@@ -73,6 +73,8 @@
 | APR-007 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0054 |
 | APR-008 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0057 |
 | APR-009 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0071 |
+| APR-010 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0073 |
+| APR-011 | transicion | validation → acceptance | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0074 |
 
 ## Preguntas abiertas
 

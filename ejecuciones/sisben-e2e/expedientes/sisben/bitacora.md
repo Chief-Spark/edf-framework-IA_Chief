@@ -1242,3 +1242,88 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0073 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-010 (artefacto): Insumo de Acceptance v3 (references/03 §3b paso 2) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T19:13:32-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBADO de la v2 (auditorias/acceptance.md §6); v3 = v2 + AUD-A-13 (marcador RT_ con receivedDate/asOfDate 0 y fileTag vacío, SISBENFileMetadata.scala:25-37) y AUD-A-15 (citas por símbolo). Verificación por diferencia del Orquestador: diff v2→v3 solo esas líneas y la versión; render --audit sin avisos; simulador 9/9 y 2/2; muestra (900001) aceptada con 19 (spec §15); 0.95/0.94 fuera de los .conf. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-020 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0074 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-011 (transicion): Transición validation → acceptance con evidencia diferida (references/03 §3b paso 3) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T19:13:32-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Se habilita Acceptance con la evidencia diferida de Validation (APR-008, RG-015): la corrida autónoma no tiene pipeline. Acceptance consume el contrato fijado por spec §7 RQ-02 a RQ-05 y el Anexo A handoff_acceptance (códigos, qs.RQS, OxygenDuplicate, marcadores), y ese contrato es el mismo de la Validation aprobada y revisada por §3d (auditorias/validation.md §8). El insumo de Acceptance está aprobado con su hash. Ninguna pregunta bloqueante afecta a validation ni a acceptance. RG-015 se cierra con la evidencia del fork y del pipeline (prompt 05). Checklist: c1 cumple (APR-008); c2 cumple; c3 cumple (ART-020 aprobado); c4 cumple (PA-006 resuelta; PA-003..005 no bloqueantes; PA-002 de state_calculation); c5 cumple por evidencia diferida; c6 cumple (justificación del Desarrollador). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-020 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0075 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `validation` → estado `aprobada` · transicion_habilitada=True |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:13:32-05:00 |
+| **Por qué** | Transición validation→acceptance habilitada por APR-011 (diferida). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0076 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `acceptance` → estado `en_progreso` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:13:32-05:00 |
+| **Por qué** | Inicio de Acceptance tras APR-011; se encarga la generación a edf-acceptance. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0077 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:13:32-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

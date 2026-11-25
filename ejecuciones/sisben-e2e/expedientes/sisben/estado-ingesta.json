@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T19:12:47-05:00",
-    "vista_md_regenerada_en": "2026-11-24T19:12:47-05:00"
+    "actualizado_en": "2026-11-24T19:13:32-05:00",
+    "vista_md_regenerada_en": "2026-11-24T19:13:32-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -40,7 +40,7 @@
       "joblogs": "s3://colombia-data/sisben/reports/logs/"
     }
   },
-  "etapa_actual": "validation",
+  "etapa_actual": "acceptance",
   "etapas": [
     {
       "id": "analisis",
@@ -268,7 +268,7 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": "APR-008",
+      "ref_aprobacion": "APR-011",
       "preguntas_abiertas": [],
       "riesgos": [
         "RG-004",
@@ -279,11 +279,22 @@
         "RG-014",
         "RG-015"
       ],
-      "transicion_habilitada": false,
+      "transicion_habilitada": true,
       "iniciada_en": "2026-11-24T17:31:49-05:00",
       "cerrada_en": "2026-11-24T18:35:42-05:00",
       "riesgo_evaluado": "alto",
-      "nivel_friccion": "detallada"
+      "nivel_friccion": "detallada",
+      "checklist_bloqueo": {
+        "c1_etapa_previa_aprobada": true,
+        "c2_aprobacion_registrada": true,
+        "c3_dependencias_satisfechas": true,
+        "c4_sin_preguntas_bloqueantes": true,
+        "c5_evidencia_pipeline": true,
+        "c6_justificacion_si_riesgo_alto": true,
+        "resultado": "habilitada",
+        "condiciones_fallidas": [],
+        "evaluado_en": "2026-11-24T19:13:32-05:00"
+      }
     },
     {
       "id": "acceptance",
@@ -293,7 +304,7 @@
       "dag_airflow": "acceptance-curation-flow",
       "clasificacion_compromiso": "aceptacion",
       "riesgo_tipico": "medio",
-      "estado": "no_iniciada",
+      "estado": "en_progreso",
       "depende_de": [
         "validation"
       ],
@@ -304,14 +315,15 @@
           "nombre": "insumo: source-spec-acceptance.yaml (edf-analisis)",
           "ruta": "insumos/source-spec-acceptance.yaml",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Analista (INT-026): v2; render --audit rc 0 sin avisos; simular_decision 9/9 y 2/2 umbrales alternativos coinciden; muestra acepta 19; hocon_check OK",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:d8ac9e7d2422a0c04c07449380c755d8a58c130955ba8ded363ca0c693d49e75"
         },
         {
           "id": "ART-021",
@@ -360,7 +372,8 @@
         "RG-017",
         "RG-018"
       ],
-      "transicion_habilitada": false
+      "transicion_habilitada": false,
+      "iniciada_en": "2026-11-24T19:13:32-05:00"
     },
     {
       "id": "curation_flow",
@@ -887,6 +900,55 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0071"
+    },
+    {
+      "id": "APR-010",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-020"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T19:13:32-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBADO de la v2 (auditorias/acceptance.md §6); v3 = v2 + AUD-A-13 (marcador RT_ con receivedDate/asOfDate 0 y fileTag vacío, SISBENFileMetadata.scala:25-37) y AUD-A-15 (citas por símbolo). Verificación por diferencia del Orquestador: diff v2→v3 solo esas líneas y la versión; render --audit sin avisos; simulador 9/9 y 2/2; muestra (900001) aceptada con 19 (spec §15); 0.95/0.94 fuera de los .conf.",
+      "condiciones": [
+        "HF-26 (validatedRecordJson '{}' en lugar de null) aceptada como desviación conocida",
+        "HF-28 (comentario E4 sobre customReason=false) es condición para aprobar ART-021: corregir la plantilla o declararlo",
+        "RG-017 cerrado antes de pasar el HOCON al fork y de certificar"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0073"
+    },
+    {
+      "id": "APR-011",
+      "tipo": "transicion",
+      "desde_etapa": "validation",
+      "hacia_etapa": "acceptance",
+      "artefactos": [
+        "ART-020"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T19:13:32-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Se habilita Acceptance con la evidencia diferida de Validation (APR-008, RG-015): la corrida autónoma no tiene pipeline. Acceptance consume el contrato fijado por spec §7 RQ-02 a RQ-05 y el Anexo A handoff_acceptance (códigos, qs.RQS, OxygenDuplicate, marcadores), y ese contrato es el mismo de la Validation aprobada y revisada por §3d (auditorias/validation.md §8). El insumo de Acceptance está aprobado con su hash. Ninguna pregunta bloqueante afecta a validation ni a acceptance. RG-015 se cierra con la evidencia del fork y del pipeline (prompt 05). Checklist: c1 cumple (APR-008); c2 cumple; c3 cumple (ART-020 aprobado); c4 cumple (PA-006 resuelta; PA-003..005 no bloqueantes; PA-002 de state_calculation); c5 cumple por evidencia diferida; c6 cumple (justificación del Desarrollador).",
+      "condiciones": [
+        "No aprueba ART-021..023: se generan con ART-020 v3 y se auditan",
+        "Los artefactos de Acceptance necesitarán evidencia diferida propia o sumada a RG-015"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0074"
     }
   ],
   "preguntas_abiertas": [
@@ -1113,8 +1175,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0072",
-    "eventos_totales": 72,
+    "ultimo_evento": "BIT-0077",
+    "eventos_totales": 77,
     "append_only": true,
     "retencion_meses": 24
   }

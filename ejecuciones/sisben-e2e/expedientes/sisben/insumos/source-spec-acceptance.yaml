@@ -1,5 +1,5 @@
 # Insumo de la etapa Acceptance (`edf-acceptance`) · ingesta `sisben` · producido por `edf-analisis` (Modo 2, tipo T2).
-# Versión 2 · 2026-11-25 · Estado: PROPUESTO (pendiente de aprobación registrada por `edf-orquestador`).
+# Versión 3 · 2026-11-25 · Estado: PROPUESTO (pendiente de aprobación registrada por `edf-orquestador`).
 # Versión 1 auditada con AJUSTES (auditorias/acceptance.md); esta versión aplica AUD-A-01 a AUD-A-07 y el cierre de PA-006
 # (INT-024). Validation aprobada con evidencia diferida (APR-008, RG-015).
 # Esquema: .kiro/skills/edf-acceptance/assets/schema/source-spec.schema.yaml (framework 1.9.5: `expresiones_propuestas`,
@@ -311,20 +311,20 @@ fixture:
         - {eventId: SINT-E-10, eventType: 30, asOfDate: 1767243600000, subscriberRelation: "1000000609", keys: "3|1000000609", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000609"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [{errorCodeName: OxygenDuplicateError, errorCodeValue: OxygenDuplicate, errorLevel: "", messageKey: "", errorType: event}], headerErrors: [], esperado_registro: false}
         - {eventId: SINT-E-11, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000611", keys: "3|1000000611", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000611"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [{errorCodeName: OxygenDuplicateError, errorCodeValue: OxygenDuplicate, errorLevel: "", messageKey: "", errorType: event}], headerErrors: [], esperado_registro: false}
         - {eventId: SINT-E-12, eventType: 30, asOfDate: 1768021200000, subscriberRelation: "1000000611", keys: "3|1000000611", validatedRecordJson: '{"TIP_DOCUMENTO":"3","NUM_DOCUMENTO":"1000000611"}', qualityScores: [{name: RQS, score: 1.0}], errorCodes: [], headerErrors: [], esperado_registro: true}
-    # HU R-02 y spec §2 RA-01, RQ-05: prefijo RT_ -> marcador errorInFileName con SISBEN_ERR_024 (FieldValidators.scala:229). fileAsOfDate 0: el nombre no cumple la regex (FileMetadata de Validation).
+    # HU R-02 y spec §2 RA-01, RQ-05: prefijo RT_ -> marcador errorInFileName con SISBEN_ERR_024 (FieldValidators.scala, Causa.NombreArchivo, :232). receivedDate, fileAsOfDate y asOfDate 0 y fileTag vacío: el nombre no cumple la regex (SISBENFileMetadata.scala:25-37).
     - directorio: RT_SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInFileName.900006
       nombre_lineage: RT_SISBEN_EXPERIAN_202601.20260205093000-0500.txt
       datasetId: "900006"
-      fileTag: REGULAR
+      fileTag: ""
       marcador: "errorInFileName"
-      receivedDate: 1770301800000
+      receivedDate: 0
       fileAsOfDate: 0
       decision_esperada: rechazo_automatico
       reason_code_esperado: ""
       descripcion: "marcador de nombre: rechazo automático (E4), no depende del FQS"
       eventos:
-        - {eventId: SINT-F-01, eventType: -1002, asOfDate: 1770301800000, subscriberRelation: "", keys: "", validatedRecordJson: '{}', qualityScores: [], errorCodes: [{errorCodeName: FILENAME, errorCodeValue: SISBEN_ERR_024, errorLevel: "1", messageKey: "NOMBRE_ARCHIVO", errorType: event}], headerErrors: [], esperado_registro: false}
-    # spec RA-05, RQ-05: marcador errorInHeader con SISBEN_ERR_025 (FieldValidators.scala:176).
+        - {eventId: SINT-F-01, eventType: -1002, asOfDate: 0, subscriberRelation: "", keys: "", validatedRecordJson: '{}', qualityScores: [], errorCodes: [{errorCodeName: FILENAME, errorCodeValue: SISBEN_ERR_024, errorLevel: "1", messageKey: "NOMBRE_ARCHIVO", errorType: event}], headerErrors: [], esperado_registro: false}
+    # spec RA-05, RQ-05: marcador errorInHeader con SISBEN_ERR_025 (FieldValidators.scala, Causa.Header, :179).
     - directorio: SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInHeader.900007
       nombre_lineage: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
       datasetId: "900007"

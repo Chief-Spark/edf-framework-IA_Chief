@@ -238,6 +238,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:12:43-05:00
 - **Pedido:** AUD-A-13 y AUD-A-15 en ART-020 (nada más).
+- **Respuesta:** v3: 900006 con receivedDate/asOfDate/fileAsOfDate 0 y fileTag vacío; citas por símbolo. Diff solo esas líneas; render --audit sin avisos; simulador 9/9 y 2/2; muestra 19; sin 0.95/0.94 en .conf. sha256 d8ac9e7d…
+- **Decisión:** Verificación por diferencia hecha por el Orquestador (mismos resultados). Registradas APR-010 (ART-020 v3), APR-011 (transición validation→acceptance, alto, diferida); acceptance en_progreso (BIT-0073..0076). HF-28 corregido en 1.9.6 antes de generar Acceptance.
+- **Bitácora:** BIT-0073..BIT-0076
+
+## INT-031 · Generador (edf-acceptance) · `acceptance`
+
+- **Cuándo:** 2026-11-24T19:14:14-05:00
+- **Pedido:** Generar ART-021..023 desde el insumo aprobado ART-020 v3 con el framework 1.9.6.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
