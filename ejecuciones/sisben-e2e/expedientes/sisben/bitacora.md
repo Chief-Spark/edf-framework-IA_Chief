@@ -1633,3 +1633,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0096 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | ART-023 vuelve a aprobado con el hash de APR-012 mientras dura la revisión §3d: una etapa aprobada exige sus artefactos aprobados (regla 7e); la versión regenerada se aprobará con su hash nuevo |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:19:01-05:00 |
+| **Por qué** | Regla 7e del validador; HF-43 (references/03 §3d no lo decía) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | ART-023 |
+| **Trazabilidad** | references/03 §3d |
+| **Corrige** | BIT-0094 |
+
+---

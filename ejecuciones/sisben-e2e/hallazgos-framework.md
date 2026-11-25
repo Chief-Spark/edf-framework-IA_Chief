@@ -47,6 +47,7 @@ acordada: se registran, se corrigen con su prueba de regresión (commit aparte e
 | HF-40 (AUD-C-04, -07) | curation | P2. El fixture generado pone `fileAsOfDate = receivedDate` y `fileTag = ""`; referencias y comentarios del SISBEN histórico | `render_templates.py:272,294`; `auditorias/curation.md` §2 | Corrector 1.9.7 | 955bed3 |
 | HF-41 (AUD-C-13) | curation | P2. El efecto «vaciado con preservación» del steering 07 no está implementado en `edf-curation` (no aplica a SISBEN; resuelve la observación de HF-04) | `07-contratos-frontera.md` §5.1 | Corrector 1.9.7: documentar como no soportado | 955bed3 |
 | HF-42 (resto del lote) | analisis / validation | P2. Las plantillas de etapa 0 de `edf-analisis` siguen con «Estado \| PROPUESTO»; `edf-validation/references/interpretar-salida.md:71` dice `customReason… = true` (SISBEN histórico) | INT-037 | Lote final | pendiente |
+| HF-43 (Orquestador) | acceptance | P2. `references/03` §3d no decía que el artefacto sigue `aprobado` (hash anterior) durante la revisión; pasarlo a `prevalidado` rompe la regla 7e | Validador: «Etapa acceptance aprobada con artefactos obligatorios sin aprobar: ART-023» (BIT-0094 → BIT-0095) | §3d paso 1 aclarado | f99d39c |
 | HC-04 (AUD-A-11) | — | Herramienta de la corrida: `etapa --agregar-riesgo` duplicaba RG-015 | Corregido en `orquestador_e2e.py` (BIT-0063) | — |
 
 Hallazgos de la spec (no del framework; se dejan para la próxima versión de la spec, no se corrigen en la corrida):

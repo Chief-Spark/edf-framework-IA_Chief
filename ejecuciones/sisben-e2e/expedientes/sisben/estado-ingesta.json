@@ -3,7 +3,7 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T21:18:22-05:00",
+    "actualizado_en": "2026-11-24T21:19:01-05:00",
     "vista_md_regenerada_en": "2026-11-24T21:18:22-05:00"
   },
   "ingesta": {
@@ -361,7 +361,7 @@
           "nombre": "AcceptanceExpressionsSpec + fixture de eventos validados sinteticos",
           "ruta": "propuestas/acceptance/src/test/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "prevalidacion": {
             "compila": null,
             "linting": true,
@@ -1331,8 +1331,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0095",
-    "eventos_totales": 95,
+    "ultimo_evento": "BIT-0096",
+    "eventos_totales": 96,
     "append_only": true,
     "retencion_meses": 24
   }
