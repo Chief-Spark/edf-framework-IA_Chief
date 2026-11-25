@@ -366,8 +366,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:31:07-05:00
 - **Pedido:** Generar ART-031..033 desde ART-030/034/035 aprobados con el framework 1.9.7.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Propuesta en propuestas/curation/: ART-031 (processor, CuratedEvent, CurationSpec, AcceptedRecord, Capa A), ART-032 (fragmentos HOCON de curation y lookup, domain dictionary 34 campos), ART-033 (19 eventos, CSV 202, Specs, expected/). Verificaciones OK; reproducible. 8 escenarios HU §5.3 cumplen en expected y en Scala (cur-0004 con espacio); 34 claves; cur-0016; tipos 4/5/8; cur-0014 curado, cur-0015 descartado; contrato ART-034 coincide. Supuestos abiertos CUR-PT01/02, C-CUR-05, C-CUR-06. Posibles defectos: HF-45 presente; prueba de COMPONENTE_FALTANTE solo camino feliz; comentario fijo de severidad 3; cita a runbook inexistente; checklist pide ASSUMPTION en outputEventType; réplica Python vs Scala con NBSP; motivos de advertencia fuera de la lista de spec §10.1; tabla 202 duplicada si el fork comparte oxygen-lookup-inner.
+- **Decisión:** ART-031..033 prevalidados; auditor de Curation para la propuesta.
 - **Bitácora:** —
 
 ## INT-047 · Analista (edf-analisis) · insumo de Pinning · `pinning`
@@ -382,6 +382,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:35:47-05:00
 - **Pedido:** Auditar ART-050, PA-008/PA-009 y los 5 posibles defectos del framework.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-049 · Auditor independiente (curation) · propuesta · `curation_flow`
+
+- **Cuándo:** 2026-11-24T21:36:45-05:00
+- **Pedido:** Auditar ART-031..033 y los posibles defectos del generador.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

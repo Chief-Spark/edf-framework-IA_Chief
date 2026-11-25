@@ -1854,3 +1854,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0109 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Propuesta de Curation generada en propuestas/curation/ (12 artefactos + MANIFEST.json + expected/) desde ART-030/034/035; registrada como prevalidada |
+| **Quién** | Generador edf-curation (agente) · registra ORQ-E2E |
+| **Cuándo** | 2026-11-24T21:36:45-05:00 |
+| **Por qué** | INT-046; 8 escenarios HU §5.3 cumplen también en el Spec Scala |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-031, ART-032, ART-033 |
+| **Trazabilidad** | prompt 08 |
+| **Corrige** | — |
+
+---
+
+## BIT-0110 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:36:45-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
