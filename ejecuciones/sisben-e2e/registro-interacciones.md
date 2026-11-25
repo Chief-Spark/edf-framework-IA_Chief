@@ -720,8 +720,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:41:37-05:00
 - **Pedido:** Re-auditar por diferencia ART-020 v4 y el Spec regenerado (ART-023).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** APROBADO §3d-bis: (a) .conf idénticos con y sin comentarios; (b) solo claves_de_prueba[4].clave y cabecera; Spec :132 y :181; (c) mismos marcadores (16 [C], 7 [P], 5 [PM]), simulador 9/9 y 2/2; (d) mismas PA/RG, sin imports nuevos. ART-021/022 idénticos. ART-023 carpeta src/test cc241e16…. AUD-A-19 cerrado; AUD-A-20 (informativo): el comentario de :181 viene de la plantilla 1.9.13. auditorias/acceptance.md §9.
+- **Decisión:** Pasar al aprobador: ART-020 v4 §3d-bis (medio) y ART-023 §3d; correccion citando AUD-A-19/HF-44 y 1.9.13.
 - **Bitácora:** —
 
 ## INT-091 · Auditor (edf-curation) · §3d-bis ART-030 y deriva 1.9.12 · `curation_flow`

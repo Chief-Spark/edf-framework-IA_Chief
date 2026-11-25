@@ -256,3 +256,53 @@ Scratchpad: `/tmp/claude-0/-home-user-edf-framework-IA-Chief/17fd989e-8dfc-5ea8-
 | 7 | `python3 -m pytest .kiro/skills/edf-acceptance/scripts/tests -q` | 157 passed, 1 skipped |
 | 8 | Réplica en Python de la prueba nueva del Spec (`engineFileKey` + coincidencia total) con las 7 claves | 7/7 dan el resultado declarado. `otra_fuente` recortada también da `false` (AUD-A-19) |
 | 9 | Lectura del Spec: `AcceptanceCondition(`, número de `test(`, fuente del umbral alternativo | 2 construcciones, las dos con 5 argumentos. 8 pruebas (antes 7). El umbral alternativo sigue derivándose de la configuración (`conUmbral`, `:280-283`) |
+
+## 9. Re-auditoría por diferencia, revisión no sustantiva §3d-bis (1.9.13)
+
+| Campo | Valor |
+|---|---|
+| Objeto | ART-020 v4 (`insumos/source-spec-acceptance.yaml`, sha256 `a3c9174da1e0ab95de47ffa3d009081b8f46614b1547cd22af98f25ba7659964`) frente a v3 aprobado (`d8ac9e7d…`, copia en `SP/aprobados/`). Propuesta regenerada en `propuestas/acceptance/` frente a la aprobada en `SP/acc-v3/`. El hash de carpeta de `SP/acc-v3/src/test` es `24a220b6…`, el mismo registrado para ART-023, así que es la versión aprobada |
+| Criterio | `edf-orquestador/references/03-gobierno-riesgo-aprobacion.md:90-112` (§3d-bis, condiciones (a) a (d); regla 7g) |
+| **Dictamen** | **Revisión no sustantiva confirmada: se cumplen (a), (b), (c) y (d).** ART-020 v4: **APROBADO**. ART-021 y ART-022: **idénticos byte a byte** (siguen APROBADO con `957f935d…` y `520b19dc…`). ART-023: **APROBADO**. No hay hallazgos nuevos que corregir; dejo una observación informativa (AUD-A-20) |
+
+### 9.1 Evidencia de (a) a (d)
+
+| Condición | ¿Se cumple? | Evidencia |
+|---|---|---|
+| **(a)** Ningún valor desplegable cambia | **Sí** | `cmp` de los dos `.conf` contra `SP/acc-v3`: idénticos. Sin comentarios (`grep -v '^\s*#'`) también son idénticos. Regenerando desde v3 y desde v4 con el framework 1.9.13, los `hocon/` salen idénticos. En los insumos, la comparación estructural (YAML) de v3 y v4 da **una sola diferencia**: `archivo.claves_de_prueba[4].clave` (`otra_fuente` → `ruta_otra_fuente`). `claves_de_prueba` no llega a ningún `.conf`: solo la usan `verify_spec` y el Spec |
+| **(b)** Solo cambian pruebas, comentarios, citas o metadatos | **Sí** | Insumo: la clave de prueba (`:64`) y la cabecera (`:2-3`: versión 4, sin «Estado», HF-32), que son metadatos. Propuesta: `diff -r SP/acc-v3 EXP/propuestas/acceptance` muestra solo el Spec. `:132` es la tupla de la clave renombrada; `:181` es un comentario que cita la convención del esquema (HF-44). Los 9 `part-00000.json` son idénticos (`cmp`). El comentario de `:181` viene de la plantilla 1.9.13, no del insumo: también aparece al regenerar desde v3, cuyo Spec difiere del nuevo solo en `:132` |
+| **(c)** No cambia ningún marcador de hecho ni ninguna decisión | **Sí** | Conteo de marcadores en v3 y v4: 16 `[C]`, 7 `[P]`, 5 `[PM]`, 0 `[A:…]`, en las dos versiones. Las referencias a PA-001..006, RG-013, RG-015 y RG-017 son las mismas, con las mismas frecuencias. Las decisiones del simulador siguen iguales: 9/9 y 2/2 |
+| **(d)** No cambian las dependencias de preguntas ni de riesgos | **Sí** | Las mismas PA y RG citadas (fila (c)). RG-018 y RG-022 de la etapa no aparecen en el insumo, ni en v3 ni en v4. El Spec no cambia imports, firmas ni dependencias de compilación: el `diff` toca solo `:132` y `:181` |
+
+**¿Es «solo prueba» renombrar una clave de prueba?** Sí. La clave solo decide si `verify_spec` y la prueba Scala del `filePattern` recortan la extensión antes de comparar. Ningún valor desplegable depende de ella: los `.conf` son idénticos. El cambio **refuerza** la prueba: ahora el caso negativo compara `…/RUNT_EXPERIAN_….txt` recortado y comprueba de verdad que el patrón excluye otra fuente, en lugar de pasar siempre por el sufijo `.900010` (AUD-A-19). El aviso de HF-44 que el generador emite con v3 («`otra_fuente`: el valor es una ruta pero la clave no empieza por `ruta_`…») desaparece con v4. **AUD-A-19 queda cerrado.**
+
+### 9.2 Dictamen por artefacto
+
+| Artefacto | Dictamen | Hash a registrar |
+|---|---|---|
+| ART-020 `insumos/source-spec-acceptance.yaml` v4 | **APROBADO** como revisión no sustantiva §3d-bis. La aprobación debe llevar en `condiciones` el marcador literal «revisión no sustantiva (§3d-bis)», citar (a) a (d) en `justificacion`, tener el mismo riesgo que la primera vez y decidirla el aprobador de la etapa (regla 7g) | `sha256:a3c9174da1e0ab95de47ffa3d009081b8f46614b1547cd22af98f25ba7659964` |
+| ART-021 `hocon/sisben-acc-tpl-01-acceptance-block.conf` | **Idéntico** byte a byte: no se re-aprueba en contenido; se mantiene | `957f935d18a5850087a9bdda8851e9269b23697e2f955a2840f48e625b12dd7d` (sin cambio) |
+| ART-022 `hocon/sisben-acc-tpl-02-file-conditions.conf` | **Idéntico** byte a byte: se mantiene | `520b19dc9bfde5124e05a5d9cc6008136c097575b6beadfeb5677875c1dda102` (sin cambio) |
+| ART-023 `src/test/` (Spec y 9 fixtures) | **APROBADO**. Solo cambian 2 líneas del Spec, que es prueba y comentario. Las 8 pruebas se conservan y la de `filePattern` ahora prueba el recorte en las 4 claves `ruta_*` | Carpeta `src/test/` (mismo método que `orquestador_e2e.py:57-64`): `sha256:cc241e16fbe54c78a7b9e93f40009918b7c356d5d515a540ef9058ab77bb32c8`. Spec: `30e80d8499515e521e4a3b1059737e277929fdf66debc3b9ddd019538132c3e3` |
+
+### 9.3 Observación
+
+| ID | Clasificación | Sev. | Evidencia | Comentario |
+|---|---|:-:|---|---|
+| AUD-A-20 | framework (informativa) | — | El comentario nuevo del Spec (`:181`) sale de la plantilla 1.9.13 y no del cambio del insumo: regenerando desde v3 con 1.9.13 también aparece | El diff de ART-023 mezcla dos orígenes, un cambio del insumo (§3d-bis) y un cambio de plantilla (§3d). Los dos son no sustantivos y se aprueban juntos. Conviene que el evento `correccion` cite ambos motivos: AUD-A-19/HF-44 para el insumo y la versión 1.9.13 de la plantilla |
+
+### 9.4 Verificaciones corridas
+
+Scratchpad: `SP/aud-acc-v5/`.
+
+| # | Comando | Resultado |
+|:-:|---|---|
+| 1 | `diff SP/aprobados/source-spec-acceptance.yaml EXP/insumos/source-spec-acceptance.yaml` y comparación YAML estructural | Solo cambian la cabecera (`:2-3`) y `:64`. Diferencia estructural: solo `claves_de_prueba[4].clave` |
+| 2 | `diff -r SP/acc-v3 EXP/propuestas/acceptance` y `cmp` de cada archivo | 11 de 12 archivos IGUALES. El Spec difiere solo en `:132` y `:181` |
+| 3 | `render_templates.py --spec EXP/insumos/… --out SP/aud-acc-v5/gen --audit` y `diff -r` contra EXP | rc=0, 0 avisos; **sin diferencias**: reproducible |
+| 4 | `render_templates.py` desde v3 con 1.9.13, contra la generación de v4 | Solo difiere el Spec en `:132`. El generador avisa de HF-44 en `otra_fuente` |
+| 5 | `simular_decision.py --spec EXP/insumos/…` | rc=0, **9/9 y 2/2** |
+| 6 | `hocon_check.py` con pyhocon por `PYTHONPATH` (`SP/aud-acc-v3/pylib`), más `pyhocon.ConfigFactory.parse_file` | rc=0; los dos `.conf` parsean |
+| 7 | `grep -rn "0\.9[45]" EXP/propuestas/acceptance/hocon` | Sin coincidencias |
+| 8 | `python3 -m pytest .kiro/skills/edf-acceptance/scripts/tests -q` | 161 passed, 1 skipped |
+| 9 | Conteo de marcadores y referencias PA/RG en v3 y v4; hashes de carpeta con el método de `orquestador_e2e.py` | Iguales. `SP/acc-v3/src/test` = `24a220b6…` (= registrado); nuevo `cc241e16…` |
