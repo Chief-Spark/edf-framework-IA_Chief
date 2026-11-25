@@ -521,3 +521,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
+
+## INT-066 · Analista (edf-analisis) · insumo de State Calculation (agente nuevo) · `state_calculation`
+
+- **Cuándo:** 2026-11-24T22:26:47-05:00
+- **Pedido:** Preparar yaml-skill-statecalc.yaml (ART-070) e investigar en el motor el mecanismo de PA-002.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
