@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T21:22:09-05:00",
-    "vista_md_regenerada_en": "2026-11-24T21:22:09-05:00"
+    "actualizado_en": "2026-11-24T21:30:34-05:00",
+    "vista_md_regenerada_en": "2026-11-24T21:30:34-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -368,7 +368,7 @@
             "reportada_por": "Generador edf-acceptance (INT-039): regenerado con 1.9.7 (HF-33); render --audit rc 0; simulador 9/9 + 2/2; hocon_check OK; suite 157",
             "reportada_en": "2026-11-25"
           },
-          "hash": "sha256:f9b879a8002f2a22172dcdd21d2ac60aceb23a3178d4ac60fea34bcf67541a80"
+          "hash": "sha256:24a220b6fa17dcb7401217a5b878f63e4d8aaa16d43c216c6fae8bba9d41be4b"
         }
       ],
       "evidencia_pipeline": {
@@ -419,14 +419,15 @@
           "nombre": "insumo: source-spec-curation.yaml (edf-analisis)",
           "ruta": "insumos/source-spec-curation.yaml",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Analista (INT-041): v2 con framework 1.9.7; --solo-verificar OK (33 campos, 18 eventos); generación completa OK (cur-0004 = \" 0001000000101\"); hocon_check OK; verificar-claves coherente",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:506e8b9a1d4afd725f547257185e506042d77fbdc832d57d43b780877f97290d"
         },
         {
           "id": "ART-031",
@@ -473,14 +474,15 @@
           "nombre": "insumo: fixture-curation/ (accepted-events.input.yaml + lookups/)",
           "ruta": "insumos/fixture-curation/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Analista (INT-041): v2 con framework 1.9.7; --solo-verificar OK (33 campos, 18 eventos); generación completa OK (cur-0004 = \" 0001000000101\"); hocon_check OK; verificar-claves coherente",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:5d7381ef232703ac5dcecc5bd5c47de42fbe198528b0c14320d97292bea24f0d"
         }
       ],
       "evidencia_pipeline": {
@@ -594,7 +596,9 @@
       },
       "aprobacion_requerida": true,
       "ref_aprobacion": null,
-      "preguntas_abiertas": [],
+      "preguntas_abiertas": [
+        "PA-008"
+      ],
       "riesgos": [
         "RG-002",
         "RG-020",
@@ -1061,6 +1065,55 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0086"
+    },
+    {
+      "id": "APR-014",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-023"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T21:30:00-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Re-auditoría por diferencia APROBADO (acceptance.md §8): solo cambia el Spec; reproducible, 9/9 y 2/2, pyhocon OK, 157 pruebas. AUD-A-16 (5 argumentos con result=false) y AUD-A-17 (prueba del filePattern con las 7 claves) cerrados; S-ACC-06 deja de existir.",
+      "condiciones": [
+        "AUD-A-19 (ruta_otra_fuente) al backlog; solo si el insumo se revisa por otro motivo (HF-44 evita que se repita)",
+        "RG-022 ya no espera AUD-A-16; siguen la evidencia del fork y del pipeline, RG-017 y el checklist B; commons-io se comprueba al compilar (F-01)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0099"
+    },
+    {
+      "id": "APR-015",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-030",
+        "ART-035"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T21:30:00-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBABLE (curation.md §6) con las decisiones de INT-038 aplicadas (omitir_si_nulas [P] con cita del motor, regex literal de spec §2, RG-019 aceptado, «Ninguna» = texto en PA-007). AUD-C-15 posterior correcto y sin cambio de valores (C-CUR-05 abierto, APR-009, F-12 con §9). Fixture idéntico al auditado: 8 escenarios de HU §5.3 (cur-0004 = \" 0001000000101\" también en Scala), cur-0016 (RG-019), tipos 4/5/8 → 4/8/9 (spec §9.4), 18 subscriberRelation distintos.",
+      "condiciones": [
+        "C-CUR-05 se resuelve en el insumo de Synthesis (spec §12 LFP por defecto): pendiente de yaml-skill-synthesis.yaml",
+        "HF-45: claves_omitidas_por_severidad de cur-0016 en resumen.json es por omitir_si_nulas, no por severidad"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0100"
     }
   ],
   "preguntas_abiertas": [
@@ -1147,6 +1200,18 @@
       "resuelta_en": null,
       "respuesta": null,
       "ref_bitacora": "BIT-0092"
+    },
+    {
+      "id": "PA-008",
+      "pregunta": "Para Pinning: (a) ¿cómo lee oxygen-pinning el evento curado (steering 11 §6 #2)? (b) En el fork: ¿existe ColombiaIdentityMatcher, cuál es su firma, compara por toString, y qué juego de códigos publican en standardizedIdType las otras fuentes de Colombia (RG-020)? (c) ¿Cómo tratan la Ñ las otras fuentes (RG-021)?",
+      "origen": "AUD-C-11/16; INT-044 punto 2c; steering 11 §6 #2 y #7. Dirigida al Desarrollador con Ingesta 3; cierre N3.",
+      "etapa_afectada": "pinning",
+      "bloqueante": true,
+      "estado": "abierta",
+      "abierta_en": "2026-11-24T21:30:01-05:00",
+      "resuelta_en": null,
+      "respuesta": null,
+      "ref_bitacora": "BIT-0101"
     }
   ],
   "riesgos": [
@@ -1331,8 +1396,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0097",
-    "eventos_totales": 97,
+    "ultimo_evento": "BIT-0102",
+    "eventos_totales": 102,
     "append_only": true,
     "retencion_meses": 24
   }

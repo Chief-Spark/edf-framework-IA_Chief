@@ -350,6 +350,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:27:29-05:00
 - **Pedido:** Re-aprobar ART-023 (§3d), aprobar ART-030/034/035 y la transición acceptance→curation_flow.
+- **Respuesta:** (1) Aprueba ART-023 con hash nuevo (S-ACC-06 deja de existir; AUD-A-19 al backlog). (2a) Aprueba ART-030 (C-CUR-05 pendiente del insumo de Synthesis; HF-45). (2b) Aprueba ART-035. (2c) ART-034 condicional: [A:matcher-colombia] no es el marcador (steering 11 #7 resuelto para SISBEN; la verificación es [PM]); abrir PA-008 bloqueante para pinning; [A:lector-oxygen-pinning] → [A:PA-008]; leyenda [PM] como steering 05:48; HF para 09 §5.1 #2 por etapa_afectada (supuesto) y para la leyenda [PM]. (3) Aprueba la transición acceptance→curation_flow (alto, diferida) en el orden ART-030/035 → PA-008 y ART-034 → transición; habilita solo curation_flow.
+- **Decisión:** Registradas la corrección §3d y APR-014 (ART-023), APR-015 (ART-030 y ART-035), PA-008 (BIT-0098..0101). HF-46 corregido en el framework (0516f33); HF-47 al lote final. ART-034 al analista para los marcadores.
+- **Bitácora:** BIT-0098..BIT-0101
+
+## INT-045 · Analista (edf-analisis) · ART-034 marcadores · `curation_flow`
+
+- **Cuándo:** 2026-11-24T21:30:34-05:00
+- **Pedido:** Marcadores de ART-034 según INT-044 (PA-008).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

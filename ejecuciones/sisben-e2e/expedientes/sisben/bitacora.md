@@ -1667,3 +1667,88 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0098 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Revisión §3d: hash nuevo de ART-023 (src/test de Acceptance) por el framework 1.9.7 (HF-33: 5 argumentos y prueba del filePattern); S-ACC-06 deja de existir |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:30:00-05:00 |
+| **Por qué** | Re-auditoría por diferencia auditorias/acceptance.md §8; INT-044 punto 1 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-023 |
+| **Trazabilidad** | references/03 §3d |
+| **Corrige** | BIT-0084 |
+
+---
+
+## BIT-0099 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-014 (artefacto): Nueva aprobación de ART-023 regenerado con 1.9.7 (references/03 §3d) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T21:30:00-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Re-auditoría por diferencia APROBADO (acceptance.md §8): solo cambia el Spec; reproducible, 9/9 y 2/2, pyhocon OK, 157 pruebas. AUD-A-16 (5 argumentos con result=false) y AUD-A-17 (prueba del filePattern con las 7 claves) cerrados; S-ACC-06 deja de existir. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-023 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0100 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-015 (artefacto): Insumos de Curation: source-spec-curation.yaml v2.1 y fixture-curation v2 (references/03 §3b paso 2) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T21:30:00-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Re-auditoría APROBABLE (curation.md §6) con las decisiones de INT-038 aplicadas (omitir_si_nulas [P] con cita del motor, regex literal de spec §2, RG-019 aceptado, «Ninguna» = texto en PA-007). AUD-C-15 posterior correcto y sin cambio de valores (C-CUR-05 abierto, APR-009, F-12 con §9). Fixture idéntico al auditado: 8 escenarios de HU §5.3 (cur-0004 = " 0001000000101" también en Scala), cur-0016 (RG-019), tipos 4/5/8 → 4/8/9 (spec §9.4), 18 subscriberRelation distintos. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-030, ART-035 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0101 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-008: Para Pinning: (a) ¿cómo lee oxygen-pinning el evento curado (steering 11 §6 #2)? (b) En el fork: ¿existe ColombiaIdentityMatcher, cuál es su firma, compara por toString, y qué juego de códigos publican en standardizedIdType las otras fuentes de Colombia (RG-020)? (c) ¿Cómo tratan la Ñ las otras fuentes (RG-021)? |
+| **Quién** | Desarrollador SIM-DEV-01 (SIMULADO, INT-044) |
+| **Cuándo** | 2026-11-24T21:30:01-05:00 |
+| **Por qué** | AUD-C-11/16; INT-044 punto 2c; steering 11 §6 #2 y #7. Dirigida al Desarrollador con Ingesta 3; cierre N3. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0102 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:30:34-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

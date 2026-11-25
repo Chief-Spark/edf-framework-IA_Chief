@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T21:22:09-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T21:30:34-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 97 eventos, último BIT-0097 |
+| Bitácora | 102 eventos, último BIT-0102 |
 
 ## Etapas
 
@@ -18,7 +18,7 @@
 | 0 | Analisis de Requerimiento y Contexto | `aprobada` | bajo | 4/4 | APR-006 | ✅ |
 | 1 | Validation | `aprobada` | alto | 6/6 | APR-011 | ✅ |
 | 2 | Acceptance | `aprobada` | alto | 4/4 | APR-013 | 🔒 |
-| 3 | Curation - Flow | `no_iniciada` | medio | 0/6 | — | 🔒 |
+| 3 | Curation - Flow | `no_iniciada` | medio | 2/6 | — | 🔒 |
 | 4 | Curation - Stock | `no_iniciada` | medio | 0/1 | — | 🔒 |
 | 5 | Pinning | `no_iniciada` | alto | 0/4 | — | 🔒 |
 | 6 | Synthesis / Consistency | `no_iniciada` | alto | 0/3 | — | 🔒 |
@@ -41,13 +41,13 @@
 | acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `aprobado` | sha256:d8ac9e7d2422 |
 | acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `aprobado` | sha256:957f935d18a5 |
 | acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `aprobado` | sha256:520b19dc9bfd |
-| acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `aprobado` | sha256:f9b879a8002f |
-| curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `prevalidado` | — |
+| acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `aprobado` | sha256:24a220b6fa17 |
+| curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `aprobado` | sha256:506e8b9a1d4a |
 | curation_flow | ART-031 | SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado | `ausente` | — |
 | curation_flow | ART-032 | bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary | `ausente` | — |
 | curation_flow | ART-033 | fixture sintetico y tests de curation | `ausente` | — |
 | curation_flow | ART-034 | contrato Curation -> Pinning de la ingesta (steering 11 §4) | `prevalidado` | — |
-| curation_flow | ART-035 | insumo: fixture-curation/ (accepted-events.input.yaml + lookups/) | `prevalidado` | — |
+| curation_flow | ART-035 | insumo: fixture-curation/ (accepted-events.input.yaml + lookups/) | `aprobado` | sha256:5d7381ef2327 |
 | curation_stock | ART-040 | mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock) | `ausente` | — |
 | pinning | ART-050 | insumo: yaml-skill-pinning.yaml (edf-analisis) | `ausente` | — |
 | pinning | ART-051 | SISBENIdentityMatcher.scala (o matcher compartido) (con verificacion aritmetica del umbral) | `ausente` | — |
@@ -78,6 +78,8 @@
 | APR-011 | transicion | validation → acceptance | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0074 |
 | APR-012 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0084 |
 | APR-013 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0086 |
+| APR-014 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0099 |
+| APR-015 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0100 |
 
 ## Preguntas abiertas
 
@@ -88,6 +90,7 @@
 - PA-005 (abierta, no bloqueante): ¿De dónde obtiene el reporting estándar el contador REGISTROS MENORES DE EDAD (HU §5.1, spec §5 RF-02) si el filtro de Validation no deja contador (SparkValidator.scala:1128-1130)?
 - PA-006 (resuelta, bloqueante): ¿Qué valores usa Acceptance donde la HU y la spec callan? (a) nombre de la condición y reasonCode del rechazo por FQS (propuesta de la skill: RQS_BAJO_UMBRAL_SISBEN / SISBFA00001); (b) archivo sin registros (propuesta: aceptar_cuerpo_vacio false, rechazo automático); (c) customReasonForAutomaticRejectionEnabled (propuesta: true).
 - PA-007 (abierta, no bloqueante): Para la próxima versión de la spec: (1) ¿§10.1 debe decir «ausente (clave omitida) si todos faltan» en vez de «nulo» para standardizedIdName (un null rompe EventPinner)? (2) ¿El tipo «Ninguna» → texto debe publicar el valor literal sin recortar bordes? (hoy se recorta: supuesto del aprobador simulado).
+- PA-008 (abierta, bloqueante): Para Pinning: (a) ¿cómo lee oxygen-pinning el evento curado (steering 11 §6 #2)? (b) En el fork: ¿existe ColombiaIdentityMatcher, cuál es su firma, compara por toString, y qué juego de códigos publican en standardizedIdType las otras fuentes de Colombia (RG-020)? (c) ¿Cómo tratan la Ñ las otras fuentes (RG-021)?
 
 ## Riesgos
 
