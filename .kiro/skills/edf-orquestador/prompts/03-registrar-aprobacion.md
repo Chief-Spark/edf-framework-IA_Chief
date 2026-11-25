@@ -20,6 +20,7 @@ Para el insumo: verificar que el artefacto esté `propuesto` o `prevalidado` (pr
 
 **Re-aprobación de un insumo ya aprobado** con la transición hacia su etapa habilitada (`references/03`): por defecto aplica §3c (insumo a `propuesto`, transición suspendida, nueva aprobación de la transición después). Solo si el aprobador de la etapa decide que el cambio es **no sustantivo** (§3d-bis, criterios (a)-(d)) y el insumo **no** es `critico`, el insumo sigue `aprobado` durante la revisión y la aprobación se registra sin tocar transiciones ni etapas, con:
 - `condiciones` que incluya el marcador literal `revisión no sustantiva (§3d-bis)`;
+- si un marcador nuevo califica solo la evidencia citada, `justificacion` nombra la aprobación vigente que ya fijó ese estado (`references/03` §3d-bis (c), HF-83);
 - `justificacion` con la evidencia de la re-auditoría por diferencia citando (a), (b), (c) y (d);
 - el mismo `riesgo` que la primera aprobación del insumo, y una aprobación `tipo: artefacto` por cada artefacto regenerado;
 - evento `correccion` en la bitácora que cite la aprobación anterior.

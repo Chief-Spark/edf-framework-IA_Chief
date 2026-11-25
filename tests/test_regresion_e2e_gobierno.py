@@ -92,3 +92,14 @@ def test_ref03_documenta_revision_no_sustantiva_de_insumo():
     prompt = (RAIZ / ".kiro/skills/edf-orquestador/prompts/03-registrar-aprobacion.md").read_text(encoding="utf-8")
     assert "revisión no sustantiva (§3d-bis)" in prompt and "regla 7g" in prompt
     assert _validador().MARCADOR_3D_BIS == "revisión no sustantiva (§3d-bis)"
+
+
+def test_ref03_3d_bis_c_precisa_marcador_de_evidencia_ya_aprobado():
+    """HF-83 (1.9.15): (c) distingue el marcador de la decisión del que solo alinea la evidencia con un estado ya aprobado."""
+    txt = (RAIZ / ".kiro/skills/edf-orquestador/references/03-gobierno-riesgo-aprobacion.md").read_text(encoding="utf-8")
+    c = txt.split("### 3d-bis.")[1].split("- **(d)**")[0]
+    assert "aunque antes no tuviera marcador" in c
+    assert "evidencia citada" in c and "ya aprobó" in c and "HF-83" in c
+    assert "falla (c)" in c
+    prompt = (RAIZ / ".kiro/skills/edf-orquestador/prompts/03-registrar-aprobacion.md").read_text(encoding="utf-8")
+    assert "HF-83" in prompt

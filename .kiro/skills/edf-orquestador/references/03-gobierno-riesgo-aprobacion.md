@@ -96,6 +96,9 @@ Si el insumo de una etapa que ya empezó o ya está aprobada (con sucesoras apro
 - **(a)** Ningún valor que llegue a un artefacto **desplegable** cambia: al comparar los desplegables regenerados con los aprobados, quitando comentarios, son idénticos.
 - **(b)** Solo cambian pruebas, fixtures de prueba, comentarios, citas o metadatos del insumo.
 - **(c)** No cambia ninguna decisión, alcance, riesgo ni marcador de estado de un hecho (`[C]`, `[P]`, `[PM]`, `[A:]`).
+  - Cuenta como cambio de marcador **poner, quitar o cambiar** el marcador de un hecho del que depende un valor, una decisión o un alcance del insumo, aunque antes no tuviera marcador.
+  - **No** cuenta como cambio el marcador que solo califica la **evidencia citada** (no la decisión), cuando copia un estado que el expediente **ya aprobó** para ese hecho en otra aprobación vigente, por ejemplo la mitigación de un riesgo o el insumo de otra etapa. Es alineación con lo aprobado, no una decisión nueva. La justificación debe nombrar esa aprobación (`APR-nnn` o `RG-nnn`) y decir que la decisión conserva su marcador (HF-83).
+  - Si el expediente no tiene esa aprobación previa, o si el marcador de la decisión cambia, falla (c).
 - **(d)** El insumo no gana ni pierde dependencias de preguntas abiertas ni de riesgos.
 
 Si falla una, o si el insumo es de riesgo `critico` (incluido el de `state_calculation`), aplica §3c sin excepción.
