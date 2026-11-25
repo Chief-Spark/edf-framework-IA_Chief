@@ -558,6 +558,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:44:50-05:00
 - **Pedido:** Aprobar ART-060 v2 y la transición pinning→synthesis.
+- **Respuesta:** (1) ART-060 condicional: v3 con AUD-S-12 (base = GDD de Colombia sin entradas de SISBEN; reversión de las 34 entradas; efecto sobre Curation [PM] en RG-028), AUD-S-13 (nunca handler: null en el JSON [P]; criterio de aprobación de ART-061), AUD-S-14 (datasetFormat [P]; orchestration y datasetFormat del conf por defecto = N4), AUD-S-16 (cita); verificación por diferencia; AUD-S-15 ya aplicado. (2) Aprueba la transición pinning→synthesis (alto, diferida RG-027) después de la v3, citando RG-025, RG-028, RG-026 y RG-010; criterios para aprobar ART-061 y ART-062. Para ART-070 actuará como SIM-PO-01.
+- **Decisión:** v3 al analista; después ART-060 v3 y la transición.
+- **Bitácora:** —
+
+## INT-071 · Analista (edf-analisis) · insumo de Synthesis v3 · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:46:05-05:00
+- **Pedido:** AUD-S-12/13/14/16 en ART-060 (nada más).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
