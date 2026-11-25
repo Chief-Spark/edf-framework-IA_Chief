@@ -2840,3 +2840,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0167 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-026 (medio, synthesis): El GDD, el diccionario de consistencia y las reglas custom son únicos para Colombia. Una entrada existente gobierna también a SISBEN, y modificarla afectaría a la otra fuente. Las reglas compartidas se aplican a los eventos de SISBEN (verificación en RG-028) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:44:50-05:00 |
+| **Por qué** | AUD-S-15 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0168 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Texto de PA-002, PA-010 y PA-011 ampliado con los antecedentes que hasta ahora solo estaban en la bitácora (BIT-0123, BIT-0160); mitigación de RG-026 con VD-SYN-01..06 (AUD-S-15) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:44:50-05:00 |
+| **Por qué** | Re-auditoría del insumo de Synthesis v2, AUD-S-15 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 |
+| **Corrige** | BIT-0160 |
+
+---

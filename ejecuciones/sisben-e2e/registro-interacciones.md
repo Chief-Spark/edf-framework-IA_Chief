@@ -550,6 +550,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:40:57-05:00
 - **Pedido:** Re-auditar ART-060 v2 con 1.9.10.
+- **Respuesta:** ART-060 v2 APROBADO (sin P0/P1): ajustes de INT-065 aplicados y citados; valores que llegan a ART-061/062 iguales a la v1 salvo la description; nada depende de RG-025/RG-028; ninguna clave para escribir. Verificaciones OK (verificar-claves sisben ahora rc 2). P2: AUD-S-12 (base de la reversión: GDD de Colombia sin ninguna entrada de SISBEN), AUD-S-13 (handler: null literal en el JSON podría romper la lectura del GDD: el verificador lo detecta), AUD-S-14 (datasetFormat [P]; orchestration y datasetFormat del conf por defecto = N4), AUD-S-15 (expediente), AUD-S-16 (cita de minFrequency).
+- **Decisión:** AUD-S-15 aplicado (BIT-0167); consulta al aprobador: ART-060 y transición pinning→synthesis, con AUD-S-12/13 como instrucciones de generación.
+- **Bitácora:** —
+
+## INT-070 · Aprobador simulado SIM-DEV-01 · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:44:50-05:00
+- **Pedido:** Aprobar ART-060 v2 y la transición pinning→synthesis.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

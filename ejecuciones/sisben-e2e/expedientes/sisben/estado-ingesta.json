@@ -3,7 +3,7 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:40:56-05:00",
+    "actualizado_en": "2026-11-24T22:44:50-05:00",
     "vista_md_regenerada_en": "2026-11-24T22:38:51-05:00"
   },
   "ingesta": {
@@ -1534,7 +1534,7 @@
     },
     {
       "id": "PA-002",
-      "pregunta": "En State Calculation (statecalc-foundation/enricher), ¿cómo se determina el corte vigente de SISBEN y cómo se excluye la sección #sisben de los PIN cuyo último evento SISBEN no pertenece a ese corte (HU R-26, §5.6)? Opciones compatibles: (c1) filtro en el enricher comparando fechaCorte curado (spec §10.1) con el corte vigente (máximo fechaCorte o corte del último archivo aceptado; toca [A:CQ-006]); (d) el motor ya lo cumple, solo con evidencia de código o pipeline. Fuera de alcance sin nueva versión de HU/spec: cambios al Anexo A, a Acceptance o a Synthesis.",
+      "pregunta": "En State Calculation (statecalc-foundation/enricher), ¿cómo se determina el corte vigente de SISBEN y cómo se excluye la sección #sisben de los PIN cuyo último evento SISBEN no pertenece a ese corte (HU R-26, §5.6)? Opciones compatibles: (c1) filtro en el enricher comparando fechaCorte curado (spec §10.1) con el corte vigente (máximo fechaCorte o corte del último archivo aceptado; toca [A:CQ-006]); (d) el motor ya lo cumple, solo con evidencia de código o pipeline. Fuera de alcance sin nueva versión de HU/spec: cambios al Anexo A, a Acceptance o a Synthesis. Antecedentes (BIT-0123, BIT-0160): collection-stock re-cura todos los cortes acumulados; misma persona con SR distinta da dos sintéticos para un PIN (AUD-S-07); fileTag REGULAR / voidIndicator descartado (AUD-S-04, AUD-E0-07).",
       "origen": "Cierre de PA-001 (aprobador SIM-DEV-01, INT-003); HU R-26, §5.6, §6; spec §13, §10.1, §10.3; auditoría AUD-E0-07.",
       "etapa_afectada": "state_calculation",
       "bloqueante": true,
@@ -1630,7 +1630,7 @@
     },
     {
       "id": "PA-010",
-      "pregunta": "Para la próxima versión de HU y spec: (1) ¿qué significa «reusePIN = false» (ingesta sin PIN previos propios, no la clave global de la aplicación compartida)? (2) La ruta Pinned propia de spec §14 frente al pinnedDir único de la aplicación de Pinning de Colombia (AUD-P-07).",
+      "pregunta": "Para la próxima versión de HU y spec: (1) ¿qué significa «reusePIN = false» (ingesta sin PIN previos propios, no la clave global de la aplicación compartida)? (2) La ruta Pinned propia de spec §14 frente al pinnedDir único de la aplicación de Pinning de Colombia (AUD-P-07). Antecedente (BIT-0160): Synthesis toma la última carpeta *-pin-hc, así que una ruta Pinned propia de SISBEN no se leería (AUD-S-05).",
       "origen": "PA-009 (INT-052); AUD-P-02, AUD-P-07. Dirigida al PO.",
       "etapa_afectada": "pinning",
       "bloqueante": false,
@@ -1642,7 +1642,7 @@
     },
     {
       "id": "PA-011",
-      "pregunta": "Para la próxima versión de la spec: dentro de un mismo periodo, si el corte más reciente trae un campo nulo, ¿debe ganar el nulo? Hoy LFP no escribe nulos y el valor anterior del periodo se conserva (ConsistencyCheckOps.scala:118,176-181); entre periodos no se arrastra (mapa vacío por periodo, :125).",
+      "pregunta": "Para la próxima versión de la spec: dentro de un mismo periodo, si el corte más reciente trae un campo nulo, ¿debe ganar el nulo? Hoy LFP no escribe nulos y el valor anterior del periodo se conserva (ConsistencyCheckOps.scala:118,176-181); entre periodos no se arrastra (mapa vacío por periodo, :125). Antecedentes (BIT-0160, INT-065): el motor ordena por (asOfDate, receivedDate) con asOfDate = fec_actualizacion_cns, no por corte (AUD-S-08); periodicidad del evento (minFrequency, VD-SYN-04).",
       "origen": "Analista (INT-056), C-CUR-05; spec §12, HU R-25, §5.6. Dirigida al PO.",
       "etapa_afectada": "synthesis",
       "bloqueante": false,
@@ -1883,7 +1883,7 @@
       "descripcion": "El GDD, el diccionario de consistencia y las reglas custom son únicos para Colombia. Una entrada existente gobierna también a SISBEN, y modificarla afectaría a la otra fuente. Las reglas compartidas se aplican a los eventos de SISBEN (verificación en RG-028)",
       "nivel": "medio",
       "etapa_afectada": "synthesis",
-      "mitigacion": "[PM] VD-SYN-01..05 en el fork (nombres existentes y su handler, dateType/customRulesFile/domainDictionaryFile/checkFileTagEnabled, conf compartido, periodo de los eventos, escenario §5.5 con nulo); si un nombre colisiona con otro handler, sube a N3",
+      "mitigacion": "[PM] VD-SYN-01..06 en RG-028 (nombres existentes y su handler; lecturas .get sin defecto; conf compartido; periodicidad efectiva; escenario §5.5 con nulo; reglas CONS, custom y relationshipMigrationProcessor de Colombia); si un nombre colisiona con otro handler, sube a N3",
       "estado": "abierto"
     },
     {
@@ -1923,8 +1923,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0166",
-    "eventos_totales": 166,
+    "ultimo_evento": "BIT-0168",
+    "eventos_totales": 168,
     "append_only": true,
     "retencion_meses": 24
   }
