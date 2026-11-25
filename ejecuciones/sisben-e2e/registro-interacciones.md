@@ -678,8 +678,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:33:15-05:00
 - **Pedido:** Generador de Pinning con marcadores del insumo y plantilla corregida.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** HF-81/82 corregidos: plantilla con huecos de estado y referencias de la ingesta, sin la cita a steering 11 §6 #7; el generador copia estado y fuente del insumo, el escalamiento N4 de reusePin y las referencias (PA-008, PA-009, RG-025...); --verificar --insumo exige los marcadores. 10 pruebas; tests 278; auditar-skills OK. Con el insumo de la corrida el bloque conserva [PM] (RG-025) y RG-002 y es reproducible. El .ps1 no hace el cruce con el insumo (anotado).
+- **Decisión:** Commit 9f5db12 (1.9.14). Regenerar ART-053 en propuestas y re-auditar por diferencia.
 - **Bitácora:** —
 
 ## INT-086 · Analista (edf-analisis) · ajustes §3d-bis · `acceptance`
@@ -694,6 +694,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:39:39-05:00
 - **Pedido:** Regenerar Acceptance con ART-020 v4.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-088 · Generador (edf-pinning) · ART-053 con 1.9.14 · `pinning`
+
+- **Cuándo:** 2026-11-25T06:40:15-05:00
+- **Pedido:** Regenerar ART-053 con el generador corregido (§3d).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

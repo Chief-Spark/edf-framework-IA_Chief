@@ -129,7 +129,7 @@ class SISBENAcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfterAll
     ("ruta_marcador_sin_extension", "/home/app/validation/validated/SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInHeader.900007", true),
     ("lineage_fileName", "SISBEN_EXPERIAN_202601.20260205093000-0500.txt", true),
     ("lineage_fileName_mayusculas", "SISBEN_EXPERIAN_202601.20260205093000-0500.TXT", true),
-    ("otra_fuente", "/home/app/validation/validated/RUNT_EXPERIAN_202601.20260205093000-0500.txt.900010", false),
+    ("ruta_otra_fuente", "/home/app/validation/validated/RUNT_EXPERIAN_202601.20260205093000-0500.txt.900010", false),
     ("ruta_marcador_prefijo_rt", "/home/app/validation/validated/RT_SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInFileName.900010", true),
     ("sin_marca_de_tiempo", "SISBEN_EXPERIAN_202601.txt", false),
   )
@@ -178,6 +178,7 @@ class SISBENAcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfterAll
     assert(fileKeyCases.nonEmpty, "el insumo no declara archivo.claves_de_prueba")
     fileKeyCases.foreach { case (clave, valor, expected) =>
       // Las claves ruta_* son rutas de validados y se recortan como en el motor; las demás se comparan tal cual
+      // (convención declarada en el esquema, archivo.claves_de_prueba[].clave, HF-44).
       // (misma regla que render_templates.verify_spec). String.matches exige coincidencia total, como el motor.
       val key = if (clave.startsWith("ruta_")) engineFileKey(valor) else valor
       assert(key.matches(FilePattern) == expected, clave + ": " + key + " debería " + (if (expected) "" else "no ") + "coincidir")

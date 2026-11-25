@@ -45,9 +45,9 @@
 #   - supuestos_resueltos nuevo (HF-36, AUD-C-06); ajuste AUD-C-15 (C-CUR-05 abierto, APR-009, F-12 con §9).
 #   - Fixture: NUM_DOCUMENTO del base_registro único (AUD-C-02); casos nuevos cur-0016 (RG-019) y cur-0017 a cur-0019
 #     (tipos 4, 5 y 8) (AUD-C-03). Ningún par de eventos comparte tipo + número normalizado (spec §6).
-# Cambios respecto de la versión 2 (§3d-bis, INT-082): la cita del motor de omitir_si_nulas en esta cabecera pasa de
-#   EventPinner.scala:64-65 a ISIdentityMatcher.scala:46-54 [P], válido solo para el matcher de referencia; para Colombia
-#   [PM] (RG-025) (AUD-P-05, AUD-P-25). Ninguna clave ni valor YAML cambia.
+# Cambios respecto de la versión 2 (§3d-bis, INT-082): la cita del motor de omitir_si_nulas (cabecera y comentario de
+#   la clave) pasa de EventPinner.scala:64-65 a ISIdentityMatcher.scala:46-54 [P], válido solo para el matcher de
+#   referencia; para Colombia [PM] (RG-025) (AUD-P-05, AUD-P-25). Ninguna clave ni valor YAML cambia.
 # Riesgos del expediente que toca: RG-005 (cur-0006 declara SISBEN_INC_011 como precondición inyectada; cur-0007 usa el
 # ejemplo alcanzable de spec §10.4), RG-007 (cur-0008), RG-008 (ide_hogar e ide_ficha_origen públicos), RG-016
 # (mitigado), RG-019 (cur-0016).
@@ -120,8 +120,9 @@ parametros:
   niveles_no_almacenar: []                     # [C] spec §10.4 (configuración literal)
   niveles_anular: []                           # [C] spec §10.4 (configuración literal)
   campo_advertencias: advertenciasCuracion     # [C] spec §10.1
-  # [P] steering 11 §3; EventPinner.scala:64-65; diferencia de forma con spec §10.1 aceptada por el Desarrollador
-  # (INT-038; PA-007). Si los cuatro nombres quedan nulos, standardizedIdName se omite (fixture cur-0016).
+  # [P] steering 11 §3; ISIdentityMatcher.scala:46-54 [P], válido solo para el matcher de referencia; para Colombia
+  # [PM] (RG-025); diferencia de forma con spec §10.1 aceptada por el Desarrollador (INT-038; PA-007). Si los cuatro
+  # nombres quedan nulos, standardizedIdName se omite (fixture cur-0016).
   omitir_si_nulas: [standardizedIdType, standardizedIdNumber, standardizedIdName]
 
 # [C] Nombres de dominio de Validation (insumos/source-spec-validation.yaml, campos[].nombre; spec §3), en el orden del layout.
