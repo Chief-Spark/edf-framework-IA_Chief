@@ -574,6 +574,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:47:05-05:00
 - **Pedido:** Generar ART-061 y ART-062 en modo Colombia desde ART-060 v3 con el framework 1.9.10.
+- **Respuesta:** ART-061 domaindictionary.json (domain sisben, version 2, 34 {name, description} en orden de spec §10.1, sin handler/dataType/synthesizer), ART-062 bloque solo de comentarios (11 VERIFICAR + nota informativa, AUD-S-14 N4, VD-SYN-01..06 en RG-028, reversión en 6 pasos, prueba de no afectación). --modo colombia OK (en modo propio da los 2 hallazgos esperados); verificar-claves OK; prueba estática sin fork OK (reemplazo de ART-032 solo cambia description). EVAL-SYN-04/13 pasan. Posibles defectos: verificar-artefacto.ps1 sin modo (exige la raíz); precondición desactualizada en el insumo (:85); python vs python3 en SKILL.md:76.
+- **Decisión:** ART-061 y ART-062 prevalidados; auditor de Synthesis.
+- **Bitácora:** —
+
+## INT-073 · Auditor independiente (synthesis) · propuesta · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:50:40-05:00
+- **Pedido:** Auditar ART-061 y ART-062.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:47:05-05:00",
-    "vista_md_regenerada_en": "2026-11-24T22:47:05-05:00"
+    "actualizado_en": "2026-11-24T22:50:40-05:00",
+    "vista_md_regenerada_en": "2026-11-24T22:50:40-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -742,18 +742,30 @@
           "id": "ART-061",
           "tipo": "configuracion",
           "nombre": "entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68)",
-          "ruta": "propuestas/synthesis/",
+          "ruta": "propuestas/synthesis/domaindictionary.json",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Generador edf-synthesis (INT-072): verificar-artefactos-etapa synthesis --modo colombia OK; sin handler/dataType/synthesizer; 34 entradas en orden; ART-062 sin líneas activas (pyhocon vacío); EVAL-SYN-04/13 pasan a mano",
+            "reportada_en": "2026-11-25"
+          }
         },
         {
           "id": "ART-062",
           "tipo": "configuracion",
           "nombre": "bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68)",
-          "ruta": "propuestas/synthesis/",
+          "ruta": "propuestas/synthesis/consistency-application-block.sisben.conf",
           "obligatorio": true,
-          "estado_artefacto": "ausente",
-          "riesgo": "alto"
+          "estado_artefacto": "prevalidado",
+          "riesgo": "alto",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Generador edf-synthesis (INT-072): verificar-artefactos-etapa synthesis --modo colombia OK; sin handler/dataType/synthesizer; 34 entradas en orden; ART-062 sin líneas activas (pyhocon vacío); EVAL-SYN-04/13 pasan a mano",
+            "reportada_en": "2026-11-25"
+          }
         }
       ],
       "evidencia_pipeline": {
@@ -1984,8 +1996,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0174",
-    "eventos_totales": 174,
+    "ultimo_evento": "BIT-0176",
+    "eventos_totales": 176,
     "append_only": true,
     "retencion_meses": 24
   }

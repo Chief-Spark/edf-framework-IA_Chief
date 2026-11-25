@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:47:05-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:50:40-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 174 eventos, último BIT-0174 |
+| Bitácora | 176 eventos, último BIT-0176 |
 
 ## Etapas
 
@@ -54,8 +54,8 @@
 | pinning | ART-052 | identifying-attributes.json (solo modo propio; no aplica en modo Colombia: se reutiliza la lista compartida identifying-attributes-new.json) | `ausente` | — |
 | pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `aprobado` | sha256:cccd06cf945a |
 | synthesis | ART-060 | insumo: yaml-skill-synthesis.yaml (edf-analisis) | `aprobado` | sha256:0b6d46cc792a |
-| synthesis | ART-061 | entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68) | `ausente` | — |
-| synthesis | ART-062 | bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68) | `ausente` | — |
+| synthesis | ART-061 | entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68) | `prevalidado` | — |
+| synthesis | ART-062 | bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68) | `prevalidado` | — |
 | state_calculation | ART-070 | insumo: yaml-skill-statecalc.yaml (edf-analisis) | `prevalidado` | — |
 | state_calculation | ART-071 | fields[] de statecalc-foundation-local.json | `ausente` | — |
 | state_calculation | ART-072 | CalculationSection de statecalc-calculation-local.json | `ausente` | — |

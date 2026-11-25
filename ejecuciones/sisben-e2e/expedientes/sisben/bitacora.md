@@ -2976,3 +2976,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0175 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Propuesta de Synthesis en modo Colombia generada en propuestas/synthesis/ (domaindictionary.json v2 con 34 entradas; bloque de verificación solo de comentarios); registrada como prevalidada |
+| **Quién** | Generador edf-synthesis (agente) · registra ORQ-E2E |
+| **Cuándo** | 2026-11-24T22:50:40-05:00 |
+| **Por qué** | INT-072 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-061, ART-062 |
+| **Trazabilidad** | prompt 08 |
+| **Corrige** | — |
+
+---
+
+## BIT-0176 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:50:40-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
