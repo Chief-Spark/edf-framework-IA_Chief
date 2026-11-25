@@ -646,14 +646,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:29:56-05:00
 - **Pedido:** Regenerar ART-053 con render_bloque_colombia.py (§3d).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-053 regenerado con render_bloque_colombia.py (sha256 d63da96c…): --verificar BLOQUE OK (la versión aprobada daba 5 hallazgos), pyhocon {}, 0 líneas activas, reproducible byte a byte. Cambia: cabecera del script, una clave por línea con ruta completa y citas al motor, colapso con [P] a logica-pinning §9. Pierde las referencias propias de la ingesta (PA-009, PA-010, RG-002, [PM] RG-025, «sin bandera de fuente», ~28 M registros, ART-050/034/APR-023), porque el script no las admite y agregarlas a mano rompería la reproducibilidad: posible defecto del framework (render_bloque_colombia.py, función valores, y la plantilla). Menores: líneas largas; matcher sin [PM] del FQCN.
+- **Decisión:** Re-auditoría por diferencia con el auditor de Pinning, que dictamine la pérdida de trazabilidad.
 - **Bitácora:** —
 
 ## INT-082 · Aprobador simulado SIM-DEV-01 · `pinning`
 
 - **Cuándo:** 2026-11-25T06:29:56-05:00
 - **Pedido:** Procedimiento de los 3 ajustes posteriores al cierre (§3d, §3c en etapas aprobadas con sucesoras).
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-083 · Auditor independiente (pinning) · re-auditoría §3d de ART-053 · `pinning`
+
+- **Cuándo:** 2026-11-25T06:30:56-05:00
+- **Pedido:** Re-auditar por diferencia ART-053 regenerado con 1.9.12 y la pérdida de referencias de la ingesta.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
