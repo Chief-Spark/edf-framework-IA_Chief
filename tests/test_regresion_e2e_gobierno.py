@@ -68,3 +68,11 @@ def test_09_bloqueo_por_afirmacion_se_mide_por_etapa_afectada():
     regla = txt.split("### 5.1")[1].split("### 5.2")[0]
     assert "`etapa_afectada` igual a esa etapa" in regla
     assert "sin pregunta registrada en el expediente bloquea siempre" in regla
+
+
+def test_ref03_documenta_verificacion_diferida():
+    """HF-62: verificación diferida de hechos fuera del repositorio (corrida E2E SISBEN, PA-008)."""
+    seccion = REF03.read_text(encoding="utf-8").split("### 3e.")[1].split("Además aplican")[0]
+    for frase in ("Ningún artefacto generado dependa del hecho no verificado", "`[PM]`",
+                  "bloquea la integración al fork y la certificación", "§3c o §3d"):
+        assert frase in seccion, frase

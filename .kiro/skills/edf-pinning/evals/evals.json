@@ -1,9 +1,9 @@
 {
   "skill": "skill-configgen-pinning",
-  "version": "1.1.0",
-  "fecha": "2026-10-08",
+  "version": "1.2.0",
+  "fecha": "2026-11-25",
   "estado": "PROPUESTO",
-  "nota": "Casos de prueba funcionales del componente 3 de la regla de 3 componentes (04-reglas-analisis.md §8, ámbito A). Verifican que el skill respeta sus propias restricciones declaradas en SKILL.md y en references/decisiones-pendientes.md, no solo que produce un artefacto con forma correcta. Versión 1.1.0 agrega EVAL-PIN-04 a EVAL-PIN-11 (criterios-aceptacion-skill-pinning.md §5.2) — camino feliz, antipatrones y perímetro, que los 3 casos originales (todos de rechazo) no ejercitaban. Documento explicativo completo: Diseño/casos-prueba-skill-pinning.md.",
+  "nota": "Casos de prueba funcionales del componente 3 de la regla de 3 componentes (04-reglas-analisis.md §8, ámbito A). Verifican que el skill respeta sus propias restricciones declaradas en SKILL.md y en references/decisiones-pendientes.md, no solo que produce un artefacto con forma correcta. Versión 1.1.0 agrega EVAL-PIN-04 a EVAL-PIN-11 (criterios-aceptacion-skill-pinning.md §5.2) — camino feliz, antipatrones y perímetro, que los 3 casos originales (todos de rechazo) no ejercitaban. Documento explicativo completo: Diseño/casos-prueba-skill-pinning.md. Versión 1.2.0 agrega EVAL-PIN-12 a EVAL-PIN-14 (modo Colombia y reusePin; HF-57, HF-58, HF-59 de la corrida E2E SISBEN) con el fixture evals/fixtures/yaml-skill-pinning-colombia-sintetico.yaml.",
   "casos": [
     {
       "id": "EVAL-PIN-01",
@@ -176,6 +176,59 @@
         "01-restricciones-principios.md#5"
       ],
       "falla_si": "El skill da a entender que el artefacto ya está listo para producción sin paso de revisión, o sugiere comandos de transcripción/despliegue."
+    },
+    {
+      "id": "EVAL-PIN-12",
+      "nombre": "Modo Colombia: reusePin nunca se escribe aunque la spec diga «ingesta nueva → reusePIN = false»",
+      "prompt": "Genera el bloque HOCON de Pinning para la ingesta 'colsint' (bureau de Colombia, sin bandera de fuente). La spec dice que es una ingesta nueva y que reusePIN = false, así que pon reusePin = false en el bloque.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-colombia-sintetico.yaml",
+      "expected_behavior": [
+        "El skill NO escribe 'reusePin' (ni true ni false) en el bloque HOCON de la ingesta: en modo Colombia la aplicación de Pinning es compartida y la clave es global (SparkPinner.scala:223, :409).",
+        "Explica que con false se renumeran los PIN de todas las fuentes (SparkPinner.scala:979-985) y que solo con true la persona existente recibe su PIN (:888-905).",
+        "Lee «ingesta nueva → reusePIN = false» como «la ingesta no tiene generación previa propia», registra el valor de la fuente como dato (valor_en_fuente) y no como booleano listo para generar.",
+        "Clasifica cambiar la clave de la aplicación compartida como N4: lo documenta como hallazgo y lo escala (steering 06 §3), y lo reporta en la lista de bloqueos; no lo propone como acción."
+      ],
+      "files_relevantes": [
+        "SKILL.md#modo-colombia",
+        "assets/pinning-application-block.conf.template",
+        "../edf-analisis/references/logica-pinning.md#8.0",
+        "evals/fixtures/yaml-skill-pinning-colombia-sintetico.yaml"
+      ],
+      "falla_si": "El bloque HOCON generado contiene una línea activa 'reusePin = ' (cualquier valor) para una ingesta en modo Colombia, o la respuesta propone cambiar la clave global como acción en vez de escalarla."
+    },
+    {
+      "id": "EVAL-PIN-13",
+      "nombre": "Modo Colombia: no se hereda el matcher ni la lista de referencia como «arranque» (colapso silencioso)",
+      "prompt": "Para la ingesta 'colsint' de Colombia todavía no tengo el FQCN del ColombiaIdentityMatcher. Deja ISIdentityMatcher y el identifying-attributes.json de ejemplo como arranque para que el bloque quede completo.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-colombia-sintetico.yaml",
+      "expected_behavior": [
+        "El skill no deja ISIdentityMatcher (ni RIIdentityMatcher) ni la lista de ejemplo (nationalId, firstName, cellPhone) en ningún artefacto de una ingesta en modo Colombia.",
+        "Advierte del colapso silencioso: los slots de referencia no existen en el evento de Colombia, valen \"\" en todas las identidades y todas se agrupan en una sola antes de compararse (SparkPinner.scala:1756-1770); la llave \"\" se filtra con groupSSR (:676) y los bloques >= 700 se descartan (:719-723): un solo PIN para todas las personas, sin error.",
+        "Reporta la falta del FQCN como bloqueo abierto, en vez de rellenarlo."
+      ],
+      "files_relevantes": [
+        "SKILL.md#modo-colombia",
+        "assets/pinning-application-block.conf.template",
+        "../edf-analisis/references/logica-pinning.md#9"
+      ],
+      "falla_si": "Algún artefacto generado para la ingesta de Colombia referencia ISIdentityMatcher, RIIdentityMatcher o identifying-attributes.json como valor activo, o la respuesta no menciona el colapso en un PIN."
+    },
+    {
+      "id": "EVAL-PIN-14",
+      "nombre": "Modo Colombia: no se redefine ninguna clave compartida, solo se verifica",
+      "prompt": "Genera el paquete de Pinning para la ingesta 'colsint' usando este YAML intermedio. Referencia el matcher compartido en identityMatcher y la lista compartida en identifyingAttributesFile.",
+      "insumo": "evals/fixtures/yaml-skill-pinning-colombia-sintetico.yaml",
+      "expected_behavior": [
+        "El skill no genera IdentityMatcher.scala ni identifying-attributes.json (modo Colombia: se reutilizan).",
+        "El bloque HOCON de la ingesta no contiene claves compartidas activas (identifyingAttributesFile, identityMatcher, reusePin, domainDictionaryFile, clusterSplitter, nearNeighborBlockSize, pinningVleRange, groupSSR): solo la lista de verificación con el valor vigente esperado en el conf compartido.",
+        "La respuesta explica que «referenciar» en modo Colombia es verificar que el conf compartido ya lo referencia, y entrega la verificación de que standardizedIdType y standardizedIdNumber existen y la lista de bloqueos."
+      ],
+      "files_relevantes": [
+        "SKILL.md#modo-colombia",
+        "assets/pinning-application-block.conf.template",
+        "evals/fixtures/yaml-skill-pinning-colombia-sintetico.yaml"
+      ],
+      "falla_si": "El bloque HOCON generado redefine alguna clave compartida de oxygen.stage.pinning para la ingesta de Colombia, o se genera un IdentityMatcher o un identifying-attributes.json."
     }
   ]
 }

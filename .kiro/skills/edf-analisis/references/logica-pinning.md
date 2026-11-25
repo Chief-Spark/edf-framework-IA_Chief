@@ -50,7 +50,7 @@ Pinning agrupa eventos curados que pertenecen a la misma entidad real, asignánd
 | `oxygen.stage.pinning.paths.identifyingAttributesFile` | — | Lista de rutas a archivos JSON con los atributos identificadores. **Solo se usa el primer elemento de la lista**; el resto se ignora silenciosamente (ver §9) | `[C]` |
 | `oxygen.stage.pinning.identityMatcher` | `""` (vacío) | FQCN de la implementación de `IdentityMatcher` instanciada por reflexión. Si queda vacío, `Class.forName("")` falla en tiempo de ejecución | `[C]` |
 | `oxygen.stage.pinning.clusterSplitter` | — | FQCN opcional de `ClusterSplitter`. Si es `null`/`""`, no se instancia y no se aplica partición de clusters | `[C]` |
-| `oxygen.stage.pinning.reusePin` | — | `true` = pinning estático (reusa pines de la generación de referencia); `false` = pinning dinámico (todos los pines se regeneran, sin merge/split) | `[C]` |
+| `oxygen.stage.pinning.reusePin` | — | **Global de la aplicación**: se lee una vez (`SparkPinner.scala:223`) y vale para todas las fuentes que lee la aplicación (§8). `true` = pinning estático (reusa pines de la generación de referencia); `false` = pinning dinámico (todos los pines se regeneran, sin merge/split). En modo Colombia no se escribe (§8.0) | `[C]` |
 | `oxygen.stage.pinning.saveNearNeighborState` | `false` | Si se persiste el artefacto `-nearNeighbor` | `[C]` |
 | `oxygen.stage.pinning.saveStampedIdentityState` | `false` | Si se persiste el artefacto `-stampedIdentity` (identity-pin-map) | `[C]` |
 | `oxygen.stage.pinning.groupSSR` | `true` | Activa una unión adicional de clusters por `subscriber:subscriberRelation` (SSR), fusionada con el resultado del clustering principal. **El `.conf` de ejemplo lo pone en `false`** — el override explícito gana sobre el default de plataforma | `[C]` |
@@ -207,6 +207,15 @@ Mecanismo exclusivo de Pinning entre las etapas analizadas hasta ahora (`problem
 - `reusePin = true` → pinning estático: se lee el `identity-pin-map` de la generación de referencia (`PINNED_REFERENCE_DIR`), localizado exigiendo **unicidad estricta** (si hay 0 o más de 1 archivo que matchee `.*-identity-pin-map$`, se trata como "no hay generación previa" y se generan pines nuevos, degradando con gracia vía `logger.warn`, no con excepción).
 - `reusePin = false` → pinning dinámico: todos los pines se regeneran, sin merge ni split; se usan pines secuenciales desplazados por `pinningVleRange` (`zipWithUniqueId` + offset).
 
+### 8.0 `reusePin` es global de la aplicación, no de la ingesta (HF-57) `[C]`
+
+La clave se lee una sola vez del conf de la aplicación (`SparkPinner.scala:223`) y decide para **toda la corrida** si se lee el identity-pin-map (`:409`). La aplicación lee todo lo que hay bajo `curatedDir/*/*` (`PinningIOUtils.scala:23-31`), es decir, todas las fuentes. Consecuencias:
+
+- Con `false`, **todos** los PIN de **todas** las fuentes se renumeran como `zipWithUniqueId + pinningVleRange` (`:979-985`): los números de la generación anterior quedan asignados a otras personas, sin error.
+- Con `true`, la identidad que se une a un clúster con PIN previo lo conserva (`:888-905`) y la que no tiene PIN previo (centinela `-1L`, §8.1) recibe uno nuevo (`:881-887`). El escenario «persona existente recibe ese PIN» solo se cumple con `true`.
+- «Ingesta nueva → `reusePIN = false`» en una spec o una HU significa que **la ingesta no tiene generación previa propia**, no que se cambie la clave global.
+- **Modo Colombia** (aplicación compartida): la clave **nunca se escribe** en el bloque de la ingesta. El insumo registra el valor de la fuente como dato (`valor_en_fuente`) y `valor_a_escribir: "no se escribe en modo Colombia"`. Cambiar la clave de la aplicación compartida es **N4** (steering `06` §3): se documenta y se escala.
+
 ### 8.1 Centinela de "sin pin previo"
 
 El valor `-1L` marca una identidad que no tiene pin de la generación anterior. Se fusiona el estado nuevo (`-1L` por defecto) con el estado leído (`PinnedTaggedIdentity.pin` real) mediante `aggregateByKey`, y luego:
@@ -267,6 +276,7 @@ Distinción importante para el Skill: no todos los guards del código son fail-f
 | Timeout de Connected Components | **Fail-silent (parcial)** | Se maneja como `Option`; el código fuente devuelve siempre `Some(...)` o lanza `TimeoutException` directamente — nunca llega realmente a `None` tal como el código espera comprobar con `== None`. El job no produce una tupla de resultados utilizable si falla, pero el mecanismo de detección de fallo (`ccFailed`) está roto: nunca se activa por la vía esperada |
 | Bloques near-neighbor con tamaño ≥ `nearNeighborBlockSize` | **Fail-silent** | Se descartan con `println("*** Ignored block: " + ...)`, sin excepción, sin entrada en el logger formal. Identidades de ese bloque **no se comparan entre sí en absoluto** — quedan sin oportunidad de match dentro de ese vecindario |
 | `identity-pin-map` de la generación de referencia no legible | **Degrada con gracia** | `try/catch`, `logger.warn`, continúa asumiendo que no hay pines previos |
+| Matcher o lista de atributos de referencia (`ISIdentityMatcher`, `identifying-attributes.json` con `nationalId`/`firstName`/`cellPhone`) con eventos de Colombia (`standardizedId*`) (HF-58) | **Fail-silent (colapso)** | Los slots no existen en el evento: todos valen `""` (`IdentityMatcher.scala:46-49`), todas las identidades son iguales y se agrupan por `identityId` en una sola antes de compararse (`SparkPinner.scala:1756-1770`; la construcción de `Identity` está en oxygen-core, `[P]`). La llave de vecinos `""` se filtra con `groupSSR = true` (`:676`) y los bloques ≥ `nearNeighborBlockSize` se descartan (`:719-723`). Resultado: un solo PIN para todas las personas. Nunca se heredan como «arranque» en modo Colombia |
 
 `[C]`, verificado por lectura directa de cada bloque de código citado.
 

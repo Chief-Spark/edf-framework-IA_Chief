@@ -24,14 +24,24 @@ Para ingestas del bureau de Colombia (`bureau.colombia_innersource`), **no gener
 
 | Pieza | Qué haces |
 |---|---|
-| Lista de atributos compartida (`identifying-attributes-new.json`) | Referenciarla en el bloque HOCON. No la regeneras |
-| Matcher compartido (`ColombiaIdentityMatcher`; `IdentityImpl` según otra fuente, steering `11` §6 #7) | Referenciarlo en `identityMatcher`. No lo modificas |
+| Lista de atributos compartida (`identifying-attributes-new.json`) | Verificar que el conf compartido de Colombia ya la referencia en `identifyingAttributesFile`. No la regeneras ni redefines la clave |
+| Matcher compartido (`ColombiaIdentityMatcher`; `IdentityImpl` según otra fuente, steering `11` §6 #7) | Verificar que el conf compartido ya lo referencia en `identityMatcher`. No lo modificas ni redefines la clave |
 | Claves que debe traer el evento curado | Verificar que `standardizedIdType` y `standardizedIdNumber` existan en `source-spec-curation.yaml` (las exige la regla 0 del matcher) |
 | Bandera de fuente de la regla 1 | Depende de `OQ-TR-6`. Mientras esté abierta: **detente** en este punto y repórtalo como bloqueo; no elijas `isOfficialSource` ni propongas una bandera nueva por tu cuenta |
 
 Si `OQ-TR-6` se resuelve con una bandera **nueva**, el cambio toca tres piezas compartidas (`identifying-attributes-new.json`, `IdentityAttributesKey`, `doesMatch`): riesgo N3 fijo (steering `06` §2.2). Solo entregas el diff como propuesta en `propuestas/pinning/`; lo aplica una persona en el repo.
 
-En modo Colombia tu entrega es: el bloque HOCON de `pinning-application.conf` (con `reusePin = false` en ingesta nueva; sin redefinir las claves compartidas, como `identifyingAttributesFile` o `domainDictionaryFile` si ya existen), la verificación de que las claves existen y la lista de bloqueos abiertos. Las secciones de `IdentityMatcher.scala.template` y de la aritmética del umbral **no aplican** (el matcher de Colombia es determinista: match / no match).
+En modo Colombia la aplicación de Pinning es **compartida**: lee todas las fuentes bajo `curatedDir/*/*` (`PinningIOUtils.scala:23-31`) y cada clave de `oxygen.stage.pinning` vale para todas (HF-59, AUD-P-11). Por eso **no se redefine ninguna clave compartida**: `identifyingAttributesFile`, `identityMatcher`, `reusePin`, `domainDictionaryFile`, `clusterSplitter`, `nearNeighborBlockSize`, `pinningVleRange`, `groupSSR`. Solo se verifica su valor vigente en el conf de Colombia. Tu entrega es:
+
+1. el bloque HOCON de la ingesta **sin claves compartidas**: solo comentarios con cada clave a verificar en el conf compartido y su valor esperado (`assets/pinning-application-block.conf.template`, sección «Modo Colombia»);
+2. la verificación de que las claves del evento curado existen;
+3. la lista de bloqueos abiertos. Si la ingesta necesita otro valor en una clave compartida, no la escribes: es un bloqueo que se reporta.
+
+Las secciones de `IdentityMatcher.scala.template` y de la aritmética del umbral **no aplican** (el matcher de Colombia es determinista: match / no match).
+
+**`reusePin` en modo Colombia: nunca se escribe (HF-57).** `oxygen.stage.pinning.reusePin` se lee una sola vez para toda la aplicación (`SparkPinner.scala:223`) y decide para toda la corrida si se lee el identity-pin-map de la generación de referencia (`:409`). Con `false`, **todos** los PIN de **todas** las fuentes se renumeran como `zipWithUniqueId + pinningVleRange` (`:979-985`), sin error. Con `true`, una persona que ya existe recibe su PIN (`:888-905`) y una nueva recibe uno nuevo (`:881-887`): es la única forma de cumplir el escenario «persona existente recibe ese PIN». Cuando una spec o una HU dicen «ingesta nueva → `reusePIN = false`», eso significa que **la ingesta no tiene generación previa propia** (sus identidades no están en el identity-pin-map, centinela `-1L`, `.kiro/skills/edf-analisis/references/logica-pinning.md` §8.1), no que se cambie la clave global. Cambiar la clave en la aplicación compartida es **N4** (steering `06` §3: no se propone como acción; se documenta y se escala). Registra el valor de la fuente como dato en tu entrega y no lo conviertas en `reusePin = false`.
+
+**Colapso silencioso con el matcher o la lista de referencia (HF-58).** Nunca heredes como «arranque» `ISIdentityMatcher` (o `RIIdentityMatcher`) ni la lista de ejemplo `identifying-attributes.json` (`nationalId`, `firstName`, `cellPhone`…) con eventos de Colombia (`standardizedId*`). Esos slots no existen en el evento, así que todos los atributos valen `""` (`IdentityMatcher.scala:46-49`) y todas las identidades quedan iguales y se agrupan por `identityId` en una sola **antes** de compararse (`SparkPinner.scala:1756-1770`). La llave de vecinos `""` se filtra con `groupSSR = true` (`:676`, valor por defecto) y los bloques de `nearNeighborBlockSize` (700) o más se descartan sin comparar (`:719-723`). Resultado: un solo PIN para todas las personas, sin error. Si el conf compartido no trae el matcher y la lista de Colombia, es un bloqueo.
 
 
 Este skill convierte un mapeo de identidad ya confirmado (normalmente ya resuelto en un YAML intermedio como `yaml-skill-pinning.yaml`) en un paquete de artefactos listos para revisión humana: un `IdentityMatcher` en Scala, su `identifying-attributes.json`, y el bloque HOCON de configuración que los conecta.
@@ -77,7 +87,7 @@ Un array plano de strings con los nombres de slot `[C]`, en el mismo orden que a
 
 ### 5. Genera el bloque HOCON desde `assets/pinning-application-block.conf.template`
 
-Completa solo las claves para las que tengas una fuente o una decisión explícita del usuario. `clusterSplitter` y `paths.domainDictionaryFile` llevan "verificar en el fork" (AUD-P1): el nombre de la primera no tiene evidencia en la copia del motor y la ausencia de la segunda solo deja un `warn`. Las claves con conflicto conocido entre defaults (como `groupSSR`, documentado en la plantilla) nunca se completan con uno de los dos valores en conflicto sin que el usuario lo decida explícitamente — preséntale el conflicto, no lo resuelvas tú.
+En modo Colombia usa solo la sección «Modo Colombia» de la plantilla: ninguna clave compartida se escribe (ver arriba). Fuera de modo Colombia, completa solo las claves para las que tengas una fuente o una decisión explícita del usuario. `clusterSplitter` y `paths.domainDictionaryFile` llevan "verificar en el fork" (AUD-P1): el nombre de la primera no tiene evidencia en la copia del motor y la ausencia de la segunda solo deja un `warn`. Las claves con conflicto conocido entre defaults (como `groupSSR`, documentado en la plantilla) nunca se completan con uno de los dos valores en conflicto sin que el usuario lo decida explícitamente — preséntale el conflicto, no lo resuelvas tú.
 
 ### 6. Entrega los tres artefactos juntos, con un resumen de huecos
 

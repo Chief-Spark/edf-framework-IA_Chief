@@ -1,0 +1,137 @@
+# yaml-skill-pinning.yaml — FIXTURE SINTÉTICO de evaluación (EVAL-PIN-12 a EVAL-PIN-14). No es una ingesta real.
+# Ingesta ficticia «colsint» del bureau de Colombia, sin bandera de fuente, con una spec que dice
+# «ingesta nueva → reusePIN = false». Estructura: edf-analisis/assets/templates/_cabecera-yaml-skill.yaml.tpl +
+# yaml-skill-pinning.yaml.tpl. Pasa tools/verificar-insumo-pinning.py --archivo <este archivo>.
+# Sin estado ni aprobador (HF-32).
+
+documento:
+  tipo: "intermediario-skill"
+  etapa_pipeline: "Pinning"
+  ingesta: "colsint"
+  version: "1.0.0"
+  fecha: "2026-11-25"
+
+procedencia:
+  fuente_analisis:
+    ruta: ".kiro/skills/edf-analisis/references/logica-pinning.md"
+    version_fuente: "sintético"
+  fuentes_ingesta:
+    mapeo_campos: "sintético"
+    source_spec_curation: "sintético"
+    contrato_curation_pinning: "sintético"
+  repositorio_base:
+    nombre: "oxygen-pinning"
+    naturaleza: "Z2 — solo lectura"
+  skill_destino: "edf-pinning"
+
+alcance:
+  genera: ["verificación de las claves compartidas", "lista de bloqueos"]
+  no_genera:
+    - {artefacto: "IdentityMatcher", razon: "modo Colombia: se reutiliza el matcher compartido"}
+    - {artefacto: "identifying-attributes.json", razon: "modo Colombia: se reutiliza la lista compartida"}
+  precondiciones_bloqueantes:
+    - {id: "PA-SINT-1", descripcion: "Valor vigente de reusePin en el conf compartido y lectura de «reusePIN = false» de la spec", efecto: "N4 si se cambia la clave global; se escala"}
+
+marcado_heredado:
+  nota: "Todo valor con marcador distinto de [C] en logica-pinning.md se transcribe con su marcador original."
+
+trazabilidad:
+  citas_formato: "archivo §sección | ruta/archivo::símbolo"
+  ultima_verificacion_referencias: "2026-11-25"
+
+modo_colombia:
+  aplica: true
+  identifying_attributes_compartido: "identifying-attributes-new.json"
+  identity_matcher: "ColombiaIdentityMatcher"       # [C] decisión de la spec sintética · [A:PA-SINT-2] FQCN en el fork
+  claves_obligatorias_en_evento_curado:
+    - "standardizedIdType"
+    - "standardizedIdNumber"
+  clave_opcional: "standardizedIdName"
+  bandera_fuente_regla_1:
+    opcion: "ninguna"
+    efecto: "sin bandera, la ingesta cae en la regla 2 (tipo + número + nombre)"
+  subscriber_relation_formato: "<standardizedIdType>_<standardizedIdNumber>"
+  umbral_y_matcher_determinista:
+    texto_spec: "prioridad 2 standardizedIdName con el umbral vigente (spec sintética §11)"
+    lectura_del_matcher: "pinning-muric.md §4.1.2, §4.2: reglas 0-4 sin umbral; nearNeighborKeys = standardizedIdNumber"
+    diferencia: "el nombre no es una vía de bloqueo propia: no junta identidades de números distintos"
+    estado: "[A:PA-SINT-2]"
+
+mapeo_identidad:
+  decision_origen:
+    descripcion: "Claves standardizedId* publicadas por Curation; slot = misma clave en la lista compartida"
+    fuente: "spec sintética §11"
+    estado: "[C]"
+  atributos:
+    - atributo_motor: "standardizedIdType"
+      campo_curado_colsint: "standardizedIdType"
+      rol_en_matching: ["doesMatch: regla 0 y regla 2 [A:PA-SINT-2]"]
+      obligatorio: true
+      pertenece_llave_identidad: true
+      pii: true
+      estado: "[C]"
+      fuente: "spec sintética §11"
+    - atributo_motor: "standardizedIdNumber"
+      campo_curado_colsint: "standardizedIdNumber"
+      rol_en_matching: ["doesMatch: regla 0 y regla 2", "nearNeighborKeys [A:PA-SINT-2]"]
+      obligatorio: true
+      pertenece_llave_identidad: true
+      pii: true
+      estado: "[C]"
+      fuente: "spec sintética §11"
+    - atributo_motor: "standardizedIdName"
+      campo_curado_colsint: "standardizedIdName"
+      rol_en_matching: ["doesMatch: regla 2 [A:PA-SINT-2]"]
+      obligatorio: false
+      pertenece_llave_identidad: true
+      pii: true
+      estado: "[C]"
+      fuente: "spec sintética §11"
+  pendientes_del_mapeo: []
+
+reglas_matching_por_campo:
+  aplica: false                                     # matcher determinista; ver modo_colombia.umbral_y_matcher_determinista
+  reglas: []
+
+instruccion_generacion:
+  archivo: "identifying-attributes.json"
+  contenido_a_escribir:
+    regla: "modo Colombia: no se escribe; se reutiliza identifying-attributes-new.json"
+    valor_resultante: []
+    excluidos_hasta_resolver: []
+    advertencia_consecuencia: "Nunca dejar ISIdentityMatcher ni la lista de ejemplo como arranque: colapso en un PIN (HF-58)"
+    estado: "[C]"
+
+claves_configuracion_pinning:
+  bloque_oxygen_stage_pinning:
+    - clave: "oxygen.stage.pinning.paths.identifyingAttributesFile"
+      valor_a_escribir: "no se redefine (lista compartida identifying-attributes-new.json)"
+      estado: "[P]"
+      fuente: "edf-pinning SKILL.md «Modo Colombia»"
+    - clave: "oxygen.stage.pinning.identityMatcher"
+      valor_a_escribir: "no se redefine (matcher compartido de Colombia)"
+      estado: "[P]"
+      fuente: "edf-pinning SKILL.md «Modo Colombia»"
+    - clave: "oxygen.stage.pinning.reusePin"
+      valor_en_fuente: "reusePIN = false (spec sintética §11: ingesta nueva, sin generación previa propia)"
+      valor_a_escribir: "no se escribe en modo Colombia (clave global de la aplicación compartida)"
+      estado: "[A:PA-SINT-1]"
+      fuente: "logica-pinning.md §8.0; SparkPinner.scala:223, :409, :979-985"
+  pendientes_de_configuracion: []
+
+keep_together_keep_apart:
+  instruccion_generacion:
+    accion: "NO GENERAR salvo caso de negocio confirmado"
+    razon: "la spec sintética no trae casos"
+
+artefactos_salida_hacia_synthesis:
+  nivel_contrato:
+    ruta_pinned: "pinning/pinned/"
+    marcador_finalizacion: "_SUCCESS"
+    estado: "[PM]"
+    fuente: "07-contratos-frontera.md §4"
+
+comportamiento_del_motor_a_tener_en_cuenta:
+  comportamientos_fail_fast: []
+  comportamientos_fail_silent:
+    - "Matcher o lista de referencia con eventos de Colombia: colapso en un PIN (logica-pinning.md §9, HF-58)"

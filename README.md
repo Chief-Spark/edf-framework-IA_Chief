@@ -31,6 +31,7 @@ edf-framework-IA/
 │   ├── validar-expediente.py     valida un expediente (esquema + reglas de gobierno de references/03)
 │   ├── validar-expedientes.py    valida todos (lo usa el hook)
 │   ├── verificar-claves.py       cruza los nombres de campo curado entre los insumos de una ingesta
+│   ├── verificar-insumo-pinning.py  secciones, cabecera, modo Colombia y contrato del insumo de Pinning
 │   ├── verificar-insumos-etapa0.py  compuerta de la etapa 0 (lo usa el hook)
 │   ├── verificar-artefactos-etapa.py  reglas del motor para los artefactos de Synthesis y State Calculation
 │   └── auditar-skills.py         auditoría repetible de las skills (silencios, referencias obsoletas)

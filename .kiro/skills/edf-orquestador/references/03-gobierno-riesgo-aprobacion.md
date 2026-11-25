@@ -87,6 +87,17 @@ Si los artefactos de una etapa ya `aprobada` tienen que regenerarse —por ejemp
 
 Mientras dure la revisión, la etapa siguiente puede seguir, porque consume el contrato aprobado, no la implementación; si la re-auditoría encuentra que el contrato cambió, se aplica §3c.
 
+### 3e. Verificación diferida de hechos fuera del repositorio
+
+Cuando una pregunta abierta solo se puede cerrar con código o configuración que no están en el workspace (por ejemplo, una clase compartida de otro repositorio o el valor vigente de una clave del fork), el Desarrollador (N3) o el PO (N4) puede convertir la parte no verificable en **verificación diferida**, siempre que:
+
+1. **Ningún artefacto generado dependa del hecho no verificado** (ni un valor, ni una clase, ni un umbral). Si alguno lo necesita, la pregunta sigue bloqueante y la etapa no avanza.
+2. La parte verificable se cierra con su evidencia; la otra se marca `[PM]` en el insumo y en los artefactos (nunca `[C]`).
+3. Se abre un riesgo `alto` «verificación diferida de <tema>» con sus criterios de cierre. Ese riesgo **bloquea la integración al fork y la certificación** de la etapa y de las que consumen su salida, que deben citarlo en sus aprobaciones; no bloquea la propuesta ni la auditoría.
+4. Si al verificar el hecho contradice lo supuesto, se abre una pregunta bloqueante para la certificación y se revisa con §3c o §3d.
+
+No aplica a lo que decide la spec (eso se resuelve con la spec) ni a un supuesto con consecuencia irreversible que no quede bloqueado por el riesgo (`09` §5.1 #6).
+
 Además aplican las condiciones de bloqueo de `09` §5.1 (artefacto que depende de `[A:<ID>]`, checklist de seguridad de `08` §8 incompleto, supuesto irreversible sin confirmar, hallazgo de seguridad sin escalar).
 
 Si **alguna** falla: `transicion_habilitada = false`, la etapa N+1 permanece `no_iniciada`, y el Orquestador responde con el checklist marcando exactamente qué falta. **No hay excepción ni override.**

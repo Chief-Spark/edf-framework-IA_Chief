@@ -17,16 +17,18 @@ description: Contrato de frontera entre la salida de Curation y la entrada de Pi
 ## 1. Cómo lee Pinning la salida de Curation `[C]`
 
 ```
-disco (curatedDir/*/*)
+disco (INPUT_REF_DIR si está definido y no vacío; si no, curatedDir/*/*)
   └─ TaggedWritableEvent                        esquema de lectura
        └─ TaggedWritableEvent.toTaggedCuratedEvent
             └─ TaggedCuratedEventWithMap
                  └─ curatedRecordJson: Map[String, Any]   ← claves = nombres publicados por CuratedEvent.write
 ```
 
-- Lectura: `curatedDir/*/*` (incluye `flow` y `stock`).
+- Lectura: `curatedDir/*/*` (incluye `flow` y `stock`), salvo que `INPUT_REF_DIR` esté definido y no vacío: entonces se lee esa ruta (`PinningIOUtils.scala:24-25`).
 - El mapa `curatedRecordJson` lo produce `<Fuente>CuratedEvent.write` en Curation.
-- Fuente del lector: copia del helper que trae el repo de Validation. El repo `oxygen-pinning` no está en el workspace → el lector queda `[A:lector-oxygen-pinning]` hasta verlo en ese repo.
+- Fuente del lector (HF-60): `oxygen-pinning` está en el workspace (`Motor-Oxigen/oxygen-pinning/`) y trae el lector: `SparkPinner.scala:348` → `:1237-1238` → `PinningIOUtils.readCuratedEvents` (`PinningIOUtils.scala:23-46`) → `OxygenIOReaderUtils.taggedCuratedEventsFromWritable` (`OxygenIOReaderUtils.scala:72-75`). `[C]`
+- Lo que no consta en el workspace vive en oxygen-core: `TaggedWritableEvent.toTaggedCuratedEvent` y la construcción de `TaggedIdentity` / `Identity` (`TaggedIdentity.createWithTaggedCuratedEventWithMap`, llamada en `SparkPinner.scala:1760`) → `[A:oxygen-core]` (§6 #2).
+- El batch **no** usa `EventPinner` (`util/EventPinner.scala` no se instancia en ningún lugar del motor; lee `TaggedCuratedEvent`, no `TaggedCuratedEventWithMap`). No se cita como evidencia del comportamiento de Pinning batch (HF-61).
 
 ## 2. Qué toma Pinning del evento `[C]`
 
@@ -60,7 +62,7 @@ Consecuencia operativa: un error aquí no falla en build ni en ejecución; falla
 **Claves de identidad: ausentes, nunca `null` `[C]`** (auditoría 2026-11-24, `edf-curation` AUD-C4 y `edf-pinning` AUD-P2).
 
 - Curation omite del evento las claves de identidad cuyo valor es nulo: `parametros.omitir_si_nulas` del `source-spec`, por defecto todo `standardizedId*`. Las demás claves nulas siguen como `null`.
-- Por qué: el motor entrega `""` por un atributo que el evento no trae (comentario de `IdentityMatcher.scala:46-49` en la copia del motor), pero un `null` llega como valor y `ISIdentityMatcher` hace `.get.toString` (`ISIdentityMatcher.scala:46-54`): falla la ejecución.
+- Por qué: el motor entrega `""` por un atributo que el evento no trae (comentario de `IdentityMatcher.scala:46-49` en la copia del motor), pero un `null` llega como valor y `ISIdentityMatcher` hace `.get.toString` (`ISIdentityMatcher.scala:46-54`): falla la ejecución. Esa es la evidencia de «un `null` lanza» en Pinning batch, y solo para el matcher de referencia; para otro matcher (p. ej. `ColombiaIdentityMatcher`) se verifica en su código. No se cita `EventPinner.scala:64-65`: no se usa en el batch (§1, HF-61).
 - Obligación de Pinning: los matchers leen atributos con `Option` / `getOrElse("")`, nunca con `.get`, y tratan `""` como dato faltante (no como coincidencia).
 - `subscriberRelation` nunca sale vacío de Curation: si falta un componente de `extension_subscriber_relation`, se conserva el aceptado y el registro lo advierte (`subscriberRelation:COMPONENTE_FALTANTE`). Un vacío uniría personas distintas en el `doesMatch` base (`IdentityMatcher.scala:55`).
 
@@ -120,7 +122,7 @@ Pendientes del framework para una ingesta cualquiera. **Para SISBEN quedan resue
 | # | Pendiente | Estado |
 |---|---|---|
 | 1 | Ruta S3 completa de **entrada** a Pinning. La conocida (`s3://dev-167753196070-emr-coslabureau-data/dev_sla_co_ebp_1/colombia-app/generations/`) es la de **salida** (generación EPOC). De la entrada solo consta el patrón `curatedDir/*/*` | `[PM]` |
-| 2 | Lector confirmado en `oxygen-pinning` (hoy se cita la copia del repo de Validation) | `[A:lector-oxygen-pinning]` |
+| 2 | ~~Lector confirmado en `oxygen-pinning`~~ **Cerrado (HF-60):** el lector está en `oxygen-pinning` del workspace (§1: `PinningIOUtils.scala:23-46`, `OxygenIOReaderUtils.scala:72-75`). Queda pendiente lo que vive en oxygen-core, que no está en el workspace: `TaggedWritableEvent.toTaggedCuratedEvent` y la construcción de `TaggedIdentity` / `Identity` (qué valor recibe un atributo ausente o `null`) | `[A:oxygen-core]` |
 | 3 | ~~Cuál clave es `nationalId`~~ | **Cerrada (usuario, 2026-11-04):** el identificador es `standardizedIdNumber`, derivado de `NUM_DOCUMENTO`. No es `idNacional` |
 | 4 | Colisión posible entre el manejo de EP en Curation e `inferDelete` en Pinning | `[A:PT-12]` (heredado de `03`) |
 | 5 | **Los nombres no coinciden entre las piezas.** El `yaml-skill-pinning.yaml` de SISBEN mapea `nationalId → standardizedIdNumber` y `firstName → PRI_NOMBRE` (y `yaml-skill-synthesis.yaml` / `yaml-skill-statecalc.yaml` usan `standardizedIdNumber` / `standardizedIdType` como campos curados); Curation publica `numeroDocumento` y `primerNombre` (source-spec de Curation y ejemplo de §5); `identifying-attributes.json` usa los slots del motor (`nationalId`, `firstName`). Falta confirmar en qué punto la clave publicada por Curation se convierte en el slot del motor (¿Curation publica con el nombre del slot?, ¿Pinning tiene un mapeo?) | **Decidido (usuario, 2026-11-04): opción A.** Curation publica además `standardizedIdType` (código Experian del catálogo 202, entero), `standardizedIdNumber` (texto, ceros a la izquierda eliminados) y `standardizedIdName` (CUR-SIS-03). Para PPT se crea además `NUM_DOCUMENTO_SISBEN` con el valor original. Pinning reutiliza las piezas compartidas de Colombia, sin generar matcher (P1). Pendiente de aplicar en `source-spec` y `yaml-skill-*` hasta cerrar #6 y #7 |

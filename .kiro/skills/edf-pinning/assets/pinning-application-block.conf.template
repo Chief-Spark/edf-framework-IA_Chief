@@ -11,6 +11,42 @@
 # Cada clave trae su propio comentario con la regla y el estado de
 # confirmación — no borres estos comentarios al generar el archivo final,
 # son la trazabilidad que el revisor humano necesita.
+#
+# ── Modo Colombia (bureau.colombia_innersource; SKILL.md «Modo Colombia») ──
+# La aplicación de Pinning es COMPARTIDA: lee todas las fuentes bajo
+# curatedDir/*/* (PinningIOUtils.scala:23-31) y cada clave de
+# oxygen.stage.pinning vale para todas. En modo Colombia NO se escribe el
+# bloque oxygen.stage.pinning de abajo: se entrega solo esta lista de
+# verificación, con el valor vigente que el equipo confirma en el conf
+# compartido. Si la ingesta necesita otro valor en una clave compartida, es
+# un bloqueo que se reporta, no una clave que se escribe.
+#
+#   VERIFICAR identifyingAttributesFile = lista compartida de Colombia
+#             (identifying-attributes-new.json)
+#   VERIFICAR identityMatcher           = matcher compartido de Colombia
+#             (ColombiaIdentityMatcher / IdentityImpl, steering 11 §6 #7)
+#   VERIFICAR reusePin                  = valor vigente del conf compartido.
+#             NO SE ESCRIBE (HF-57). Es global: SparkPinner.scala:223 lo lee
+#             una vez y :409 decide para toda la corrida. false renumera los
+#             PIN de TODAS las fuentes (:979-985); solo con true la persona
+#             existente recibe su PIN (:888-905). «Ingesta nueva → reusePIN =
+#             false» en una spec = la ingesta no tiene generación previa
+#             propia, no un valor de la clave global. Cambiar la clave es N4:
+#             se documenta y se escala (steering 06 §3).
+#             Valor de la fuente (dato, no se genera): {{REUSE_PIN_VALOR_FUENTE}}
+#   VERIFICAR domainDictionaryFile, clusterSplitter, nearNeighborBlockSize,
+#             pinningVleRange, groupSSR = valores vigentes del conf compartido
+#
+# COLAPSO SILENCIOSO (HF-58): nunca dejes, como «arranque», ISIdentityMatcher
+# (o RIIdentityMatcher) ni la lista de ejemplo identifying-attributes.json
+# (nationalId, firstName, cellPhone…) con eventos de Colombia (standardizedId*).
+# Esos slots no existen en el evento: todos valen "" (IdentityMatcher.scala:46-49),
+# todas las identidades quedan iguales y se agrupan por identityId en UNA sola
+# antes de compararse (SparkPinner.scala:1756-1770). La llave de vecinos "" se
+# filtra con groupSSR = true (:676) y los bloques >= 700 se descartan (:719-723).
+# Resultado: un solo PIN para todas las personas, sin error.
+#
+# ── Fuera de modo Colombia (aplicación propia de la ingesta) ──
 
 oxygen.stage.pinning {
 
@@ -34,6 +70,8 @@ oxygen.stage.pinning {
   # diseño sobre un matcher propio para {{INGESTA_NOMBRE}}, este valor es un
   # ARRANQUE heredado del matcher de referencia, NO una decisión técnica
   # cerrada — ajústalo según lo que el equipo decida.
+  # Solo fuera de modo Colombia. Con eventos de Colombia el matcher de
+  # referencia colapsa todas las identidades en un PIN (HF-58, arriba).
   identityMatcher = "{{IDENTITY_MATCHER_FQCN}}"
 
   # Sin FQCN por defecto — solo completar si existe evidencia de que esta
@@ -45,9 +83,14 @@ oxygen.stage.pinning {
   # Si el nombre no coincide, el motor no aplica splitter y no avisa.
   clusterSplitter = {{CLUSTER_SPLITTER_FQCN_O_NULL}}
 
-  # true = pinning estático (reusa pines de la generación de referencia).
-  # false = pinning dinámico (ingesta nueva, todos los pines se regeneran).
-  # [C] si existe confirmación explícita de que esta es la primera carga.
+  # Clave GLOBAL de la aplicación (SparkPinner.scala:223, :409): vale para
+  # todas las fuentes que lee esta aplicación, no solo para esta ingesta.
+  # true = pinning estático (reusa los PIN del identity-pin-map de la
+  # generación de referencia; una identidad sin PIN previo recibe uno nuevo).
+  # false = pinning dinámico: TODOS los PIN de la aplicación se renumeran
+  # (zipWithUniqueId + pinningVleRange, :979-985).
+  # Solo se escribe si la aplicación es propia de esta ingesta (nunca en modo
+  # Colombia, HF-57) y con confirmación explícita del valor [C].
   reusePin = {{REUSE_PIN}}
 
   # Umbral de tamaño de bloque near-neighbor. Bloques >= este valor se

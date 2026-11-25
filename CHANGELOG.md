@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.9.8 — 2026-11-25
+
+### Orquestador
+- **HF-62. Verificación diferida de hechos fuera del repositorio** (`references/03` §3e): la parte no verificable de una pregunta (p. ej. una clase compartida del fork) pasa a un riesgo alto que bloquea la integración y la certificación, siempre que ningún artefacto dependa del hecho (corrida E2E SISBEN, PA-008). Prueba: `tests/test_regresion_e2e_gobierno.py`.
+
+Correcciones de la auditoría del insumo de Pinning de la corrida E2E SISBEN (`ejecuciones/sisben-e2e/auditorias/pinning.md`, HF-57 a HF-61).
+
+### edf-pinning
+- **HF-57 (P1, AUD-P-01).** En modo Colombia la skill **nunca escribe `reusePin`**. La clave es global de la aplicación de Pinning (`SparkPinner.scala:223, 409`): `false` renumera los PIN de todas las fuentes (`:979-985`) y el escenario «persona existente recibe ese PIN» solo se cumple con `true` (`:888-905`). «ingesta nueva → `reusePIN = false`» significa que la ingesta no tiene generación previa propia; cambiar la clave de la aplicación compartida es N4 y se escala. Cambios: SKILL «Modo Colombia», `assets/pinning-application-block.conf.template` (sección «Modo Colombia», solo comentarios de verificación; el valor de la fuente va como dato, `{{REUSE_PIN_VALOR_FUENTE}}`), `edf-analisis/assets/templates/yaml-skill-pinning.yaml.tpl` (`valor_en_fuente` + `valor_a_escribir: "no se escribe en modo Colombia …"`, ya no un booleano) y `edf-analisis/references/logica-pinning.md` §4.1 y §8.0 (nuevo).
+- **HF-58 (AUD-P-09).** Advertencia del colapso silencioso: con `ISIdentityMatcher` o la lista de ejemplo (`nationalId`, `firstName`, `cellPhone`) y eventos de Colombia, todos los atributos valen `""` y todas las identidades se agrupan en una antes de compararse (`SparkPinner.scala:1756-1770`; `:676`, `:719-723`). Nunca se heredan como «arranque» en modo Colombia. En el SKILL, la plantilla del bloque, `logica-pinning.md` §9 y la plantilla del insumo.
+- **HF-59 (AUD-P-10, -11).** `SKILL.md` ya no se contradice: en modo Colombia no se redefine **ninguna** clave compartida (`identifyingAttributesFile`, `identityMatcher`, `reusePin`, `domainDictionaryFile`, `clusterSplitter`, `nearNeighborBlockSize`, `pinningVleRange`, `groupSSR`); solo se verifica. `evals/evals.json` 1.2.0 agrega EVAL-PIN-12 (reusePin), EVAL-PIN-13 (colapso) y EVAL-PIN-14 (claves compartidas), con el fixture `evals/fixtures/yaml-skill-pinning-colombia-sintetico.yaml`. `references/decisiones-pendientes.md` registra HF-57 a HF-59.
+
+### Steering y edf-analisis
+- **HF-60.** Steering `11` §1 y §6 #2: el lector está en `oxygen-pinning` del workspace (`PinningIOUtils.scala:23-46`, `OxygenIOReaderUtils.scala:72-75`, con la rama `INPUT_REF_DIR`); queda `[A:oxygen-core]` lo que vive en oxygen-core (`TaggedWritableEvent.toTaggedCuratedEvent`, construcción de `TaggedIdentity`). `yaml-skill-pinning.yaml.tpl` agrega `modo_colombia.umbral_y_matcher_determinista` (texto de la spec, lectura del matcher, diferencia, estado) y `reglas_matching_por_campo.aplica`. Modo 2 de `edf-analisis` documenta el verificador nuevo.
+- **HF-61 (AUD-P-05).** El framework no citaba `EventPinner.scala:64-65` (solo los insumos de la corrida, que no se tocan). Steering `11` §1 y §3 dejan dicho que `EventPinner` no se usa en el batch y que la evidencia de «un `null` lanza» es `ISIdentityMatcher.scala:46-54`, solo para el matcher de referencia.
+
+### Herramientas
+- **Nuevo `tools/verificar-insumo-pinning.py` (HF-60).** `python3 tools/verificar-insumo-pinning.py <ingesta-id>` (o `--dir <carpeta>`, o `--archivo <yaml> [--contrato <md>]`). Errores: secciones de la plantilla, estado/aprobador en la cabecera, `valor_resultante` con slots no `[C]` o con `[A:*]`, en modo Colombia una clave compartida (también `reusePin`) con valor listo para escribir, el matcher o la lista de referencia, lista o pesos regenerados, y claves de identidad ausentes de la tabla §1 del contrato. Avisos: contrato ausente, claves del contrato no citadas, `reusePin` sin `valor_en_fuente`, citas de `EventPinner`. Sobre el insumo de la corrida reporta exactamente AUD-P-01.
+
+### Pruebas
+- `tests/test_regresion_e2e_pinning.py` (texto y plantillas de HF-57 a HF-61; `evals.json` válido con los casos nuevos) y `tests/test_verificar_insumo_pinning.py` (herramienta nueva).
+
 ## 1.9.7 — 2026-11-25
 
 Correcciones de la corrida E2E SISBEN: lote de cierre (commit a205649) y Curation (commit 955bed3).
