@@ -206,14 +206,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:05:04-05:00
 - **Pedido:** ART-020 v2: PA-006 resuelta, umbrales_alternativos, AUD-A-02/03/04/06/07, claves 1.9.5.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-020 v2 aplica INT-024: cabecera (APR-008/RG-015, PA-006 resuelta [P], errorInEmptyFileBody [C]); clave RT_ con debe_coincidir; customReason false y cuerpo vacío rechazado; severidades sin relleno y expresiones_propuestas; umbrales_alternativos 0.95 (FQS_095 aceptado, FQS_094 rechazado SISBFA00001); 900005 con 3 grupos (fecha, RG-013, empate por eventId); marcadores como los emite Validation. render --audit rc 0; simulador 9/9 + 2/2; muestra acepta 19; 0.95 fuera de los .conf. No aplicado: validatedRecordJson null (el esquema solo admite texto; posible defecto P2).
+- **Decisión:** ART-020 v2 prevalidado; re-auditoría del insumo; validatedRecordJson null → HF-26 (P2).
 - **Bitácora:** —
 
 ## INT-027 · Auditor independiente (validation) · re-auditoría §3d · `validation`
 
 - **Cuándo:** 2026-11-24T19:06:32-05:00
 - **Pedido:** Re-auditar por diferencia la propuesta regenerada con 1.9.5 (4 archivos) y la observación del UUID.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-028 · Auditor independiente (acceptance) · insumo v2 · `acceptance`
+
+- **Cuándo:** 2026-11-24T19:08:12-05:00
+- **Pedido:** Re-auditar ART-020 v2 contra INT-024 y el informe de la ronda 1.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
