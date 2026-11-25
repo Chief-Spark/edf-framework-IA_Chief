@@ -16,8 +16,10 @@ Errores (salida 1):
                  [C] de mapeo_identidad.atributos, o depende de un [A:*] (edf-analisis SKILL.md Modo 2, paso 4).
   4. Colombia    Con modo_colombia.aplica = true (aplicación de Pinning compartida):
                  - una clave compartida de claves_configuracion_pinning lleva un valor listo para escribir. Su
-                   valor_a_escribir debe decir «no se escribe» / «no se redefine». reusePin nunca se escribe: es global
-                   de la aplicación y false renumera los PIN de todas las fuentes (HF-57, HF-59);
+                   valor_a_escribir debe EMPEZAR por «no se escribe» / «no se redefine» (un texto que empieza por un
+                   valor, como "false (no se escribe …)", es un valor). El nombre de la clave se compara sin distinguir
+                   mayúsculas (reusePIN = reusePin). reusePin nunca se escribe: es global de la aplicación y false
+                   renumera los PIN de todas las fuentes (HF-57, HF-59, HF-64);
                  - el matcher o la lista de referencia (ISIdentityMatcher, RIIdentityMatcher, identifying-attributes.json,
                    slots nationalId/firstName/…/cellPhone): con eventos de Colombia colapsan todo en un PIN (HF-58);
                  - valor_resultante o reglas_matching_por_campo.reglas no vacíos (no se regenera la lista ni hay pesos).
@@ -51,6 +53,7 @@ SECCION = re.compile(r"^([a-z_]+):", re.M)
 CLAVES_COMPARTIDAS = ("identifyingAttributesFile", "identityMatcher", "reusePin", "domainDictionaryFile",
                       "clusterSplitter", "nearNeighborBlockSize", "pinningVleRange", "groupSSR")
 NO_SE_ESCRIBE = re.compile(r"no\s+se\s+escribe|no\s+se\s+redefine|no\s+redefinir", re.I)
+COMPARTIDAS_MIN = {c.lower(): c for c in CLAVES_COMPARTIDAS}
 MATCHER_REFERENCIA = re.compile(r"\b(ISIdentityMatcher|RIIdentityMatcher)\b|(?<![-\w])identifying-attributes\.json")
 SLOTS_REFERENCIA = {"nationalId", "firstName", "firstLastName", "middleName", "secondLastName", "cellPhone"}
 
@@ -83,7 +86,14 @@ def campo_curado(item: dict) -> str | None:
 
 
 def nombre_clave(clave: str) -> str:
-    return str(clave or "").rsplit(".", 1)[-1]
+    """Último segmento de la clave, con la grafía canónica si es compartida (sin distinguir mayúsculas, HF-64)."""
+    nombre = str(clave or "").rsplit(".", 1)[-1].strip()
+    return COMPARTIDAS_MIN.get(nombre.lower(), nombre)
+
+
+def no_se_escribe(valor) -> bool:
+    """El valor es el texto de no escribir: empieza por «no se escribe» / «no se redefine» (HF-64)."""
+    return isinstance(valor, str) and NO_SE_ESCRIBE.match(valor.strip()) is not None
 
 
 def verificar(insumo: dict, texto: str, contrato: str | None) -> tuple[list[str], list[str]]:
@@ -125,7 +135,7 @@ def verificar(insumo: dict, texto: str, contrato: str | None) -> tuple[list[str]
                 continue
             clave = nombre_clave(entrada.get("clave"))
             valor = entrada.get("valor_a_escribir")
-            if clave in CLAVES_COMPARTIDAS and not (isinstance(valor, str) and NO_SE_ESCRIBE.search(valor)):
+            if clave in CLAVES_COMPARTIDAS and not no_se_escribe(valor):
                 motivo = ("reusePin es global de la aplicación (SparkPinner.scala:223, :409): false renumera los PIN de "
                           "todas las fuentes; cambiarla es N4 y se escala (HF-57)" if clave == "reusePin"
                           else "clave compartida de la aplicación de Colombia: solo se verifica (HF-59)")
@@ -133,7 +143,7 @@ def verificar(insumo: dict, texto: str, contrato: str | None) -> tuple[list[str]
                                f"«no se escribe en modo Colombia». {motivo}")
             if clave == "reusePin" and not str(entrada.get("valor_en_fuente") or "").strip():
                 avisos.append("Colombia: reusePin sin valor_en_fuente (el valor de la spec se registra como dato, HF-57)")
-            if isinstance(valor, str) and MATCHER_REFERENCIA.search(valor) and not NO_SE_ESCRIBE.search(valor):
+            if isinstance(valor, str) and MATCHER_REFERENCIA.search(valor) and not no_se_escribe(valor):
                 errores.append(f"Colombia: {entrada.get('clave')} hereda el matcher o la lista de referencia (HF-58)")
         if MATCHER_REFERENCIA.search(str(mc.get("identity_matcher") or "")):
             errores.append("Colombia: modo_colombia.identity_matcher es el matcher de referencia; con eventos de Colombia "

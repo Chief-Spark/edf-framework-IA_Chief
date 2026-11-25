@@ -27,7 +27,10 @@ modo_colombia:
     texto_spec: ""                                  # lo que dice la spec del umbral o de la similitud (p. ej. «NearNeighborKeys con el umbral vigente»), con su cita
     lectura_del_matcher: ""                         # lo que dice la descripción del matcher (pinning-muric.md §4.1.2, §4.2): reglas 0-4, sin umbral; nearNeighborKeys = standardizedIdNumber
     diferencia: ""                                  # en qué difieren y si cambia el resultado; si lo cambia, pregunta PA-nnn (deteccion-ambiguedades.md)
-    estado: ""                                      # [A:<ID>] mientras no se confirme en el código del fork
+    estado: ""                                      # [A:<ID>] mientras la pregunta <ID> siga abierta y bloquee la etapa;
+                                                    # con verificación diferida (edf-orquestador references/03 §3e: ningún
+                                                    # artefacto depende del hecho), "[PM] (RG-nnn)" con el riesgo alto
+                                                    # que la registra; [C] solo con el código del fork citado (HF-64)
 
 mapeo_identidad:
   decision_origen:

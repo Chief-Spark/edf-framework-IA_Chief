@@ -76,11 +76,19 @@ Flow procesa **solo la fuente en curso**; Stock procesa **todo lo acumulado en `
 |------|----------|:------:|
 | In (insumo) | `insumos/yaml-skill-pinning.yaml` (formato de `edf-analisis/assets/templates/yaml-skill-pinning.yaml.tpl`) | ✅ |
 | In | Contrato Curation → Pinning de la ingesta (`insumos/contrato-curation-pinning.md`) | ✅ |
-| Out | `<Ingesta>IdentityMatcher.scala` (solo atributos `[C]` activos) con la verificación aritmética del umbral en comentario | ✅ |
-| Out | `identifying-attributes.json` | ✅ |
-| Out | Bloque HOCON de `pinning-application.conf` | ✅ |
-| Out | Valor declarado de `reusePIN` (**`false` en ingesta nueva**) | ✅ |
+| Out | Artefactos según el **modo de Pinning** de la ingesta (tabla siguiente) | ✅ |
 | Evidencia | `evals/verificar-artefacto.ps1` sobre los artefactos generados | ✅ |
+
+Los artefactos de salida dependen del modo, que el Orquestador fija al abrir el expediente (prompt `00`, paso 2) y que coincide con `modo_colombia.aplica` del insumo (HF-63):
+
+| Artefacto (id de la semilla) | Modo propio (aplicación de Pinning propia) | Modo Colombia (aplicación compartida, `edf-pinning` SKILL «Modo Colombia») |
+|---|---|---|
+| ART-051 `<Ingesta>IdentityMatcher.scala` (solo atributos `[C]` activos) con la verificación aritmética del umbral en comentario | ✅ | `obligatorio: false` · no aplica: se reutiliza el matcher compartido de Colombia |
+| ART-052 `identifying-attributes.json` | ✅ | `obligatorio: false` · no aplica: se reutiliza `identifying-attributes-new.json` |
+| ART-053 Bloque HOCON de la ingesta | ✅ con las claves de la ingesta y `reusePin` declarado (`[C]`) | ✅ **sin claves compartidas**: solo la lista de verificación de las claves compartidas en el conf de Colombia (matcher compartido y lista referenciados), sin redefinirlas y **sin escribir `reusePin`** (HF-57, HF-59) |
+| `reusePIN` | valor declarado en el bloque (`false` si la ingesta no tiene generación previa) | valor de la fuente registrado como **dato** (`valor_en_fuente`); no se escribe. Cambiar la clave global es N4 y se escala |
+
+La semilla (`templates/estado-ingesta.seed.json`) trae el modo Colombia. En modo propio, el Orquestador pone `obligatorio: true` en ART-051 y ART-052 y cambia el nombre de ART-053 a «bloque HOCON de pinning-application.conf con reusePin declarado».
 
 Llave de identidad: **tipo doc + número doc + nombre estandarizado**; tipo y número no pueden ser nulos. Fallback de regla de corte permitido.
 

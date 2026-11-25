@@ -1,5 +1,5 @@
 """Regresión documental de los defectos del framework hallados en la auditoría del insumo de Pinning de la corrida E2E
-SISBEN (1.9.8): HF-57 a HF-61 (`ejecuciones/sisben-e2e/auditorias/pinning.md`).
+SISBEN (1.9.8): HF-57 a HF-61 y, en la re-auditoría (1.9.9), HF-63 y HF-64 (`ejecuciones/sisben-e2e/auditorias/pinning.md`).
 """
 import json
 import re
@@ -165,3 +165,71 @@ def test_hf61_framework_no_cita_event_pinner_como_evidencia():
     s3 = plano(leer(STEERING_11))
     assert "(`ISIdentityMatcher.scala:46-54`): falla la ejecución. Esa es la evidencia de «un `null` lanza»" in s3
     assert "no se usa en el batch" in s3 and "HF-61" in s3
+
+
+# ── HF-63 (AUD-P-14): artefactos de Pinning por modo en el Orquestador ──
+
+ORQ = KIRO / "skills" / "edf-orquestador"
+SEED = ORQ / "templates" / "estado-ingesta.seed.json"
+SCHEMA = ORQ / "templates" / "estado-ingesta.schema.json"
+
+
+def _validador():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("validar_expediente_hf63", RAIZ / "tools" / "validar-expediente.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _pinning(estado: dict) -> dict:
+    return next(e for e in estado["etapas"] if e["id"] == "pinning")
+
+
+def test_hf63_semilla_trae_artefactos_de_pinning_de_modo_colombia():
+    import jsonschema
+    seed = json.loads(leer(SEED))
+    jsonschema.validate(seed, json.loads(leer(SCHEMA)))
+    arts = {a["id"]: a for a in _pinning(seed)["artefactos"]}
+    assert arts["ART-050"]["obligatorio"] and arts["ART-053"]["obligatorio"]
+    for aid in ("ART-051", "ART-052"):
+        assert arts[aid]["obligatorio"] is False and "no aplica en modo Colombia" in arts[aid]["nombre"], aid
+    bloque = arts["ART-053"]["nombre"]
+    assert "sin claves compartidas" in bloque and "sin redefinirlas ni escribir reusePin" in bloque
+    assert "reusePIN = false" not in leer(SEED)
+
+
+def test_hf63_validador_acepta_pinning_de_modo_colombia_aprobada_sin_matcher_propio():
+    mod = _validador()
+    estado = json.loads(leer(SEED))
+    pin = _pinning(estado)
+    pin["estado"] = "aprobada"
+    for a in pin["artefactos"]:
+        if a["obligatorio"]:
+            a["estado_artefacto"] = "aprobado"
+    assert not any(f.startswith("7e.") for f in mod.reglas_gobierno(estado))
+    # En modo propio el matcher es obligatorio: la misma etapa sin matcher aprobado no pasa la regla 7e.
+    next(a for a in pin["artefactos"] if a["id"] == "ART-051")["obligatorio"] = True
+    assert any(f.startswith("7e.") and "ART-051" in f for f in mod.reglas_gobierno(estado))
+
+
+def test_hf63_contrato_04_y_prompt_00_distinguen_los_dos_modos():
+    c04 = leer(ORQ / "references" / "04-contratos-por-skill.md")
+    etapa4 = plano(c04[c04.index("## Etapa 4"):c04.index("## Etapa 5")])
+    for frase in ("Modo propio", "Modo Colombia", "`obligatorio: false`", "sin escribir `reusePin`", "**sin claves compartidas**"):
+        assert frase in etapa4, frase
+    assert "**`false` en ingesta nueva**" not in etapa4
+    p00 = plano(leer(ORQ / "prompts" / "00-iniciar-ingesta.md"))
+    assert "si sí, `reusePIN = false`" not in p00
+    for frase in ("**Modo de Pinning**", "**modo Colombia**", "**modo propio**", "matcher compartido de Colombia",
+                  "pregunta abierta bloqueante de `pinning`", "`edf-pinning` nunca lo escribe (HF-57)"):
+        assert frase in p00, frase
+
+
+# ── HF-64 (AUD-P-16): marcador del umbral frente al matcher determinista ──
+
+def test_hf64_plantilla_distingue_a_de_pm_con_verificacion_diferida():
+    tpl = leer(TPL_INSUMO)
+    bloque = plano(tpl[tpl.index("umbral_y_matcher_determinista:"):tpl.index("mapeo_identidad:")])
+    assert "[A:<ID>] mientras la pregunta <ID> siga abierta" in bloque
+    assert '"[PM] (RG-nnn)"' in bloque and "§3e" in bloque

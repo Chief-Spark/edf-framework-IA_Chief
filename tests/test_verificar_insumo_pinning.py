@@ -144,3 +144,35 @@ def test_hf61_cita_de_event_pinner_es_aviso(base):
     texto = yaml.safe_dump(base, allow_unicode=True) + "# null lanza: EventPinner.scala:64-65\n"
     errores, avisos = correr(base, texto=texto)
     assert errores == [] and any("ISIdentityMatcher.scala:46-54" in a for a in avisos)
+
+
+# ── HF-64 (AUD-P-15): dos puntos ciegos del verificador ──
+
+def test_hf64_valor_que_empieza_por_un_valor_no_es_texto_de_no_escribir(base):
+    for valor in ("false (no se escribe hasta cerrar PA-009)", "true; no se escribe", "0 (no se redefine)",
+                  "reusePin = false, no se escribe", "  FALSE no se escribe"):
+        insumo = copy.deepcopy(base)
+        entrada(insumo, "reusePin")["valor_a_escribir"] = valor
+        errores, _ = correr(insumo)
+        assert len(errores) == 1 and "HF-57" in errores[0], valor
+    for valor in ("No se escribe en modo Colombia", "no se redefine (matcher compartido)"):
+        insumo = copy.deepcopy(base)
+        entrada(insumo, "reusePin")["valor_a_escribir"] = valor
+        assert correr(insumo)[0] == [], valor
+
+
+def test_hf64_clave_compartida_con_otra_capitalizacion_se_reconoce(base):
+    e = entrada(base, "reusePin")
+    e["clave"] = "oxygen.stage.pinning.reusePIN"
+    e["valor_a_escribir"] = False
+    errores, _ = correr(base)
+    assert len(errores) == 1 and "HF-57" in errores[0] and "global" in errores[0]
+    e["valor_a_escribir"] = "no se escribe en modo Colombia"
+    del e["valor_en_fuente"]
+    errores, avisos = correr(base)
+    assert errores == [] and any("valor_en_fuente" in a for a in avisos)
+    e2 = next(x for x in base["claves_configuracion_pinning"]["bloque_oxygen_stage_pinning"]
+              if x["clave"].endswith(".identityMatcher"))
+    e2["clave"] = "oxygen.stage.pinning.IDENTITYMATCHER"
+    e2["valor_a_escribir"] = "com.ejemplo.OtroMatcher"
+    assert any("HF-59" in x for x in correr(base)[0])

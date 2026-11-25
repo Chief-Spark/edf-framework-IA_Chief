@@ -81,7 +81,7 @@ El estado del pipeline real **no vive en una base de datos: se materializa por m
 Otros anclajes de evidencia:
 - **Logs**: `JobLogs/<fecha>` [DEMO | 00:08:47].
 - **Ejecuciones concurrentes**: distinguir por **cluster/step**, no solo por fecha [DEMO | 00:11:16]. El expediente registra `cluster_id` / `step_id` cuando se conozca.
-- **`reusePIN`**: `true` en operación normal; **`false` para una ingesta NUEVA** [DEMO | 00:26:46]. Es un campo obligatorio del expediente.
+- **`reusePIN`**: `true` en operación normal; **`false` para una ingesta NUEVA** [DEMO | 00:26:46]. Es un campo obligatorio del expediente. En modo Colombia (aplicación de Pinning compartida) es solo el dato de la fuente: la clave es global y `edf-pinning` no la escribe (HF-57, `04` etapa 4).
 
 ## 6. Cómo registra el Orquestador la evidencia
 

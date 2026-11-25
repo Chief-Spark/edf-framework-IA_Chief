@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.9.9 — 2026-11-25
+
+Correcciones de la re-auditoría del insumo de Pinning de la corrida E2E SISBEN (`ejecuciones/sisben-e2e/auditorias/pinning.md` §6, AUD-P-14 a AUD-P-16): HF-57/HF-59 no habían llegado al Orquestador.
+
+### Orquestador
+- **HF-63 (P1, AUD-P-14). Artefactos de Pinning según el modo.** La semilla, el contrato de la etapa 4 y el prompt 00 exigían en modo Colombia un matcher propio, un `identifying-attributes.json` y un bloque «con reusePIN = false», que `edf-pinning` ya no genera: la etapa no se podía aprobar (regla 7e) o empujaba a generarlos. Ahora:
+  - `templates/estado-ingesta.seed.json` trae el modo Colombia: ART-051 (matcher) y ART-052 (`identifying-attributes.json`) con `obligatorio: false` y «no aplica en modo Colombia»; ART-053 es el bloque HOCON de la ingesta sin claves compartidas, con la lista de verificación de las claves compartidas, sin redefinirlas ni escribir `reusePin` (obligatorio, riesgo alto).
+  - `references/04-contratos-por-skill.md`, etapa 4: tabla de artefactos por modo (propio / Colombia) y qué cambia el Orquestador en modo propio (ART-051 y ART-052 obligatorios; ART-053 «con reusePin declarado»). `reusePIN` en modo Colombia es el valor de la fuente como dato; no se escribe.
+  - `prompts/00-iniciar-ingesta.md`, paso 2: el modo se toma de la spec y la HU (matcher compartido de Colombia → modo Colombia; si no lo dicen, pregunta bloqueante de `pinning`); «ingesta nueva» ya no se traduce en escribir `reusePIN = false` en modo Colombia. `references/01-flujo-etapas.md` §5 dice lo mismo de `reusePIN`.
+  - Prueba: `tests/test_regresion_e2e_pinning.py` (`test_hf63_*`: la semilla valida contra el esquema; el validador acepta una etapa `pinning` de modo Colombia aprobada sin matcher propio y la rechaza con 7e si el matcher es obligatorio; 04 y 00 nombran los dos modos).
+
+### tools/verificar-insumo-pinning.py
+- **HF-64 (AUD-P-15).** En modo Colombia, `valor_a_escribir` de una clave compartida debe **empezar** por «no se escribe» / «no se redefine»: `"false (no se escribe hasta cerrar PA-009)"` o `"0 (no se redefine)"` ya no pasan. El nombre de la clave se compara sin distinguir mayúsculas (`reusePIN` = `reusePin`). El insumo de la corrida sigue dando «insumo de Pinning OK». Pruebas: `tests/test_verificar_insumo_pinning.py` (`test_hf64_*`). No se revisa todavía `pendientes_de_configuracion` (sus entradas llevan `estado`, no `valor_a_escribir`).
+
+### edf-analisis
+- **HF-64 (AUD-P-16).** `assets/templates/yaml-skill-pinning.yaml.tpl`, `modo_colombia.umbral_y_matcher_determinista.estado`: `[A:<ID>]` mientras la pregunta siga abierta y bloquee la etapa; con verificación diferida (`edf-orquestador/references/03` §3e), `[PM] (RG-nnn)` con el riesgo que la registra; `[C]` solo con el código del fork citado. Prueba: `test_hf64_plantilla_distingue_a_de_pm_con_verificacion_diferida`.
+
 ## 1.9.8 — 2026-11-25
 
 ### Orquestador

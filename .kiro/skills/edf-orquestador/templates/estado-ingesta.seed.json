@@ -387,23 +387,23 @@
         {
           "id": "ART-051",
           "tipo": "codigo",
-          "nombre": "<Fuente>IdentityMatcher.scala (o matcher compartido) (con verificacion aritmetica del umbral)",
+          "nombre": "<Fuente>IdentityMatcher.scala con la verificacion aritmetica del umbral (solo modo propio; no aplica en modo Colombia: se reutiliza el matcher compartido, edf-pinning SKILL «Modo Colombia»)",
           "ruta": "propuestas/pinning/",
-          "obligatorio": true,
+          "obligatorio": false,
           "estado_artefacto": "ausente"
         },
         {
           "id": "ART-052",
           "tipo": "configuracion",
-          "nombre": "identifying-attributes.json",
+          "nombre": "identifying-attributes.json (solo modo propio; no aplica en modo Colombia: se reutiliza la lista compartida identifying-attributes-new.json)",
           "ruta": "propuestas/pinning/",
-          "obligatorio": true,
+          "obligatorio": false,
           "estado_artefacto": "ausente"
         },
         {
           "id": "ART-053",
           "tipo": "configuracion",
-          "nombre": "bloque HOCON de pinning-application.conf con reusePIN = false (ingesta nueva)",
+          "nombre": "bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59)",
           "ruta": "propuestas/pinning/",
           "obligatorio": true,
           "estado_artefacto": "ausente",
