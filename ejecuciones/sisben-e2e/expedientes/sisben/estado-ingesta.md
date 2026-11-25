@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:54:31-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:56:02-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 186 eventos, último BIT-0186 |
+| Bitácora | 194 eventos, último BIT-0194 |
 
 ## Etapas
 
@@ -21,7 +21,7 @@
 | 3 | Curation - Flow | `aprobada` | alto | 6/6 | APR-024 | ✅ |
 | 4 | Curation - Stock | `aprobada` | alto | 1/1 | APR-025 | ✅ |
 | 5 | Pinning | `aprobada` | alto | 2/4 | APR-029 | ✅ |
-| 6 | Synthesis / Consistency | `en_progreso` | alto | 1/3 | — | 🔒 |
+| 6 | Synthesis / Consistency | `aprobada` | alto | 3/3 | APR-032 | 🔒 |
 | 7 | State Calculation | `no_iniciada` | critico | 0/4 | — | 🔒 |
 
 ## Artefactos
@@ -54,8 +54,8 @@
 | pinning | ART-052 | identifying-attributes.json (solo modo propio; no aplica en modo Colombia: se reutiliza la lista compartida identifying-attributes-new.json) | `ausente` | — |
 | pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `aprobado` | sha256:cccd06cf945a |
 | synthesis | ART-060 | insumo: yaml-skill-synthesis.yaml (edf-analisis) | `aprobado` | sha256:0b6d46cc792a |
-| synthesis | ART-061 | entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68) | `prevalidado` | — |
-| synthesis | ART-062 | bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68) | `prevalidado` | — |
+| synthesis | ART-061 | entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68) | `aprobado` | sha256:65e2b4829274 |
+| synthesis | ART-062 | bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68) | `aprobado` | sha256:1751c72b5fc3 |
 | state_calculation | ART-070 | insumo: yaml-skill-statecalc.yaml (edf-analisis) | `prevalidado` | — |
 | state_calculation | ART-071 | fields[] de statecalc-foundation-local.json | `ausente` | — |
 | state_calculation | ART-072 | CalculationSection de statecalc-calculation-local.json | `ausente` | — |
@@ -95,6 +95,8 @@
 | APR-028 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0169 |
 | APR-029 | transicion | pinning → synthesis | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0171 |
 | APR-030 | artefacto | — → — | rechazada | PO `SIM-PO-01` | critico | BIT-0177 |
+| APR-031 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0187 |
+| APR-032 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0190 |
 
 ## Preguntas abiertas
 
@@ -148,3 +150,4 @@
 | RG-029 | medio | state_calculation | abierto | Con (c1), un PIN vigente se excluye por error si su evento cae en el mismo periodo de Synthesis que uno anterior con asOfDate mayor (LFP, ConsistencyCheckOps.scala:115-118) |
 | RG-030 | medio | state_calculation | abierto | Por PA-011, fechaEncuesta puede no salir nula dentro de un mismo periodo, contra el escenario de HU §5.6 |
 | RG-031 | medio | state_calculation | abierto | Con más de un documento SISBEN vigente en un PIN (Pinning puede unir dos documentos por la regla 2), la sección toma el más reciente (MOST_RECENT_VALUE): supuesto del PO (PA-012 b) |
+| RG-032 | alto | synthesis | abierto | Evidencia diferida de synthesis: aprobada sin ejecución de pipeline |

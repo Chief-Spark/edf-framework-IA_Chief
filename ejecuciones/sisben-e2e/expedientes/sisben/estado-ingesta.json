@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:54:31-05:00",
-    "vista_md_regenerada_en": "2026-11-24T22:54:31-05:00"
+    "actualizado_en": "2026-11-24T22:56:02-05:00",
+    "vista_md_regenerada_en": "2026-11-24T22:56:02-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -717,7 +717,7 @@
       "dag_airflow": "state-generation",
       "clasificacion_compromiso": "exito",
       "riesgo_tipico": "alto",
-      "estado": "en_progreso",
+      "estado": "aprobada",
       "depende_de": [
         "pinning"
       ],
@@ -744,13 +744,14 @@
           "nombre": "entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68)",
           "ruta": "propuestas/synthesis/domaindictionary.json",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-synthesis (INT-072): verificar-artefactos-etapa synthesis --modo colombia OK; sin handler/dataType/synthesizer; 34 entradas en orden; ART-062 sin líneas activas (pyhocon vacío); EVAL-SYN-04/13 pasan a mano",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:65e2b48292749b1e64f4e64ac7a6ef2257e2ed34aad3722995c3f1bdc802503f"
         },
         {
           "id": "ART-062",
@@ -758,14 +759,15 @@
           "nombre": "bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68)",
           "ruta": "propuestas/synthesis/consistency-application-block.sisben.conf",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "alto",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-synthesis (INT-072): verificar-artefactos-etapa synthesis --modo colombia OK; sin handler/dataType/synthesizer; 34 entradas en orden; ART-062 sin líneas activas (pyhocon vacío); EVAL-SYN-04/13 pasan a mano",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:1751c72b5fc3fd9ead4e94aa11116d350bee4169163e709647fa70eb5b549e4a"
         }
       ],
       "evidencia_pipeline": {
@@ -775,16 +777,20 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": null,
+      "ref_aprobacion": "APR-032",
       "preguntas_abiertas": [],
       "riesgos": [
         "RG-010",
         "RG-026",
-        "RG-028"
+        "RG-028",
+        "RG-032"
       ],
       "transicion_habilitada": false,
       "nota_regla_de_corte": null,
-      "iniciada_en": "2026-11-24T22:47:05-05:00"
+      "iniciada_en": "2026-11-24T22:47:05-05:00",
+      "cerrada_en": "2026-11-24T22:56:02-05:00",
+      "riesgo_evaluado": "alto",
+      "nivel_friccion": "detallada"
     },
     {
       "id": "state_calculation",
@@ -850,7 +856,6 @@
       "ref_aprobacion": null,
       "preguntas_abiertas": [
         "PA-002",
-        "PA-012",
         "PA-013",
         "PA-014"
       ],
@@ -1616,6 +1621,57 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0177"
+    },
+    {
+      "id": "APR-031",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-061",
+        "ART-062"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T22:56:01-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Entradas del GDD aditivas, fieles a spec §10.1 y §12 y a ART-060 v3, que reemplazan las de ART-032 sin tocar otras fuentes (prueba estática). El bloque no tiene claves y remite a RG-028. La integración al fork y la certificación quedan bloqueadas por RG-025 y RG-028 (§3e). Pruebas: ART-061 --modo colombia --gdd OK, regeneración idéntica, 0 claves prohibidas, no afectación e integración/reversión simuladas, verificar-claves coherente; ART-062 pyhocon {}, 0 líneas activas, 11 VERIFICAR.",
+      "condiciones": [
+        "AUD-S-17 se corrige en la próxima versión del insumo y del bloque",
+        "HF-78 (.ps1 sin modo) corregido antes de que una corrida con Kiro use el .ps1"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0187"
+    },
+    {
+      "id": "APR-032",
+      "tipo": "contexto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-060",
+        "ART-061",
+        "ART-062"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T22:56:01-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Synthesis se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork. ART-060 v3, ART-061 y ART-062 están aprobados por auditoría independiente (synthesis.md §6 y §7). SISBEN pasa por Synthesis con el comportamiento por defecto del motor (spec §12, HU R-25), sin claves compartidas escritas. La verificación del matcher (RG-025) y la de Synthesis de Colombia (RG-028) bloquean la integración al fork y la certificación de esta etapa (§3e). La evidencia se reporta con el prompt 05. No se habilita State Calculation, bloqueada por APR-030. Escenario HU §5.5 cubierto en diseño [C] con LFP; cumplimiento [PM] (RG-028, VD-SYN-05) con tres matices: agrupa por subscriber+subscriberRelation (cambio de documento → dos sintéticos), orden por (asOfDate, receivedDate) (fecha que retrocede, PA-011, RG-029) y nulo del mismo periodo no reemplaza (PA-011, RG-030). DoD §6: domaindictionary.json sin handlers cumplida; escenario §5.5 diferido. Cita RG-026 y RG-010 (mitigado).",
+      "condiciones": [
+        "RG-032: evidencia diferida de synthesis; se cierra con el paso de Synthesis de state-generation sobre el HC de Colombia (carpeta sintetizada y sintéticos de SISBEN), el escenario de HU §5.5 con dos cortes y un solo juego de entradas del GDD integrado contra la base sin SISBEN; no antes que RG-027, RG-025 y RG-028",
+        "La transición synthesis → state_calculation no se registra (APR-030)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0190"
     }
   ],
   "preguntas_abiertas": [
@@ -2010,7 +2066,7 @@
       "descripcion": "Verificación diferida de Synthesis de Colombia (VD-SYN-01..06): nombres existentes en el GDD y su handler; lecturas .get sin defecto (dateType, fieldHandlerHashFunction, orchestration, readWriteFormat, historicAttributeArgs si checkFileTagEnabled); conf compartido; periodicidad efectiva (minFrequency de la clase base); escenario §5.5 con nulo; reglas CONS, custom y relationshipMigrationProcessor de Colombia aplicadas a todos los eventos del HC (ConsistencyCheckOps.scala:150-173, :240-271)",
       "nivel": "alto",
       "etapa_afectada": "synthesis",
-      "mitigacion": "Bloquea la integración al fork y la certificación de Synthesis y State Calculation (§3e). Se cierra con VD-SYN-01..06 (VD-SYN-02 ampliada con shouldFilterDeletedEvents, stateCheckEnabled, disabledCategories, referenceEventsWindowInMonths y oxygen.features.enable.emitStockMetrics, AUD-S-18), la mitad dinámica de la prueba de no afectación y un solo juego de entradas del GDD integrado. Si una regla compartida se dispara con SISBEN: pregunta bloqueante para la certificación al PO; no se modifica la regla desde la ingesta",
+      "mitigacion": "Bloquea la integración al fork y la certificación de Synthesis y State Calculation (§3e). Se cierra con VD-SYN-01..06 (VD-SYN-02 ampliada con shouldFilterDeletedEvents, shouldReportAllDeletedEvents, stateNames, stateCheckEnabled, disabledCategories, referenceEventsWindowInMonths y oxygen.features.enable.emitStockMetrics; si shouldFilterDeletedEvents es true en Colombia, los eventos SISBEN marcados inferredAsDeleted se descartan: relacionar con inferDelete de Pinning y [A:PT-12], 06 §6 #7), la mitad dinámica de la prueba de no afectación y un solo juego de entradas del GDD integrado. Si una regla compartida se dispara con SISBEN: pregunta bloqueante para la certificación al PO",
       "estado": "abierto"
     },
     {
@@ -2035,6 +2091,14 @@
       "nivel": "medio",
       "etapa_afectada": "state_calculation",
       "mitigacion": "Escenario «dos documentos SISBEN en un PIN» antes de certificar; PA-014 (3)",
+      "estado": "abierto"
+    },
+    {
+      "id": "RG-032",
+      "descripcion": "Evidencia diferida de synthesis: aprobada sin ejecución de pipeline",
+      "nivel": "alto",
+      "etapa_afectada": "synthesis",
+      "mitigacion": "Prompt 05: paso de Synthesis de state-generation sobre el HC de Colombia; escenario HU §5.5 con dos cortes; un solo juego de entradas del GDD integrado contra la base sin SISBEN; después de RG-027, RG-025 y RG-028",
       "estado": "abierto"
     }
   ],
@@ -2067,8 +2131,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0186",
-    "eventos_totales": 186,
+    "ultimo_evento": "BIT-0194",
+    "eventos_totales": 194,
     "append_only": true,
     "retencion_meses": 24
   }

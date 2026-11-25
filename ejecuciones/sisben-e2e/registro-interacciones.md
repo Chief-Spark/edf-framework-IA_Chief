@@ -606,8 +606,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:54:31-05:00
 - **Pedido:** Aprobar ART-061 y ART-062 y la etapa synthesis con evidencia diferida.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Aprueba ART-061 y ART-062 sin v2 (AUD-S-17 comentario; AUD-S-18 cubierto por RG-028 al que remite el bloque), con condiciones (VD-SYN-02 con shouldReportAllDeletedEvents y stateNames; shouldFilterDeletedEvents ↔ inferDelete y [A:PT-12]; HF-78 antes de usar el .ps1). Aprueba la etapa synthesis con evidencia diferida (alto, RG nuevo), con la tabla de HU §5.5 y DoD §6; no se registra la transición a state_calculation. Pide corregir las preguntas de la etapa state_calculation.
+- **Decisión:** APR-031 (ART-061/062), RG-028 ampliado, synthesis pendiente_evidencia → APR-032 (diferida) → aprobada, RG-032, preguntas de state_calculation corregidas (BIT-0187..0193).
 - **Bitácora:** —
 
 ## INT-077 · Analista (edf-analisis) · insumo de State Calculation v2 · `state_calculation`

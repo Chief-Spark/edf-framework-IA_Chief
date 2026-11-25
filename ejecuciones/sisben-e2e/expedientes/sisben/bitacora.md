@@ -3180,3 +3180,139 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0187 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-031 (artefacto): Artefactos de Synthesis en modo Colombia (GDD y bloque de verificación) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T22:56:01-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Entradas del GDD aditivas, fieles a spec §10.1 y §12 y a ART-060 v3, que reemplazan las de ART-032 sin tocar otras fuentes (prueba estática). El bloque no tiene claves y remite a RG-028. La integración al fork y la certificación quedan bloqueadas por RG-025 y RG-028 (§3e). Pruebas: ART-061 --modo colombia --gdd OK, regeneración idéntica, 0 claves prohibidas, no afectación e integración/reversión simuladas, verificar-claves coherente; ART-062 pyhocon {}, 0 líneas activas, 11 VERIFICAR. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-061, ART-062 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0188 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-028 (alto, synthesis): Verificación diferida de Synthesis de Colombia (VD-SYN-01..06): nombres existentes en el GDD y su handler; lecturas .get sin defecto (dateType, fieldHandlerHashFunction, orchestration, readWriteFormat, historicAttributeArgs si checkFileTagEnabled); conf compartido; periodicidad efectiva (minFrequency de la clase base); escenario §5.5 con nulo; reglas CONS, custom y relationshipMigrationProcessor de Colombia aplicadas a todos los eventos del HC (ConsistencyCheckOps.scala:150-173, :240-271) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:56:01-05:00 |
+| **Por qué** | INT-076, condiciones 2 y 3 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0189 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `synthesis` → estado `pendiente_evidencia` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:56:01-05:00 |
+| **Por qué** | ART-060, ART-061 y ART-062 aprobados; sin pipeline (§3b paso 1). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0190 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-032 (contexto): Aprobación de la etapa synthesis con evidencia diferida (§3b paso 1) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T22:56:01-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Synthesis se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork. ART-060 v3, ART-061 y ART-062 están aprobados por auditoría independiente (synthesis.md §6 y §7). SISBEN pasa por Synthesis con el comportamiento por defecto del motor (spec §12, HU R-25), sin claves compartidas escritas. La verificación del matcher (RG-025) y la de Synthesis de Colombia (RG-028) bloquean la integración al fork y la certificación de esta etapa (§3e). La evidencia se reporta con el prompt 05. No se habilita State Calculation, bloqueada por APR-030. Escenario HU §5.5 cubierto en diseño [C] con LFP; cumplimiento [PM] (RG-028, VD-SYN-05) con tres matices: agrupa por subscriber+subscriberRelation (cambio de documento → dos sintéticos), orden por (asOfDate, receivedDate) (fecha que retrocede, PA-011, RG-029) y nulo del mismo periodo no reemplaza (PA-011, RG-030). DoD §6: domaindictionary.json sin handlers cumplida; escenario §5.5 diferido. Cita RG-026 y RG-010 (mitigado). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-060, ART-061, ART-062 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0191 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-032 (alto, synthesis): Evidencia diferida de synthesis: aprobada sin ejecución de pipeline |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:56:02-05:00 |
+| **Por qué** | APR-032 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0192 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `synthesis` → estado `aprobada` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:56:02-05:00 |
+| **Por qué** | Aplica APR-032 (SIMULADO, SIM-DEV-01, INT-076): aprobada con evidencia diferida; no habilita State Calculation. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0193 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Preguntas de la etapa state_calculation: sin PA-012 (resuelta); PA-002, PA-013 y PA-014 abiertas y bloqueantes |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:56:02-05:00 |
+| **Por qué** | INT-076 condición 4 (como AUD-P-17) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 |
+| **Corrige** | — |
+
+---
+
+## BIT-0194 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:56:02-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
