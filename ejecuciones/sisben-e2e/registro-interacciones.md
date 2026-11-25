@@ -486,8 +486,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:13:27-05:00
 - **Pedido:** Auditar ART-060, C-CUR-05/06, RG-010, minFrequency de Validation y los 5 posibles defectos.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-060 AJUSTES (sin P0): valores fieles (34 claves = ART-030/032, sin handler/dataType/synthesizer, version 2, sin claves HOCON activas); afirmaciones del motor confirmadas salvo dos citas P2 (Synthesis toma la última carpeta *-pin-hc; «dataType inválido rompe» es [P]). P1: AUD-S-01 (riesgo N3, no N2: plan de reversión y prueba de no afectación), AUD-S-02 (falta VD-SYN-06: reglas de consistencia, custom y migración de Colombia se aplican a todos los eventos). Framework: defectos 1, 2 y 5 reales P1 (bloque compartido sin modo Colombia en verificador, 04 y semilla; eventTypeList guarda tipos de archivo y la plantilla pre-llena ["sisben"]; verificar-claves sisben da falso verde), 3 y 4 P2; otros P2 (EVAL-SYN-04, README inexistente, reference de nivel 3). minFrequency real P2 (probable mensual por la clase homóloga; confirmar en el fork). C-CUR-05/06 bien cerrados; RG-010 resuelto; PA-011 + AUD-S-08; RG-026 ampliar.
+- **Decisión:** HF-68..72 a un corrector (1.9.10); AUD-S-01/02 y los riesgos al aprobador; luego v2 del analista.
 - **Bitácora:** —
 
 ## INT-062 · Aprobador simulado SIM-DEV-01 · `pinning`
@@ -504,4 +504,20 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Pedido:** AUD-P-18/19/20 en ART-053.
 - **Respuesta:** ART-053 v2: cabecera literal + aclaración de modo Colombia, [P] en el mecanismo (AUD-P-20); rutas completas (AUD-P-18; domainDictionaryFile solo como texto en SparkPinner.scala:193; pinnedReferenceDir en oxygen-config-default.conf:355); tres VERIFICAR nuevas (AUD-P-19). pyhocon {}; hocon_check OK; 0 líneas activas; EVAL-PIN-12..14 pasan. sha256 cccd06cf…
 - **Decisión:** Diff verificado por el Orquestador. Registradas la aprobación de ART-053 v2, pinning pendiente_evidencia → aprobación de contexto (alto, diferida) → aprobada; RG-027 abierto.
+- **Bitácora:** —
+
+## INT-064 · Corrector del framework (synthesis) · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:25:56-05:00
+- **Pedido:** Corregir HF-68..72 con pruebas; framework 1.9.10.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-065 · Aprobador simulado SIM-DEV-01 · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:25:56-05:00
+- **Pedido:** AUD-S-01 (N3), AUD-S-02 (VD-SYN-06), ajustes P2 del insumo, RG-010, RG-026, PA-011.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
 - **Bitácora:** —
