@@ -182,8 +182,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T18:47:50-05:00
 - **Pedido:** Corregir HF-16..24 con pruebas; framework 1.9.5.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** HF-16..24 corregidos con pruebas (acceptance 146, validation 220, curation 106, tests 126; auditar-skills OK). Claves nuevas: expresiones_propuestas, severidades {habilitado,estado}, fixture.umbrales_alternativos. La propuesta de Validation regenerada con 1.9.5 difiere en FieldValidators.scala, FieldValidatorsSpec.scala, SISBENValidationProcessorSpec.scala y manifest.json; prevalidación igual.
+- **Decisión:** Suites verificadas; framework 1.9.5 commit 6cdd122 (con HF-25, references/03 §3d). Validation: regenerar y re-auditar por diferencia (§3d); Acceptance: ronda 2 del analista.
 - **Bitácora:** —
 
 ## INT-024 · Aprobador simulado SIM-DEV-01 · `acceptance`
@@ -192,4 +192,20 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Pedido:** Decidir PA-006 (a, b, c) y cómo cubrir AUD-A-01.
 - **Respuesta:** PA-006 la cierra SIM-DEV-01: (a) RQS_BAJO_UMBRAL_SISBEN/SISBFA00001 [P] con comprobación en el fork [PM]; (b) rechazo (solo header / todo filtrado); (c) false. Autoriza umbral alternativo de prueba (0.95: 19/20 aceptado, 47/50 rechazado; el desplegable sigue 0.90; la prueba toma el umbral de la configuración). Autoriza AUD-A-02 (ganador por fecha + empate explícito por eventId), -03 (marcadores como los emite Validation), -04, -06 (RT_ con debe_coincidir true), -07 ([C]). Pide RG para AUD-A-12.
 - **Decisión:** PA-006 resuelta; RG-017 y RG-018 abiertos. Ronda 2 del analista cuando el framework 1.9.5 publique la clave de umbrales alternativos.
+- **Bitácora:** —
+
+## INT-025 · Generador (edf-validation) · revisión §3d · `validation`
+
+- **Cuándo:** 2026-11-24T19:05:04-05:00
+- **Pedido:** Regenerar la propuesta de Validation con el framework 1.9.5 (HF-16..18), mismo insumo v2.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-026 · Analista (edf-analisis) · insumo de Acceptance v2 · `acceptance`
+
+- **Cuándo:** 2026-11-24T19:05:04-05:00
+- **Pedido:** ART-020 v2: PA-006 resuelta, umbrales_alternativos, AUD-A-02/03/04/06/07, claves 1.9.5.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
 - **Bitácora:** —
