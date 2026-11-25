@@ -654,14 +654,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:29:56-05:00
 - **Pedido:** Procedimiento de los 3 ajustes posteriores al cierre (§3d, §3c en etapas aprobadas con sucesoras).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** (1) Confirma §3d para ART-053 (desde ART-050 v3 sin cambios; no puede retroceder en rutas completas, [PM] de clusterSplitter/INPUT_REF_DIR, las tres VERIFICAR RG-025 y [P] del colapso; verificador 0 hallazgos; nueva aprobación alto). (2) No autoriza §3d para un insumo como excepción: «no hay override» (03 §3); lo autoriza cuando el framework lo formalice (HF-80: definición de no sustantivo (a)-(d), procedimiento sin suspender transiciones, decide el aprobador de la etapa, no aplica a insumos críticos, prueba del validador para ambos casos); si no, queda documentado. (3) Mismo tratamiento para ART-030/034 (menor prioridad), con sus condiciones.
+- **Decisión:** HF-80 al framework (1.9.13) con su prueba del validador; luego los puntos 2 y 3.
 - **Bitácora:** —
 
 ## INT-083 · Auditor independiente (pinning) · re-auditoría §3d de ART-053 · `pinning`
 
 - **Cuándo:** 2026-11-25T06:30:56-05:00
 - **Pedido:** Re-auditar por diferencia ART-053 regenerado con 1.9.12 y la pérdida de referencias de la ingesta.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-084 · Corrector del framework (HF-80) · `acceptance`
+
+- **Cuándo:** 2026-11-25T06:31:25-05:00
+- **Pedido:** Formalizar la revisión no sustantiva de un insumo (§3d-bis) en references/03 y en el validador, con pruebas; 1.9.13.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
