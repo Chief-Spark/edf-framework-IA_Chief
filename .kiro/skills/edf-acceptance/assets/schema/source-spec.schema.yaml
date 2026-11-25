@@ -308,7 +308,9 @@ properties:
                   asOfDate: {type: integer}
                   subscriberRelation: {type: string}
                   keys: {type: string}
-                  validatedRecordJson: {type: string}
+                  # HF-26: Validation emite los eventos marcador con validatedRecordJson null (SparkValidator.scala:303);
+                  # la plantilla del fixture lo escribe como null. Los registros normales siguen siendo texto JSON.
+                  validatedRecordJson: {type: [string, "null"]}
                   qualityScores:
                     type: array
                     items:

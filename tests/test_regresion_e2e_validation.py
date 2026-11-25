@@ -81,3 +81,17 @@ def test_nombre_del_inner_unificado():
     for rel in ("assets/templates/validation-block.conf.tpl", "references/runbook-ejecucion.md",
                 "references/inventario-plantillas.md"):
         assert "validation-common-application-inner.conf" in leer(SK / rel), rel
+
+
+# --- HF-27 (AUD-V-31): comparar corridas sin eventId ni keys, por lineage.recordHash ---
+
+def test_hf27_interpretar_salida_documenta_como_comparar_corridas():
+    salida = leer(SK / "references/interpretar-salida.md")
+    seccion = salida[salida.index("## Comparar dos corridas"):salida.index("## Privacidad al revisar")]
+    plano = " ".join(seccion.split())
+    assert "HF-27" in plano and "no se reproduce byte a byte" in plano
+    assert "**se excluyen `eventId` y `keys`**" in plano and "**`lineage.recordHash`**" in plano
+    assert "IdGenerator.nextEventId" in plano and "UUID" in plano and "SIN_CLAVE" in plano
+    assert "multiconjunto" in plano  # filas idénticas comparten recordHash
+    fila_keys = next(l for l in salida.splitlines() if l.startswith("| `keys` |"))
+    assert "Comparar dos corridas" in fila_keys

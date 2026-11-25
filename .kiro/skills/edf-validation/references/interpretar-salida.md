@@ -8,12 +8,12 @@ Kafka. No hay `rejected/`. Cada línea es un `TaggedValidatedEvent`:
 | Campo | Qué mirar |
 |---|---|
 | `lineage` | `dataSource = DNP`, `subscriber = 999722`, `fileName`, `receivedDate`, `fileAsOfDate`, `recordHash` |
-| `validatedRecordJson` | Mapa ordenado `NOMBRE_CAMPO → valor recibido`, sin trim (22 claves; Curation necesita el valor original, AUD-V-05) |
+| `validatedRecordJson` | Mapa ordenado `NOMBRE_CAMPO → valor recibido`, sin trim (22 claves; Curation necesita el valor original, AUD-V-05). En los eventos marcador es `null` (`SparkValidator.scala:303`) |
 | `errorCodes[]` | `ObjectError`: `errorCodeValue` = código, `errorLevel` = `1`/`3`, `messageKey` = causa |
 | `qualityScores[]` | `{name: "RQS", score: 1.0 | 0.0}` |
 | `eventType` | 30; o el del marcador (-1002…-1005) |
 | `asOfDate`, `subscriberRelation` | `FECHA_ACTUALIZACION_CNS` en epoch ms; `NUM_DOCUMENTO` |
-| `keys` | Clave de duplicado unida |
+| `keys` | Clave de duplicado unida; con `SIN_CLAVE` lleva un UUID que cambia en cada corrida (ver «Comparar dos corridas») |
 
 ## Árbol de diagnóstico
 
@@ -50,6 +50,22 @@ E12 → E13 (orden del motor en `alcance-y-glosario.md`); no lee `filas_footer` 
 produce `errorInFooter` (-1004). Si la spec declara `filas_footer > 0`, el script se detiene con
 `SpecError` (código 2) en lugar de validar el footer como un registro. Para SISBEN no hay diferencia:
 `filas_footer = 0`. (AC-24; plan de corrección #6, P-2.)
+
+## Comparar dos corridas
+
+La salida de Validation **no se reproduce byte a byte** entre corridas (HF-27, AUD-V-31). Dos campos cambian
+siempre, aunque la entrada y la configuración sean las mismas:
+
+- `eventId`: lo genera `IdGenerator.nextEventId` con el reloj, la partición y una secuencia (`Validator.scala:178`).
+- `keys` de un registro sin tipo o sin número de documento: la clave de duplicado es `("SIN_CLAVE", <UUID
+  aleatorio>)` (`claveDuplicado` de la Capa A, HF-16), para que dos filas así no se marquen como duplicadas.
+  Solo la usa la deduplicación de Validation; Acceptance no lee `keys`.
+
+Para comparar dos corridas (o una corrida con su réplica), **se excluyen `eventId` y `keys`** y los eventos se
+emparejan por **`lineage.recordHash`** (SHA-1 de la línea leída). Como dos filas idénticas tienen el mismo
+`recordHash`, se compara el multiconjunto: para cada `recordHash`, la misma cantidad de eventos con los mismos
+`errorCodes`, `qualityScores`, `eventType` y `validatedRecordJson`. Los eventos marcador (sin registro) se comparan
+por `eventType` y `errorCodes`.
 
 ## Privacidad al revisar
 

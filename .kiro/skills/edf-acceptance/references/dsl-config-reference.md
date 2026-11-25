@@ -96,7 +96,12 @@ con `ident = [a-zA-Z_][a-zA-Z0-9_]*` y la frase completa (nada más alrededor: *
   un `reasonCode` sin severidad en el lookup se omite del chequeo.
 - Registra `reasonCode: resultado` de las condiciones con `isLogged = true`.
 
-## 4. Expresiones SISBEN (D7)
+## 4. Ejemplo histórico: expresiones SISBEN (D7; no es fuente)
+
+**Ejemplo histórico (HF-30).** Muestra solo la **forma** de un bloque completo. Los valores (`filePattern`, umbral,
+condiciones, `reasonCode`, `customReasonForAutomaticRejectionEnabled`) salen de la HU y la spec de la ingesta, no de
+aquí. Por ejemplo, `customReason… = true` es el valor de esa versión histórica: el motor usa `false` si la clave
+falta (`SparkAcceptor.scala:166`) y la spec de cada ingesta decide.
 
 ```hocon
 fileConditions = [ { name = "RQS_BAJO_UMBRAL_SISBEN", expression = "average(\"qs.RQS\") < 0.90", reasonCode = "SISBFA00001", isLogged = true } ]

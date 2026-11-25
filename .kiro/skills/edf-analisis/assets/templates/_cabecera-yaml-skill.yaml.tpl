@@ -9,8 +9,8 @@ documento:
   ingesta: "{{ingesta-id}}"
   version: "1.0.0"
   fecha: "{{AAAA-MM-DD}}"
-  estado: "PROPUESTO"                               # pasa a APROBADO con aprobación registrada en el expediente (edf-orquestador)
-  aprobador: "PENDIENTE-MANUAL"
+  # Sin estado ni aprobador (HF-32): viven solo en expedientes/<id>/estado-ingesta.json, que registra edf-orquestador
+  # con el hash de este archivo. Escribirlos aquí los deja desactualizados al aprobar y corregirlos cambia el hash.
 
 procedencia:
   fuente_analisis:

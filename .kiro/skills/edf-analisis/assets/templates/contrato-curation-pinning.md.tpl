@@ -4,7 +4,6 @@
 |---|---|
 | Ingesta | `{{ingesta-id}}` |
 | Versión / Fecha | 1.0.0 / {{AAAA-MM-DD}} |
-| Estado | PROPUESTO |
 | Contrato general | `.kiro/steering/11-contrato-curation-pinning.md` (formato del evento, regla de normalización, pendientes) |
 | Fuentes de esta tabla | `insumos/source-spec-curation.yaml` (`campos_curados[]`), `analisis/mapeo-campos.md`, `references/logica-pinning.md` §5, §7, §12.1 |
 

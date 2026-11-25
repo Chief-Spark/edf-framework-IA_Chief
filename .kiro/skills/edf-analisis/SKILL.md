@@ -80,6 +80,17 @@ Produce el insumo de **una** etapa por vez. Requisito: la etapa 0 aprobada (o, p
 | Synthesis | `yaml-skill-synthesis.yaml` | `_cabecera` + `yaml-skill-synthesis.yaml.tpl` | `assets/examples/sisben/yaml-skill-synthesis.yaml` | `references/logica-synthesis.md` |
 | State Calculation | `yaml-skill-statecalc.yaml` | `_cabecera` + `yaml-skill-statecalc.yaml.tpl` | `assets/examples/sisben/yaml-skill-statecalc.yaml` | `references/logica-statecalc.md` |
 
+**Cabecera del insumo: sin estado (HF-32).** La cabecera de todo insumo (el comentario inicial de un `source-spec-*.yaml`,
+el bloque `documento:` de un `yaml-skill-*.yaml` y la tabla de identidad de `contrato-curation-pinning.md`) **no lleva
+estado** (ni `PROPUESTO` ni `APROBADO`) **ni aprobador**. El estado y la aprobación viven solo en `estado-ingesta.json`,
+que registra `edf-orquestador` con el hash del archivo (steering `09`): un estado en la cabecera queda desactualizado al
+aprobar, y corregirlo cambia el hash y obliga a re-aprobar. La cabecera puede llevar:
+
+- etapa, ingesta y skill que lo consume;
+- versión y fecha;
+- las fuentes citadas (HU, spec y sus secciones) y el esquema o la plantilla usados;
+- las desviaciones: líneas que se apartan de un anexo de la spec y cambios respecto a la versión anterior, con su causa.
+
 Flujo:
 1. Parte del esquema o plantilla de la etapa. El ejemplo SISBEN es solo referencia de **forma** (estructura, nivel de detalle, citas y marcadores): **nunca** copies sus valores, tampoco para SISBEN, porque puede diferir de la HU y la spec vigentes. Los valores salen siempre de la HU y la spec (`00-framework-edf.md` §6) a través de `mapeo-campos.md`.
 2. Llena cada valor desde `mapeo-campos.md` y las referencias de la etapa, con su marcador y su cita. Lo no confirmado queda marcado y **no** se convierte en instrucción de generación (`[C]` solo).
@@ -102,7 +113,7 @@ Flujo:
 | `references/deteccion-ambiguedades.md` | Los seis patrones de ambigüedad, criterio bloqueante / no bloqueante (en la duda, bloqueante), formato de la pregunta `PA-nnn` y qué no es una ambigüedad |
 | `references/fuentes/curation-pinning-sisben.md` | Resumen de Confluence sobre Curation y Pinning de SISBEN (nivel 3, generado por un agente; tiene contradicciones registradas en steering `03` §9 y `11` §6) |
 | `references/fuentes/curation-muric.md`, `pinning-muric.md` | Ingesta certificada MURIC: nombres de campos curados y lógica real de `ColombiaIdentityMatcher`. Es el mejor patrón de referencia para fuentes de Colombia |
-| `assets/examples/sisben/` | Los tres `yaml-skill-*.yaml` reales del piloto (escritos a mano en sesión; estado PROPUESTO) |
+| `assets/examples/sisben/` | Los tres `yaml-skill-*.yaml` reales del piloto (escritos a mano en sesión). Su `estado`/`aprobador` de cabecera es histórico: un insumo nuevo no los lleva (HF-32, `LEEME.md`) |
 | `assets/templates/` | Plantillas de etapa 0, contrato Curation → Pinning y YAML de transformación |
 
 Las referencias `logica-*.md` citan rutas del workspace de origen (`Diseño/`, `Docs-General/`, repos Oxygen) que no vienen en este paquete. Trátalas como citas de evidencia, no como archivos a abrir.

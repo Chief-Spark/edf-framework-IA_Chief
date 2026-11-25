@@ -53,4 +53,4 @@ claves_configuracion_synthesis:
 resumen_de_cierre:
   claves_si_generables: ""
   bloqueo_principal: ""
-  estado: "PROPUESTO"
+  # Sin estado de aprobación (HF-32): vive solo en estado-ingesta.json.

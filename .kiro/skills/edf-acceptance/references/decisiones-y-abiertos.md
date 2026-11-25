@@ -36,9 +36,9 @@ resuelve.
 | F-02 | Credencial expuesta en `settings-artifactory.xml` | Prohibido leerlo, copiarlo o referenciarlo; pedir rotación |
 | F-03 | Claves HOCON | **Resuelto** para Acceptance y lookups |
 | F-04 | Flags de ambiente | `defaultOutputStructure` del ambiente real sin evidencia (SUPUESTO); el skill no lo cambia |
-| F-07 | Prefijos RT/EP y `fileTag` | `filePattern` con `(RT_\|EP_)?`; `fileTag` por prefijo es SUPUESTO (solo en el fixture) |
-| F-08 | `SISBEN_ERR_023` (salvoconducto) | Provisional; cuenta como sev. 1 en IN-05 |
-| F-09 | Fila con ≠ 22 columnas | Llega como error sev. 1 (código provisional) ⇒ rechazada por registro |
+| F-07 | Prefijos de nombre y `fileTag` | Si un prefijo es válido o es nombre inválido, y el `fileTag`, salen de la HU y la spec de la ingesta (`archivo.filePattern`, fixture). Ejemplo histórico (no es fuente, HF-30): `filePattern` con `(RT_\|EP_)?` y `fileTag` por prefijo como SUPUESTO |
+| F-08 | Código de un tipo de documento no admitido | El código y su nivel salen de la spec de la ingesta (IN-05). Ejemplo histórico (no es fuente, HF-30): `SISBEN_ERR_023` (salvoconducto), provisional, sev. 1 |
+| F-09 | Fila con un número de columnas distinto del layout | Llega como error del nivel y con el código que fije la spec de la ingesta ⇒ con nivel `"1"`, rechazada por registro. Ejemplo histórico (no es fuente, HF-30): ≠ 22 columnas, código provisional |
 | F-10 | Sin severidad 0 | `niveles` de IN-05 = `"1"`, `"3"`, `""` |
 | F-11 | Marcadores de nombre/header | Validation solo los emite si existe expresión `validate[]`; si no, Acceptance no ve el marcador y el archivo se evalúa por calidad |
 | F-12 / F-13 | Lookups sin estructura verificada | ACC-TPL-03: `tableName`, archivo, formato y delimitador son SUPUESTO |
@@ -47,19 +47,25 @@ resuelve.
 
 ## Supuestos propios de este skill
 
-Desde el 2026-10-21 (AC-27, ADR-G2) la spec los declara en el bloque opcional `supuestos` con el mismo ID y
-el mismo impacto, y `scripts/render_templates.py` los lista: con `--audit`, después de los huecos; sin `--audit`,
-después de `generado`/`omitido` (línea `supuesto  S-ACC-xx  impacto=…  donde=…  texto=…`). La prueba
-`test_supuestos_de_la_spec_iguales_a_los_del_documento` compara esta tabla con la spec SISBEN. Las marcas `ASSUMPTION`
-citan el ID (`ASSUMPTION S-ACC-xx`).
+Desde el 2026-10-21 (AC-27, ADR-G2) la spec los declara en el bloque opcional `supuestos` y
+`scripts/render_templates.py` los lista: con `--audit`, después de los huecos; sin `--audit`, después de
+`generado`/`omitido` (línea `supuesto  S-ACC-xx  impacto=…  donde=…  texto=…`). Las marcas `ASSUMPTION` citan el ID
+(`ASSUMPTION S-ACC-xx`).
+
+Esta tabla es el **catálogo** de IDs con su impacto **genérico** (HF-29): no cita datos de ningún fixture. La spec de
+cada ingesta declara solo los que le aplican (una spec sin rama de severidades no declara S-ACC-02), con un ID de este
+catálogo, y puede concretar el texto con sus datos (qué directorio del fixture no trae QS, cuántos directorios hay).
+La entrega declara los supuestos que imprime el generador **para esa spec**, no los de esta tabla. Pruebas:
+`test_supuestos_de_la_spec_iguales_a_los_del_documento` (el ejemplo de referencia usa el texto del catálogo) y
+`test_hf29_*` (catálogo sin datos de fixture; una spec sin S-ACC-02 imprime exactamente los suyos).
 
 | Id | Supuesto | Impacto | Dónde |
 |---|---|---|---|
-| S-ACC-01 | `severidades.habilitado = false`: `reject` no usa `hasErrorlevelIn`, así que la severidad de `SISBFA00001` no es necesaria | No se generan ACC-TPL-03 (CSV y `lookup.conf`) ni `lookupMapping`. Si `reject` llega a usar `hasErrorlevelIn/NotIn`, hay que habilitar la tabla (`verifySpec` lo exige, ACC-TPL-03) y cerrar ACC-PT03 | spec (`severidades.habilitado`) |
-| S-ACC-02 | Si se habilita: tabla `SISBEN_ACC_REASON_SEVERITY_NH`, CSV `,`, `SISBFA00001 → 1` | Hoy ninguno: la rama está deshabilitada y ACC-TPL-03 se omite. Si se habilita sin confirmar, `lookupMapping`, el CSV y su `lookup.conf` salen con nombre de tabla, formato y delimitador sin verificar (F-12/F-13) y con una severidad provisional (ACC-PT03): `hasErrorlevelIn/NotIn` clasificaría el rechazo de `SISBFA00001` con esa severidad, o lo omitiría si la tabla no se carga | spec (`severidades`, `ASSUMPTION S-ACC-02`) |
-| S-ACC-03 | `average` de un QS ausente en todos los eventos es null ⇒ condición `false` ⇒ archivo pendiente | Un archivo sin RQS (contrato con Validation roto) no se rechaza ni se acepta: queda pendiente y no sale de `validated/`. El fixture 900005 y el simulador esperan "pendiente"; falta confirmarlo contra Spark (N4) | simulador, fixture `900005` |
+| S-ACC-01 | `severidades.habilitado = false`: `reject` no usa `hasErrorlevelIn`, así que la severidad del `reasonCode` de las condiciones no es necesaria | No se generan ACC-TPL-03 (CSV y `lookup.conf`) ni `lookupMapping`. Si `reject` llega a usar `hasErrorlevelIn/NotIn`, hay que habilitar la tabla (`verifySpec` lo exige, ACC-TPL-03) y cerrar ACC-PT03 | spec (`severidades.habilitado`) |
+| S-ACC-02 | Si se habilita: nombre de tabla, formato, delimitador y severidad de cada `reasonCode` sin confirmar (la spec los concreta) | Hoy ninguno: la rama está deshabilitada y ACC-TPL-03 se omite. Si se habilita sin confirmar, `lookupMapping`, el CSV y su `lookup.conf` salen con nombre de tabla, formato y delimitador sin verificar (F-12/F-13) y con una severidad provisional (ACC-PT03): `hasErrorlevelIn/NotIn` clasificaría el rechazo del `reasonCode` con esa severidad, o lo omitiría si la tabla no se carga | spec (`severidades`, `ASSUMPTION S-ACC-02`) |
+| S-ACC-03 | `average` de un QS ausente en todos los eventos es null ⇒ condición `false` ⇒ archivo pendiente | Un archivo sin el QS declarado (contrato con Validation roto) no se rechaza ni se acepta: queda pendiente y no sale de `validated/`. El archivo del fixture sin QS y el simulador esperan "pendiente"; falta confirmarlo contra Spark (N4) | simulador, archivo del fixture sin QS |
 | S-ACC-04 | `JsonUtils` en `com.experian.edf.oxygen.utils` para el Spec | Si el paquete es otro, el Spec Scala (ACC-TPL-05) no compila. No afecta el HOCON ni la decisión del motor; la compilación ya no está certificada (F-01) | ACC-TPL-05 (`ASSUMPTION S-ACC-04`) |
-| S-ACC-05 | Fixture JSON Lines con campos de `TaggedValidatedEvent`; `payload`/`minFrequency` omitidos (deserialización tolerante) | Si `JsonUtils.fromJson` no tolera la falta de `payload`/`minFrequency`, el Spec no puede leer los 5 directorios del fixture y sus casos de registro y de archivo fallan al cargar los eventos. No afecta el HOCON ni la decisión en producción | ACC-TPL-06 |
+| S-ACC-05 | Fixture JSON Lines con campos de `TaggedValidatedEvent`; `payload`/`minFrequency` omitidos (deserialización tolerante) | Si `JsonUtils.fromJson` no tolera la falta de `payload`/`minFrequency`, el Spec no puede leer los directorios del fixture y sus casos de registro y de archivo fallan al cargar los eventos. No afecta el HOCON ni la decisión en producción | ACC-TPL-06 |
 
 El impacto de S-ACC-02, S-ACC-04 y S-ACC-05 se redactó el 2026-10-21 a partir del material del skill y está
 pendiente de revisión humana (hallazgo de `CORRECCION_G_2026-10-21.md`, Acceptance).
@@ -106,3 +112,16 @@ aceptada: el insumo de la corrida sigue generando con rc 0.
 | HF-23 (AUD-A-01, defecto 5) | No había forma de probar otro umbral (HU §5.2 «Umbral parametrizable») sin otra configuración | `fixture.umbrales_alternativos` (opcional): ACC-TPL-05 evalúa `accept` y las condiciones con el umbral sustituido sobre registros sintéticos con QS binario; `simular_decision.py` hace lo mismo. La escala única de la configuración desplegable no cambia | schema, `AcceptanceExpressionsSpec.scala.tpl`, `render_templates.py` (`con_umbral`, `umbrales_alternativos_coherentes`), `simular_decision.py`; `test_hf23_*` |
 | HF-24 (AUD-A-08, -09) | El simulador no comparaba con lo esperado (rc 0 aunque difiriera); el Spec decía que con `customReason…` el motor siempre registra el `reasonCode` | El simulador informa `coincide`/`diferencias` por archivo y sale con 1 si algo no coincide; el comentario dice que solo lo registra si alguna condición de `reject` es verdadera sobre los eventos del marcador | `simular_decision.py`, `AcceptanceExpressionsSpec.scala.tpl`, `SKILL.md`; `test_hf24_*` |
 
+
+## Lote de cierre de la corrida E2E SISBEN (2026-11-25)
+
+Defectos P2 del framework que dejó la auditoría de la etapa Acceptance (`ejecuciones/sisben-e2e/auditorias/acceptance.md`
+§6.2 y §7). Un insumo que generaba con rc 0 sigue generando con rc 0.
+
+| Id | Qué estaba mal | Qué cambió | Dónde |
+|---|---|---|---|
+| HF-26 | El schema no admitía `validatedRecordJson: null`, que es lo que emite Validation en los eventos marcador (`SparkValidator.scala:303`) | `validatedRecordJson: {type: [string, "null"]}`; la plantilla del fixture lo escribe como `null` (filtro `json`). Los casos existentes no cambian | schema, `SKILL.md` (contrato «Marcadores»); `test_hf26_*` |
+| HF-29 | S-ACC-03/05 citaban datos del fixture del ejemplo y el checklist exigía «los mismos supuestos» | La tabla de supuestos es un catálogo genérico; la entrega declara los que imprime el generador para esa spec | esta reference, `assets/checklist-entrega.md`, ejemplo; `test_hf29_*`, `test_supuestos_de_la_spec_iguales_a_los_del_documento` |
+| HF-30 | Restos del SISBEN histórico en las references | Columnas y secciones rotuladas «ejemplo histórico (no es fuente)»; F-07..F-09 remiten a la spec de la ingesta | `inventario-plantillas.md`, `dsl-config-reference.md` §4, `patrones.md`, esta reference; `tests/test_regresion_e2e_acceptance.py` |
+| HF-31 | El checklist pedía documentos `SINT*` | Documentos sintéticos declarados como tales por la spec o con prefijo `SINT`; `eventId` `SINT-*` | `assets/checklist-entrega.md`; `tests/test_regresion_e2e_acceptance.py` |
+| HF-33 (AUD-A-16, -17) | ACC-TPL-05 construía `AcceptanceCondition` con 4 argumentos (el motor, con 5) y no probaba el `filePattern` en Scala | Quinto argumento `result` explícito en `false`; prueba nueva con `archivo.claves_de_prueba` (recorte de extensión del motor y `String.matches`) | `AcceptanceExpressionsSpec.scala.tpl`, ejemplo regenerado; `test_hf33_*` |

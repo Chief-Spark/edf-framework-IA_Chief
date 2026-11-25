@@ -16,7 +16,10 @@ Marque cada punto antes de presentar la propuesta. Un punto en rojo bloquea la e
 - [ ] HOCON generado parsea con el subconjunto local (`hocon_check.py`) y, si está instalado, con pyhocon. (El parse con
       Typesafe Config 1.3.4 era de las pruebas del generador Java deprecado: histórico.)
 - [ ] El simulador reproduce `expected-output.yaml` / las decisiones esperadas del fixture.
-- [ ] `--audit` lista una línea `supuesto  S-ACC-xx  impacto=…` por cada supuesto del bloque `supuestos` de la spec, y son los mismos de `decisiones-y-abiertos.md` (AC-27; `supuestosDeLaSpecIgualesALosDelDocumento`).
+- [ ] `--audit` lista una línea `supuesto  S-ACC-xx  impacto=…` por cada supuesto del bloque `supuestos` de la spec, y la entrega
+      declara los supuestos que imprime el generador para esa spec, con su ID e impacto. Cada ID está en el catálogo de
+      `decisiones-y-abiertos.md`; el texto puede concretar los datos de la spec y una spec puede no declarar todos los del
+      catálogo (AC-27, HF-29; `test_supuestos_de_la_spec_iguales_a_los_del_documento`, `test_hf29_*`).
 
 ## B. Manual (ingeniero)
 
@@ -31,7 +34,8 @@ Marque cada punto antes de presentar la propuesta. Un punto en rojo bloquea la e
 ## C. Seguridad y datos
 
 - [ ] Sin credenciales, tokens ni `settings-artifactory.xml` en el entregable ni en los logs.
-- [ ] Fixture 100 % sintético (`eventId` `SINT-*`, documentos `SINT*`); ningún registro real.
+- [ ] Fixture 100 % sintético: `eventId` `SINT-*`; documentos sintéticos, declarados como tales por la spec de la ingesta
+      o con prefijo `SINT`, nunca acompañados de nombres reales (HF-31); ningún registro real.
 - [ ] Sin PII real en ejemplos, comentarios o mensajes.
 - [ ] Sin rutas de máquina locales ni de un workspace concreto.
 

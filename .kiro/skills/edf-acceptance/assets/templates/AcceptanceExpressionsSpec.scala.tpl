@@ -12,6 +12,7 @@ import com.experian.edf.oxygen.configuration.configs.AcceptanceCondition
 import com.experian.edf.oxygen.domain.internal.TaggedValidatedEvent
 // ASSUMPTION S-ACC-04: JsonUtils está en com.experian.edf.oxygen.utils (el motor lo importa con comodín).
 import com.experian.edf.oxygen.utils.JsonUtils
+import org.apache.commons.io.FilenameUtils
 import org.apache.spark.sql.{Dataset, SparkSession}
 import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterAll
@@ -34,9 +35,11 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
   private val AutomaticMarkers = Seq("errorInHeader", "errorInFooter", "errorInFileName", "errorInHistoricAttribute")
   private val CustomReasonForAutomaticRejection = {{rechazo_automatico.customReasonForAutomaticRejectionEnabled}}
 
+  // HF-33 (AUD-A-16): el motor construye AcceptanceCondition con 5 argumentos (AcceptanceAST.scala:75,
+  // SparkDatasetAcceptor.scala:284); el quinto (result) va explícito en false, sin suponer un valor por defecto.
   private val conditions: Map[String, AcceptanceCondition] = Map(
 {{#cada condiciones}}
-    "{{nombre}}" -> AcceptanceCondition("{{nombre}}", "{{expresion|scala}}", "{{reasonCode}}", {{isLogged}}),
+    "{{nombre}}" -> AcceptanceCondition("{{nombre}}", "{{expresion|scala}}", "{{reasonCode}}", {{isLogged}}, /* result = */ false),
 {{/cada}}
   )
 
@@ -67,6 +70,15 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
 {{/cada}}
   )
 
+  private val FilePattern = "{{archivo.filePattern|scala}}"
+
+  // (clave, valor, debe coincidir): archivo.claves_de_prueba del insumo
+  private val fileKeyCases: Seq[(String, String, Boolean)] = Seq(
+{{#cada archivo.claves_de_prueba}}
+    ("{{clave|scala}}", "{{valor|scala}}", {{debe_coincidir}}),
+{{/cada}}
+  )
+
   private lazy val spark: SparkSession =
     SparkSession.builder().master("local[1]").appName("{{fuente}}-acceptance-expressions").getOrCreate()
 
@@ -88,6 +100,14 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
     AutomaticMarkers.exists(m => dir.contains(m)) ||
       (dir.contains("errorInEmptyFileBody") && !FileAccept.contains("isEmptyBodyFile"))
 
+  /** HF-33 (AUD-A-17): misma regla que SparkAcceptor.removeFileExtension (SparkAcceptor.scala:152-157): una
+    * extensión menos; dos si la ruta contiene errorIn. Con esa clave el motor elige la configuración
+    * (`removeFileExtension(ruta) matches filePattern`, :131); si no coincide, el archivo queda sin procesar. */
+  private def engineFileKey(path: String): String = {
+    val stripped = FilenameUtils.removeExtension(path)
+    if (path.contains("errorIn")) FilenameUtils.removeExtension(stripped) else stripped
+  }
+
   private def aggregatesParser(dir: String): AggregatesParserDF = {
     import spark.implicits._
     val ds: Dataset[TaggedValidatedEvent] = spark.createDataset(loadEvents(dir))
@@ -97,6 +117,16 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
   private def recordAccepted(event: TaggedValidatedEvent): Boolean = {
     val parser = new RecordValidationParser(Left(event))
     parser.parseAll(parser.boolExpr, RecordAcceptance).get
+  }
+
+  test("filePattern: cada clave de prueba del insumo coincide o no como se declaró (E3, ACC-R03, HF-33)") {
+    assert(fileKeyCases.nonEmpty, "el insumo no declara archivo.claves_de_prueba")
+    fileKeyCases.foreach { case (clave, valor, expected) =>
+      // Las claves ruta_* son rutas de validados y se recortan como en el motor; las demás se comparan tal cual
+      // (misma regla que render_templates.verify_spec). String.matches exige coincidencia total, como el motor.
+      val key = if (clave.startsWith("ruta_")) engineFileKey(valor) else valor
+      assert(key.matches(FilePattern) == expected, clave + ": " + key + " debería " + (if (expected) "" else "no ") + "coincidir")
+    }
   }
 
   test("recordAcceptance no contiene nombres de quality score (ACC-R02)") {
@@ -207,7 +237,7 @@ class {{Fuente}}AcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfte
     umbralesAlternativos.foreach { case (umbral, caso, validos, totales, expected, reasonCode) =>
       val accept = conUmbral(FileAccept, umbral)
       assert(accept != FileAccept, "accept no contiene el umbral " + UmbralDesplegado)
-      val alt = conditions.map { case (n, c) => n -> AcceptanceCondition(c.name, conUmbral(c.expression, umbral), c.reasonCode, c.isLogged) }
+      val alt = conditions.map { case (n, c) => n -> AcceptanceCondition(c.name, conUmbral(c.expression, umbral), c.reasonCode, c.isLogged, /* result = */ false) }
       val qs = (1 to totales).map(i => Tuple1(QualityScoreNames.map(_ -> (if (i <= validos) 1.0 else 0.0)).toMap)).toDF("qs")
       val parser = new AggregatesParserDF(spark.sqlContext, qs)
       val evaluator = new AcceptanceEvaluator

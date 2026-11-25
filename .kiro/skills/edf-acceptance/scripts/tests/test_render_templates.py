@@ -226,7 +226,7 @@ def test_fixture_json_valido_y_sintetico(generated, spec):
             event = json.loads(line)
             assert event["eventId"].startswith("SINT-")
             assert event["lineage"]["fileName"] in f.parent.name
-            rec = json.loads(event["validatedRecordJson"])
+            rec = json.loads(event["validatedRecordJson"] or "{}")  # HF-26: los marcadores pueden traer null
             assert all(str(v).startswith("SINT") for k, v in rec.items() if k == "NUM_DOCUMENTO")
 
 
@@ -508,10 +508,15 @@ def test_schema_supuestos_exige_id_y_cuatro_campos(spec, schema):
 
 
 def test_supuestos_de_la_spec_iguales_a_los_del_documento(spec):
+    """HF-29: el documento es el catálogo (ID + impacto genérico). Una spec declara solo IDs del catálogo, sin
+    repetir; el ejemplo de referencia declara todos con el texto del catálogo. Una spec con otros supuestos o con
+    texto propio se prueba en test_correcciones_197.py (test_hf29_*)."""
     doc = _supuestos_del_documento()
     en_spec = rt.supuestos(spec)
-    assert set(doc) == {s["id"] for s in en_spec} == {"S-ACC-01", "S-ACC-02", "S-ACC-03", "S-ACC-04", "S-ACC-05"}
-    assert len(en_spec) == len(doc)
+    ids = [s["id"] for s in en_spec]
+    assert set(doc) == {"S-ACC-01", "S-ACC-02", "S-ACC-03", "S-ACC-04", "S-ACC-05"}
+    assert set(ids) <= set(doc) and len(set(ids)) == len(ids)
+    assert set(ids) == set(doc)  # el ejemplo de referencia los declara todos
     for s in en_spec:
         fila = doc[s["id"]]
         assert _normalizado(fila[1]) and _normalizado(fila[1]) == _normalizado(s["impacto"])

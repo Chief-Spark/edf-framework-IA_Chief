@@ -11,7 +11,11 @@ en `assets/templates/`; `manifest.yaml` fija el orden de generación.
 
 ## Entradas del skill (IN-xx → claves de la source-spec)
 
-| Id | Entrada | Clave en la spec | SISBEN | Estado |
+Las columnas «Ejemplo histórico» y «Estado en el ejemplo» describen una versión histórica de SISBEN (HF-30): son
+**forma**, no fuente. Los valores y el estado de cada entrada salen de la HU y la spec de la ingesta (y su estado,
+del expediente).
+
+| Id | Entrada | Clave en la spec | Ejemplo histórico (no es fuente) | Estado en el ejemplo |
 |---|---|---|---|---|
 | IN-01 | Convención de nombre | `archivo.*` | `[RT_\|EP_]SISBEN_EXPERIAN_AAAAMM.AAAAMMDDHHMMSS±ZZZZ.txt` | propuesta_de_frontera |
 | IN-02 | Regla de calidad | `calidad.*` | `RQS`, `average`, `0.90` | cerrado |

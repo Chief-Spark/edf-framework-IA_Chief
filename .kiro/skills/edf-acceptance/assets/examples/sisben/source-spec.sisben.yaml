@@ -148,14 +148,15 @@ supuestos:
       Hoy ninguno: la rama está deshabilitada y ACC-TPL-03 se omite. Si se habilita sin confirmar,
       lookupMapping, el CSV y su lookup.conf salen con nombre de tabla, formato y delimitador sin verificar
       (F-12/F-13) y con una severidad provisional (ACC-PT03): hasErrorlevelIn/NotIn clasificaría el rechazo
-      de SISBFA00001 con esa severidad, o lo omitiría si la tabla no se carga
+      del reasonCode con esa severidad, o lo omitiría si la tabla no se carga
     donde: spec (severidades, ASSUMPTION S-ACC-02)
   - id: S-ACC-03
     supuesto: average de un QS ausente en todos los eventos es null => condición false => archivo pendiente
     impacto: >-
-      Un archivo sin RQS (contrato con Validation roto) no se rechaza ni se acepta: queda pendiente y no sale
-      de validated/. El fixture 900005 y el simulador esperan "pendiente"; falta confirmarlo contra Spark (N4)
-    donde: simulador, fixture 900005
+      Un archivo sin el QS declarado (contrato con Validation roto) no se rechaza ni se acepta: queda
+      pendiente y no sale de validated/. El archivo del fixture sin QS y el simulador esperan "pendiente";
+      falta confirmarlo contra Spark (N4)
+    donde: simulador, archivo del fixture sin QS
   - id: S-ACC-04
     supuesto: JsonUtils en com.experian.edf.oxygen.utils para el Spec
     impacto: >-
@@ -167,7 +168,7 @@ supuestos:
       Fixture JSON Lines con campos de TaggedValidatedEvent; payload/minFrequency omitidos (deserialización
       tolerante)
     impacto: >-
-      Si JsonUtils.fromJson no tolera la falta de payload/minFrequency, el Spec no puede leer los 5
+      Si JsonUtils.fromJson no tolera la falta de payload/minFrequency, el Spec no puede leer los
       directorios del fixture y sus casos de registro y de archivo fallan al cargar los eventos. No afecta el
       HOCON ni la decisión en producción
     donde: ACC-TPL-06

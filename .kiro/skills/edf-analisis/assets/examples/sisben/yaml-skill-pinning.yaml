@@ -11,7 +11,8 @@ documento:
   etapa_pipeline: "Pinning"
   version: "1.0.0"
   fecha: "2026-10-01"
-  estado: "PROPUESTO"                                # pasa a APROBADO con firma humana registrada en 09-estado-y-trazabilidad.md
+  # HISTÓRICO (HF-32): un insumo nuevo NO lleva estado ni aprobador; viven solo en estado-ingesta.json (LEEME.md).
+  estado: "PROPUESTO"
   aprobador: "PENDIENTE-MANUAL"                      # [A:OQ-06] — sin aprobador designado para el patrón
 
 procedencia:

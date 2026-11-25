@@ -29,7 +29,7 @@ Advertencia central: un error de sintaxis **no falla**; acepta todo (registro) o
 
 | Id | Defecto | Mitigación en el skill |
 |---|---|---|
-| ACC-AP01 | `match` sin caso de fallo al buscar configuración | El `filePattern` se prueba contra claves reales (`claves_de_prueba`). |
+| ACC-AP01 | `match` sin caso de fallo al buscar configuración | El `filePattern` se prueba contra claves reales (`claves_de_prueba`): en `verify_spec` (Python) y en ACC-TPL-05 (Scala, HF-33). |
 | ACC-AP02 | Default permisivo por registro | ACC-TPL-05 prueba cada fila de la tabla de registro. |
 | ACC-AP03 | `catch Throwable` en la inferencia de borrados | ACC-TPL-04 exige un caso que detecte el vacío silencioso. |
 | ACC-AP07 | `emitStockMetrics` leída con `.get` | Requisito de ambiente en el runbook. |
@@ -38,7 +38,10 @@ Advertencia central: un error de sintaxis **no falla**; acepta todo (registro) o
 
 ## Superficie de extensión (campos de `AcceptanceElement`)
 
-| Campo | Oblig. | Etapas | SISBEN |
+La última columna es un ejemplo histórico de SISBEN (HF-30): es forma, no fuente; los valores salen de la HU y la
+spec de la ingesta.
+
+| Campo | Oblig. | Etapas | Ejemplo histórico (no es fuente) |
 |---|---|---|---|
 | `filePattern` | sí | E3 | sí |
 | `fileActions.accept` | sí (E4 lo lee con `.get`) | E4, E9 | sí |

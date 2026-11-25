@@ -231,7 +231,7 @@ contrastando con la simulación del Paso 3), pero no los ejecuta.
 | Quality score | `RQS` en **todos** los eventos de datos, binario por registro (0 o 1); el promedio del archivo está en 0..1 | `average` null ⇒ archivo **pendiente**; un score no binario en el fixture ⇒ el generador y el simulador rechazan la spec |
 | Niveles | `"1"` (rechaza), `"3"` (informa); marca de duplicado `OxygenDuplicate` con nivel `""` | Registros mal decididos |
 | Códigos | Longitud fija, sin subcadenas mutuas (`SISBEN_ERR_0xx`, `SISBEN_INC_0xx`) | ACC-R01 |
-| Marcadores | `errorInFileName`, `errorInHeader`, `errorInFooter`, `errorInEmptyFileBody` en el nombre | Sin marcador, se evalúa por calidad (F-11) |
+| Marcadores | `errorInFileName`, `errorInHeader`, `errorInFooter`, `errorInEmptyFileBody` en el nombre. El evento del marcador trae `validatedRecordJson` nulo (`SparkValidator.scala:303`): el fixture lo declara `validatedRecordJson: null` y la plantilla lo escribe como `null` (HF-26) | Sin marcador, se evalúa por calidad (F-11) |
 | Menores | Ya filtrados (no llegan) | FQS distorsionado |
 | Nombre | `lineage.fileName` coincide con el `filePattern` | Excepción en ejecutor (ACC-R03) |
 
