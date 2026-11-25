@@ -3010,3 +3010,173 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0177 · `rechazo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-030 (artefacto): Insumo de State Calculation (ART-070): no se aprueba en esta corrida (opción iii); la etapa queda bloqueada |
+| **Quién** | PO (simulado) · `SIM-PO-01` |
+| **Cuándo** | 2026-11-24T22:53:51-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-PO-01] ART-072, ART-073 y los alias de las dos fechas dependen de hechos del fork (aliasEnabled, App y enricher de Colombia, Nashorn, modo delta, forma nula en Data Provisioning, XPM compartido); ni la verificación diferida (§3e regla 1) ni la evidencia diferida (§3b, 03:66) aplican a N4. Aprobar solo ART-071 no produce #sisben ni cumple la DoD, contradice RG-003 y, sin PA-013 (3), un nombre ya declarado en la Foundation compartida cambiaría el valor para todas las fuentes de Colombia (ContextUtils.scala:15-19). 06 §3: un N4 se documenta y se escala. Decisiones del PO tomadas para que solo queden hechos por comprobar: PA-002 dirección (c1-a) con filtro por fuente en el where y corte vigente en el enricher; PA-012 resuelta; CQ-006 en el alcance de la ingesta como entrega manual de Ingesta 3. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | critico |
+| **Artefactos** | ART-070 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0178 · `cierre_pregunta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-012 resuelta: [SIMULADO · PO SIM-PO-01] (a) Nombre «sisben»: supuesto del PO (el # es la notación de sección de HU y spec; spec §13 nombra las otras secciones sin #; «#sisben» no compila con where, AUD-SC-03); si Data Provisioning exige #sisben, se verifica en PA-013 y se pregunta en PA-014. (b) Un solo objeto por PIN, sin groupBy (spec §13 atributos escalares; HU §5.6 en singular); con más de un documento SISBEN vigente en un PIN, MOST_RECENT_VALUE sobre los registros del corte vigente (supuesto del PO; riesgo y PA-014). (c) «No tiene sección» = la clave no aparece o aparece null, siempre que Data Provisioning no la muestre (HU §5.6); igual para un atributo nulo; cómo lo escribe el writer y lo muestra Data Provisioning queda [PM] en PA-013 (4). |
+| **Quién** | PO SIM-PO-01 (SIMULADO, INT-075) |
+| **Cuándo** | 2026-11-24T22:53:51-05:00 |
+| **Por qué** | Respuesta del aprobador simulado con cita a las fuentes. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0179 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-014: Para negocio (próxima versión de HU y spec), bloqueante para la certificación de state_calculation: (1) ¿El DNP puede re-entregar un REGULAR del mismo periodo? ¿«Vigente» es el mayor periodo o la última recepción? Si hay re-entrega, ¿se cura la identidad del archivo (spec §10.1) o se usa el borrado inferido (e)? (2) ¿Data Provisioning exige literalmente «#sisben» como clave? (3) Con dos documentos SISBEN vigentes en un mismo PIN, ¿uno (el más reciente) o una lista? (4) ¿Debe anularse o marcarse en el XPM una fechaEncuesta futura (RG-007)? |
+| **Quién** | PO SIM-PO-01 (SIMULADO, INT-075) |
+| **Cuándo** | 2026-11-24T22:53:51-05:00 |
+| **Por qué** | PO SIM-PO-01 (INT-075); AUD-SC-01, -03; HU R-02, R-26, §5.6; spec §6, §10.1, §13. Dirigida a negocio. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0180 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-003 (critico, state_calculation): R-26 sin mecanismo definido: un PIN ausente del archivo vigente podría conservar su sección #sisben (impacto N4). |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:53:51-05:00 |
+| **Por qué** | PO SIM-PO-01 (SIMULADO, INT-075) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | critico |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0181 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-007 (medio, curation_flow): Una Fec_digitacion futura con formato válido es inconsistencia sev. 3 pero se transforma: Curation la publica como epoch y llega a #sisben como fecha de encuesta futura (spec §10.4 regla 1, §13) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:53:52-05:00 |
+| **Por qué** | PO SIM-PO-01 (SIMULADO, INT-075) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0182 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-011 (alto, state_calculation): La certificación de 4 dimensiones antes de producción (07 §5.7) no figura en la DoD de la HU §6 y no hay motor que la calcule |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:53:52-05:00 |
+| **Por qué** | PO SIM-PO-01 (SIMULADO, INT-075), AUD-SC-08 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0183 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-031 (medio, state_calculation): Con más de un documento SISBEN vigente en un PIN (Pinning puede unir dos documentos por la regla 2), la sección toma el más reciente (MOST_RECENT_VALUE): supuesto del PO (PA-012 b) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:53:52-05:00 |
+| **Por qué** | PO SIM-PO-01 (SIMULADO, INT-075) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0184 · `bloqueo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Escalamiento N4 (06 §5): state_calculation queda bloqueada, no aprobada. Qué se intentó: insumo ART-070 con 4 campos de nivel A y (c1) para R-26. Qué bloquea: PA-002 (condiciones 1-6), PA-013 (hechos del fork, ampliada), PA-014 (negocio), OQ-TR-2 (Nashorn/JDK) y CQ-006 (código en el fork, BKL-001). Alternativas: (i) aprobar solo ART-071 (descartada: no cumple la DoD, contradice RG-003 y puede cambiar valores de otras fuentes por nombres compartidos); (ii)/(iii) cerrar con la etapa bloqueada (elegida). Dueños: PO, Ingesta 3, Experian (Nashorn, JDK), Operación (control de re-entrega, BKL-003). Backlog BKL-001..003 |
+| **Quién** | PO SIM-PO-01 (SIMULADO) · registra ORQ-E2E |
+| **Cuándo** | 2026-11-24T22:54:13-05:00 |
+| **Por qué** | INT-075 punto 3; APR-030 (rechazo); 06 §3 y §5 |
+| **Resultado** | `bloqueado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | critico |
+| **Artefactos** | ART-070 |
+| **Trazabilidad** | 06 §5 · R3.1 |
+| **Corrige** | — |
+
+---
+
+## BIT-0185 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-028 (alto, synthesis): Verificación diferida de Synthesis de Colombia (VD-SYN-01..06): nombres existentes en el GDD y su handler; lecturas .get sin defecto (dateType, fieldHandlerHashFunction, orchestration, readWriteFormat, historicAttributeArgs si checkFileTagEnabled); conf compartido; periodicidad efectiva (minFrequency de la clase base); escenario §5.5 con nulo; reglas CONS, custom y relationshipMigrationProcessor de Colombia aplicadas a todos los eventos del HC (ConsistencyCheckOps.scala:150-173, :240-271) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:54:13-05:00 |
+| **Por qué** | Auditoría de la propuesta de Synthesis, AUD-S-18 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0186 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:54:31-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

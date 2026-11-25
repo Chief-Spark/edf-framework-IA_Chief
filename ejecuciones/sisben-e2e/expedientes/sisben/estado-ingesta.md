@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:50:40-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:54:31-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 176 eventos, último BIT-0176 |
+| Bitácora | 186 eventos, último BIT-0186 |
 
 ## Etapas
 
@@ -94,6 +94,7 @@
 | APR-027 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0154 |
 | APR-028 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0169 |
 | APR-029 | transicion | pinning → synthesis | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0171 |
+| APR-030 | artefacto | — → — | rechazada | PO `SIM-PO-01` | critico | BIT-0177 |
 
 ## Preguntas abiertas
 
@@ -108,8 +109,9 @@
 - PA-009 (resuelta, bloqueante): oxygen.stage.pinning.reusePin es una sola clave para toda la aplicación de Pinning de Colombia (SparkPinner.scala:223,409), que lee las curadas de todas las fuentes: escribir false regenera los PIN de todas las fuentes. ¿(a) no tocar la clave (SISBEN es ingesta nueva sin generación previa propia), (b) escribir false en el conf de Colombia (riesgo N4 sobre las demás fuentes) o (c) una aplicación de Pinning propia para SISBEN?
 - PA-010 (abierta, no bloqueante): Para la próxima versión de HU y spec: (1) ¿qué significa «reusePIN = false» (ingesta sin PIN previos propios, no la clave global de la aplicación compartida)? (2) La ruta Pinned propia de spec §14 frente al pinnedDir único de la aplicación de Pinning de Colombia (AUD-P-07). Antecedente (BIT-0160): Synthesis toma la última carpeta *-pin-hc, así que una ruta Pinned propia de SISBEN no se leería (AUD-S-05).
 - PA-011 (abierta, no bloqueante): Para la próxima versión de la spec: dentro de un mismo periodo, si el corte más reciente trae un campo nulo, ¿debe ganar el nulo? Hoy LFP no escribe nulos y el valor anterior del periodo se conserva (ConsistencyCheckOps.scala:118,176-181); entre periodos no se arrastra (mapa vacío por periodo, :125). Antecedentes (BIT-0160, INT-065): el motor ordena por (asOfDate, receivedDate) con asOfDate = fec_actualizacion_cns, no por corte (AUD-S-08); periodicidad del evento (minFrequency, VD-SYN-04).
-- PA-012 (abierta, bloqueante): Forma de la sección del XPM: (a) ¿la clave es «sisben» o «#sisben»? (b) si un PIN tiene varios documentos SISBEN, ¿un solo objeto o una lista por documento? (c) ¿«no tiene sección» (HU §5.6) se cumple con la sección en null, que es lo que produce el motor?
-- PA-013 (abierta, bloqueante): Hechos del fork para State Calculation: valor de aliasEnabled en el conf de Colombia (SparkStateCalculator.scala:66-67); App y enricher de Colombia (¿flag tipo isSisben? ¿cómo reciben un valor por corrida?); domain y nombres que ya declaran los JSON compartidos y si usan Nashorn; si una sección null se ve como «sin sección» en el XPM y en Data Provisioning.
+- PA-012 (resuelta, bloqueante): Forma de la sección del XPM: (a) ¿la clave es «sisben» o «#sisben»? (b) si un PIN tiene varios documentos SISBEN, ¿un solo objeto o una lista por documento? (c) ¿«no tiene sección» (HU §5.6) se cumple con la sección en null, que es lo que produce el motor?
+- PA-013 (abierta, bloqueante): Hechos del fork para State Calculation: valor de aliasEnabled en el conf de Colombia (SparkStateCalculator.scala:66-67); App y enricher de Colombia (¿flag tipo isSisben? ¿cómo reciben un valor por corrida?); domain y nombres que ya declaran los JSON compartidos y si usan Nashorn; si una sección null se ve como «sin sección» en el XPM y en Data Provisioning. Ampliada (INT-075): (5) modo delta (deltaMode, deltaModeAccountLevel, doesComputeXpm), features de histórico y appenders que puedan reintroducir la sección; (6) si el XPM y la Foundation son compartidos y qué nombres ya declaran; (7) cómo escribe el writer una sección y un atributo null; JDK del runtime de Colombia (OQ-TR-2).
+- PA-014 (abierta, bloqueante): Para negocio (próxima versión de HU y spec), bloqueante para la certificación de state_calculation: (1) ¿El DNP puede re-entregar un REGULAR del mismo periodo? ¿«Vigente» es el mayor periodo o la última recepción? Si hay re-entrega, ¿se cura la identidad del archivo (spec §10.1) o se usa el borrado inferido (e)? (2) ¿Data Provisioning exige literalmente «#sisben» como clave? (3) Con dos documentos SISBEN vigentes en un mismo PIN, ¿uno (el más reciente) o una lista? (4) ¿Debe anularse o marcarse en el XPM una fechaEncuesta futura (RG-007)?
 
 ## Riesgos
 
@@ -121,7 +123,7 @@
 | RG-004 | medio | validation | abierto | Los reportes de ingesta enviados al DNP llevan tipo y número de documento (PII). |
 | RG-005 | bajo | curation_flow | abierto | La precondición 'Ruíz + INC_011' del escenario de HU §5.3 no se puede producir desde Validation (Ruíz es válido). |
 | RG-006 | medio | validation | abierto | La compilación y las pruebas Scala no las certifica el framework (F-01). |
-| RG-007 | medio | curation_flow | abierto | Una Fec_digitacion futura con formato válido es inconsistencia sev. 3 pero se transforma: Curation la publica como epoch y llega a #sisben como fecha de encuesta futura (spec §10.4 regla 1, §13) |
+| RG-007 | medio | curation_flow | aceptado | Una Fec_digitacion futura con formato válido es inconsistencia sev. 3 pero se transforma: Curation la publica como epoch y llega a #sisben como fecha de encuesta futura (spec §10.4 regla 1, §13) |
 | RG-008 | medio | curation_flow | abierto | ide_hogar e ide_ficha_origen son identificadores públicos (R-28, spec §10.1) que podrían enlazarse con una persona (re-identificación indirecta) |
 | RG-009 | medio | validation | abierto | Adultos con tipo 7 (salvoconducto) se rechazan hasta que Experian cree el tipo (R-17; 07 §5.7 [A:OQ-TR-2b]) |
 | RG-010 | medio | synthesis | mitigado | La reference curation-pinning-sisben.md §6/§8 dice que SISBEN va sin Synthesis y periodicidad Unique, contra HU R-25 y spec §12 |
@@ -145,3 +147,4 @@
 | RG-028 | alto | synthesis | abierto | Verificación diferida de Synthesis de Colombia (VD-SYN-01..06): nombres existentes en el GDD y su handler; lecturas .get sin defecto (dateType, fieldHandlerHashFunction, orchestration, readWriteFormat, historicAttributeArgs si checkFileTagEnabled); conf compartido; periodicidad efectiva (minFrequency de la clase base); escenario §5.5 con nulo; reglas CONS, custom y relationshipMigrationProcessor de Colombia aplicadas a todos los eventos del HC (ConsistencyCheckOps.scala:150-173, :240-271) |
 | RG-029 | medio | state_calculation | abierto | Con (c1), un PIN vigente se excluye por error si su evento cae en el mismo periodo de Synthesis que uno anterior con asOfDate mayor (LFP, ConsistencyCheckOps.scala:115-118) |
 | RG-030 | medio | state_calculation | abierto | Por PA-011, fechaEncuesta puede no salir nula dentro de un mismo periodo, contra el escenario de HU §5.6 |
+| RG-031 | medio | state_calculation | abierto | Con más de un documento SISBEN vigente en un PIN (Pinning puede unir dos documentos por la regla 2), la sección toma el más reciente (MOST_RECENT_VALUE): supuesto del PO (PA-012 b) |

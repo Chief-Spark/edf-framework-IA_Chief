@@ -582,8 +582,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:50:40-05:00
 - **Pedido:** Auditar ART-061 y ART-062.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** APROBADO ART-061 y ART-062 (sin P0/P1): ART-061 sin hallazgos con --modo colombia, sin handler/dataType/synthesizer, 34 entradas en orden, regeneración idéntica byte a byte, prueba estática de no afectación OK (simulación de integración y reversión sobre base sintética); ART-062 sin líneas activas (pyhocon {}), 11 VERIFICAR (8 coinciden con el motor; datasetFormat y fieldHandlerHashFunction como inferencia). P2: AUD-S-17 (cita oxygen-config-default-local.conf mal: es :459-468), AUD-S-18 (faltan shouldFilterDeletedEvents, stateCheckEnabled, disabledCategories, referenceEventsWindowInMonths, emitStockMetrics). Defectos: 1 real P1 (verificar-artefacto.ps1 de Synthesis sin modo), 2 y 3 P2.
+- **Decisión:** AUD-S-18 en la mitigación de RG-028 (BIT-0185); HF-78/79 al lote final; consulta al aprobador para ART-061/062 y la etapa.
 - **Bitácora:** —
 
 ## INT-074 · Corrector del framework (statecalc) · `state_calculation`
@@ -598,6 +598,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:51:12-05:00
 - **Pedido:** Decidir PA-002, PA-012, alcance de ART-070 (CQ-006) y PA-013.
+- **Respuesta:** (SIM-PO-01) No aprueba nada de State Calculation (opción iii): la etapa queda bloqueada al cierre. PA-002: dirección (c1-a) con filtro por fuente en el where y corte vigente en el enricher; no se cierra (condiciones 1-6); CQ-006 en el alcance como entrega manual de Ingesta 3 (backlog), sin regla de corte; supuesto «vigente = mayor periodo aceptado» y control operativo de re-entrega; abre PA-014 (negocio, bloqueante para la certificación). PA-012 resuelta (sisben, un objeto, null = sin sección; supuestos del PO). PA-013 sigue abierta y se amplía. RG-007 aceptado; RG-011 abierto (producción); RG-003 abierto. Escalamiento N4 registrado.
+- **Decisión:** APR-030 (rechazo de ART-070, PO), PA-012 resuelta, PA-014 abierta, RG-003/007/011 actualizados, RG-031 (dos documentos en un PIN), BKL-001..003, PA-013 ampliada, escalamiento BIT-0184 (BIT-0177..0184). v2 de ART-070 al analista (solo prevalidado).
+- **Bitácora:** —
+
+## INT-076 · Aprobador simulado SIM-DEV-01 · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:54:31-05:00
+- **Pedido:** Aprobar ART-061 y ART-062 y la etapa synthesis con evidencia diferida.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-077 · Analista (edf-analisis) · insumo de State Calculation v2 · `state_calculation`
+
+- **Cuándo:** 2026-11-24T22:54:31-05:00
+- **Pedido:** ART-070 v2 con las decisiones de INT-075 y AUD-SC-01..13 (quedará prevalidado, sin aprobación).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
