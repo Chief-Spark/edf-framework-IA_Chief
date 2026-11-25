@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T19:23:10-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T19:23:34-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 83 eventos, último BIT-0083 |
+| Bitácora | 89 eventos, último BIT-0089 |
 
 ## Etapas
 
@@ -17,7 +17,7 @@
 |---|---|---|---|---|---|---|
 | 0 | Analisis de Requerimiento y Contexto | `aprobada` | bajo | 4/4 | APR-006 | ✅ |
 | 1 | Validation | `aprobada` | alto | 6/6 | APR-011 | ✅ |
-| 2 | Acceptance | `en_progreso` | medio | 1/4 | — | 🔒 |
+| 2 | Acceptance | `aprobada` | alto | 4/4 | APR-013 | 🔒 |
 | 3 | Curation - Flow | `no_iniciada` | medio | 0/6 | — | 🔒 |
 | 4 | Curation - Stock | `no_iniciada` | medio | 0/1 | — | 🔒 |
 | 5 | Pinning | `no_iniciada` | alto | 0/4 | — | 🔒 |
@@ -39,9 +39,9 @@
 | validation | ART-014 | HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf | `aprobado` | sha256:7f80dd2717c3 |
 | validation | ART-015 | manifest.json | `aprobado` | sha256:735a2624cf47 |
 | acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `aprobado` | sha256:d8ac9e7d2422 |
-| acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `prevalidado` | — |
-| acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `prevalidado` | — |
-| acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `prevalidado` | — |
+| acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `aprobado` | sha256:957f935d18a5 |
+| acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `aprobado` | sha256:520b19dc9bfd |
+| acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `aprobado` | sha256:f9b879a8002f |
 | curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `prevalidado` | — |
 | curation_flow | ART-031 | SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado | `ausente` | — |
 | curation_flow | ART-032 | bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary | `ausente` | — |
@@ -76,6 +76,8 @@
 | APR-009 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0071 |
 | APR-010 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0073 |
 | APR-011 | transicion | validation → acceptance | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0074 |
+| APR-012 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0084 |
+| APR-013 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0086 |
 
 ## Preguntas abiertas
 
@@ -111,3 +113,4 @@
 | RG-019 | bajo | curation_flow | abierto | Las claves standardizedId* se omiten cuando son nulas (omitir_si_nulas, steering 11 §3) en lugar de salir nulas como dice la letra de spec §10.1 para standardizedIdName |
 | RG-020 | alto | pinning | abierto | standardizedIdType sale entero con el código Experian; pinning-muric.md:29 lo describe como texto (CC, NIT, CE): si otras fuentes de Colombia publican otro valor, la prioridad 1 no cruza fuentes y se duplican PIN |
 | RG-021 | medio | pinning | abierto | La Ñ se conserva en standardizedIdName (spec §10.2) y otras fuentes podrían transliterarla, lo que afecta el cruce por nombre |
+| RG-022 | alto | acceptance | abierto | Evidencia diferida de acceptance: aprobada sin ejecución de pipeline (observada null) |

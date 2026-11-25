@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T19:23:10-05:00",
-    "vista_md_regenerada_en": "2026-11-24T19:23:10-05:00"
+    "actualizado_en": "2026-11-24T19:23:34-05:00",
+    "vista_md_regenerada_en": "2026-11-24T19:23:34-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -304,7 +304,7 @@
       "dag_airflow": "acceptance-curation-flow",
       "clasificacion_compromiso": "aceptacion",
       "riesgo_tipico": "medio",
-      "estado": "en_progreso",
+      "estado": "aprobada",
       "depende_de": [
         "validation"
       ],
@@ -331,13 +331,14 @@
           "nombre": "bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable)",
           "ruta": "propuestas/acceptance/hocon/sisben-acc-tpl-01-acceptance-block.conf",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-acceptance (INT-031): render --audit rc 0; simular_decision 9/9 + 2/2; hocon_check rc 0; suite 147",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:957f935d18a5850087a9bdda8851e9269b23697e2f955a2840f48e625b12dd7d"
         },
         {
           "id": "ART-022",
@@ -345,13 +346,14 @@
           "nombre": "condiciones con nombre (fileConditions[])",
           "ruta": "propuestas/acceptance/hocon/sisben-acc-tpl-02-file-conditions.conf",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-acceptance (INT-031): render --audit rc 0; simular_decision 9/9 + 2/2; hocon_check rc 0; suite 147",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:520b19dc9bfde5124e05a5d9cc6008136c097575b6beadfeb5677875c1dda102"
         },
         {
           "id": "ART-023",
@@ -359,13 +361,14 @@
           "nombre": "AcceptanceExpressionsSpec + fixture de eventos validados sinteticos",
           "ruta": "propuestas/acceptance/src/test/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-acceptance (INT-031): render --audit rc 0; simular_decision 9/9 + 2/2; hocon_check rc 0; suite 147",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:f9b879a8002f2a22172dcdd21d2ac60aceb23a3178d4ac60fea34bcf67541a80"
         }
       ],
       "evidencia_pipeline": {
@@ -382,16 +385,20 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": null,
+      "ref_aprobacion": "APR-013",
       "preguntas_abiertas": [
         "PA-006"
       ],
       "riesgos": [
         "RG-017",
-        "RG-018"
+        "RG-018",
+        "RG-022"
       ],
       "transicion_habilitada": false,
-      "iniciada_en": "2026-11-24T19:13:32-05:00"
+      "iniciada_en": "2026-11-24T19:13:32-05:00",
+      "cerrada_en": "2026-11-24T19:23:34-05:00",
+      "riesgo_evaluado": "alto",
+      "nivel_friccion": "detallada"
     },
     {
       "id": "curation_flow",
@@ -999,6 +1006,61 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0074"
+    },
+    {
+      "id": "APR-012",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-021",
+        "ART-022",
+        "ART-023"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T19:23:33-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (auditorias/acceptance.md §7). Valores de las fuentes: umbral 0.90 y FQS average(qs.RQS) (HU R-21/R-22; spec RQ-02/03), recordAcceptance literal de RQ-04, filePattern spec §2, PA-006 (SISBFA00001; customReason false). HF-28 resuelto en 1.9.6. Pruebas: ART-021 hocon_check + pyhocon, simulador 9/9 y 2/2, muestra 19, sin 0.95 en .conf; ART-022 lo mismo + 900002 → SISBFA00001; ART-023 es la prueba (reproducible, 60 eventos SINT-*, 3 escenarios HU §5.2). Supuesto S-ACC-06 (AUD-A-16): AcceptanceCondition con 4 argumentos asume result con valor por defecto en oxygen-core; si no, el Spec no compila.",
+      "condiciones": [
+        "HF-33: pasar result=false explícito por §3d antes del fork y del cierre de la evidencia de Acceptance",
+        "AUD-A-17: mientras HF-33 no esté corregido, el ingeniero comprueba en el fork las claves_de_prueba del filePattern (checklist B)",
+        "RG-017 cerrado antes de integrar ART-022 en el fileConditions[] global; RG-018 [PM] lo vigila Operación",
+        "HF-26 desviación conocida; HF-29..32 en el lote de cierre; no se toca ART-020 v3"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0084"
+    },
+    {
+      "id": "APR-013",
+      "tipo": "contexto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-020",
+        "ART-021",
+        "ART-022",
+        "ART-023"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T19:23:34-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Acceptance se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork (F-01), así que evidencia_pipeline.observada queda null. ART-020 a ART-023 están aprobados por auditoría independiente (auditorias/acceptance.md §6 y §7): se reproducen, simulan 9/9 y 2/2, y la muestra da 19 aceptados (spec §15). Curation consume el contrato fijado por spec RQ-03 y RQ-04 y HU R-22, no la ejecución. La evidencia se reportará con el prompt 05. Escenarios HU §5.2: aceptado y rechazado cubiertos (ejecución diferida); umbral parametrizable cubierto solo en prueba (desplegado 0.90); marcadores y archivo sin registros cubiertos; 900009 pendiente (RG-018). DoD §6: bloque HOCON cumplido (integración sujeta a RG-017); AcceptanceExpressionsSpec generado, compilación diferida, S-ACC-06 abierto hasta HF-33.",
+      "condiciones": [
+        "RG-022 evidencia diferida de acceptance: se cierra con acceptance-curation-flow sobre la salida validada de la muestra (acceptance/accepted/, total 20, aceptados 19, rechazados 1, menores 1, FQS 0.95), SISBENAcceptanceExpressionsSpec en verde en el fork con AUD-A-16 corregido y Zephyr, RG-017 cerrado y claves_de_prueba del filePattern comprobadas; no se cierra antes que RG-015",
+        "La transición acceptance→curation_flow requiere ART-030/034/035 aprobados y la transición (alto)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0086"
     }
   ],
   "preguntas_abiertas": [
@@ -1243,14 +1305,22 @@
       "etapa_afectada": "pinning",
       "mitigacion": "Verificar la normalización del nombre en las otras fuentes antes de aprobar el insumo de Pinning",
       "estado": "abierto"
+    },
+    {
+      "id": "RG-022",
+      "descripcion": "Evidencia diferida de acceptance: aprobada sin ejecución de pipeline (observada null)",
+      "nivel": "alto",
+      "etapa_afectada": "acceptance",
+      "mitigacion": "Cerrar con prompt 05: acceptance-curation-flow sobre la muestra validada (conteos 20/19/1/1, FQS 0.95), Spec en verde en el fork con AUD-A-16 corregido y Zephyr, RG-017 cerrado, claves_de_prueba del filePattern; después de RG-015",
+      "estado": "abierto"
     }
   ],
   "backlog_evolutivo": [],
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0083",
-    "eventos_totales": 83,
+    "ultimo_evento": "BIT-0089",
+    "eventos_totales": 89,
     "append_only": true,
     "retencion_meses": 24
   }

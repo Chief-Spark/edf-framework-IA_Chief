@@ -270,8 +270,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:21:56-05:00
 - **Pedido:** Aprobar ART-021..023 y la etapa acceptance con evidencia diferida.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Aprueba ART-021..023 (medio) con S-ACC-06 declarado (AUD-A-16) y condiciones (HF-33 por §3d antes del fork; checklist B del filePattern; RG-017 antes de integrar; HF-26 desviación). Aprueba la etapa acceptance con evidencia diferida (alto) y riesgo separado (sugerido RG-019, asignado RG-022 porque RG-019 ya existía), con tabla de escenarios HU §5.2 y DoD §6.
+- **Decisión:** Registradas la aprobación de artefactos con sha256, acceptance pendiente_evidencia → aprobación de contexto (alto, diferida) → aprobada; RG-022 abierto.
 - **Bitácora:** —
 
 ## INT-035 · Auditor independiente (curation) · `curation_flow`

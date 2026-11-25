@@ -1429,3 +1429,105 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0084 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-012 (artefacto): Artefactos de Acceptance (desde ART-020 v3) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T19:23:33-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (auditorias/acceptance.md §7). Valores de las fuentes: umbral 0.90 y FQS average(qs.RQS) (HU R-21/R-22; spec RQ-02/03), recordAcceptance literal de RQ-04, filePattern spec §2, PA-006 (SISBFA00001; customReason false). HF-28 resuelto en 1.9.6. Pruebas: ART-021 hocon_check + pyhocon, simulador 9/9 y 2/2, muestra 19, sin 0.95 en .conf; ART-022 lo mismo + 900002 → SISBFA00001; ART-023 es la prueba (reproducible, 60 eventos SINT-*, 3 escenarios HU §5.2). Supuesto S-ACC-06 (AUD-A-16): AcceptanceCondition con 4 argumentos asume result con valor por defecto en oxygen-core; si no, el Spec no compila. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-021, ART-022, ART-023 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0085 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `acceptance` → estado `pendiente_evidencia` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:23:34-05:00 |
+| **Por qué** | Artefactos de Acceptance aprobados; sin pipeline: se pide la aprobación con evidencia diferida (§3b paso 1). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0086 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-013 (contexto): Aprobación de la etapa acceptance con evidencia diferida (references/03 §3b paso 1) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T19:23:34-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Acceptance se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork (F-01), así que evidencia_pipeline.observada queda null. ART-020 a ART-023 están aprobados por auditoría independiente (auditorias/acceptance.md §6 y §7): se reproducen, simulan 9/9 y 2/2, y la muestra da 19 aceptados (spec §15). Curation consume el contrato fijado por spec RQ-03 y RQ-04 y HU R-22, no la ejecución. La evidencia se reportará con el prompt 05. Escenarios HU §5.2: aceptado y rechazado cubiertos (ejecución diferida); umbral parametrizable cubierto solo en prueba (desplegado 0.90); marcadores y archivo sin registros cubiertos; 900009 pendiente (RG-018). DoD §6: bloque HOCON cumplido (integración sujeta a RG-017); AcceptanceExpressionsSpec generado, compilación diferida, S-ACC-06 abierto hasta HF-33. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-020, ART-021, ART-022, ART-023 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0087 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-022 (alto, acceptance): Evidencia diferida de acceptance: aprobada sin ejecución de pipeline (observada null) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:23:34-05:00 |
+| **Por qué** | APR-013, references/03 §3b paso 1 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0088 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `acceptance` → estado `aprobada` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:23:34-05:00 |
+| **Por qué** | Aplica APR-013 (SIMULADO, SIM-DEV-01, INT-034): aprobada con evidencia diferida. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0089 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:23:34-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
