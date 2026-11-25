@@ -2738,3 +2738,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0161 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Artefactos de synthesis según el modo Colombia (framework 1.9.10, HF-68): ART-061 entradas del GDD v2 para integrar en el GDD compartido sin duplicar ni modificar existentes; ART-062 lista de verificación solo de comentarios (alto). Riesgos de la etapa: RG-026, RG-028 |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:37:01-05:00 |
+| **Por qué** | HF-68: la semilla exigía un bloque por ingesta; spec §12 y el conf único de Colombia |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | ART-061, ART-062 |
+| **Trazabilidad** | prompt 00 paso 2 (1.9.10) |
+| **Corrige** | — |
+
+---

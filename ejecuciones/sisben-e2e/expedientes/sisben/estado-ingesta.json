@@ -3,7 +3,7 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:28:05-05:00",
+    "actualizado_en": "2026-11-24T22:37:01-05:00",
     "vista_md_regenerada_en": "2026-11-24T22:19:40-05:00"
   },
   "ingesta": {
@@ -729,7 +729,7 @@
         {
           "id": "ART-061",
           "tipo": "configuracion",
-          "nombre": "GDD domaindictionary.json (campo -> handler LFP/LAP/EUC, solo confirmados)",
+          "nombre": "entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68)",
           "ruta": "propuestas/synthesis/",
           "obligatorio": true,
           "estado_artefacto": "ausente"
@@ -737,10 +737,11 @@
         {
           "id": "ART-062",
           "tipo": "configuracion",
-          "nombre": "bloque HOCON oxygen.stage.consistencyCheck",
+          "nombre": "bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68)",
           "ruta": "propuestas/synthesis/",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "ausente",
+          "riesgo": "alto"
         }
       ],
       "evidencia_pipeline": {
@@ -1871,8 +1872,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0160",
-    "eventos_totales": 160,
+    "ultimo_evento": "BIT-0161",
+    "eventos_totales": 161,
     "append_only": true,
     "retencion_meses": 24
   }

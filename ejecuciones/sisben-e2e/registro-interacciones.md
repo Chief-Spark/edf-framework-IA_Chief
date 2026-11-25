@@ -510,8 +510,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:25:56-05:00
 - **Pedido:** Corregir HF-68..72 con pruebas; framework 1.9.10.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** HF-68..72 corregidos: modo Colombia en edf-synthesis (SKILL, plantilla con 11 VERIFICAR), verificador con --modo colombia, semilla/04/00 con ART-061/062 por modo; eventTypeList corregido en references, plantillas y evals; verificar-claves <id> sale con 2 sin expediente; GDD v2 alineado y campos_a_generar {name, description, handler}; EVAL-SYN-04 y -13, cita inexistente, reference de nivel 3 superada. tests 210; suites en verde; auditar-skills OK.
+- **Decisión:** Commit a7c10f9 (1.9.10). Expediente: ART-061/062 en modo Colombia (BIT-0161). v2 del insumo de Synthesis al analista.
 - **Bitácora:** —
 
 ## INT-065 · Aprobador simulado SIM-DEV-01 · `synthesis`
@@ -526,6 +526,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:26:47-05:00
 - **Pedido:** Preparar yaml-skill-statecalc.yaml (ART-070) e investigar en el motor el mecanismo de PA-002.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-067 · Analista (edf-analisis) · insumo de Synthesis v2 · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:37:02-05:00
+- **Pedido:** ART-060 v2 con 1.9.10 y las decisiones de INT-065.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
