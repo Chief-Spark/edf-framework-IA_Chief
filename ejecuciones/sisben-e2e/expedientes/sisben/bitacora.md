@@ -2522,7 +2522,7 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 
 | Campo | Valor |
 |-------|-------|
-| **Qué** | Texto de prevalidación de ART-060 reescrito: la heurística anti-PII del validador (regla 6) leyó «nombres = ART-032» como un nombre de persona (falso positivo; HC-05) |
+| **Qué** | Texto de prevalidación de ART-060 reescrito: la heurística anti-PII del validador (regla 6) tomó como nombre de persona la frase que comparaba los campos con ART-032 (falso positivo; HC-05) |
 | **Quién** | Orquestador (emulado) · `ORQ-E2E` |
 | **Cuándo** | 2026-11-24T22:13:57-05:00 |
 | **Por qué** | Regla 6 del validador |
@@ -2531,6 +2531,40 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Riesgo** | — |
 | **Artefactos** | ART-060 |
 | **Trazabilidad** | R4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0149 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Se reescribió el campo Qué de BIT-0148 (sin cambiar su ID, fecha ni sentido) porque citaba literalmente la frase que dispara la heurística anti-PII de la regla 6; única edición de un evento ya escrito en la corrida, documentada aquí |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:14:15-05:00 |
+| **Por qué** | Regla 6 del validador (HC-05); la bitácora es append-only salvo esta excepción documentada |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R4 |
+| **Corrige** | BIT-0148 |
+
+---
+
+## BIT-0150 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:14:23-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
 | **Corrige** | — |
 
 ---

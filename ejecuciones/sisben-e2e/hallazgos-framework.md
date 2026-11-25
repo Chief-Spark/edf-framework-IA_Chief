@@ -70,7 +70,7 @@ acordada: se registran, se corrigen con su prueba de regresión (commit aparte e
 | HF-63 (AUD-P-14) | orquestador | **P1.** HF-57/59 no llegaron al Orquestador: la semilla (`estado-ingesta.seed.json:388-406`), `04-contratos-por-skill.md:79-82` y el prompt `00-iniciar-ingesta.md:21` exigen matcher, `identifying-attributes.json` y bloque «con reusePIN = false» como obligatorios (ART-051..053); en modo Colombia la etapa no se puede aprobar o empuja a generarlos | `auditorias/pinning.md` §6 | Corrector 1.9.9 | 43bf3c7 |
 | HF-64 (AUD-P-15, -16) | herramientas / analisis | P2. `verificar-insumo-pinning.py` acepta «false (no se escribe…)» y `reusePIN` con otra capitalización; la plantilla pide `[A:<ID>]` en `umbral_y_matcher_determinista` donde el §3e manda `[PM]` | `auditorias/pinning.md` §6 | Corrector 1.9.9 | 43bf3c7 |
 | HC-04 (AUD-A-11) | — | Herramienta de la corrida: `etapa --agregar-riesgo` duplicaba RG-015 | Corregido en `orquestador_e2e.py` (BIT-0063) | — |
-| HC-05 | La heurística anti-PII del validador (regla 6) marcó «nombres = ART-032» como posible nombre de persona; se reescribió el texto (BIT-0148). Observación para el lote final: la regla 6 no exime identificadores `ART-nnn` |
+| HC-05 | La heurística anti-PII del validador (regla 6) tomó como nombre de persona una frase que comparaba campos con ART-032; se reescribió el texto (BIT-0148) y, como única excepción documentada al append-only, el Qué de BIT-0148 (BIT-0149). Observación para el lote final: la regla 6 no exime identificadores `ART-nnn` |
 
 Hallazgos de la spec (no del framework; se dejan para la próxima versión de la spec, no se corrigen en la corrida):
 
