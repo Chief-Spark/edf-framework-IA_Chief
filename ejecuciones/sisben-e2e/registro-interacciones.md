@@ -689,19 +689,45 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** ART-020 v4 (ruta_otra_fuente; cabecera sin estado), ART-030 v2.1 (cita de la línea 26), ART-034 2.1.0 (cuatro citas; ruta real de pinning/extension; «.get.toString»). Evidencia (a)-(d): Acceptance regenerado con v4 = .conf y fixtures byte a byte; Spec solo en la clave (y el comentario HF-44 de la skill); simulador 9/9 y 2/2; la clave negativa falla por la fuente. Curation regenerada con v2.1 idéntica a la regenerada con v2; frente a propuestas/curation difiere por la deriva del framework (HF-45/48/52/53/55 de 1.9.12), no por el insumo: recomienda §3d aparte. (b)-(d) OK (se gana la mención de RG-025 solo como calificador). Pendiente: comentario de la línea ~123 de ART-030. verificar-claves e insumo de Pinning OK.
 - **Decisión:** Completar la línea 123 (mismo tratamiento); regenerar Acceptance en propuestas (ART-023); re-auditorías por diferencia; la deriva de Curation respecto de 1.9.12 se plantea al aprobador como revisión §3d aparte.
 - **Bitácora:** —
+- **Complemento:** Línea ~123 de ART-030 corregida con el mismo texto de la línea 26; YAML parseado idéntico a v2; Curation regenerada idéntica byte a byte (diff -r vacío); verificar-claves coherentes. sha256 ART-030 v2.1 = eb7a75a0… (sustituye a 790766cd…). Re-auditoría por diferencia (Curation para ART-030; Pinning para ART-034).
+
 
 ## INT-087 · Generador (edf-acceptance) · §3d-bis · `acceptance`
 
 - **Cuándo:** 2026-11-25T06:39:39-05:00
 - **Pedido:** Regenerar Acceptance con ART-020 v4.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-020 v4 (a3c9174d…). Los 2 .conf y los 9 fixtures idénticos byte a byte (cmp 11/11); el Spec cambia en 2 líneas (clave ruta_otra_fuente en :132 y comentario HF-44 tras :180). render --audit rc 0; simular_decision 9/9 y 2/2; hocon_check rc 0; suite 161 passed. Spec 30e80d84…; árbol src/test 18ea6f3b….
+- **Decisión:** Re-auditoría por diferencia con el auditor de Acceptance.
 - **Bitácora:** —
 
 ## INT-088 · Generador (edf-pinning) · ART-053 con 1.9.14 · `pinning`
 
 - **Cuándo:** 2026-11-25T06:40:15-05:00
 - **Pedido:** Regenerar ART-053 con el generador corregido (§3d).
+- **Respuesta:** ART-053 regenerado con 1.9.14: sha256 ffc146a7…. --verificar --insumo BLOQUE OK (la aprobada da 17 hallazgos); pyhocon {}; 0 líneas activas; reproducible. Conserva [PM] (RG-025) del FQCN y la lista, escalamiento N4 de reusePin (RG-002), rutas completas, VERIFICAR de curatedDir/HBase/*-common-application.conf, clusterSplitter e INPUT_REF_DIR [PM], colapso [P]. Ya no trae PA-010 ni la etiqueta «criterio de cierre de RG-025 (INT-052)» en las tres VERIFICAR.
+- **Decisión:** Re-auditoría por diferencia con el auditor de Pinning (incluye ART-034 2.1.0).
+- **Bitácora:** —
+
+## INT-089 · Auditor (edf-pinning) · §3d ART-053 y §3d-bis ART-034 · `pinning`
+
+- **Cuándo:** 2026-11-25T06:41:37-05:00
+- **Pedido:** Re-auditar por diferencia ART-053 (ffc146a7…) y ART-034 2.1.0 (4124211f…).
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-090 · Auditor (edf-acceptance) · §3d-bis ART-020/023 · `acceptance`
+
+- **Cuándo:** 2026-11-25T06:41:37-05:00
+- **Pedido:** Re-auditar por diferencia ART-020 v4 y el Spec regenerado (ART-023).
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-091 · Auditor (edf-curation) · §3d-bis ART-030 y deriva 1.9.12 · `curation_flow`
+
+- **Cuándo:** 2026-11-25T06:41:37-05:00
+- **Pedido:** Re-auditar por diferencia ART-030 v2.1 y opinar sobre la deriva de Curation respecto de 1.9.12.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
