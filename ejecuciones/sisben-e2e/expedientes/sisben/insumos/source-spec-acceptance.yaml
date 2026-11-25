@@ -1,5 +1,6 @@
 # Insumo de la etapa Acceptance (`edf-acceptance`) · ingesta `sisben` · producido por `edf-analisis` (Modo 2, tipo T2).
-# Versión 3 · 2026-11-25 · Estado: PROPUESTO (pendiente de aprobación registrada por `edf-orquestador`).
+# Versión 4 · 2026-11-25. El estado y la aprobación viven solo en estado-ingesta.json (HF-32).
+# Cambios respecto de la versión 3: §3d-bis (INT-082): ruta_otra_fuente (AUD-A-19); cabecera sin estado (HF-32).
 # Versión 1 auditada con AJUSTES (auditorias/acceptance.md); esta versión aplica AUD-A-01 a AUD-A-07 y el cierre de PA-006
 # (INT-024). Validation aprobada con evidencia diferida (APR-008, RG-015).
 # Esquema: .kiro/skills/edf-acceptance/assets/schema/source-spec.schema.yaml (framework 1.9.5: `expresiones_propuestas`,
@@ -60,7 +61,7 @@ archivo:
     - {clave: ruta_marcador_sin_extension, valor: "/home/app/validation/validated/SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInHeader.900007", debe_coincidir: true}
     - {clave: lineage_fileName, valor: "SISBEN_EXPERIAN_202601.20260205093000-0500.txt", debe_coincidir: true}
     - {clave: lineage_fileName_mayusculas, valor: "SISBEN_EXPERIAN_202601.20260205093000-0500.TXT", debe_coincidir: true}
-    - {clave: otra_fuente, valor: "/home/app/validation/validated/RUNT_EXPERIAN_202601.20260205093000-0500.txt.900010", debe_coincidir: false}
+    - {clave: ruta_otra_fuente, valor: "/home/app/validation/validated/RUNT_EXPERIAN_202601.20260205093000-0500.txt.900010", debe_coincidir: false}
     - {clave: ruta_marcador_prefijo_rt, valor: "/home/app/validation/validated/RT_SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInFileName.900010", debe_coincidir: true}   # HU R-02: el marcador debe encontrar config para rechazarse
     - {clave: sin_marca_de_tiempo, valor: "SISBEN_EXPERIAN_202601.txt", debe_coincidir: false}   # PA-003
 

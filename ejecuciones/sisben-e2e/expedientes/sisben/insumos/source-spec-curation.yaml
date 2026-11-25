@@ -1,6 +1,6 @@
 # Insumo de la etapa Curation (`edf-curation`, curation_flow y curation_stock) · ingesta `sisben` · producido por
 # `edf-analisis` (Modo 2, tipo T2). ART-030. Fixture: insumos/fixture-curation/ (ART-035).
-# Versión 2 · 2026-11-25. El estado y la aprobación viven solo en estado-ingesta.json (HF-32).
+# Versión 2.1 · 2026-11-25. El estado y la aprobación viven solo en estado-ingesta.json (HF-32).
 # Esquema: .kiro/skills/edf-curation/assets/schema/source-spec.schema.yaml (framework 1.9.7). El ejemplo SISBEN de la
 # skill es solo forma: ningún valor de negocio se copió de él (edf-analisis SKILL.md Modo 2 paso 1; edf-curation SKILL.md
 # §2). Difiere del ejemplo en casi todo (sin RT/EP, política de severidad 3, documento sin excepciones por tipo, nombres
@@ -23,8 +23,9 @@
 #        formatos dd/MM/yyyy y yyyy-MM-dd (HU R-05); severidad 3: niveles_no_almacenar [] y niveles_anular [] (spec
 #        §10.4, literal); advertencias `<campo curado>:<MOTIVO>` en advertenciasCuracion (spec 1.0.2 §10.1);
 #        subscriberRelation = <standardizedIdType>_<standardizedIdNumber> (spec §10.1); sin RT/EP (spec §10.3; HU §2).
-#   [P]  omitir_si_nulas: steering 11 §3; EventPinner.scala:64-65; diferencia de forma con spec §10.1 aceptada por el
-#        Desarrollador (INT-038; PA-007). RG-019 aceptado.
+#   [P]  omitir_si_nulas: steering 11 §3; ISIdentityMatcher.scala:46-54 [P], válido solo para el matcher de referencia;
+#        para Colombia [PM] (RG-025); diferencia de forma con spec §10.1 aceptada por el Desarrollador (INT-038;
+#        PA-007). RG-019 aceptado.
 #   [PM] paquetes, nombre del processor y rutas_destino (convención de la skill); registrar el catálogo 202 en el
 #        oxygen.lookups[] de Curation (edf-curation SKILL.md, «Qué hace Curation»). «Ninguna» de spec §10.1 = `texto`
 #        (recorta los bordes): supuesto del aprobador simulado, PA-007 (2) no bloqueante.
@@ -44,6 +45,9 @@
 #   - supuestos_resueltos nuevo (HF-36, AUD-C-06); ajuste AUD-C-15 (C-CUR-05 abierto, APR-009, F-12 con §9).
 #   - Fixture: NUM_DOCUMENTO del base_registro único (AUD-C-02); casos nuevos cur-0016 (RG-019) y cur-0017 a cur-0019
 #     (tipos 4, 5 y 8) (AUD-C-03). Ningún par de eventos comparte tipo + número normalizado (spec §6).
+# Cambios respecto de la versión 2 (§3d-bis, INT-082): la cita del motor de omitir_si_nulas en esta cabecera pasa de
+#   EventPinner.scala:64-65 a ISIdentityMatcher.scala:46-54 [P], válido solo para el matcher de referencia; para Colombia
+#   [PM] (RG-025) (AUD-P-05, AUD-P-25). Ninguna clave ni valor YAML cambia.
 # Riesgos del expediente que toca: RG-005 (cur-0006 declara SISBEN_INC_011 como precondición inyectada; cur-0007 usa el
 # ejemplo alcanzable de spec §10.4), RG-007 (cur-0008), RG-008 (ide_hogar e ide_ficha_origen públicos), RG-016
 # (mitigado), RG-019 (cur-0016).
