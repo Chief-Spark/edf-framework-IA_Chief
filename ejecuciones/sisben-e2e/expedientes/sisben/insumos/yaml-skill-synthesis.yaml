@@ -1,0 +1,387 @@
+# yaml-skill-synthesis.yaml — insumo de edf-synthesis para la ingesta sisben (ART-060), producido por edf-analisis
+# (Modo 2, tipo T3). Estructura: .kiro/skills/edf-analisis/assets/templates/_cabecera-yaml-skill.yaml.tpl +
+# yaml-skill-synthesis.yaml.tpl (framework 1.9.8). El ejemplo assets/examples/sisben/yaml-skill-synthesis.yaml es solo
+# forma: ningún valor se copió de él (su eventTypeList ["sisben"], su dateType y sus handlers EUC/LAP propuestos no aplican;
+# LEEME.md).
+# Sin estado ni aprobador (HF-32). Versión 1 · 2026-11-25.
+#
+# Fuentes de la ingesta (únicas): fuentes/hu-sisben.md 1.0.2 (§3, R-07, R-25, R-26, §5.5, §5.6, §6 fila Synthesis) y
+# fuentes/spec-sisben.md 1.0.2 (§1, §10.1, §10.4, §12, §13). La spec no trae un anexo con el contenido de este insumo.
+# Claves publicadas: insumos/source-spec-curation.yaml v2 (ART-030, sha256 506e8b9a…). Entradas del domain dictionary ya
+# aprobadas: propuestas/curation/fragmentos/colombia-domain-dictionary-inner.sisben.json (ART-032, sha256 d1ee06e3…).
+# Evidencia del motor: copia de solo lectura Motor-Oxigen/oxygen-synthesis/ y Motor-Oxigen/oxygen-curation/ (no hay fork
+# de Colombia en esta corrida).
+#
+# Marcadores (steering 05 §3): [C] confirmado (fuente de la ingesta o lectura directa del motor, con cita) · [P] propuesto
+# / inferencia del analista con evidencia · [A:<ID>] abierto · [PM] pendiente-manual (se verifica en el fork o en el
+# pipeline) · [S] superado.
+#
+# Lo que este insumo resuelve (INT-056):
+#   RG-010  Manda la spec: SISBEN pasa por Synthesis con LFP por defecto (spec §12; HU R-25). La reference
+#           curation-pinning-sisben.md §6 (:256) y §8 (:421), que dicen «sin Synthesis» y periodicidad «Unique», no es
+#           fuente de la ingesta (HU §3 «Fuentes de la ingesta»; 00 §6; steering 03 §9 #11 «SISBEN: resuelto»).
+#   C-CUR-05 Cerrado: LFP no escribe nulos (sección resolucion_supuestos_curation). Queda un efecto residual dentro de
+#           un mismo periodo, que se propone como pregunta no bloqueante (preguntas_propuestas, PROP-SYN-1).
+#   C-CUR-06 Cerrado: dataType no se fija por campo (se omite; STRING por defecto). El motor solo lo usa en el DSL de
+#           consistencia, que SISBEN no tiene (sección resolucion_supuestos_curation).
+# Hallazgo de diseño (sección modo_colombia_compartido): una corrida de Synthesis lee un solo GDD y todo el HC de Colombia;
+# eventTypeList no filtra eventos. Por eso el bloque HOCON de SISBEN no escribe claves de oxygen.stage.consistencyCheck
+# (mismo criterio que el bloque de Pinning, HF-59) y el entregable de la HU §6 es solo el domain dictionary.
+# Ningún valor de este insumo depende de los hechos de RG-025 (matcher de Colombia). PA-002 no afecta a Synthesis
+# (PA-001: «Synthesis no cambia»; spec §12).
+
+documento:
+  tipo: "intermediario-skill"
+  etapa_pipeline: "Synthesis/Consistency"
+  ingesta: "sisben"
+  version: "1.0.0"
+  fecha: "2026-11-25"
+  # Sin estado ni aprobador (HF-32): viven solo en estado-ingesta.json, que registra edf-orquestador con el hash de este archivo.
+
+procedencia:
+  fuente_analisis:
+    ruta: ".kiro/skills/edf-analisis/references/logica-synthesis.md"
+    version_fuente: "1.0.0 (secciones §4.1, §5.1, §5.1.1, §6.2, §6.3, §12), contrastada con el motor donde la reference no alcanza (dataType, periodicity, eventTypeList, nulos en LFP)"
+  fuentes_ingesta:
+    hu: "ejecuciones/sisben-e2e/expedientes/sisben/fuentes/hu-sisben.md 1.0.2 (§3, R-07, R-25, R-26, §5.5, §5.6, §6)"
+    spec: "ejecuciones/sisben-e2e/expedientes/sisben/fuentes/spec-sisben.md 1.0.2 (§1, §10.1, §10.4, §12, §13)"
+    mapeo_campos: "ejecuciones/sisben-e2e/expedientes/sisben/analisis/mapeo-campos.md (columna Field Handler: «Sin handler propio: LFP por defecto» [C] en los 22 campos de origen)"
+    source_spec_curation: "ejecuciones/sisben-e2e/expedientes/sisben/insumos/source-spec-curation.yaml (v2; 33 campos_curados[].destino + parametros.campo_advertencias = advertenciasCuracion)"
+    contrato_curation_pinning: "ejecuciones/sisben-e2e/expedientes/sisben/insumos/contrato-curation-pinning.md (no aporta claves a Synthesis; se cita por la cadena de nombres)"
+    domain_dictionary_curation: "ejecuciones/sisben-e2e/expedientes/sisben/propuestas/curation/fragmentos/colombia-domain-dictionary-inner.sisben.json (ART-032, aprobado; 34 entradas {name, description})"
+  repositorio_base:
+    nombre: "oxygen-synthesis (copia Motor-Oxigen/oxygen-synthesis/) · GDD y consistency-application de Colombia en bureau.colombia_innersource (no disponible)"
+    naturaleza: "Z2 — solo lectura"
+  skill_destino: "edf-synthesis"
+
+alcance:
+  genera:
+    - "ART-061 · propuestas/synthesis/domaindictionary.json: GDD versión 2 con las 34 entradas de SISBEN (spec §10.1), todas sin handler (LFP por defecto), sin dataType, sin synthesizer, sin periodicity, section ni enabled (spec §12; HU R-25; HU §6 fila Synthesis «domaindictionary.json sin handlers propios») [C]. Se integra en colombia-domain-dictionary-inner.json solo como fields[] y sin duplicar las entradas que ART-032 ya agrega (instruccion_generacion_gdd)"
+    - "ART-062 · propuestas/synthesis/consistency-application-block.sisben.conf: bloque de VERIFICACIÓN sin claves activas de oxygen.stage.consistencyCheck; cada clave va como comentario con su valor esperado en el conf compartido de Colombia (claves_configuracion_synthesis; modo_colombia_compartido) [C] la regla / [PM] los valores del fork"
+  no_genera:
+    - "SynthesisProcessor ni ConsistencyCheckProcessor propios: spec §12 «No hay SynthesisProcessor ni ConsistencyCheckProcessor propios» [C]"
+    - "Handlers EUC o LAP para cualquier campo de SISBEN: spec §12 «no declara handlers para los campos de SISBEN» [C]. LFP es la ausencia de la clave handler, nunca el texto \"LFP\" (DomainDictionaryV2.java:48; edf-synthesis SKILL.md, «Qué este skill nunca hace») [C]"
+    - "Reglas CONS-* en colombia-consistency-checks-dictionary.json: la spec no declara ninguna (spec §12; steering 07 §5.6 «si la spec no declara ninguna, no se generan») [C]"
+    - "custom-rules.json propio: sin caso de negocio en la HU ni en la spec [C]"
+    - "Campos que inyecta el motor (inferredAsDeleted, shouldDelete, fileTag, subscriberRelationStartDate, subscriberRelationEndDate, firstEventDate): DomainDictionaryInternal.scala:65-70, :101-104 [C]"
+    - "Claves compartidas de oxygen.stage.consistencyCheck (eventTypeList, dateType, checkFileTagEnabled, paths.*, synthesisOutputAsTSV, relationshipMigrationProcessorClassName): la corrida de Synthesis de Colombia es una sola para todas las fuentes (modo_colombia_compartido) y la HU §6 no pide HOCON para Synthesis [C]/[P] (ver modo_colombia_compartido.estado)"
+    - "Mecanismo de R-26 / corte vigente: es de State Calculation (PA-001 resuelta; PA-002 abierta para state_calculation). Synthesis no filtra por corte (spec §12) [C]"
+  precondiciones_bloqueantes:
+    - id: "habilitacion-pinning"
+      descripcion: "edf-synthesis solo genera con la etapa pinning aprobada y transicion_habilitada (edf-synthesis SKILL.md Paso 0 #2). Hoy pinning está no_iniciada: ART-050 v2 está prevalidado y aprobado por el auditor, no por el aprobador"
+      efecto: "este insumo puede registrarse y aprobarse; la generación de ART-061/ART-062 espera la aprobación de pinning"
+    - id: "RG-025"
+      descripcion: "Verificación diferida del matcher de Colombia; bloquea la certificación (no la corrida) de Pinning, Synthesis y State Calculation"
+      efecto: "ninguna instrucción de este insumo depende de sus hechos (FQCN, atributos, umbral, comparación): los nombres del GDD salen de spec §10.1 y el handler de spec §12. Qué eventos terminan en el mismo PIN (y por tanto se sintetizan juntos) sí depende del matcher: eso queda en la certificación, no en este insumo [C]"
+    - id: "C-CUR-05 / C-CUR-06"
+      descripcion: "Supuestos de Curation que condicionaban la aprobación de este insumo (estado-ingesta, APR de curation_flow: «yaml-skill-synthesis.yaml no se aprueba sin resolverlos»)"
+      efecto: "resueltos en resolucion_supuestos_curation; no cambian ART-032 ni el insumo de Curation (no hace falta §3c)"
+
+marcado_heredado:
+  nota: "Todo valor con marcador distinto de [C] en logica-synthesis.md se transcribe con su marcador original. Ningún [A:*] se resuelve en este YAML. Los pendientes #9 y #10 de logica-synthesis.md §13 (mapeo campo→handler de SISBEN y revalidación de LFP) quedan [S] superados para esta ingesta por spec §12 y HU R-25, que responden ambos con fuente de la ingesta. OQ-TR-3 (semántica de los handlers, steering 07 §5.6) queda cubierto para SISBEN: la spec define el que usa («LFP, valor del evento más reciente») y el motor lo confirma (EventSynthesizer.scala:134-137)."
+
+trazabilidad:
+  citas_formato: "archivo §sección | archivo:línea | ruta/archivo::símbolo"
+  ultima_verificacion_referencias: "2026-11-25"
+
+decision_nomenclatura_handlers:
+  version_adoptada: "A"                             # logica-synthesis.md §5.1.1 — no cambiar sin decisión registrada
+  definiciones:
+    LFP: "Latest For Period"
+    LAP: "Latest Across Period"
+    EUC: "Earliest Until Corrected"
+  estado: "[C]"
+  fuente: "logica-synthesis.md §5.1.1; DomainDictionaryFieldHandler.java:10-12 (mismas siglas y descripciones en el motor)"
+
+# ═════════════════════════════════════════════════════════════
+# RG-010 — la spec manda
+# ═════════════════════════════════════════════════════════════
+rg_010:
+  decision: "SISBEN pasa por Synthesis; todos sus campos con el comportamiento por defecto del motor (LFP); sin processors propios"
+  estado: "[C]"
+  fuente: "spec-sisben.md §12 (:323-325); hu-sisben.md R-25 (:94), §5.5 (:311-313), §6 fila Synthesis (:345)"
+  descartado:
+    - cita: "edf-analisis/references/fuentes/curation-pinning-sisben.md §6 (:256) y §8 (:421); también :463, :477, :494"
+      dice: "«Use EDF, but no synthesis for this. Periodicity will be Unique»"
+      por_que_no_aplica: "no es fuente de la ingesta (HU §3: «Únicamente esta HU y spec-sisben.md»); evidencia de nivel 3 generada por un agente; steering 03 §9 #11 ya la da por resuelta para SISBEN con spec §12. La frecuencia que declara la ingesta es «Mensual» (spec §1 :24; HU §3 :39), no «Unique»"
+      estado: "[S]"
+  nota_periodicidad: "La spec §12 no declara periodicidad. Hay dos conceptos distintos: (1) la clave periodicity de cada campo del GDD, que se omite (ver resolucion_supuestos_curation.periodicity); (2) la unidad de periodo del evento (Unique, mensual…), que no la fija Synthesis sino minFrequency del evento, que pone Validation (verificaciones_diferidas VD-SYN-04)"
+
+# ═════════════════════════════════════════════════════════════
+# Supuestos de Curation que se cierran aquí
+# ═════════════════════════════════════════════════════════════
+resolucion_supuestos_curation:
+
+  C-CUR-05:
+    supuesto: "Curation escribe los nulos como null (salvo standardizedId*, que se omiten si son nulas: omitir_si_nulas, RG-019); «confirmar con Synthesis» que LFP no los propaga como valor (edf-curation/references/decisiones-y-abiertos.md:47; auditorias/curation.md, AUD-C-15)"
+    respuesta: "Confirmado: LFP no escribe un nulo en el evento sintético. Una clave nula y una clave ausente son equivalentes para Synthesis"
+    estado: "[C]"
+    evidencia:
+      - "EventSynthesizer.scala:134-137 (IncrementalEventSynthesizer.synthesize, rama LFP sin synthesizer): value = curatedRecordJson.get(name) si la clave existe; si no, null"
+      - "EventSynthesizer.scala:139-141: solo se hace put del campo si value != null. Un null (o una clave ausente) nunca se escribe como valor"
+      - "EventSynthesizer.scala:106-107 y ConsistencyCheckOps.scala:125: cada periodo empieza con un mapa vacío (partialSyntheticEventGroupedBySR nuevo por periodo; mapBuffer nuevo si no hay sintético parcial). El valor de un periodo anterior NO se arrastra: si el evento del periodo trae el campo nulo, el evento sintético de ese periodo no tiene la clave"
+      - "SISBENCuratedEvent.scala:145 (ART-031): Gson con serializeNulls, y Curator.scala:157 lo convierte a Map: la clave llega con null. Si Pinning la quitara al escribir el HC, el resultado en Synthesis es el mismo (líneas 134-141)"
+    consecuencia_para_sisben:
+      - "Entre periodos se cumple HU R-25 y §5.6: el sintético del periodo más reciente lleva los valores de su evento, y un campo nulo (p. ej. fechaDigitacion vacía; idMarca con FORMATO_INVALIDO) queda sin valor, no con el del corte anterior [C]"
+      - "Curation no tiene que cambiar: escribir null u omitir la clave da lo mismo en Synthesis. ART-032 y ART-030 quedan como están [C]"
+    efecto_residual:
+      descripcion: "Dentro de un MISMO periodo y la misma relación (subscriber + subscriberRelation), los eventos se procesan en orden (asOfDate, receivedDate) sobre el mismo sintético parcial (ConsistencyCheckOps.scala:118, :176-181; EventSynthesizer.scala:106-107). Un null del evento posterior no borra el valor no nulo de un evento anterior del mismo periodo"
+      cuando_ocurre: "Solo si dos cortes de la misma persona caen en el mismo periodo. Validation deja un evento por persona y archivo (R-19), así que depende de cómo se calcula el periodo del evento (minFrequency + asOfDate, con asOfDate = fec_actualizacion_cns, HU R-07): TaggedCuratedEventWithMap.getPeriod está en oxygen-domain, fuera del repo, y SISBENFileMetadata no fija minFrequency (VD-SYN-04)"
+      estado: "[C] el comportamiento del motor · [PM] si ocurre en SISBEN (VD-SYN-04)"
+      tratamiento: "Pregunta no bloqueante PROP-SYN-1 para la próxima versión de HU y spec. No cambia ningún artefacto de esta versión: la única forma de que un null «gane» dentro del periodo sería un SynthesisProcessor, que la spec §12 excluye"
+
+  C-CUR-06:
+    supuesto: "dataType del domain dictionary (enum Datatype de oxygen-global, fuera del repo; STRING por defecto): «lo fija Synthesis» por campo si la skill lo usa (decisiones-y-abiertos.md:48; ART-032 _generado_por)"
+    respuesta: "No se fija: dataType se omite en los 34 campos (queda STRING por defecto). No cambia la síntesis de SISBEN y un valor inválido rompería la lectura del GDD compartido"
+    estado: "[C]"
+    evidencia:
+      - "DomainDictionaryV2.java:46-56: claves de campo name, handler (LFP), periodicity (true), complexTypeDefinition, dataType (Datatype.STRING), synthesizer, description, section (\"default\"), enabled (true)"
+      - "DomainDictionaryV2.java:29-37: dataType pasa a DictionaryFieldInternal.fieldType; section no se usa; enabled=false saca el campo del diccionario"
+      - "fieldType solo se lee en ASTUtil.scala:547-561 (getFieldTypeFromDomainDictionary), es decir, en el DSL de las reglas de consistencia. SISBEN no tiene reglas propias (spec §12; steering 07 §5.6)"
+      - "IncrementalEventSynthesizer copia el valor tal como llega, sin mirar el tipo (EventSynthesizer.scala:110-141)"
+      - "Curation recibe el tipo del diccionario (Curator.scala:154, domainDictionarType) pero no lo usa en curateTaggedEvent (Curator.scala:152-187)"
+      - "edf-synthesis SKILL.md, paso 3: «dataType se omite salvo confirmación: el motor usa STRING por defecto y un valor inválido hace fallar la lectura de todo el diccionario»; los valores del enum no están en el repo (solo se ven sus constantes en oxygen-statecalculation CalculationUtils.scala:17-36)"
+    consecuencia_para_sisben: "El tipo de salida de spec §10.1 (texto, entero, largo, lista) lo da el evento curado (SISBENCuratedRecord, ART-031) y lo conserva Synthesis. El tipo que lee State Calculation es el de su propia configuración (FoundationField.dataType, oxygen-statecalculation FoundationField.java:35), que decide el insumo de State Calculation, no este [C]"
+
+  periodicity:
+    decision: "Se omite en los 34 campos (true por defecto, DomainDictionaryV2.java:49)"
+    estado: "[C]"
+    evidencia: "Ninguna fuente pide false (spec §12 «comportamiento por defecto»). En la copia del motor, periodicity solo aparece en su declaración y su lectura (DomainDictionaryV1.java:47, DomainDictionaryV2.java:49, DomainDictionaryInternal.scala:31, :120-123): no la consulta ningún otro código de oxygen-synthesis (grep)"
+
+# ═════════════════════════════════════════════════════════════
+# Modo Colombia: una sola corrida de Synthesis para todas las fuentes
+# ═════════════════════════════════════════════════════════════
+modo_colombia_compartido:
+  hechos:
+    - "Una corrida lee UN solo GDD (domainDictionaryFile.head), UN diccionario de consistencia (dictionaryFile(0)) y UN customRulesFile.head (SparkConsistencyChecker.scala:194-196, :241-245) [C]"
+    - "Lee todas las carpetas *-pin-hc de pinnedDir (SynthesisIOUtils.scala:149, :167) y procesa todos los eventos del HC (ConsistencyCheckOps.performChecks); no filtra por eventType ni por fuente [C]"
+    - "eventTypeList no filtra eventos: solo se usa para pedir al Process Management la última fecha por tipo, y solo con checkFileTagEnabled = true (SparkConsistencyChecker.scala:46, :87, :119-131) [C]"
+    - "El HC de Colombia junta los eventos de todas las fuentes por PIN porque Pinning es compartido (PinningIOUtils.scala:23-31; PA-009; yaml-skill-pinning.yaml modo Colombia) [C]"
+    - "El domain dictionary de Colombia es un solo archivo, colombia-domain-dictionary-inner.json, que se extiende de forma aditiva (steering 07 §6; steering 02 «Domain dictionary / GDD»); Curation exige también la clave consistencyCheck.paths.domainDictionaryFile (SparkCurator.scala:63-64) [C]"
+    - "Un campo que no está en el GDD no pasa al evento sintético: synthesize recorre solo los campos del diccionario sobre un mapa nuevo por periodo (EventSynthesizer.scala:106-110) [C]. Por eso las 34 claves de SISBEN deben estar en el GDD (también las de identidad, que alimentan NAMES e IDENTIFICATIONS, spec §13 :339)"
+  conclusion: "Las claves de oxygen.stage.consistencyCheck valen para todas las fuentes de Colombia. El bloque de SISBEN no las escribe; el GDD solo se amplía con entradas nuevas y nunca se cambia una entrada existente"
+  estado: "[C] los hechos del motor · [P] que el conf de Colombia sea un único *-inner.conf compartido (no hay fork; mismo criterio que Pinning, HF-59) · [PM] su contenido (VD-SYN-01..03)"
+  nombres_compartidos:
+    descripcion: "El handler es por nombre de campo, no por fuente: si colombia-domain-dictionary-inner.json ya tiene una entrada con un nombre de SISBEN (candidatos: standardizedIdType, standardizedIdNumber, standardizedIdName, que también publica MURIC, curation-muric.md:75-76; y currentPartyType, currentPartyIdNumber, subscriberBlockStatus, subscriberBlockReason), esa entrada gobierna también los eventos de SISBEN"
+    regla: "No se agrega una segunda entrada con el mismo name ni se modifica la existente (steering 07 §6 «Aditivo»; ART-032 «no eliminar ni renombrar entradas existentes»). Un name repetido haría que synthesize procese el campo dos veces y el resultado dependería del orden (EventSynthesizer.scala:110-141; DomainDictionaryInternal.scala:47 fieldsMap)"
+    estado: "[C] la regla · [PM] qué nombres existen ya en el fork y con qué handler (VD-SYN-01)"
+
+# ═════════════════════════════════════════════════════════════
+# CORE — Mapeo de campos SISBEN → handler (LFP/LAP/EUC) en el GDD
+# ═════════════════════════════════════════════════════════════
+mapeo_campos_handler:
+  nota_general: >
+    Lista completa del evento curado de SISBEN: las 34 claves de spec-sisben.md §10.1 (:245-280), que la spec declara
+    «lista completa» (:282) y con nombres definitivos que Synthesis cita literalmente (:243). Las 34 están literales en
+    source-spec-curation.yaml (33 campos_curados[].destino + parametros.campo_advertencias) y en ART-032. Todas usan el
+    comportamiento por defecto del motor, LFP, por fuente de la ingesta y no por inferencia: spec §12 (:324) «El
+    domaindictionary.json no declara handlers para los campos de SISBEN: todos usan el comportamiento por defecto del
+    motor (LFP, valor del evento más reciente)» y HU R-25 (:94). En el GDD, LFP es la ausencia de la clave handler.
+    Ningún campo lleva synthesizer (spec §12 :325), dataType ni periodicity (resolucion_supuestos_curation).
+  campos_con_mapeo_confirmado:
+    # Cada entrada: nombre_en_gdd = campo curado literal; handler_propuesto LFP = sin clave handler en el JSON.
+    - {campo_curado_sisben: "idFichaOrigen", nombre_en_gdd: "idFichaOrigen", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; tipo de salida texto (§10.1)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "idHogar", nombre_en_gdd: "idHogar", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "codDepartamentoSisben", nombre_en_gdd: "codDepartamentoSisben", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto; atributo XPM de #sisben (spec §13)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12, §13; HU R-25"}
+    - {campo_curado_sisben: "nomDepartamento", nombre_en_gdd: "nomDepartamento", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "codMunicipioSisben", nombre_en_gdd: "codMunicipioSisben", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto; atributo XPM de #sisben (spec §13)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12, §13; HU R-25"}
+    - {campo_curado_sisben: "nomMunicipio", nombre_en_gdd: "nomMunicipio", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "idClase", nombre_en_gdd: "idClase", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; entero", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "idPersonaOrden", nombre_en_gdd: "idPersonaOrden", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII: solo el nombre del campo)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25, R-28"}
+    - {campo_curado_sisben: "idNacional", nombre_en_gdd: "idNacional", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25, R-28"}
+    - {campo_curado_sisben: "primerApellido", nombre_en_gdd: "primerApellido", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "segundoApellido", nombre_en_gdd: "segundoApellido", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "primerNombre", nombre_en_gdd: "primerNombre", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "segundoNombre", nombre_en_gdd: "segundoNombre", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "tipoDocumento", nombre_en_gdd: "tipoDocumento", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; entero (PII)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "tipoDocumentoSisben", nombre_en_gdd: "tipoDocumentoSisben", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "numeroDocumento", nombre_en_gdd: "numeroDocumento", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "numeroDocumentoOriginal", nombre_en_gdd: "numeroDocumentoOriginal", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "grupoSisben", nombre_en_gdd: "grupoSisben", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto; atributo XPM de #sisben; escenario HU §5.5", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12, §13; HU R-25, §5.5"}
+    - {campo_curado_sisben: "nivelSisben", nombre_en_gdd: "nivelSisben", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; entero; atributo XPM de #sisben; escenario HU §5.5", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12, §13; HU R-25, §5.5"}
+    - {campo_curado_sisben: "fechaDigitacion", nombre_en_gdd: "fechaDigitacion", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; largo (epoch ms), nulo si vacía o inválida; fechaEncuesta de #sisben (HU §5.6 «queda nula»: C-CUR-05)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12, §13; HU R-25, §5.6"}
+    - {campo_curado_sisben: "fechaActualizacionPersona", nombre_en_gdd: "fechaActualizacionPersona", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; largo", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "idMarca", nombre_en_gdd: "idMarca", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; entero; nulo con FORMATO_INVALIDO (spec §10.4; C-CUR-05)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §10.4, §12; HU R-25"}
+    - {campo_curado_sisben: "idEstado", nombre_en_gdd: "idEstado", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; entero", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "fechaActualizacionCns", nombre_en_gdd: "fechaActualizacionCns", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; largo; fechaModificacion de #sisben", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12, §13; HU R-25"}
+    - {campo_curado_sisben: "fechaCorte", nombre_en_gdd: "fechaCorte", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; largo (último día del periodo)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "tipoArchivo", nombre_en_gdd: "tipoArchivo", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (constante REGULAR)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "standardizedIdType", nombre_en_gdd: "standardizedIdType", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; entero (PII). Nombre que pueden compartir otras fuentes de Colombia (modo_colombia_compartido.nombres_compartidos)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "standardizedIdNumber", nombre_en_gdd: "standardizedIdNumber", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII). Nombre compartible (ídem)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "standardizedIdName", nombre_en_gdd: "standardizedIdName", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII). Nombre compartible (ídem)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "currentPartyType", nombre_en_gdd: "currentPartyType", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; entero (PII). Nombre compartible (ídem)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "currentPartyIdNumber", nombre_en_gdd: "currentPartyIdNumber", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (PII). Nombre compartible (ídem)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "subscriberBlockStatus", nombre_en_gdd: "subscriberBlockStatus", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (constante NO_BLOQUEADO). Nombre compartible (ídem)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "subscriberBlockReason", nombre_en_gdd: "subscriberBlockReason", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; texto (constante nula: nunca llega al sintético, C-CUR-05). Nombre compartible (ídem)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25"}
+    - {campo_curado_sisben: "advertenciasCuracion", nombre_en_gdd: "advertenciasCuracion", handler_propuesto: "LFP", justificacion: "spec §12: sin handler; lista de texto <campo curado>:<MOTIVO> sin valores de dato; LFP copia la lista del evento tal cual (EventSynthesizer.scala:136)", nivel_confianza: "cita textual de fuente", estado: "[C]", fuente: "spec §10.1, §12; HU R-25; source-spec-curation parametros.campo_advertencias"}
+  campos_propuestos_en_bloque_sin_desglose:
+    descripcion: "No hay: la spec §12 cubre los 34 campos uno a uno por ser la lista completa de §10.1 (:282) y la regla no tiene excepciones. No se agrega ningún campo fuera de esa lista"
+    estado: "[C]"
+  pendientes_del_mapeo: []
+
+# ═════════════════════════════════════════════════════════════
+# Instrucción de generación — GDD (ART-061)
+# ═════════════════════════════════════════════════════════════
+instruccion_generacion_gdd:
+  archivo: "propuestas/synthesis/domaindictionary.json (nombre de la HU §6); destino de integración: colombia-domain-dictionary-inner.json del fork, el mismo de ART-032 (steering 07 §6)"
+  seccion: "fields[]"
+  contenido_a_escribir:
+    regla: >
+      JSON sin comentarios con raíz {"domain": "sisben", "version": 2, "fields": [...]}. "version": 2 (edf-synthesis
+      SKILL.md paso 3; lector DomainDictionaryV2, DomainDictionaryInternal.scala:96-97). "domain" = id de la ingesta
+      (spec §1 :17); solo rotula la propuesta: al integrar se fusionan solo las entradas de fields[], como ART-032.
+      Una entrada por campo, en el orden de spec §10.1, con exactamente las claves name y description, ambas
+      copiadas literal de la entrada de ART-032 con el mismo name (así ART-061 y ART-032 son la misma entrada y la
+      integración no puede duplicarla). Sin handler (LFP = ausencia de la clave), sin dataType, sin synthesizer, sin
+      periodicity, section, enabled ni complexTypeDefinition. Sin los campos que inyecta el motor. Al integrar: si un
+      name ya existe en colombia-domain-dictionary-inner.json (porque ya se fusionó ART-032 o porque lo usa otra
+      fuente), no se agrega otra entrada ni se toca la existente (modo_colombia_compartido.nombres_compartidos).
+    campos_a_generar:
+      - {name: "idFichaOrigen"}
+      - {name: "idHogar"}
+      - {name: "codDepartamentoSisben"}
+      - {name: "nomDepartamento"}
+      - {name: "codMunicipioSisben"}
+      - {name: "nomMunicipio"}
+      - {name: "idClase"}
+      - {name: "idPersonaOrden"}
+      - {name: "idNacional"}
+      - {name: "primerApellido"}
+      - {name: "segundoApellido"}
+      - {name: "primerNombre"}
+      - {name: "segundoNombre"}
+      - {name: "tipoDocumento"}
+      - {name: "tipoDocumentoSisben"}
+      - {name: "numeroDocumento"}
+      - {name: "numeroDocumentoOriginal"}
+      - {name: "grupoSisben"}
+      - {name: "nivelSisben"}
+      - {name: "fechaDigitacion"}
+      - {name: "fechaActualizacionPersona"}
+      - {name: "idMarca"}
+      - {name: "idEstado"}
+      - {name: "fechaActualizacionCns"}
+      - {name: "fechaCorte"}
+      - {name: "tipoArchivo"}
+      - {name: "standardizedIdType"}
+      - {name: "standardizedIdNumber"}
+      - {name: "standardizedIdName"}
+      - {name: "currentPartyType"}
+      - {name: "currentPartyIdNumber"}
+      - {name: "subscriberBlockStatus"}
+      - {name: "subscriberBlockReason"}
+      - {name: "advertenciasCuracion"}
+    razon_de_lista_vacia: "no aplica: la lista tiene las 34 entradas"
+    estado: "[C] para las 34 entradas (spec §10.1, §12; HU R-25, §6). Ninguna depende de un [A:*]"
+  verificacion_esperada: "python3 tools/verificar-artefactos-etapa.py synthesis --gdd propuestas/synthesis/domaindictionary.json debe salir sin hallazgos (sin version, nombres repetidos, campos inyectados, handler distinto de EUC/LAP ni claves que la versión 2 ignora); python3 tools/verificar-claves.py --dir insumos coherente"
+
+# ═════════════════════════════════════════════════════════════
+# Claves de oxygen.stage.consistencyCheck (ART-062): ninguna se escribe
+# ═════════════════════════════════════════════════════════════
+claves_configuracion_synthesis:
+  regla_del_bloque: >
+    ART-062 es un bloque de verificación: no escribe ninguna clave activa de oxygen.stage.consistencyCheck. Cada clave
+    va como comentario con su valor esperado en el conf compartido de Colombia y su verificación (VD-SYN-02). Razones:
+    la corrida es una sola para todas las fuentes de Colombia (modo_colombia_compartido) y la HU §6 (:345) solo pide
+    domaindictionary.json para Synthesis. Nunca se escribe oxygen.stage.synthesis.* (la clave real es consistencyCheck).
+  estado_regla: "[C] por el motor y la HU §6 · [P] la forma del archivo compartido del fork (VD-SYN-02)"
+  claves:
+    - clave: "oxygen.stage.consistencyCheck.eventTypeList"
+      valor_a_escribir: null
+      se_escribe: false
+      dato_de_la_ingesta: "event type 30 (spec §1 :22; HU §3 :38), compartido con otras fuentes de Colombia (HU §3)"
+      regla: "No filtra eventos: solo se consulta con checkFileTagEnabled = true (SparkConsistencyChecker.scala:46, :87, :119-131). SISBEN no necesita el fileTag de Synthesis (R-26 es de State Calculation, PA-001). No se escribe [\"30\"] porque reemplazaría la lista de Colombia, ni [\"sisben\"], que es el valor de ejemplo del fixture del repo"
+      estado: "[C]"
+      fuente: "spec §1, §12; PA-001; SparkConsistencyChecker.scala:46-131; edf-synthesis references/convenciones-oxygen-synthesis.md §2"
+    - clave: "oxygen.stage.consistencyCheck.dateType"
+      valor_a_escribir: null
+      se_escribe: false
+      regla: "Obligatoria en el conf compartido (dateType.get, SparkConsistencyChecker.scala:47: sin ella la etapa no arranca). Solo se usa con checkFileTagEnabled (HCUtil.scala:76-90, :125-128): no agrupa por periodo; el periodo sale de getPeriod del evento (HCUtil.scala:109-122). La spec no la fija"
+      estado: "[C] que no se escribe · [PM] que exista en el conf de Colombia (VD-SYN-02)"
+      fuente: "SparkConsistencyChecker.scala:47; HCUtil.scala:76-128; spec §12"
+    - clave: "oxygen.stage.consistencyCheck.checkFileTagEnabled"
+      valor_a_escribir: null
+      se_escribe: false
+      regla: "SISBEN usa el comportamiento por defecto de Synthesis (spec §12) y el corte vigente lo resuelve State Calculation (PA-001). Si el conf de Colombia la tiene en true, los eventos de SISBEN con fileTag reciben voidIndicator (HCUtil.scala:76-88): verificar el efecto con PA-002"
+      estado: "[C] que no se escribe · [PM] su valor en Colombia (VD-SYN-02)"
+      fuente: "spec §12; PA-001; HCUtil.scala:76-88, :125-128"
+    - clave: "oxygen.stage.consistencyCheck.paths.domainDictionaryFile"
+      valor_a_escribir: null
+      se_escribe: false
+      valor_esperado: "[\"colombia-domain-dictionary-inner.json\"] o el nombre que tenga en el fork el GDD de Colombia donde se integran ART-032 y ART-061"
+      regla: "Una sola entrada por corrida (head, SparkConsistencyChecker.scala:241); Curation también la exige (SparkCurator.scala:63-64)"
+      estado: "[C] que no se escribe · [PM] su valor exacto en el fork (VD-SYN-02)"
+      fuente: "steering 07 §6; SparkConsistencyChecker.scala:195, :241; SparkCurator.scala:63-64"
+    - clave: "oxygen.stage.consistencyCheck.paths.dictionaryFile"
+      valor_a_escribir: null
+      se_escribe: false
+      regla: "SISBEN no declara reglas CONS-* (spec §12; steering 07 §5.6): no se agrega nada al diccionario de consistencia de Colombia ni se cambia su ruta (dictionaryFile(0), SparkConsistencyChecker.scala:242)"
+      estado: "[C]"
+      fuente: "spec §12; steering 07 §5.6"
+    - clave: "oxygen.stage.consistencyCheck.paths.customRulesFile"
+      valor_a_escribir: null
+      se_escribe: false
+      regla: "Nunca null (customRulesFile.head, SparkConsistencyChecker.scala:245; AUD-S1). SISBEN no tiene reglas custom: queda el valor de Colombia"
+      estado: "[C] que no se escribe · [PM] que el conf de Colombia lo tenga no nulo (VD-SYN-02)"
+      fuente: "SparkConsistencyChecker.scala:196, :245; edf-synthesis SKILL.md paso 4"
+    - clave: "oxygen.stage.consistencyCheck.synthesisOutputAsTSV"
+      valor_a_escribir: null
+      se_escribe: false
+      regla: "Ninguna fuente de la ingesta pide salida TSV; la salida de SISBEN es la ruta Sintetizados de spec §14 (sus rutas son de solo lectura)"
+      estado: "[C]"
+      fuente: "spec §14; SynthesisIOUtils.scala:131, :415"
+    - clave: "oxygen.stage.consistencyCheck.relationshipMigrationProcessorClassName"
+      valor_a_escribir: null
+      se_escribe: false
+      regla: "SISBEN no tiene processors propios de Synthesis (spec §12) ni caso de migración de relaciones; queda el valor de Colombia (null o \"\" = sin migración, SparkConsistencyChecker.scala:250-253)"
+      estado: "[C]"
+      fuente: "spec §12; SparkConsistencyChecker.scala:250-253"
+  pendientes_de_configuracion:
+    - {id: "VD-SYN-02", descripcion: "En el conf compartido de Colombia: dateType presente; customRulesFile no nulo; domainDictionaryFile apunta al GDD donde se integran ART-032/ART-061; valor de checkFileTagEnabled y, si es true, efecto del voidIndicator en SISBEN", estado: "[PM]"}
+
+# ═════════════════════════════════════════════════════════════
+# Verificaciones diferidas (fork o pipeline). Ninguna es de RG-025
+# ═════════════════════════════════════════════════════════════
+verificaciones_diferidas:
+  - id: "VD-SYN-01"
+    descripcion: "En colombia-domain-dictionary-inner.json del fork: cuáles de los 34 nombres ya existen (candidatos en modo_colombia_compartido.nombres_compartidos) y con qué handler, synthesizer y enabled"
+    si_falla: "Si un nombre de SISBEN ya existe con handler EUC o LAP, con synthesizer o con enabled = false, ese campo no tendrá LFP para SISBEN (contra spec §12 / HU R-25) o no llegará al sintético: se detiene la integración y se pregunta al PO (bloqueante para la certificación de synthesis). Cambiar la entrada existente afectaría a otras fuentes: N3, no se propone sin su justificación"
+    estado: "[PM]"
+  - id: "VD-SYN-02"
+    descripcion: "Claves del conf compartido de Colombia (claves_configuracion_synthesis.pendientes_de_configuracion)"
+    estado: "[PM]"
+  - id: "VD-SYN-03"
+    descripcion: "Que el conf de Synthesis de Colombia sea un único *-inner.conf compartido por todas las fuentes (modo_colombia_compartido.estado [P])"
+    si_falla: "Si existiera un bloque por ingesta, ART-062 tendría que escribir las claves obligatorias (dateType, paths.domainDictionaryFile, paths.dictionaryFile, paths.customRulesFile) con sus valores de Colombia: se vuelve a edf-analisis"
+    estado: "[PM]"
+  - id: "VD-SYN-04"
+    descripcion: "Periodo de los eventos de SISBEN en Synthesis: minFrequency lo pone Validation (FileMetadata.minFrequency, SparkValidator.scala:771, :844) y SISBENFileMetadata (ART-011, propuestas/validation/.../validator/SISBENFileMetadata.scala:16-37) no lo sobrescribe, así que vale el de la clase base de oxygen-domain (fuera del repo). Con asOfDate = fec_actualizacion_cns (HU R-07) se decide si dos cortes de una persona caen en el mismo periodo (efecto residual de C-CUR-05) o, con unidad Unique, en periodos separados (HCUtil.scala:109-122). La spec declara frecuencia Mensual (§1 :24)"
+    estado: "[PM]"
+  - id: "VD-SYN-05"
+    descripcion: "Escenario HU §5.5 en el pipeline: dos eventos del mismo PIN, cortes 202512 y 202601, con un valor distinto y con un campo nulo en 202601 (p. ej. fechaDigitacion): el sintético vigente lleva los valores de 202601 y el campo nulo sin valor"
+    estado: "[PM]"
+
+# ═════════════════════════════════════════════════════════════
+# Preguntas propuestas (las registra edf-orquestador con su ID)
+# ═════════════════════════════════════════════════════════════
+preguntas_propuestas:
+  - id_propuesto: "PROP-SYN-1"
+    pregunta: "Para la próxima versión de HU y spec: si dos cortes de la misma persona caen en el mismo periodo de Synthesis y el más reciente trae un campo nulo (p. ej. idMarca con FORMATO_INVALIDO, Fec_digitacion vacía), ¿debe quedar nulo (R-25 al pie de la letra) o vale conservar el valor del corte anterior del mismo periodo, que es lo que hace el motor con LFP?"
+    etapa_afectada: "synthesis"
+    bloqueante: false
+    por_que_no_bloquea: "Con la spec 1.0.2 ningún artefacto cambia: no hay handler que lo resuelva y la spec §12 excluye un SynthesisProcessor. Si la respuesta pide que el nulo gane, es una versión nueva de la spec. Que el caso ocurra depende de VD-SYN-04"
+    que_dice_cada_fuente: "HU R-25: «gana el valor del evento más reciente»; HU §5.6: «fechaEncuesta queda nula»; spec §12: LFP por defecto. Motor: EventSynthesizer.scala:106-107, :139-141; ConsistencyCheckOps.scala:118, :176-181"
+riesgo_propuesto:
+  - descripcion: "El GDD y el conf de Synthesis son únicos para Colombia: un nombre de SISBEN que ya exista con otro handler, o una clave compartida escrita desde el bloque de SISBEN, cambia la síntesis de otras fuentes o la de SISBEN en silencio"
+    nivel: "medio"
+    etapa_afectada: "synthesis"
+    mitigacion: "ART-061 solo agrega entradas nuevas sin duplicar; ART-062 no escribe claves; VD-SYN-01..03 en el fork antes de certificar"
+
+riesgo_del_insumo:
+  nivel: "N2 (medio)"
+  motivo: "Configuración compartida de Z1 (GDD de Colombia, aditivo) (06 §2.1). Sube a N3 si VD-SYN-01 encuentra un nombre de SISBEN con otro handler y se propone tocar la entrada existente"
+
+resumen_de_cierre:
+  claves_si_generables: "GDD: las 34 entradas de spec §10.1 sin handler (LFP), sin dataType ni synthesizer [C]. HOCON: ninguna clave activa; bloque de verificación con eventTypeList, dateType, checkFileTagEnabled, paths.domainDictionaryFile, paths.dictionaryFile, paths.customRulesFile, synthesisOutputAsTSV y relationshipMigrationProcessorClassName como comentarios [C]"
+  bloqueo_principal: "Ninguno para el insumo. La generación espera la aprobación de pinning; la certificación, RG-025 y VD-SYN-01..05. C-CUR-05 y C-CUR-06 cerrados con el motor; RG-010 resuelto por spec §12"
+  # Sin estado de aprobación (HF-32): vive solo en estado-ingesta.json.
