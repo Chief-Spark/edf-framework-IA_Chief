@@ -542,8 +542,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:38:51-05:00
 - **Pedido:** Auditar ART-070, PA-002 (opciones c1/d), PA-012, PA-013 y los 4 posibles defectos.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-070 AJUSTES; no aprobable hasta cerrar PA-002/012/013. 7 valores fieles; ART-072 bien retenido; 10 afirmaciones del motor confirmadas, 2 citas a precisar (alias en :166-171; orden de DERIVED irrelevante). Filtro por fuente necesario. P1: AUD-SC-01 (máximo fechaCorte ≠ último archivo aceptado: entregas repetidas del mismo periodo, archivos fuera de orden), AUD-SC-02 (modo delta conserva el XPM anterior; faltan delta, histórico y appenders en PA-013), AUD-SC-03 (una sección con where no puede llamarse «#sisben»: QueryFunctions.scala:75-82), AUD-SC-04 (con groupBy la sección sale [] y no null). PA-002: (d) descartada; (c1) la más segura pero incompleta (requiere cambiar la App o el motor), con 6 condiciones. PA-012/013 bien planteadas y bloqueantes; §3e no aplica y N4 no admite evidencia diferida. ART-071 (4 campos de nivel A) correcto en contenido, pero solo generable si el PO aprueba el insumo limitado. Defectos 1-3 reales P1, 4 P2; nuevo P1: edf-statecalc sin modo Colombia y cita a un README inexistente.
+- **Decisión:** HF-73..75 suben a P1, HF-76 confirmado, HF-77 nuevo; corrector 1.9.11; PA-002/012/013 y el alcance de ART-070 al PO simulado.
 - **Bitácora:** —
 
 ## INT-069 · Auditor independiente (synthesis) · insumo v2 · `synthesis`
@@ -582,6 +582,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:50:40-05:00
 - **Pedido:** Auditar ART-061 y ART-062.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-074 · Corrector del framework (statecalc) · `state_calculation`
+
+- **Cuándo:** 2026-11-24T22:51:12-05:00
+- **Pedido:** Corregir HF-73..77 con pruebas; framework 1.9.11.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-075 · PO simulado SIM-PO-01 · `state_calculation`
+
+- **Cuándo:** 2026-11-24T22:51:12-05:00
+- **Pedido:** Decidir PA-002, PA-012, alcance de ART-070 (CQ-006) y PA-013.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
