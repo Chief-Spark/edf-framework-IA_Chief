@@ -6,7 +6,7 @@
       "receivedDate": 1707147000000,
       "fileName": "SISBEN_EXPERIAN_202401.20240205103000-0500.txt",
       "subscriber": "999722",
-      "fileAsOfDate": 1707147000000,
+      "fileAsOfDate": 1706677200000,
       "datasetId": "ds-sintetico-0001",
       "recordHash": "hash-evt-0001"
     },
@@ -57,7 +57,7 @@
       "receivedDate": 1707147000000,
       "fileName": "SISBEN_EXPERIAN_202401.20240205103000-0500.txt",
       "subscriber": "999722",
-      "fileAsOfDate": 1707147000000,
+      "fileAsOfDate": 1706677200000,
       "datasetId": "ds-sintetico-0001",
       "recordHash": "hash-evt-0002"
     },
@@ -108,7 +108,7 @@
       "receivedDate": 1707147000000,
       "fileName": "SISBEN_EXPERIAN_202401.20240205103000-0500.txt",
       "subscriber": "999722",
-      "fileAsOfDate": 1707147000000,
+      "fileAsOfDate": 1706677200000,
       "datasetId": "ds-sintetico-0001",
       "recordHash": "hash-evt-0003"
     },
@@ -159,7 +159,7 @@
       "receivedDate": 1707147000000,
       "fileName": "SISBEN_EXPERIAN_202401.20240205103000-0500.txt",
       "subscriber": "999722",
-      "fileAsOfDate": 1707147000000,
+      "fileAsOfDate": 1706677200000,
       "datasetId": "ds-sintetico-0001",
       "recordHash": "hash-evt-0004"
     },
@@ -209,7 +209,7 @@
       "receivedDate": 1707224400000,
       "fileName": "RT_SISBEN_EXPERIAN_202401.20240206080000-0500.txt",
       "subscriber": "999722",
-      "fileAsOfDate": 1707224400000,
+      "fileAsOfDate": 1706677200000,
       "datasetId": "ds-sintetico-0001",
       "recordHash": "hash-evt-0005"
     },
@@ -262,7 +262,7 @@
       "receivedDate": 1709648100000,
       "fileName": "EP_SISBEN_EXPERIAN_202402.20240305091500-0500",
       "subscriber": "999722",
-      "fileAsOfDate": 1709648100000,
+      "fileAsOfDate": 1709182800000,
       "datasetId": "ds-sintetico-0001",
       "recordHash": "hash-evt-0006"
     },
@@ -315,7 +315,7 @@
       "receivedDate": 1707147000000,
       "fileName": "SISBEN_EXPERIAN_202401.20240205103000-0500.txt",
       "subscriber": "999722",
-      "fileAsOfDate": 1707147000000,
+      "fileAsOfDate": 1706677200000,
       "datasetId": "ds-sintetico-0001",
       "recordHash": "hash-evt-0007"
     },

@@ -1,8 +1,8 @@
-// CUR-TPL-04 · parametrizada · generado por el skill edf-curation-stage v{{version_skill}}
+// CUR-TPL-04 · parametrizada · generado por el skill edf-curation v{{version_skill}}
 // Evento curado de {{Fuente}} (CUR-P15). Las claves del JSON de write son los nombres publicados
 // y coinciden exactamente con el domain dictionary (CUR-RC05, CUR-T05).
 // Campos con severidad de no almacenamiento (RF-CUR-10) se omiten del JSON; los nulos se
-// escriben como null (ASSUMPTION: C-CUR-05), salvo las claves de identidad de
+// escriben como null (ASSUMPTION C-CUR-05), salvo las claves de identidad de
 // parametros.omitir_si_nulas (por defecto standardizedId*), que se omiten si son nulas (AUD-C4).
 package {{paquete_fuente}}
 

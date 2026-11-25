@@ -28,6 +28,26 @@ $defs:
 
 properties:
   schema_version: {const: "1.0"}
+  supuestos_resueltos:
+    type: array
+    description: >-
+      Opcional (HF-36, AUD-C-06; mismo mecanismo que edf-validation 1.9.2, AUD-V-08). Supuestos de las plantillas
+      (ASSUMPTION <ID>) cuyo valor ya fija la spec de la ingesta o la etapa anterior aprobada. El generador cambia
+      cada marca por `RESUELTO <ID> (<fuente>)` y quita de esa línea el pedido «; confirmar …» o «; verificar …»;
+      MANIFEST.json lo lista en supuestos_resueltos con su fuente. Falla si el ID no tiene marca en la salida, si se
+      repite o si es C-CUR-02 (ese se cierra con campos_curados[].estado: cerrado). Sin la clave nada cambia.
+    items:
+      type: object
+      additionalProperties: false
+      required: [id, fuente]
+      properties:
+        id:
+          type: string
+          pattern: '^(C-CUR-\d{2}|CUR-P[AT]\d{2}|F-\d{2}|D\d{1,2})$'
+        fuente:
+          type: string
+          pattern: '^(?!.*\*/)[^"\\\n\r]+$'
+          description: Sección de la spec que fija el valor (p. ej. "spec-sisben.md §10.1"). Sin comillas, barras invertidas, saltos de línea ni "*/".
   meta:
     type: object
     required: [version_skill, etapa, framework, compilacion]
@@ -122,10 +142,17 @@ properties:
       catalogo:
         type: object
         required: [tabla, columna_clave, columna_valor]
+      # HF-38 (AUD-C-09): un código sin equivalente Experian puede declararse con valor vacío o null, solo si
+      # también está en pendientes. No cambia el comportamiento (pendientes gana; no se consulta en el lookup ni
+      # entra a la tabla embebida): solo hace que el CSV sintético traiga su fila con cod_experian vacío.
       tabla:
         type: object
         minProperties: 1
-        additionalProperties: {type: string, pattern: "^[0-9]+$"}
+        additionalProperties:
+          anyOf:
+            - {type: string, pattern: "^[0-9]+$"}
+            - {const: ""}
+            - {type: "null"}
       pendientes: {type: array, items: {type: string}}
   reglas_documento:
     type: object

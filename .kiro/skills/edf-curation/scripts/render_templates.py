@@ -69,6 +69,13 @@ TRANSF_SCALA = {
 }
 # Transformaciones que no leen un campo de entrada: no llevan origen.
 SIN_ORIGEN = ("desde_archivo", "copia_de", "constante", "concatenacion")
+# HF-39 (AUD-C-10): nombre de la skill que firma MANIFEST.json y las cabeceras de las plantillas.
+SKILL_NAME = "edf-curation"
+# HF-36 (AUD-C-06): marcas de supuesto con ID (mismo mecanismo que edf-validation 1.9.2, AUD-V-08).
+ID_SUPUESTO = r"C-CUR-\d{2}|CUR-P[AT]\d{2}|F-\d{2}|D\d{1,2}"
+MARCA_RE = re.compile(r"\bASSUMPTION:?[ \t]+(" + ID_SUPUESTO + r")\b")
+# HF-15 en Curation: el pedido de confirmación de la misma línea se quita al resolver la marca.
+PEDIDO_CONFIRMAR_RE = re.compile(r";\s*(?:confirmar|verificar)\b[^\n]*?(?=\.?\s*(?:\*/)?\s*$)", re.IGNORECASE)
 # Huecos que pueden quedar vacíos: representan una lista vacía legítima dentro de un Set(...) de Scala (F-FW-13).
 PUEDEN_QUEDAR_VACIOS = {"pendientes_scala", "niveles_no_almacenar_scala", "niveles_anular_scala", "omitir_si_nulas_scala"}
 
@@ -181,6 +188,21 @@ def validar_coherencia(spec: dict[str, Any]) -> None:
     no_publicadas = sorted({c for c in spec["parametros"].get("omitir_si_nulas") or [] if c not in destinos})
     if no_publicadas:
         raise RenderError(f"parametros.omitir_si_nulas: campos que no se publican: {no_publicadas}")
+    # HF-38 (AUD-C-09): un código con valor vacío o null en la tabla debe estar en pendientes.
+    hom = spec["homologacion_tipo_documento"]
+    pend = {str(x).upper() for x in hom.get("pendientes") or []}
+    sin_pendiente = sorted(str(k) for k, v in hom["tabla"].items() if v in (None, "") and str(k).upper() not in pend)
+    if sin_pendiente:
+        raise RenderError(f"homologacion_tipo_documento.tabla: códigos sin valor que no están en pendientes: {sin_pendiente}")
+    if not ref.tabla_homologacion(spec):
+        raise RenderError("homologacion_tipo_documento.tabla: ningún código con valor Experian")
+    # HF-36 (AUD-C-06): supuestos_resueltos sin IDs repetidos; C-CUR-02 se cierra con campos_curados[].estado.
+    ids = [r["id"] for r in spec.get("supuestos_resueltos") or []]
+    repetidos = sorted({i for i in ids if ids.count(i) > 1})
+    if repetidos:
+        raise RenderError(f"supuestos_resueltos: IDs repetidos: {repetidos}")
+    if "C-CUR-02" in ids:
+        raise RenderError("supuestos_resueltos: C-CUR-02 se resuelve con campos_curados[].estado: cerrado, no aquí")
     for codigo, campo in spec["codigos_error"].items():
         if campo not in entradas:
             raise RenderError(f"código {codigo}: campo {campo} no está en campos_entrada")
@@ -255,6 +277,17 @@ def fecha_recepcion(archivo: str) -> int:
     return ref._epoch_ms(dt)
 
 
+def metadatos_archivo(spec: dict[str, Any], archivo: str) -> tuple[int, str]:
+    """HF-40 (AUD-C-04): lineage.fileAsOfDate y fileTag como los emite la etapa anterior (FileMetadata de Validation).
+
+    fileAsOfDate = último día del periodo AAAAMM (grupo 2 de archivo.regex_derivacion), 00:00 en la zona de la
+    etapa anterior (zona_asofdate_etapa_anterior), en epoch ms; fileTag = archivo.tipo_por_prefijo del grupo 1.
+    Si el nombre no coincide, 0 y "" (los valores de respaldo de Validation).
+    """
+    tipo, corte = ref.info_archivo(archivo, spec, zona_asofdate(spec))
+    return (0 if corte is None else corte), (tipo or "")
+
+
 def construir_eventos(spec: dict[str, Any], fixture: dict[str, Any]) -> list[dict[str, Any]]:
     """Eventos TaggedValidatedEvent sintéticos (forma de 2404, campos que usa Curation)."""
     fuente = spec["fuente"]
@@ -263,13 +296,14 @@ def construir_eventos(spec: dict[str, Any], fixture: dict[str, Any]) -> list[dic
         registro = {**fixture["base_registro"], **(e.get("registro") or {})}
         cns = registro["FECHA_ACTUALIZACION_CNS"]
         recibido = fecha_recepcion(e["archivo"])
+        corte, etiqueta = metadatos_archivo(spec, e["archivo"])
         eventos.append({
             "lineage": {
                 "dataSource": fuente["datasource"],
                 "receivedDate": recibido,
                 "fileName": e["archivo"],
                 "subscriber": fuente["subscriber"],
-                "fileAsOfDate": recibido,
+                "fileAsOfDate": corte,  # HF-40: antes receivedDate
                 "datasetId": "ds-sintetico-0001",
                 "recordHash": f"hash-{e['id']}",
             },
@@ -291,7 +325,7 @@ def construir_eventos(spec: dict[str, Any], fixture: dict[str, Any]) -> list[dic
             "headerErrors": [],
             "footerErrors": [],
             "keys": "",
-            "fileTag": "",
+            "fileTag": etiqueta,  # HF-40: antes ""
             "_caso": e.get("caso"),
         })
     return eventos
@@ -488,25 +522,48 @@ def campos_to_map(spec: dict[str, Any]) -> str:
 
 # ---------------------------------------------------------------- subscriberRelation (F-FW-11, D14)
 def relacion_override_scala(spec: dict[str, Any]) -> str:
-    """Miembro override del processor; sin la extensión en la spec, solo un comentario."""
+    """Miembros del processor para subscriberRelation; sin la extensión en la spec, solo el no-op recordarCurado."""
     ext = spec.get("extension_subscriber_relation")
     if ext is None:
-        return "  // subscriberRelation no se sobrescribe: se copia del evento aceptado (D3)."
+        return "\n".join([
+            "  // subscriberRelation no se sobrescribe: se copia del evento aceptado (D3).",
+            f"  private def recordarCurado(event: TaggedValidatedEvent, record: {spec['fuente']['Fuente']}CuratedRecord): Unit = ()",
+        ])
     clase = spec["processor"]["nombre_clase"]
+    registro = f"{spec['fuente']['Fuente']}CuratedRecord"
     componentes = str(ext["separador"]).join(str(c) for c in ext["campos"])
     return "\n".join([
         "  /**",
-        f"   * subscriberRelation = {componentes} (extension_subscriber_relation). Usa el mismo núcleo que",
-        "   * curateEvent; si falta algún componente conserva el del evento aceptado y el registro curado lleva",
-        "   * subscriberRelation:COMPONENTE_FALTANTE (AUD-C3). Nunca lanza.",
+        "   * HF-35 (AUD-C-05): Curator.curateEvent llama a curateEvent y después a subscriberRelation con el mismo",
+        "   * evento, en el mismo hilo. Se recuerda el último registro curado por hilo para no curar dos veces.",
+        "   */",
+        f"  @transient private lazy val ultimoCurado = new ThreadLocal[(TaggedValidatedEvent, {registro})]",
+        "",
+        f"  private def recordarCurado(event: TaggedValidatedEvent, record: {registro}): Unit =",
+        "    ultimoCurado.set((event, record))",
+        "",
+        "  /**",
+        f"   * subscriberRelation = {componentes} (extension_subscriber_relation). Usa el registro que ya curó",
+        "   * curateEvent (o, si no es el mismo evento, el mismo núcleo); si falta algún componente conserva el del",
+        "   * evento aceptado y el registro curado lleva subscriberRelation:COMPONENTE_FALTANTE (AUD-C3).",
+        "   * Nunca lanza: los errorCodes nulos se descartan como en curateEvent y todo va dentro del try (HF-35).",
         "   * D14 (AUD-C8): firma del gancho verificada en la copia del motor (CurationProcessor.subscriberRelation(event): String;",
         "   * Curator la invoca por evento). Falta compilar contra el JAR (F-01).",
         "   */",
         "  override def subscriberRelation(event: TaggedValidatedEvent): String = {",
-        "    val errores = Option(event.errorCodes).map(_.toSeq).getOrElse(Seq.empty)",
-        "      .map(e => (e.errorCodeValue, e.errorLevel))",
-        "    val fileName = Option(event.lineage).map(_.fileName).orNull",
-        f"    {clase}.relacion(event.validatedRecordJson, fileName, errores, homologacion, event.subscriberRelation)",
+        "    val copiado = Option(event).map(_.subscriberRelation).orNull",
+        "    try {",
+        "      val previo = Option(ultimoCurado.get).collect { case (ev, record) if ev eq event => record }",
+        "      ultimoCurado.remove()",
+        "      previo match {",
+        f"        case Some(record) => {clase}.relacionDesde(record, copiado)",
+        "        case None =>",
+        "          val errores = Option(event.errorCodes).map(_.toSeq).getOrElse(Seq.empty)",
+        "            .flatMap(Option(_)).map(e => (e.errorCodeValue, e.errorLevel))",
+        "          val fileName = Option(event.lineage).map(_.fileName).orNull",
+        f"          {clase}.relacion(event.validatedRecordJson, fileName, errores, homologacion, copiado)",
+        "      }",
+        "    } catch { case NonFatal(_) => copiado }  // SILENCIO-INTENCIONAL D14: se conserva el aceptado",
         "  }",
     ])
 
@@ -519,6 +576,7 @@ def relacion_helper_scala(spec: dict[str, Any]) -> str:
             "  // subscriberRelation: sin extension_subscriber_relation en la spec (D3).",
             "  private def advertenciaRelacion(valores: Map[String, Option[Any]]): Option[String] = None",
         ])
+    registro = f"{spec['fuente']['Fuente']}CuratedRecord"
     return "\n".join([
         "  /** Campos curados que forman subscriberRelation y su separador (extension_subscriber_relation, D14). */",
         f"  private val CamposRelacion: Seq[String] = Seq({lista_scala(ext['campos'])})",
@@ -530,17 +588,21 @@ def relacion_helper_scala(spec: dict[str, Any]) -> str:
         "    else Some(\"subscriberRelation:\" + Motivos.ComponenteFaltante)",
         "",
         "  /**",
-        "   * subscriberRelation = campos curados unidos; si falta alguno, el del evento aceptado (`copiado`). Nunca lanza.",
-        "   * No se devuelve \"\" (AUD-C3): el doesMatch base de Pinning une registros con igual subscriber y",
-        "   * subscriberRelation, y un valor vacío uniría personas distintas.",
+        "   * subscriberRelation desde un registro ya curado (HF-35: sin volver a curar); si falta algún campo, el del",
+        "   * evento aceptado (`copiado`). Nunca lanza. No se devuelve \"\" (AUD-C3): el doesMatch base de Pinning une",
+        "   * registros con igual subscriber y subscriberRelation, y un valor vacío uniría personas distintas.",
         "   */",
-        "  def relacion(json: String, fileName: String, errores: Seq[(String, String)], homologacion: Map[String, String],",
-        "               copiado: String): String =",
+        f"  def relacionDesde(record: {registro}, copiado: String): String =",
         "    try {",
-        "      val m = curar(json, fileName, errores, homologacion).toJavaMap",
+        "      val m = record.toJavaMap",
         "      val partes = CamposRelacion.map(c => Option(m.get(c)).map(_.toString.trim).filter(_.nonEmpty))",
         "      if (partes.forall(_.isDefined)) partes.flatten.mkString(SeparadorRelacion) else copiado",
-        "    } catch { case NonFatal(_) => copiado }  // SILENCIO-INTENCIONAL D14: curar ya registra el error; se conserva el aceptado",
+        "    } catch { case NonFatal(_) => copiado }  // SILENCIO-INTENCIONAL D14: se conserva el aceptado",
+        "",
+        "  /** subscriberRelation curando el registro (curar nunca lanza); lo usan las pruebas y el gancho sin caché. */",
+        "  def relacion(json: String, fileName: String, errores: Seq[(String, String)], homologacion: Map[String, String],",
+        "               copiado: String): String =",
+        "    relacionDesde(curar(json, fileName, errores, homologacion), copiado)",
     ])
 
 
@@ -590,6 +652,8 @@ def casos_scala(eventos: list[dict[str, Any]], curados: list[dict[str, Any]]) ->
 
 
 # AUD-C5: valores JSON no textuales que el lector debe convertir igual que la referencia (Gson).
+# HF-34: valores con espacios en los bordes; crudo los conserva y get los recorta.
+JSON_CRUDO = '{"a": " 0001000000101", "b": "   ", "c": null}'
 JSON_LECTOR = ('{" a ": true, "b": [1, "x", 1.50, null], "c": {"k": 1.5e3, "t": "q\\"z"}, "d": null, '
                '"e": 2.0, "f": 0.10000000000000001, "g": 100, "h": false, "i": -0.0}')
 
@@ -627,6 +691,15 @@ def casos_lector_scala(spec: dict[str, Any]) -> str:
         v = None if v is None else (v.strip() or None)
         lineas.append(f"    assert(r.get({q(clave)}) == {_opcion_scala(v)})")
     lineas.append("  }")
+    # HF-34 (AUD-C-01): crudo conserva los espacios (lo usa `original`); get los recorta.
+    crudo = ref._parse_registro(JSON_CRUDO)
+    lineas += ['', '  test("lector: crudo conserva el valor sin recortar; get lo recorta (HF-34)") {',
+               f"    val r = {fuente}AcceptedRecord.parse({tq(JSON_CRUDO)}).toOption.get"]
+    for clave in ("A", "B", "C"):
+        lineas.append(f"    assert(r.crudo({q(clave)}) == {_opcion_scala(crudo.get(clave))})")
+        v = crudo.get(clave)
+        lineas.append(f"    assert(r.get({q(clave)}) == {_opcion_scala(None if v is None else (v.strip() or None))})")
+    lineas.append("  }")
     return "\n".join(lineas)
 
 
@@ -645,6 +718,9 @@ def casos_transformaciones_scala() -> str:
                          ({**defecto, "padding": 5}, "42"), (defecto, "000")):
         lineas.append(f"    assert(Transformaciones.documento({_opcion_scala(valor)}, {regla_scala(regla)}) == "
                       f"{resultado_scala(ref.documento(valor, regla))})")
+    # HF-34 (AUD-C-01): original conserva el valor tal cual (HU SISBEN §5.3: " 0001000000101").
+    for valor in (" 0001000000101", " 3 ", None):
+        lineas.append(f"    assert(Transformaciones.original({_opcion_scala(valor)}) == {resultado_scala(ref.original(valor))})")
     partes = ["ANA", None, "PRUEBA", " "]
     lineas.append(f"    assert(Transformaciones.concatenar(Seq({', '.join(_opcion_scala(p) for p in partes)}), \" \") == "
                   f"{resultado_scala(ref.concatenar(partes, ' '))})")
@@ -688,8 +764,9 @@ def huecos(spec: dict[str, Any], fixture: dict[str, Any], eventos: list[dict],
         "tabla_homologacion": lambda: hom["catalogo"]["tabla"],
         "columna_clave_homologacion": lambda: hom["catalogo"]["columna_clave"],
         "columna_valor_homologacion": lambda: hom["catalogo"]["columna_valor"],
-        "homologacion_scala": lambda: mapa_scala(hom["tabla"]),
-        "claves_homologacion_scala": lambda: lista_scala(list(hom["tabla"].keys())),
+        # HF-38: los códigos sin valor (pendientes) no entran a la tabla embebida ni se consultan en el lookup.
+        "homologacion_scala": lambda: mapa_scala(ref.tabla_homologacion(spec)),
+        "claves_homologacion_scala": lambda: lista_scala(list(ref.tabla_homologacion(spec).keys())),
         "pendientes_scala": lambda: lista_scala(hom["pendientes"]),
         "campo_tipo_documento": lambda: rd["campo_tipo"],
         "regla_documento_defecto_scala": lambda: regla_scala(rd["por_defecto"]),
@@ -742,6 +819,30 @@ def plan(spec: dict[str, Any]) -> list[tuple[str, str, str]]:
     ]
 
 
+def resolver_supuestos(texto: str, resueltos: dict[str, str]) -> tuple[str, set[str]]:
+    """HF-36 (AUD-C-06): `ASSUMPTION <ID>` → `RESUELTO <ID> (<fuente>)` para los IDs de supuestos_resueltos.
+
+    Mismo mecanismo que edf-validation (AUD-V-08). En la línea resuelta se quita el pedido «; confirmar …» o
+    «; verificar …» (HF-15), salvo que en ella quede otra marca ASSUMPTION abierta.
+    """
+    usados: set[str] = set()
+
+    def repl(m: re.Match) -> str:
+        ident = m.group(1)
+        if ident not in resueltos:
+            return m.group(0)
+        usados.add(ident)
+        return f"RESUELTO {ident} ({resueltos[ident]})"
+
+    lineas = []
+    for linea in texto.split("\n"):
+        nueva = MARCA_RE.sub(repl, linea)
+        if nueva != linea and "ASSUMPTION" not in nueva:
+            nueva = PEDIDO_CONFIRMAR_RE.sub("", nueva)
+        lineas.append(nueva)
+    return "\n".join(lineas), usados
+
+
 def rellenar(texto: str, valores: dict[str, Callable[[], Any]], declarados: set[str], nombre: str) -> str:
     usados = sorted(set(HUECO.findall(texto)))
     sin_declarar = sorted(set(usados) - declarados)
@@ -766,7 +867,9 @@ def csv_homologacion(spec: dict[str, Any]) -> str:
     sep = cat["delimitador"]
     desc = hom.get("descripciones") or {}
     filas = [sep.join(str(c) for c in cat["columnas"])]
-    filas += [sep.join([str(k), str(v), str(desc[k]) if k in desc else ""]) for k, v in hom["tabla"].items()]
+    # HF-38 (AUD-C-09): un código pendiente declarado sin valor sale con cod_experian vacío.
+    filas += [sep.join([str(k), "" if v is None else str(v), str(desc[k]) if k in desc else ""])
+              for k, v in hom["tabla"].items()]
     return "\n".join(filas) + "\n"
 
 
@@ -792,8 +895,16 @@ def preparar(spec_path: Path, templates: Path, schema_path: Path) -> dict[str, A
     faltan = sorted(declarados - set(valores))
     if faltan:
         raise RenderError(f"x-placeholders sin cálculo en el renderer: {faltan}")
-    contenidos = [(tpl_id, destino, rellenar(leer_texto(templates / tpl), valores, declarados, tpl))
-                  for tpl_id, tpl, destino in plan(spec)]
+    resueltos = {r["id"]: r["fuente"] for r in spec.get("supuestos_resueltos") or []}
+    usados: set[str] = set()
+    contenidos = []
+    for tpl_id, tpl, destino in plan(spec):
+        texto, u = resolver_supuestos(rellenar(leer_texto(templates / tpl), valores, declarados, tpl), resueltos)
+        usados |= u
+        contenidos.append((tpl_id, destino, texto))
+    sin_marca = sorted(set(resueltos) - usados)
+    if sin_marca:
+        raise RenderError(f"supuestos_resueltos sin marca ASSUMPTION en la salida: {sin_marca}")
     lk_in = fixture_path.parent / fixture_spec["lookups_dir"]
     tabla_hom = spec["homologacion_tipo_documento"]["catalogo"]["tabla"]
     for c in spec["catalogos"]:
@@ -805,7 +916,7 @@ def preparar(spec_path: Path, templates: Path, schema_path: Path) -> dict[str, A
     if not (lk_in / MARCA_LOOKUPS).exists():
         raise RenderError(f"falta la marca de sintético de los lookups: {lk_in / MARCA_LOOKUPS}")
     return {"spec": spec, "curados": curados, "resumen": resumen, "contenidos": contenidos,
-            "lk_in": lk_in, "tabla_hom": tabla_hom}
+            "lk_in": lk_in, "tabla_hom": tabla_hom, "resueltos": resueltos}
 
 
 def verificar(spec_path: Path, schema_path: Path, templates: Path) -> str:
@@ -831,7 +942,7 @@ def render(spec_path: Path, out: Path, templates: Path, schema_path: Path,
     if out.exists():
         shutil.rmtree(out)
     meta = spec["meta"]
-    manifest: dict[str, Any] = {"skill": "edf-curation-stage", "version": meta["version_skill"],
+    manifest: dict[str, Any] = {"skill": SKILL_NAME, "version": meta["version_skill"],
                                 "compilacion": meta.get("compilacion"), "sintetico": True, "archivos": []}
     for tpl_id, destino, contenido in contenidos:
         escribir(out / destino, contenido)
@@ -864,6 +975,8 @@ def render(spec_path: Path, out: Path, templates: Path, schema_path: Path,
     manifest["zona_horaria_fechas"] = {"valor": spec["parametros"]["zona_horaria_fechas"],
                                        "origen": origen_zona_fechas(spec)}
     manifest["advertencias"] = advertencias_zona(spec)
+    if ctx["resueltos"]:  # HF-36: solo con la clave en la spec; sin ella el manifest no cambia
+        manifest["supuestos_resueltos"] = [{"id": i, "fuente": ctx["resueltos"][i]} for i in sorted(ctx["resueltos"])]
     if write_expected is not None:
         write_expected.mkdir(parents=True, exist_ok=True)
         for nombre in ("curated-events.json", "resumen.json"):

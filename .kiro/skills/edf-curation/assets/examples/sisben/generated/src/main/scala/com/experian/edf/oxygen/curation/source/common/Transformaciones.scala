@@ -1,4 +1,4 @@
-// CUR-TPL-02 · Capa A · fija · generado por el skill edf-curation-stage v0.1.0
+// CUR-TPL-02 · Capa A · fija · generado por el skill edf-curation v0.1.0
 // Acciones de transformación genéricas como funciones puras (modelo Information Type + Action,
 // CUR-P08). Sin Spark, sin framework, sin reflexión por llamada (CUR-AP03, CUR-AP04).
 // Un valor no transformable devuelve nulo + advertencia; nunca una excepción (CUR-RC03).
@@ -25,6 +25,12 @@ object Transformaciones {
     patrones.map(p => DateTimeFormatter.ofPattern(p).withResolverStyle(ResolverStyle.STRICT))
 
   def texto(v: Option[String]): Resultado[String] = Resultado(limpio(v))
+
+  /**
+   * HF-34 (AUD-C-01): el valor recibido tal cual, sin recortar espacios (spec «Valor original»). Nulo solo si
+   * falta o es null. Recibe el crudo de AcceptedRecord.crudo, no el de get (que recorta).
+   */
+  def original(v: Option[String]): Resultado[String] = Resultado(v)
 
   /** RF-CUR-04: mayúsculas, sin tildes ni caracteres especiales, espacios simples. */
   def nombre(v: Option[String], conservarEnie: Boolean): Resultado[String] = limpio(v) match {

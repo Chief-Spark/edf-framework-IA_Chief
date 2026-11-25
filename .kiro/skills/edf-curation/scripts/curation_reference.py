@@ -96,6 +96,14 @@ def texto(valor: str | None):
     return _limpio(valor), None
 
 
+def original(valor: Any):
+    """HF-34 (AUD-C-01): el valor recibido tal cual, sin recortar (spec «Valor original»); nulo solo si falta.
+
+    Como ``Transformaciones.original`` sobre ``AcceptedRecord.crudo`` en Scala.
+    """
+    return (None if valor is None else str(valor)), None
+
+
 def nombre(valor: str | None, conservar_enie: bool = False):
     s = _limpio(valor)
     if s is None:
@@ -209,6 +217,12 @@ def subscriber_relation(curado: dict[str, Any], spec: dict[str, Any], copiado: s
     return copiado if partes is None else str(ext["separador"]).join(partes)
 
 
+def tabla_homologacion(spec: dict[str, Any]) -> dict[str, str]:
+    """HF-38 (AUD-C-09): códigos con valor Experian. Uno declarado vacío o null es pendiente: no entra a la tabla."""
+    tabla = spec["homologacion_tipo_documento"]["tabla"]
+    return {str(k): str(v) for k, v in tabla.items() if v not in (None, "")}
+
+
 def omitir_si_nulas(spec: dict[str, Any]) -> list[str]:
     """AUD-C4 (C-CUR-05): claves curadas que se omiten del registro cuando su valor es nulo.
 
@@ -249,8 +263,12 @@ def convertir(valor: Any, tipo: str):
 
 
 # ---------------------------------------------------------------- archivo
-def info_archivo(file_name: str | None, spec: dict[str, Any]):
-    """Tipo de archivo y fecha de corte (último día de AAAAMM, 00:00, epoch ms); None si no aplica."""
+def info_archivo(file_name: str | None, spec: dict[str, Any], nombre_zona: str | None = None):
+    """Tipo de archivo y fecha de corte (último día de AAAAMM, 00:00, epoch ms); None si no aplica.
+
+    La zona es ``parametros.zona_horaria_fechas`` salvo que se pase ``nombre_zona`` (HF-40: el fixture usa la de
+    la etapa anterior para ``lineage.fileAsOfDate``).
+    """
     base = re.split(r"[\\/]", file_name or "")[-1]
     archivo = spec["archivo"]
     m = re.search(archivo["regex_derivacion"], base)
@@ -266,7 +284,7 @@ def info_archivo(file_name: str | None, spec: dict[str, Any]):
     if not 1 <= mes <= 12 or anio < 1:
         return tipo, None
     dia = calendar.monthrange(anio, mes)[1]
-    dt = datetime(anio, mes, dia, tzinfo=zona(spec["parametros"]["zona_horaria_fechas"]))
+    dt = datetime(anio, mes, dia, tzinfo=zona(nombre_zona or spec["parametros"]["zona_horaria_fechas"]))
     return tipo, _epoch_ms(dt)
 
 
@@ -376,7 +394,7 @@ def curar(validated_record_json: str | None, file_name: str | None, errores: lis
     """Mapa curado (claves = nombres publicados) más el campo de advertencias."""
     params = spec["parametros"]
     hom = spec["homologacion_tipo_documento"]
-    tabla_hom = {str(k): str(v) for k, v in hom["tabla"].items()}
+    tabla_hom = tabla_homologacion(spec)
     pendientes = {str(p).upper() for p in hom.get("pendientes") or []}
     advertencias: list[str] = []
 
@@ -414,8 +432,10 @@ def curar(validated_record_json: str | None, file_name: str | None, errores: lis
             continue  # nivel en niveles_no_almacenar: la clave no se publica (RF-CUR-10)
         crudo = None if (not origen or origen in anular_entrada) else registro.get(origen)
         tipo = t["tipo"]
-        if tipo in ("texto", "original"):
+        if tipo == "texto":
             valor, motivo = texto(crudo)
+        elif tipo == "original":
+            valor, motivo = original(crudo)  # HF-34: sin recortar
         elif tipo == "nombre":
             valor, motivo = nombre(crudo, bool(params.get("conservar_enie")))
         elif tipo == "padding_izquierda":

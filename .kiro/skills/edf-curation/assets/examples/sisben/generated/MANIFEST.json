@@ -1,5 +1,5 @@
 {
-  "skill": "edf-curation-stage",
+  "skill": "edf-curation",
   "version": "0.1.0",
   "compilacion": "no_certificada",
   "sintetico": true,
@@ -87,7 +87,7 @@
     },
     {
       "ruta": "src/test/resources/sisben/lookups/202_SISBEN_PROCESS_ID_TYPE_HO.csv",
-      "sha256": "aef8ca64f5ad25af28e3c23e8069722afc0300d650e8d40cc0ea4ea2b170ad03"
+      "sha256": "32f72f570f8eb3b45940c10665326164cf0636fd5de86d889eddc5dc6bccea55"
     },
     {
       "ruta": "src/test/resources/sisben/lookups/SISBEN_GROUP_SUBGROUP_NH.csv",
@@ -99,7 +99,7 @@
     },
     {
       "ruta": "expected/curated-events.json",
-      "sha256": "e4888794ca7adbc43a00649b85cb21c32a1bb8a71b1dc5b477baaa8a29e0c891"
+      "sha256": "4d08d8c27a227851b5ecdad88be59bd922840a04e5df45ce722ddd041079b522"
     },
     {
       "ruta": "expected/resumen.json",

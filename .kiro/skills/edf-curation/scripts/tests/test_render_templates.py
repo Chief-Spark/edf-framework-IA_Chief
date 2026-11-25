@@ -191,7 +191,7 @@ def test_red_de_seguridad_registra_sin_datos(rendered):
     assert "case NonFatal(_) =>" not in p.split("def relacion")[0]
     assert ('logger.error("Error interno al curar el evento {} ({}); se publica vacío con advertencia", eventId, '
             "e.getClass.getName)") in p
-    assert "String.valueOf(event.eventId)))" in p
+    assert "String.valueOf(event.eventId))" in p
     t = leer(out / "src/main/scala/com/experian/edf/oxygen/curation/source/common/Transformaciones.scala")
     assert "case Some(m) if m.groupCount < 2 => (None, None)" in t
     assert "val corte = Try { val aaaamm = m.group(2);" in t
@@ -258,9 +258,13 @@ def test_lookup_202_coincide_con_la_tabla_embebida(rendered, spec):
     out, _ = rendered
     csv = leer(out / "src/test/resources/sisben/lookups/202_SISBEN_PROCESS_ID_TYPE_HO.csv").split("\n")
     filas = {l.split(",")[0]: l.split(",")[1] for l in csv[1:] if l}
-    tabla = {str(k): str(v) for k, v in spec["homologacion_tipo_documento"]["tabla"].items()}
+    tabla = {str(k): "" if v is None else str(v) for k, v in spec["homologacion_tipo_documento"]["tabla"].items()}
     assert filas == tabla
-    assert "7" not in filas  # salvoconducto: pendiente, sin código arbitrario
+    # HF-38: el salvoconducto pendiente sale en el CSV con código vacío, nunca con un código arbitrario,
+    # y no entra a la tabla embebida ni a las claves que se consultan en el lookup.
+    assert filas["7"] == "" and "7,,SALVOCONDUCTO DE REFUGIADO" in csv
+    cs = leer(out / SCALA_FUENTE / "config/SISBENCurationSpec.scala")
+    assert '"7" ->' not in cs and 'val ClavesHomologacion: Seq[String] = Seq("1", "2", "3", "4", "5", "6", "8", "PPT")' in cs
 
 
 def test_fixture_es_jsonl_de_eventos_sinteticos(rendered):
@@ -429,6 +433,7 @@ def test_listas_vacias_se_generan_como_set_vacio(tmp_path, spec):
     """F-FW-13: pendientes vacío (y niveles vacíos) se generan como Set() y no son un hueco sin valor."""
     def cambio(s):
         s["homologacion_tipo_documento"]["pendientes"] = []
+        del s["homologacion_tipo_documento"]["tabla"]["7"]  # HF-38: un código sin valor exige estar en pendientes
         s["parametros"]["niveles_anular"] = []
         s["parametros"]["niveles_no_almacenar"] = []
     rt.render(spec_con_cambios(tmp_path, spec, cambio), tmp_path / "out", TEMPLATES, SCHEMA)
@@ -523,8 +528,19 @@ def test_extension_subscriber_relation_genera_override_y_pruebas(tmp_path, spec)
     assert 'private val CamposRelacion: Seq[String] = Seq("tipoDocumento", "numeroDocumento")' in p
     assert 'private val SeparadorRelacion: String = "_"' in p
     assert ("SISBENCurationProcessor.relacion(event.validatedRecordJson, fileName, errores, homologacion, "
-            "event.subscriberRelation)") in p
+            "copiado)") in p
     assert "catch { case NonFatal(_) => copiado }" in p
+    # HF-35 (AUD-C-05): el gancho descarta errorCodes nulos como curateEvent, todo va dentro del try y reutiliza
+    # el registro que curó curateEvent (no cura dos veces).
+    gancho = p.split("override def subscriberRelation(event: TaggedValidatedEvent): String = {")[1].split("\n  }\n")[0]
+    assert ".flatMap(Option(_)).map(e => (e.errorCodeValue, e.errorLevel))" in gancho
+    assert gancho.index("try {") < gancho.index("event.errorCodes") < gancho.index("catch { case NonFatal(_) => copiado }")
+    assert "val copiado = Option(event).map(_.subscriberRelation).orNull" in gancho
+    assert "case Some(record) => SISBENCurationProcessor.relacionDesde(record, copiado)" in gancho
+    assert "recordarCurado(event, record)" in p and "ultimoCurado.set((event, record))" in p
+    assert p.count("SISBENCurationProcessor.curar(") == 1  # solo curateEvent; relacion cura con relacionDesde(curar(...))
+    assert "def relacionDesde(record: SISBENCuratedRecord, copiado: String): String =" in p
+    assert "    relacionDesde(curar(json, fileName, errores, homologacion), copiado)" in p
     assert not ("println(" in p or "throw " in p or "{{" in p)
     t = leer(out / "src/test/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCurationProcessorSpec.scala")
     assert "SISBENCurationProcessor.relacion(" in t and "{{" not in t

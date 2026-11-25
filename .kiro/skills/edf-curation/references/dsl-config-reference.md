@@ -15,6 +15,10 @@ lanzan si faltan. `CurationApp` recibe tres archivos: `env.conf`, `curation-appl
 
 ## Bloque de la ingesta (lo único que genera el skill)
 
+Los ejemplos de esta página usan los valores del SISBEN **histórico** del ejemplo de la skill (HF-40,
+AUD-C-07): ilustran la forma, no la spec vigente. Los valores reales salen del source-spec
+(`archivo.file_pattern`, `catalogos[]`).
+
 ```hocon
 oxygen.stage.curation.configs = [
   { filePattern = ".*(RT_|EP_)?SISBEN_EXPERIAN_\\d{6}\\.\\d{14}[+-]\\d{4}(\\.txt)?"
@@ -61,6 +65,8 @@ Otros: `oxygen.application.lambda = batch`; `oxygen.features.enable.defaultCurat
 no corre: verificar que esté apagado).
 
 ## Lookups `oxygen.lookups[]`
+
+Ejemplo histórico (delimitador y columna del ejemplo de la skill; los de la ingesta salen de `catalogos[]`):
 
 ```hocon
 oxygen.lookups = [

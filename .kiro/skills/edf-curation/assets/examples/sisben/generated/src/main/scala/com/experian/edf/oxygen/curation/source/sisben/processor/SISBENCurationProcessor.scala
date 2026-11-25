@@ -1,4 +1,4 @@
-// CUR-TPL-06 · Capa C · esqueleto · generado por el skill edf-curation-stage v0.1.0
+// CUR-TPL-06 · Capa C · esqueleto · generado por el skill edf-curation v0.1.0
 // Processor de SISBEN que el motor (SparkCurator) carga por reflexión desde el bloque
 // configs[] (CUR-P05). Compilación NO CERTIFICADA: sin JAR del framework (F-01).
 //
@@ -38,27 +38,30 @@ class SISBENCurationProcessor(context: CurationProcessorContext) extends Curatio
     val desdeLookup = SISBENCurationProcessor.cargarHomologacion(context.lookup)
     val sinRespuesta = SISBENCurationSpec.ClavesHomologacion.count(c => !desdeLookup.contains(c))
     if (sinRespuesta > 0) {
-      // ASSUMPTION: CUR-PT02 — si el lookup no responde se usa la tabla embebida (misma tabla de la HU).
+      // ASSUMPTION CUR-PT02: si el lookup no responde se usa la tabla embebida (misma tabla de la HU).
       logger.warn("Lookup {}: {} claves sin respuesta; se completan con la tabla de homologación embebida",
         SISBENCurationSpec.TablaHomologacion, sinRespuesta.toString)
     }
     SISBENCurationSpec.Homologacion ++ desdeLookup
   }
 
-  // ASSUMPTION: CUR-PA04 — valor inferido; @deprecated en CurationProcessor pero el motor lo usa.
+  // outputEventType: @deprecated en CurationProcessor pero el motor lo usa. ASSUMPTION CUR-PA04; confirmar el valor inferido.
   override val outputEventType: Int = 30
 
   /** El default Payload.empty pierde el payload de etapas anteriores (CUR-AP08). */
   override def enrichEventWithPayload(event: TaggedValidatedEvent): Payload = event.payload
 
   // subscriberRelation no se sobrescribe: se copia del evento aceptado (D3).
+  private def recordarCurado(event: TaggedValidatedEvent, record: SISBENCuratedRecord): Unit = ()
 
   override def curateEvent(event: TaggedValidatedEvent): CuratedEvent = {
     val errores = Option(event.errorCodes).map(_.toSeq).getOrElse(Seq.empty)
       .flatMap(Option(_)).map(e => (e.errorCodeValue, e.errorLevel))
     val fileName = Option(event.lineage).map(_.fileName).orNull
-    SISBENCuratedEvent(SISBENCurationProcessor.curar(event.validatedRecordJson, fileName, errores, homologacion,
-      String.valueOf(event.eventId)))
+    val record = SISBENCurationProcessor.curar(event.validatedRecordJson, fileName, errores, homologacion,
+      String.valueOf(event.eventId))
+    recordarCurado(event, record)  // HF-35: subscriberRelation lo reutiliza (no se cura dos veces)
+    SISBENCuratedEvent(record)
   }
 
   // TODO(manual) IN-06 / CUR-PT06: Business Line Code (catálogo de terceras fuentes) y Type of Data
@@ -74,7 +77,7 @@ object SISBENCurationProcessor {
   @transient private lazy val logger = getLogger(classOf[SISBENCurationProcessor])
 
   /**
-   * Consulta cada clave conocida UNA vez. ASSUMPTION: API de Util.getLookup (CUR-PT02). Si el lookup falla
+   * Consulta cada clave conocida UNA vez. ASSUMPTION CUR-PT02: API de Util.getLookup. Si el lookup falla
    * devuelve un mapa vacío: el processor avisa las claves sin respuesta y usa la tabla embebida (AUD-C6).
    */
   def cargarHomologacion(lookup: OxygenLookup): Map[String, String] =
@@ -125,7 +128,11 @@ object SISBENCurationProcessor {
     val (valores, advertencias, omitidos) = Mapeos.foldLeft(inicial) { case ((acc, advs, omit), m) =>
       if (m.origen.nonEmpty && omitirEntrada(m.origen)) (acc, advs, omit + m.destino)
       else {
-        val crudo = if (m.origen.isEmpty || anularEntrada(m.origen)) None else registro.get(m.origen)
+        // HF-34 (AUD-C-01): `original` lee el valor sin recortar; las demás transformaciones, el recortado.
+        val crudo =
+          if (m.origen.isEmpty || anularEntrada(m.origen)) None
+          else if (m.transformacion == Transformacion.Original) registro.crudo(m.origen)
+          else registro.get(m.origen)
         val r = aplicar(m, crudo, registro, acc, tipoArchivo, fechaCorte, homologacion)
         (acc + (m.destino -> r.valor), advs ++ r.advertencia.map(mot => s"${m.destino}:$mot"), omit)
       }
@@ -137,7 +144,8 @@ object SISBENCurationProcessor {
                       acc: Map[String, Option[Any]], tipoArchivo: Option[String], fechaCorte: Option[Long],
                       homologacion: Map[String, String]): Resultado[Any] = {
     val transformado: Resultado[Any] = m.transformacion match {
-      case Transformacion.Texto | Transformacion.Original => Transformaciones.texto(crudo)
+      case Transformacion.Texto => Transformaciones.texto(crudo)
+      case Transformacion.Original => Transformaciones.original(crudo)
       case Transformacion.Nombre => Transformaciones.nombre(crudo, ConservarEnie)
       case Transformacion.PaddingIzquierda(n) => Transformaciones.paddingIzquierda(crudo, n)
       case Transformacion.FechaEpoch => Transformaciones.fechaEpoch(crudo, Formateadores, ZonaFechas)

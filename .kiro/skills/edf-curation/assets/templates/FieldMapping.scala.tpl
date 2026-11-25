@@ -1,6 +1,6 @@
-// CUR-TPL-01 · Capa A · fija · generado por el skill edf-curation-stage v{{version_skill}}
+// CUR-TPL-01 · Capa A · fija · generado por el skill edf-curation v{{version_skill}}
 // Tipos con los que se declara el mapeo de una fuente. Sin Spark, sin framework, sin reflexión.
-// ASSUMPTION: CUR-PT01 — paquete del código compartido sin definir; se propone {{paquete_compartido}}.
+// ASSUMPTION CUR-PT01: paquete del código compartido sin definir; se propone {{paquete_compartido}}.
 package {{paquete_compartido}}
 
 /** Tipo de salida publicado en el evento curado y en el domain dictionary (RF-CUR-05). */

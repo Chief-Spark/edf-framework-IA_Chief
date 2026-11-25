@@ -130,6 +130,7 @@ homologacion_tipo_documento:
     "4": "4"
     "5": "8"
     "6": "5"
+    "7": null                                  # HF-38: pendiente declarado sin valor (fila del CSV con cod. vacío)
     "8": "9"
     "PPT": "11"
   pendientes: ["7"]                            # salvoconducto: pendiente de creación; nunca código arbitrario

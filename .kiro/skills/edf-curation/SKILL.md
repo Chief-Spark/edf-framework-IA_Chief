@@ -49,7 +49,9 @@ Declara en `campos_abiertos` solo lo que la HU o la spec de la ingesta no define
 Pendientes que **no** se resuelven aquí y se reportan en la entrega:
 - Formato de `subscriberRelation` (por defecto `NUM_DOCUMENTO` sin normalizar; PIN-SIS-04 pide `standardizedIdType_standardizedIdNumber`): steering `11` §6 #8. Solo se cambia si el `source-spec-curation.yaml` aprobado declara el bloque opcional `extension_subscriber_relation: {campos: [...], separador: "_"}` (D14): el processor arma `subscriberRelation` con esos campos curados y, si falta alguno, conserva el del evento aceptado y advierte `subscriberRelation:COMPONENTE_FALTANTE` (AUD-C3). La firma del gancho está verificada en la copia del motor (AUD-C8); la compilación contra el JAR sigue sin certificar (F-01).
 - Claves de identidad (`standardizedId*` o `parametros.omitir_si_nulas`): si son nulas se omiten del evento, nunca `null` (AUD-C4, steering `11` §3).
-- Fechas ISO: `parametros.formatos_fecha` admite `uuuu-MM-dd` además de `dd/MM/uuuu` y `uuuu-MM-dd HH:mm:ss`. `homologacion_tipo_documento.pendientes` puede ir vacío (`[]`).
+- Fechas ISO: `parametros.formatos_fecha` admite `uuuu-MM-dd` además de `dd/MM/uuuu` y `uuuu-MM-dd HH:mm:ss`. `homologacion_tipo_documento.pendientes` puede ir vacío (`[]`). Un código pendiente puede declararse también en `tabla` con valor vacío o `null` (p. ej. `"7": null` con `pendientes: ["7"]`, HF-38): el CSV sintético trae su fila con `cod_experian` vacío; el comportamiento no cambia (no entra a la tabla embebida ni se consulta en el lookup).
+- `original` (HF-34) publica el valor recibido **tal cual**, sin recortar espacios (spec «Valor original»): nulo solo si falta o es `null`. Las demás transformaciones recortan.
+- Supuestos que la spec de la ingesta ya fija (HF-36, como `edf-validation` 1.9.2): `supuestos_resueltos: [{id: CUR-PT05, fuente: "spec-sisben.md §10.1"}]`. Cada marca `ASSUMPTION <ID>` sale como `RESUELTO <ID> (<fuente>)`, sin su «; confirmar …», y `MANIFEST.json["supuestos_resueltos"]` la lista. Falla si el ID no tiene marca en la salida, si se repite o si es `C-CUR-02` (se cierra con `campos_curados[].estado: cerrado`). Sin la clave nada cambia.
 - `standardizedIdNumber` y el resto de los números de documento salen en mayúsculas (`reglas_documento` con `conservar_original: true` los devuelve tal como vinieron).
 - Bandera de fuente para el matcher de Colombia (`isOfficialSource` o una nueva): `OQ-TR-6`. Si se decide, Curation la publica como `constante`.
 
@@ -64,6 +66,8 @@ La política la fija la spec de la ingesta en `parametros` (ver `assets/schema/s
 | "se publica estandarizado" (SISBEN, spec 1.0.1 §10.4) | `niveles_no_almacenar: []` y el nivel fuera de `niveles_anular` | el valor se transforma como cualquier otro; si no se puede, sale nulo con advertencia `campo:MOTIVO` |
 
 Si la spec de la ingesta no lo dice, es una pregunta abierta: no se elige por defecto.
+
+**Sin soporte (HF-41, AUD-C-13):** el efecto «Vaciado del campo con preservación» de steering `07-contratos-frontera.md` §5.1 (el campo se vacía y se crea `<campo>_original` con el valor recibido) **no lo implementa esta skill**: `niveles_anular` deja el campo nulo sin `<campo>_original`, y una entrada `original` del mismo origen también queda nula. Si la spec de una ingesta lo pide, es una pregunta abierta para el framework (no se simula ni se elige otro efecto); se reporta en la entrega.
 
 El ejemplo `assets/examples/sisben/source-spec.sisben.yaml` **no** incluye las entradas `standardizedId*` y usa la política "no se almacena", a propósito: sus salidas esperadas y pruebas se generaron así. Si se cambia, hay que regenerarlo y actualizar la copia versionada:
 
@@ -99,14 +103,18 @@ resultado. Validation solo normaliza **en memoria** para validar. Curation no fi
 no infiere borrados y no tiene canal de errores propio: lo que no se puede transformar queda `null`
 y se lista en el campo de advertencias del propio evento (D13).
 
-Transformaciones SISBEN (RF-CUR-04..10): nombres en mayúsculas sin tildes ni especiales; tipos de
-dato; fechas a epoch ms; **homologación de `TIP_DOCUMENTO`** SISBEN→Experian
-`1→10, 2→7, 3→1, 4→4, 5→8, 6→5, 7→pendiente (nunca un código arbitrario), 8→9, PPT→11`, con el
-original en `tipoDocumentoSisben`; número de documento (espacios, ceros, PEP sin letras, PPT
-original); padding DANE; concatenación de campos curados (nombre completo); campos con severidad 3 según
-la política de la spec (sección anterior). Enriquecimiento:
-tipo de archivo y fecha de corte desde el nombre. De los 7 lookups SISBEN, Curation persiste la
-homologación (`202_SISBEN_PROCESS_ID_TYPE_HO`); los otros seis los consulta Validation.
+Transformaciones (RF-CUR-04..10): nombres en mayúsculas sin tildes ni especiales (la Ñ según
+`conservar_enie`); tipos de dato; fechas a epoch ms; **homologación de `TIP_DOCUMENTO`** con la tabla de
+la spec (un código pendiente nunca recibe un código arbitrario), con el original en `tipoDocumentoSisben`;
+`original`, el valor recibido sin recortar; número de documento según `reglas_documento`; padding DANE;
+concatenación de campos curados (nombre completo); campos con severidad 3 según la política de la spec
+(sección anterior). Enriquecimiento: tipo de archivo y fecha de corte desde el nombre. Curation persiste
+la homologación; los demás catálogos los consulta Validation.
+
+Los valores concretos salen **siempre** de la spec de la ingesta. El ejemplo de la skill y
+`references/especificacion-sisben.md` describen el SISBEN **histórico** del piloto (requirements y HU-SISBEN
+anteriores a la spec 1.0.2: prefijos `RT_`/`EP_`, «PEP sin letras, PPT original», Ñ → N, delimitador `,`):
+son referencia de forma, no fuente (HF-40, AUD-C-07).
 
 ## Guardarraíles (no negociables)
 
@@ -119,7 +127,8 @@ homologación (`202_SISBEN_PROCESS_ID_TYPE_HO`); los otros seis los consulta Val
    credenciales. Si aparece uno expuesto, pedir rotación.
 4. Sin PII en logs ni en advertencias (solo `campo:MOTIVO`).
 5. Compilación **no certificada** (F-01): no hay acceso a los JAR del framework. Decirlo siempre.
-6. Todo valor sin evidencia sale con `ASSUMPTION:` y queda en `references/decisiones-y-abiertos.md`.
+6. Todo valor sin evidencia sale con `ASSUMPTION <ID>` y queda en `references/decisiones-y-abiertos.md`; el
+   que ya fija la spec de la ingesta se declara en `supuestos_resueltos` y sale `RESUELTO <ID> (<fuente>)`.
    Los campos abiertos no se inventan: no se generan.
 7. No se integra nada sin **aprobación explícita** del humano (HITL).
 
@@ -242,7 +251,7 @@ cada campo publicado; sin renombrar después).
 | `references/alcance-y-glosario.md` | alcance, frontera con otras etapas, automático vs guiado, glosario |
 | `references/patrones.md` | patrones, antipatrones, contrato y capas (de `curation_patrones.yaml`) |
 | `references/inventario-plantillas.md` | CUR-TPL-01..12, huecos y orden (de `curation_template.config`) |
-| `references/especificacion-sisben.md` | layout, transformaciones, homologación, lookups, campos publicados |
+| `references/especificacion-sisben.md` | **histórico**: el SISBEN del piloto que usa el ejemplo de la skill (forma, no fuente; la vigente es la spec del expediente) |
 | `references/dsl-config-reference.md` | claves HOCON, lookups, domain dictionary, constructor |
 | `references/runbook-ejecucion.md` | generar, integrar, compilar, local / Docker / EMR, diagnóstico |
 | `references/interpretar-salida.md` | lectura del evento curado, motivos, conciliación, ejemplo |
@@ -258,7 +267,8 @@ Sin Java ni Maven.
 
 ## Fuentes
 
-Documentos de diseño y requisitos del piloto SISBEN V4 (citados por nombre):
+Documentos de diseño y requisitos del piloto SISBEN V4 (citados por nombre; los de SISBEN son **históricos**
+frente a la spec vigente de la ingesta, que manda):
 
 - `curation_patrones.yaml` y `curation_template.config` (patrones e inventario de plantillas de Curation).
 - `CURATION_DISEÑO_PROCESSOR.md` (diseño del processor de Curation).

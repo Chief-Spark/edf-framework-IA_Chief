@@ -1,4 +1,4 @@
-// CUR-TPL-03 · Capa B · parametrizada · generado por el skill edf-curation-stage v{{version_skill}}
+// CUR-TPL-03 · Capa B · parametrizada · generado por el skill edf-curation v{{version_skill}}
 // Especificación de mapeo de {{Fuente}}: fuente única de verdad del esquema de salida. De aquí
 // salen los campos de {{Fuente}}CuratedEvent y las entradas del domain dictionary (CUR-RC05,
 // RF-CUR-13). No editar a mano: cambiar source-spec y regenerar. Ningún nombre publicado se
@@ -22,7 +22,7 @@ object {{Fuente}}CurationSpec {
 {{mapeos_scala}}
   )
 
-  /** Campo de advertencias de curación (D13). ASSUMPTION: nombre provisional (CUR-PT05). */
+  /** Campo de advertencias de curación (D13). ASSUMPTION CUR-PT05: nombre del campo; confirmar el nombre provisional. */
   val CampoAdvertencias: String = "{{campo_advertencias}}"
 
   /** Nombres publicados, en orden: deben coincidir con el domain dictionary. */
@@ -33,8 +33,8 @@ object {{Fuente}}CurationSpec {
 
   // --- Homologación del tipo de documento (RF-CUR-07): Validation la consulta, Curation la persiste.
   val TablaHomologacion: String = "{{tabla_homologacion}}"
-  val ColumnaClaveHomologacion: String = "{{columna_clave_homologacion}}"   // ASSUMPTION: F-12
-  val ColumnaValorHomologacion: String = "{{columna_valor_homologacion}}"   // ASSUMPTION: F-12
+  val ColumnaClaveHomologacion: String = "{{columna_clave_homologacion}}"   // ASSUMPTION F-12; confirmar con el catálogo real
+  val ColumnaValorHomologacion: String = "{{columna_valor_homologacion}}"   // ASSUMPTION F-12; confirmar con el catálogo real
   /** Tabla embebida: respaldo si el lookup no responde y base de los tests. */
   val Homologacion: Map[String, String] = Map({{homologacion_scala}})
   /** Códigos sin equivalente Experian todavía: nunca se les asigna un valor arbitrario. */
@@ -42,7 +42,7 @@ object {{Fuente}}CurationSpec {
   /** Claves a consultar UNA vez en el lookup (CUR-RC04). */
   val ClavesHomologacion: Seq[String] = Seq({{claves_homologacion_scala}})
 
-  // --- Número de documento (RF-CUR-08). ASSUMPTION: C-CUR-08 — longitudes estándar sin dato (padding = None).
+  // --- Número de documento (RF-CUR-08). ASSUMPTION C-CUR-08: reglas de reglas_documento; confirmar longitudes estándar (sin dato).
   val CampoTipoDocumento: String = "{{campo_tipo_documento}}"
   val ReglaDocumentoPorDefecto: ReglaDocumento = {{regla_documento_defecto_scala}}
   val ReglasDocumento: Map[String, ReglaDocumento] = Map(
@@ -58,12 +58,12 @@ object {{Fuente}}CurationSpec {
   val NivelesNoAlmacenar: Set[String] = Set({{niveles_no_almacenar_scala}})
   val NivelesAnular: Set[String] = Set({{niveles_anular_scala}})
 
-  // --- Fechas (RF-CUR-06). ASSUMPTION: zona {{zona_fechas}} (C-CUR-04).
+  // --- Fechas (RF-CUR-06). ASSUMPTION C-CUR-04: zona {{zona_fechas}}; confirmar con la spec de la ingesta.
   val FormatosFecha: Seq[String] = Seq({{formatos_fecha_scala}})
   lazy val Formateadores: Seq[DateTimeFormatter] = Transformaciones.formateadores(FormatosFecha)
   val ZonaFechas: ZoneId = ZoneId.of("{{zona_fechas}}")
 
-  /** RF-CUR-04: true conserva la Ñ; false la translitera a N. ASSUMPTION: C-CUR-03 si la spec de la ingesta no lo fija. */
+  /** RF-CUR-04: true conserva la Ñ; false la translitera a N. ASSUMPTION C-CUR-03; confirmar si la spec de la ingesta no lo fija. */
   val ConservarEnie: Boolean = {{conservar_enie}}
 
   // --- Archivo (IN-02, RF-CUR-03): tipo por prefijo y fecha de corte desde lineage.fileName.

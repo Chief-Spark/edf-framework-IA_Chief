@@ -1,8 +1,7 @@
-// CUR-TPL-05 · parametrizada · generado por el skill edf-curation-stage v{{version_skill}}
+// CUR-TPL-05 · parametrizada · generado por el skill edf-curation v{{version_skill}}
 // Lector propio de validatedRecordJson (CUR-PT04: se asume lector propio, no la librería de
 // Validation). Acceso seguro: nunca lanza; un JSON ilegible devuelve Left (CUR-RC03).
-// ASSUMPTION: C-CUR-07 — las claves de validatedRecordJson son los nombres de dominio del layout de 22
-// (ID_FICHA_ORIGEN...), sin distinguir mayúsculas.
+// ASSUMPTION C-CUR-07: claves de validatedRecordJson = campos_entrada, sin distinguir mayúsculas; verificar con la etapa anterior.
 package {{paquete_fuente}}
 
 import java.util.Locale
@@ -16,6 +15,9 @@ final class {{Fuente}}AcceptedRecord private (campos: Map[String, String]) exten
   /** Valor recortado; None si falta, es null o queda vacío. */
   def get(campo: String): Option[String] =
     campos.get(campo.toUpperCase(Locale.ROOT)).map(_.trim).filter(_.nonEmpty)
+
+  /** HF-34 (AUD-C-01): valor tal cual llegó, sin recortar; None solo si falta o es null. Lo usa `original`. */
+  def crudo(campo: String): Option[String] = campos.get(campo.toUpperCase(Locale.ROOT))
 
   def camposPresentes: Set[String] = campos.keySet
 }

@@ -1,4 +1,4 @@
-// CUR-TPL-11 · esqueleto · generado por el skill edf-curation-stage v{{version_skill}}
+// CUR-TPL-11 · esqueleto · generado por el skill edf-curation v{{version_skill}}
 // Tests de la fuente {{Fuente}} sobre eventos aceptados SINTÉTICOS, sin Spark. Usa el núcleo puro
 // {{processor_clase}}.curar; requiere el JAR del framework en el classpath para compilar
 // (CuratedEvent, TaggedValidatedEvent): compilación NO CERTIFICADA (F-01).

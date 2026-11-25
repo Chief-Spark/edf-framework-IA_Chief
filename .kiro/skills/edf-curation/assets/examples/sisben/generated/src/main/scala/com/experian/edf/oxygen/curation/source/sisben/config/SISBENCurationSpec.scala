@@ -1,4 +1,4 @@
-// CUR-TPL-03 · Capa B · parametrizada · generado por el skill edf-curation-stage v0.1.0
+// CUR-TPL-03 · Capa B · parametrizada · generado por el skill edf-curation v0.1.0
 // Especificación de mapeo de SISBEN: fuente única de verdad del esquema de salida. De aquí
 // salen los campos de SISBENCuratedEvent y las entradas del domain dictionary (CUR-RC05,
 // RF-CUR-13). No editar a mano: cambiar source-spec y regenerar. Ningún nombre publicado se
@@ -80,7 +80,7 @@ object SISBENCurationSpec {
     FieldMapping("subscriberBlockReason", "", Transformacion.Constante(None), TipoSalida.Texto, None)  // inferido
   )
 
-  /** Campo de advertencias de curación (D13). ASSUMPTION: nombre provisional (CUR-PT05). */
+  /** Campo de advertencias de curación (D13). ASSUMPTION CUR-PT05: nombre del campo; confirmar el nombre provisional. */
   val CampoAdvertencias: String = "advertenciasCuracion"
 
   /** Nombres publicados, en orden: deben coincidir con el domain dictionary. */
@@ -91,8 +91,8 @@ object SISBENCurationSpec {
 
   // --- Homologación del tipo de documento (RF-CUR-07): Validation la consulta, Curation la persiste.
   val TablaHomologacion: String = "202_SISBEN_PROCESS_ID_TYPE_HO"
-  val ColumnaClaveHomologacion: String = "tipo_sisben"   // ASSUMPTION: F-12
-  val ColumnaValorHomologacion: String = "tipo_experian"   // ASSUMPTION: F-12
+  val ColumnaClaveHomologacion: String = "tipo_sisben"   // ASSUMPTION F-12; confirmar con el catálogo real
+  val ColumnaValorHomologacion: String = "tipo_experian"   // ASSUMPTION F-12; confirmar con el catálogo real
   /** Tabla embebida: respaldo si el lookup no responde y base de los tests. */
   val Homologacion: Map[String, String] = Map("1" -> "10", "2" -> "7", "3" -> "1", "4" -> "4", "5" -> "8", "6" -> "5", "8" -> "9", "PPT" -> "11")
   /** Códigos sin equivalente Experian todavía: nunca se les asigna un valor arbitrario. */
@@ -100,7 +100,7 @@ object SISBENCurationSpec {
   /** Claves a consultar UNA vez en el lookup (CUR-RC04). */
   val ClavesHomologacion: Seq[String] = Seq("1", "2", "3", "4", "5", "6", "8", "PPT")
 
-  // --- Número de documento (RF-CUR-08). ASSUMPTION: C-CUR-08 — longitudes estándar sin dato (padding = None).
+  // --- Número de documento (RF-CUR-08). ASSUMPTION C-CUR-08: reglas de reglas_documento; confirmar longitudes estándar (sin dato).
   val CampoTipoDocumento: String = "TIP_DOCUMENTO"
   val ReglaDocumentoPorDefecto: ReglaDocumento = ReglaDocumento(quitarCerosIzquierda = true, soloDigitos = false, conservarOriginal = false, padding = None)
   val ReglasDocumento: Map[String, ReglaDocumento] = Map(
@@ -140,12 +140,12 @@ object SISBENCurationSpec {
   val NivelesNoAlmacenar: Set[String] = Set("3")
   val NivelesAnular: Set[String] = Set("0")
 
-  // --- Fechas (RF-CUR-06). ASSUMPTION: zona UTC (C-CUR-04).
+  // --- Fechas (RF-CUR-06). ASSUMPTION C-CUR-04: zona UTC; confirmar con la spec de la ingesta.
   val FormatosFecha: Seq[String] = Seq("dd/MM/uuuu", "uuuu-MM-dd HH:mm:ss")
   lazy val Formateadores: Seq[DateTimeFormatter] = Transformaciones.formateadores(FormatosFecha)
   val ZonaFechas: ZoneId = ZoneId.of("UTC")
 
-  /** RF-CUR-04: true conserva la Ñ; false la translitera a N. ASSUMPTION: C-CUR-03 si la spec de la ingesta no lo fija. */
+  /** RF-CUR-04: true conserva la Ñ; false la translitera a N. ASSUMPTION C-CUR-03; confirmar si la spec de la ingesta no lo fija. */
   val ConservarEnie: Boolean = false
 
   // --- Archivo (IN-02, RF-CUR-03): tipo por prefijo y fecha de corte desde lineage.fileName.

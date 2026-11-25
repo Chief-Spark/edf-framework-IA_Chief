@@ -1,4 +1,4 @@
-// CUR-TPL-11 · esqueleto · generado por el skill edf-curation-stage v0.1.0
+// CUR-TPL-11 · esqueleto · generado por el skill edf-curation v0.1.0
 // Tests de la fuente SISBEN sobre eventos aceptados SINTÉTICOS, sin Spark. Usa el núcleo puro
 // SISBENCurationProcessor.curar; requiere el JAR del framework en el classpath para compilar
 // (CuratedEvent, TaggedValidatedEvent): compilación NO CERTIFICADA (F-01).
@@ -70,6 +70,16 @@ class SISBENCurationProcessorSpec extends AnyFunSuite {
     assert(r.get("G") == Some("100"))
     assert(r.get("H") == Some("false"))
     assert(r.get("I") == Some("0"))
+  }
+
+  test("lector: crudo conserva el valor sin recortar; get lo recorta (HF-34)") {
+    val r = SISBENAcceptedRecord.parse("""{"a": " 0001000000101", "b": "   ", "c": null}""").toOption.get
+    assert(r.crudo("A") == Some(" 0001000000101"))
+    assert(r.get("A") == Some("0001000000101"))
+    assert(r.crudo("B") == Some("   "))
+    assert(r.get("B") == None)
+    assert(r.crudo("C") == None)
+    assert(r.get("C") == None)
   }
 
   // ---- Propiedades fijas del contrato

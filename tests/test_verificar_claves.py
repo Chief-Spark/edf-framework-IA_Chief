@@ -99,3 +99,60 @@ def test_ejemplos_de_analisis_con_la_spec_de_curation(tmp_path, capsys):
     assert codigo == 1
     assert "'standardizedIdNumber' citada en yaml-skill-pinning.yaml" in out
     assert "(foundation field.X)" in out
+
+
+CONTRATO_HF37 = """# Contrato
+
+## 1. Claves que Pinning consume
+
+| Clave publicada | Tipo |
+|---|---|
+| `standardizedIdType` | entero |
+| `standardizedIdNumber` | texto |
+
+## 2. Lo que Pinning usa fuera de `curatedRecordJson`
+
+| Elemento | Valor |
+|---|---|
+| `subscriberRelation` | `<tipo>_<numero>` |
+| `subscriber` | 999722 |
+| `otraClaveDeOtraTabla` | no es del §1 |
+
+## 3. Notas
+
+| `advertenciasCuracion` | lista |
+"""
+
+
+def test_contrato_solo_lee_la_tabla_del_paragrafo_1_hf37(base, capsys):
+    """HF-37 (AUD-C-08): las tablas fuera del §1 no son citas; con la versión anterior daba rc=1 con 3 NO EXISTE."""
+    (base / "contrato-curation-pinning.md").write_text(CONTRATO_HF37, encoding="utf-8")
+    codigo, out = correr(base, capsys)
+    assert codigo == 0, out
+    assert "NO EXISTE" not in out and "citas revisadas: 2" in out
+    assert vc.claves_contrato(CONTRATO_HF37) == ["standardizedIdType", "standardizedIdNumber"]
+
+
+def test_contrato_exime_inyectados_en_el_paragrafo_1_hf37(base, capsys):
+    (base / "contrato-curation-pinning.md").write_text(
+        "## 1. Claves\n\n| Clave |\n|---|\n| `standardizedIdType` |\n| `subscriberRelation` |\n| `subscriber` |\n",
+        encoding="utf-8")
+    codigo, out = correr(base, capsys)
+    assert codigo == 0 and "citas revisadas: 1" in out, out
+
+
+def test_contrato_sin_seccion_1_lee_solo_la_primera_tabla_hf37():
+    texto = "| `standardizedIdType` | a |\n|---|---|\n\nTexto.\n\n| `claveDeOtraTabla` | b |\n"
+    assert vc.claves_contrato(texto) == ["standardizedIdType"]
+
+
+def test_campo_advertencias_cuenta_como_clave_publicada_hf37(tmp_path, capsys):
+    escribir(tmp_path, "source-spec-curation.yaml", {**CURATION, "parametros": {"campo_advertencias": "advertenciasCuracion"}})
+    escribir(tmp_path, "yaml-skill-statecalc.yaml", {"mapeo_campos": {"campos": [
+        {"campo_curado_sisben_origen": "advertenciasCuracion", "nivel_confianza": "A"}]}})
+    codigo, out = correr(tmp_path, capsys)
+    assert codigo == 0 and "Claves publicadas por Curation: 4" in out, out
+    # Sin parametros.campo_advertencias la misma cita sí falla.
+    escribir(tmp_path, "source-spec-curation.yaml", CURATION)
+    codigo, out = correr(tmp_path, capsys)
+    assert codigo == 1 and "'advertenciasCuracion'" in out

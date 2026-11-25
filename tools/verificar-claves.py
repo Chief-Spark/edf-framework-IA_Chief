@@ -11,7 +11,10 @@ Lee (de expedientes/<ingesta-id>/insumos/ o de --dir):
                                    y mapeo_identidad.atributos[].campo_curado_* con estado [C]
   - yaml-skill-synthesis.yaml   -> mapeo_campos_handler.campos_con_mapeo_confirmado[].campo_curado_* con estado [C]
   - yaml-skill-statecalc.yaml   -> mapeo_campos.campos[].campo_curado_*_origen con nivel_confianza "A"
-  - contrato-curation-pinning.md -> primera columna (entre comillas invertidas) de la tabla del §1
+  - contrato-curation-pinning.md -> primera columna (entre comillas invertidas) de la tabla del §1: solo la
+                                   sección «## 1» hasta el siguiente «## » (sin esa sección, la primera
+                                   tabla del archivo). HF-37: las demás tablas (§2 subscriber,
+                                   subscriberRelation…) no son claves de curatedRecordJson
 
   - yaml-skill-synthesis.yaml   -> (1.9.0) nombre_en_gdd de las entradas [C] y los nombres de
                                    instruccion_generacion_gdd.contenido_a_escribir.campos_a_generar
@@ -19,7 +22,8 @@ Lee (de expedientes/<ingesta-id>/insumos/ o de --dir):
                                    CALCULATED (mapeo nivel A e instruccion_generacion_foundation)
 
 Regla (steering 11 §6 #5): toda clave citada como confirmada aguas abajo debe existir LITERAL en
-campos_curados[].destino (o ser un campo que el motor inyecta, como subscriber o dataSource). Un nombre
+campos_curados[].destino o en parametros.campo_advertencias (HF-37), o ser un campo que el motor inyecta,
+como subscriber o dataSource (INYECTADOS, también en el contrato). Un nombre
 errado no da error en el motor: Synthesis pierde el handler del campo y State Calculation devuelve el valor
 por defecto (AUD-S2, AUD-SC1). Las claves declaradas en campos_abiertos se informan como pendientes, y las
 citas de entradas no confirmadas ([P], nivel B) como avisos, sin cambiar la salida.
@@ -110,6 +114,27 @@ def citas_statecalc(sc):
     return out
 
 
+FILA_CLAVE = re.compile(r"^\|\s*`([A-Za-z_][A-Za-z0-9_]*)`\s*\|")
+SECCION_1 = re.compile(r"^##\s+(?:§\s*)?1(?:[.)]|\s|$)")
+
+
+def claves_contrato(texto):
+    """HF-37 (AUD-C-08): primera columna (entre comillas invertidas) de la tabla del §1 del contrato.
+
+    Solo la sección «## 1…» hasta el siguiente «## ». Sin esa sección, la primera tabla del archivo.
+    """
+    lineas = texto.splitlines()
+    inicio = next((i + 1 for i, linea in enumerate(lineas) if SECCION_1.match(linea)), None)
+    if inicio is not None:
+        fin = next((j for j in range(inicio, len(lineas)) if lineas[j].startswith("## ")), len(lineas))
+        bloque = lineas[inicio:fin]
+    else:
+        primera = next((i for i, linea in enumerate(lineas) if linea.lstrip().startswith("|")), len(lineas))
+        fin = next((j for j in range(primera, len(lineas)) if not lineas[j].lstrip().startswith("|")), len(lineas))
+        bloque = lineas[primera:fin]
+    return [m.group(1) for m in map(FILA_CLAVE.match, bloque) if m]
+
+
 def main(argv=None):
     args = sys.argv[1:] if argv is None else argv
     if not args:
@@ -128,6 +153,10 @@ def main(argv=None):
               f"para cruzar {', '.join(aguas_abajo)}.")
         return 2
     publicadas = {c.get("destino") for c in spec.get("campos_curados", []) if c.get("destino")}
+    # HF-37 (AUD-C-08): el campo de advertencias también es una clave publicada de curatedRecordJson (D13).
+    advertencias = (spec.get("parametros") or {}).get("campo_advertencias")
+    if isinstance(advertencias, str) and advertencias.strip():
+        publicadas.add(advertencias.strip())
     abiertas = {str(c.get("destino")) for c in spec.get("campos_abiertos", []) if c.get("destino")}
 
     citas = []  # (archivo, clave)
@@ -151,10 +180,9 @@ def main(argv=None):
         (citas if obligatoria else avisos_previos).append((archivo, clave))
     contrato = base / "contrato-curation-pinning.md"
     if contrato.is_file():
-        for linea in contrato.read_text(encoding="utf-8").splitlines():
-            m = re.match(r"^\|\s*`([A-Za-z_][A-Za-z0-9_]*)`\s*\|", linea)
-            if m:
-                citas.append(("contrato-curation-pinning.md", m.group(1)))
+        for clave in claves_contrato(contrato.read_text(encoding="utf-8")):
+            if clave not in INYECTADOS:  # HF-37: subscriber/subscriberRelation viven fuera de curatedRecordJson
+                citas.append(("contrato-curation-pinning.md", clave))
 
     faltan, pendientes = [], []
     for archivo, clave in citas:

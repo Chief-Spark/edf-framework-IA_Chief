@@ -1,4 +1,4 @@
-// CUR-TPL-10 · Capa A · fija · generado por el skill edf-curation-stage v{{version_skill}}
+// CUR-TPL-10 · Capa A · fija · generado por el skill edf-curation v{{version_skill}}
 // Tests de las acciones genéricas (ScalaTest 3.2, runner JUnit 4). No requieren Spark ni el JAR
 // del framework: compilan con Scala 2.12 + ScalaTest (check opcional de F-01).
 // Datos sintéticos.
@@ -51,6 +51,14 @@ class TransformacionesSpec extends AnyFunSuite {
     val todos = Transformaciones.formateadores(Seq("dd/MM/uuuu", "uuuu-MM-dd HH:mm:ss", "uuuu-MM-dd"))
     assert(Transformaciones.fechaEpoch(Some("2024-01-15"), todos, utc) == Resultado.ok(1705276800000L))
     assert(Transformaciones.fechaEpoch(Some("2024-01-15 10:30:00"), todos, utc) == Resultado.ok(1705314600000L))
+  }
+
+  test("original: conserva el valor recibido tal cual, sin recortar (HF-34, AUD-C-01)") {
+    assert(Transformaciones.original(Some(" 0001000000101")) == Resultado.ok(" 0001000000101"))
+    assert(Transformaciones.original(Some(" 3 ")) == Resultado.ok(" 3 "))
+    assert(Transformaciones.original(None) == Resultado.nulo)
+    // texto sí recorta: la diferencia es a propósito.
+    assert(Transformaciones.texto(Some(" 0001000000101")) == Resultado.ok("0001000000101"))
   }
 
   test("homologación: pendiente y desconocido nunca reciben un código") {

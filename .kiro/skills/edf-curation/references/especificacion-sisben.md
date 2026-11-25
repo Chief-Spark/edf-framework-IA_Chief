@@ -1,5 +1,11 @@
 # Especificación SISBEN V4 para Curation
 
+> **Histórico (HF-40, AUD-C-07).** Describe el SISBEN del piloto con el que se armó el ejemplo de la skill
+> (`assets/examples/sisben/`): requirements y HU-SISBEN anteriores a la spec 1.0.2 del expediente. Varios
+> valores ya no son los vigentes (prefijos `RT_`/`EP_` y `(\.txt)?`, Ñ → N, «PEP sin letras», «PPT original»,
+> «pasaporte conserva ceros», delimitador `,`, columnas `tipo_sisben`/`tipo_experian`). **No es fuente** para
+> ninguna ingesta: los valores salen del `source-spec-curation.yaml` aprobado y de la spec del expediente.
+
 Valores prellenados en `assets/examples/sisben/source-spec.sisben.yaml`. Estados: **cerrado**,
 **propuesta de frontera**, **inferido**, **supuesto** (sale con `ASSUMPTION:`), **abierto** (no se
 genera).

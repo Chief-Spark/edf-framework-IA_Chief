@@ -27,6 +27,10 @@ infiere eliminaciones (Acceptance, `contextualOverride`).
 Lo que **no** hace: modificar el motor (`SparkCurator`), cambiar claves de etapa
 (`runMode`, `excludes`...), decidir campos abiertos (D11-a, P2), reportes `Log_Sisben/RPT_*`.
 
+Efecto de frontera **sin soporte** (HF-41, AUD-C-13): «Vaciado del campo con preservación»
+(steering `07-contratos-frontera.md` §5.1, `<campo>_original`). `niveles_anular` deja el campo nulo sin
+`<campo>_original`. Si una spec lo pide, es pregunta abierta para el framework.
+
 ## Automatizado vs. guiado
 
 | Tarea | Modo |
