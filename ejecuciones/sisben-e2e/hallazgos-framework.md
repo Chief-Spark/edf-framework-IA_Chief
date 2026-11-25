@@ -38,6 +38,14 @@ acordada: se registran, se corrigen con su prueba de regresión (commit aparte e
 | HF-31 (AUD-A §7 defecto 3) | acceptance | P2. El checklist pide documentos `SINT*` y la spec usa números sintéticos `1000000xxx` | `checklist-entrega.md:34` | Lote de cierre | pendiente |
 | HF-32 (AUD-A §7 defecto 4) | analisis | P2 (diseño). Los insumos llevan «Estado: PROPUESTO» en la cabecera: tras aprobar queda desactualizado y cambiarlo altera el hash | `source-spec-acceptance.yaml:2`, `source-spec-validation.yaml:2`; plantilla/guía de `edf-analisis` Modo 2 | Lote de cierre: el estado vive solo en el expediente | pendiente |
 | HF-33 (AUD-A-16, -17) | acceptance | P2. El Spec construye `AcceptanceCondition` con 4 argumentos (el motor usa 5) y no prueba el `filePattern` en Scala | `AcceptanceAST.scala:75`, `SparkDatasetAcceptor.scala:284`; ACC-TPL-05 | Lote de cierre | pendiente |
+| HF-34 (AUD-C-01) | curation | **P1.** La transformación `original` recorta espacios (también al leer el evento aceptado); la prueba generada fija el valor errado; no cumple HU §5.3 `numeroDocumentoOriginal = " 0001000000101"` | `Transformations.scala.tpl:21,27`, `CurationProcessor.scala.tpl:137`, `AcceptedEventReader.scala.tpl:17-18`, `curation_reference.py:95-96,417-418` | Corrector 1.9.7 | pendiente |
+| HF-35 (AUD-C-05) | curation | P1/P2. El override de `subscriberRelation` no filtra `errorCode` nulos (posible NPE aunque dice «Nunca lanza») y cura cada registro dos veces | `render_templates.py:505-507` | Corrector 1.9.7 | pendiente |
+| HF-36 (AUD-C-06) | curation | P2. Supuestos que la spec ya fija sin `supuestos_resueltos` | `CurationSpec.scala.tpl:25,36-37,45,61,66`; `lookups.conf.tpl:7`; `CurationProcessor.scala.tpl:48`; `curation-block.conf.tpl:15`; `AcceptedEventReader.scala.tpl:4` | Corrector 1.9.7 | pendiente |
+| HF-37 (AUD-C-08) | herramientas | P2. `verificar-claves.py` lee todas las tablas del contrato y no exime `subscriber`/`subscriberRelation`; `advertenciasCuracion` no cuenta como publicada | `tools/verificar-claves.py:14,152-157` | Corrector 1.9.7 | pendiente |
+| HF-38 (AUD-C-09) | curation | P2. `homologacion_tipo_documento.tabla` exige valores numéricos: no se puede declarar el 7 pendiente | `source-spec.schema.yaml:128` | Corrector 1.9.7 | pendiente |
+| HF-39 (AUD-C-10) | curation | P2. Firma `edf-curation-stage` | `render_templates.py:834` y 11 plantillas | Corrector 1.9.7 | pendiente |
+| HF-40 (AUD-C-04, -07) | curation | P2. El fixture generado pone `fileAsOfDate = receivedDate` y `fileTag = ""`; referencias y comentarios del SISBEN histórico | `render_templates.py:272,294`; `auditorias/curation.md` §2 | Corrector 1.9.7 | pendiente |
+| HF-41 (AUD-C-13) | curation | P2. El efecto «vaciado con preservación» del steering 07 no está implementado en `edf-curation` (no aplica a SISBEN; resuelve la observación de HF-04) | `07-contratos-frontera.md` §5.1 | Corrector 1.9.7: documentar como no soportado | pendiente |
 | HC-04 (AUD-A-11) | — | Herramienta de la corrida: `etapa --agregar-riesgo` duplicaba RG-015 | Corregido en `orquestador_e2e.py` (BIT-0063) | — |
 
 Hallazgos de la spec (no del framework; se dejan para la próxima versión de la spec, no se corrigen en la corrida):
@@ -57,6 +65,6 @@ Hallazgos de la herramienta de la corrida (`herramientas/orquestador_e2e.py`):
 | HC-02 | `vista` dejaba los contadores desfasados (detectado por el analista) | El evento de regeneración se registra antes de escribir la vista |
 | HC-03 | `etapa` cambiaba el estado sin evento en la bitácora, y la etapa 0 quedó en `no_iniciada` aunque ya había empezado | `--porque` registra el evento; corrección BIT-0018 |
 
-Observación abierta de la corrección HF-04: el corrector asignó «vaciado con preservación» a Curation por inferencia; lo verificará el auditor de la etapa de Curation.
+Observación de la corrección HF-04 (resuelta por AUD-C-13): «vaciado con preservación» se asignó a Curation por inferencia; el auditor de Curation confirma que `edf-curation` no lo implementa (HF-41).
 
 Observación de diseño (para el informe final, no se corrige): una etapa tiene un solo `ref_aprobacion`; al habilitar la transición apunta a la aprobación `transicion` (regla 7a) y la de `contexto` de la etapa solo queda en `aprobaciones[]` (BIT-0028).

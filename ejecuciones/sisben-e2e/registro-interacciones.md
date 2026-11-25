@@ -278,6 +278,30 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:23:09-05:00
 - **Pedido:** Auditar ART-030, ART-034, ART-035 y los 6 posibles defectos del framework.
+- **Respuesta:** AJUSTES (sin P0). ART-030 fiel (34 claves de spec §10.1; epoch, Ñ, homologación, subscriberRelation); P2 de marcadores (AUD-C-12). ART-035 cubre los 8 escenarios + RG-005/007; cur-0004 falla por el P1; AUD-C-02 (cur-0001 y cur-0004 con la misma clave de duplicado), AUD-C-03 (faltan RG-019 y tipos 4, 5, 8). ART-034 coherente con steering 11 y el motor; ajustes documentales (AUD-C-11). P1 AUD-C-01 (framework): `original` recorta en Transformations, CurationProcessor, AcceptedEventReader y la réplica; la prueba generada fija el valor errado. Defectos: 1-5 reales, 6 descartado. Otros P2 framework: AUD-C-04, -05 (override de subscriberRelation puede lanzar NPE y cura dos veces), -07, -13 (vaciado con preservación no implementado; resuelve la observación de HF-04). Riesgos: RG-019 real (null rompe EventPinner:64-65; falta aceptación explícita del Desarrollador), RG-020 real (riesgo en los códigos, no en el tipo JSON), RG-021 real.
+- **Decisión:** Corrector del framework Curation (HF-34..41) y lote de cierre (HF-26, 27, 29..33) en paralelo; aprobador para RG-019/020 y los ajustes del insumo; luego ronda 2 del analista.
+- **Bitácora:** —
+
+## INT-036 · Corrector del framework (curation) · `curation_flow`
+
+- **Cuándo:** 2026-11-24T19:33:59-05:00
+- **Pedido:** Corregir HF-34..41 con pruebas.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-037 · Corrector del framework (lote de cierre) · `acceptance`
+
+- **Cuándo:** 2026-11-24T19:33:59-05:00
+- **Pedido:** Corregir HF-26, 27, 29..33 con pruebas.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-038 · Aprobador simulado SIM-DEV-01 · `curation_flow`
+
+- **Cuándo:** 2026-11-24T19:33:59-05:00
+- **Pedido:** RG-019 (desviación de spec §10.1), RG-020 (descripción) y ajustes del insumo de Curation AUD-C-02/03/11/12.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
