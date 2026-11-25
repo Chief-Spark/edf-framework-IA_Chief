@@ -2432,3 +2432,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0143 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | ART-053 generado en modo Colombia (propuestas/pinning/pinning-application-block.sisben.conf): solo comentarios VERIFICAR y referencias a las piezas compartidas; sin claves activas; registrado como prevalidado |
+| **Quién** | Generador edf-pinning (agente) · registra ORQ-E2E |
+| **Cuándo** | 2026-11-24T22:12:02-05:00 |
+| **Por qué** | INT-059 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-053 |
+| **Trazabilidad** | prompt 08 |
+| **Corrige** | — |
+
+---
+
+## BIT-0144 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:12:02-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

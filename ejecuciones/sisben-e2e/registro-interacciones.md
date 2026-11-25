@@ -470,6 +470,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:07:25-05:00
 - **Pedido:** Generar ART-053 (modo Colombia) desde ART-050 v3 con el framework 1.9.9.
+- **Respuesta:** ART-053 = pinning-application-block.sisben.conf, solo comentarios (8 claves compartidas a verificar, reusePin NO SE ESCRIBE con citas, N4 escalado, colapso silencioso, PA-010, RG-025, [PM] del FQCN e identifying-attributes-new.json). pyhocon y hocon_check OK ({}), grep sin claves activas, EVAL-PIN-12..14 pasan a mano. Posibles defectos: falso positivo del chequeo de groupSSR en verificar-artefacto.ps1:169 (no excluye comentarios); sin chequeos automáticos para EVAL-PIN-12..14; SKILL.md:28 y plantilla :27 nombran ColombiaIdentityMatcher / IdentityImpl; source-spec-curation.yaml:26 cita EventPinner (expediente).
+- **Decisión:** ART-053 prevalidado; auditor de Pinning.
+- **Bitácora:** —
+
+## INT-060 · Auditor independiente (pinning) · propuesta · `pinning`
+
+- **Cuándo:** 2026-11-24T22:12:02-05:00
+- **Pedido:** Auditar ART-053 y los posibles defectos del generador.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

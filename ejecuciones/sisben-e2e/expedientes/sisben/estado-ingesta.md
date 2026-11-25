@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:07:17-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:12:02-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 142 eventos, último BIT-0142 |
+| Bitácora | 144 eventos, último BIT-0144 |
 
 ## Etapas
 
@@ -52,7 +52,7 @@
 | pinning | ART-050 | insumo: yaml-skill-pinning.yaml (edf-analisis) | `aprobado` | sha256:9c548c3e5b76 |
 | pinning | ART-051 | <Fuente>IdentityMatcher.scala con la verificacion aritmetica del umbral (solo modo propio; no aplica en modo Colombia: se reutiliza el matcher compartido, edf-pinning SKILL «Modo Colombia») | `ausente` | — |
 | pinning | ART-052 | identifying-attributes.json (solo modo propio; no aplica en modo Colombia: se reutiliza la lista compartida identifying-attributes-new.json) | `ausente` | — |
-| pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `ausente` | — |
+| pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `prevalidado` | — |
 | synthesis | ART-060 | insumo: yaml-skill-synthesis.yaml (edf-analisis) | `ausente` | — |
 | synthesis | ART-061 | GDD domaindictionary.json (campo -> handler LFP/LAP/EUC, solo confirmados) | `ausente` | — |
 | synthesis | ART-062 | bloque HOCON oxygen.stage.consistencyCheck | `ausente` | — |
