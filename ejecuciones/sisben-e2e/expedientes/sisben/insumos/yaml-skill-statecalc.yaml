@@ -1,9 +1,9 @@
 # yaml-skill-statecalc.yaml — insumo de edf-statecalc para la ingesta sisben (ART-070), producido por edf-analisis
 # (Modo 2, tipo T3/T4). Estructura: .kiro/skills/edf-analisis/assets/templates/_cabecera-yaml-skill.yaml.tpl +
-# yaml-skill-statecalc.yaml.tpl (framework 1.9.10, plantilla vigente). El ejemplo assets/examples/sisben/yaml-skill-statecalc.yaml
+# yaml-skill-statecalc.yaml.tpl (framework 1.9.11, plantilla con modo_colombia). El ejemplo assets/examples/sisben/yaml-skill-statecalc.yaml
 # es solo forma: ningún valor se copió de él (sus 25 campos del Levantamiento, su personIdType/personIdNumber CALCULATED, su
 # grain [personIdType, personIdNumber] y su nombre de sección no salen de la HU ni de la spec vigentes; LEEME.md).
-# Sin estado ni aprobador (HF-32). Versión 2 · 2026-11-25. State Calculation es riesgo N4: aprueba el PO o el Aprobador
+# Sin estado ni aprobador (HF-32). Versión 3 · 2026-11-25. State Calculation es riesgo N4: aprueba el PO o el Aprobador
 # designado (steering 06 §2.2; spec §13).
 #
 # Fuentes de la ingesta (únicas): fuentes/hu-sisben.md 1.0.2 (§1, §2, §3, R-02, R-06, R-07, R-25, R-26, R-28, §5.5, §5.6, §6
@@ -18,7 +18,18 @@
 # cita) · [P] propuesto / inferencia del analista con evidencia · [A:<ID>] abierto · [PM] pendiente-manual (se verifica en el
 # fork o en el pipeline) · [S] superado.
 #
-# Cambios respecto de la versión 1 (auditorias/statecalc.md: AJUSTES; decisiones del PO simulado SIM-PO-01 en INT-075,
+# Cambios de la versión 3 (re-auditoría auditorias/statecalc.md §7, AJUSTES menores; framework 1.9.11, commit 8db046a):
+#   - AUD-SC-14: bloque modo_colombia de la plantilla 1.9.11 (aplica true [P]; filtro por fuente; nombre sin «#»; nombres
+#     existentes y modo delta como verificación del fork, PA-013 (6) y (5)). Cabecera con framework 1.9.11.
+#   - AUD-SC-17: los 4 campos de ART-071 son candidatos sujetos a PA-013 (6): mismo nombre y dataType → se reutiliza;
+#     otro dataType o significado → bloqueo N4 que se escala (references/modo-colombia.md §2.1).
+#   - AUD-SC-16: «attachHistorcData» se cita como lo que es: la grafía real de la clave de conf (statecalc-application-
+#     local.conf:67; oxygen-config-default.conf:666), que activa el feature STATECALC_ATTACH_HISTORIC_DATA
+#     (StateCalcAddOns.scala:40-48).
+#   - AUD-SC-18: SC-9 pasa a [C] (exigido por RG-031 antes de certificar).
+#   - AUD-SC-19: RG-032 (evidencia diferida de synthesis) en precondiciones y riesgos; habilitacion-synthesis actualizada.
+#
+# Cambios de la versión 2 respecto de la 1 (auditorias/statecalc.md: AJUSTES; decisiones del PO simulado SIM-PO-01 en INT-075,
 # APR-030 rechazo de ART-070, BIT-0177..0184):
 #   - PA-002: dirección (c1-a) decidida por el PO (sin cerrar la pregunta): filtro por fuente en el where con los campos base
 #     (dataSource DNP, subscriber 999722) y corte vigente marcado por el enricher; supuesto «vigente = mayor periodo
@@ -41,7 +52,7 @@ documento:
   tipo: "intermediario-skill"
   etapa_pipeline: "State Calculation"
   ingesta: "sisben"
-  version: "2.0.0"
+  version: "3.0.0"
   fecha: "2026-11-25"
   # Sin estado ni aprobador (HF-32): viven solo en estado-ingesta.json, que registra edf-orquestador con el hash de este archivo.
 
@@ -99,12 +110,12 @@ alcance:
     - id: "RG-011 / BKL-002"
       descripcion: "Certificación de 4 dimensiones (steering 07 §5.7) sin motor y fuera de la DoD (HU §6)"
       efecto: "No bloquea la propuesta; bloquea el paso a producción (certificacion_4_dimensiones)"
-    - id: "RG-025 / RG-028"
-      descripcion: "Verificaciones diferidas del matcher de Colombia (RG-025) y de Synthesis de Colombia, VD-SYN-01..06 (RG-028): las dos bloquean la certificación de State Calculation"
-      efecto: "Aun con PA-002 cerrada, la etapa no se certifica sin cerrarlas"
+    - id: "RG-025 / RG-028 / RG-032"
+      descripcion: "Verificaciones diferidas del matcher de Colombia (RG-025) y de Synthesis de Colombia, VD-SYN-01..06 (RG-028), y evidencia diferida de synthesis (RG-032, alto: synthesis aprobada sin ejecución de pipeline, APR-032): las tres bloquean la certificación de State Calculation"
+      efecto: "Aun con PA-002 cerrada, la etapa no se certifica sin cerrarlas. La evidencia de Synthesis (paso de Synthesis de state-generation sobre el HC de Colombia, escenario HU §5.5 con dos cortes) es previa a la de esta etapa, que no admite evidencia diferida (references/03 §3b)"
     - id: "habilitacion-synthesis"
-      descripcion: "edf-statecalc solo genera con synthesis aprobada y transicion_habilitada (edf-statecalc SKILL.md Paso 0 #2)"
-      efecto: "Este insumo se audita y queda prevalidado; la generación espera además la aprobación del insumo por el PO"
+      descripcion: "edf-statecalc solo genera con synthesis aprobada y transicion_habilitada (edf-statecalc SKILL.md Paso 0 #2). Synthesis está aprobada con evidencia diferida (APR-032, RG-032) y con transicion_habilitada false"
+      efecto: "Este insumo se audita y queda prevalidado; la generación espera la habilitación de la transición synthesis → state_calculation y la aprobación del insumo por el PO"
     - id: "evidencia"
       descripcion: "State Calculation no admite evidencia diferida (references/03 §3b)"
       efecto: "La etapa figura en el cierre como «bloqueada, no aprobada» (APR-030); con los artefactos aprobados quedaría pendiente_evidencia hasta la corrida del DAG state-generation y la prueba CA1"
@@ -115,6 +126,26 @@ marcado_heredado:
 trazabilidad:
   citas_formato: "archivo §sección | archivo:línea | ruta/archivo::símbolo"
   ultima_verificacion_referencias: "2026-11-25"
+
+# ═════════════════════════════════════════════════════════════
+# Modo Colombia (plantilla 1.9.11; edf-statecalc references/modo-colombia.md, HF-77)
+# ═════════════════════════════════════════════════════════════
+
+modo_colombia:
+  aplica: true                                      # [P]: Pinning y Synthesis del expediente van en modo Colombia (spec §11-§13); se confirma con PA-013 (6) y (7)
+  regla: >
+    ART-071 son entradas fields[] para integrar en el foundation compartido de Colombia, no un archivo que lo reemplace: el
+    domain de un archivo adicional se ignora y un name repetido gana para todas las fuentes (ContextUtils.scala:15-19;
+    FoundationStateCalculator.scala:52-59). Ningún name ni alias que ya exista: si el campo ya existe y lee la misma clave
+    curada con el mismo dataType, se reutiliza y no se declara; si existe con otro dataType u otro significado, es un
+    bloqueo N4 que se escala (references/modo-colombia.md §2.1). ART-072 son secciones calculations[] para el calculation
+    compartido, cada una con un where que filtra por fuente ([A:OQ-TR-2]) y un name válido como identificador JavaScript,
+    sin «#» (QueryFunctions.scala:75-82; CalculationStateCalculator.scala:50-52): «sisben» (PA-012 a). Ningún name de
+    sección que ya exista en el calculation compartido.
+  filtro_fuente: "return field.dataSource == \"DNP\" && field.subscriber == \"999722\" (campos base inyectados, FoundationStateCalculator.scala:47-48; spec §1), más field.isSisbenCorteVigente == true del enricher (BKL-001). [C] decisión del PO (PA-002 c1-a, INT-075) · [A:OQ-TR-2] (Nashorn) · [A:PA-002]"
+  nombres_existentes_verificados: "no — foundation y calculation compartidos de Colombia no disponibles en el workspace; PA-013 (6). Hasta verificarlos, los 4 campos de ART-071 son candidatos y la sección «sisben» no se genera"
+  modo_delta: "[PM] PA-013 (5): deltaMode, deltaModeAccountLevel y doesComputeXpm del conf de Colombia (SparkStateCalculator.scala:187-189). En modo delta un PIN sin eventos nuevos conserva su XPM anterior (getAndSaveUnchangedV2, :246-271) y ningún filtro lo alcanza: (c1-a) requiere modo completo (condición 2 de PA-002)"
+  estado: "[P] aplica · [C] regla (motor y modo-colombia.md) · [A:OQ-TR-2] / [A:PA-002] filtro · [PM] PA-013 (5) y (6)"
 
 # ═════════════════════════════════════════════════════════════
 # Decisión de formato
@@ -289,10 +320,13 @@ instruccion_generacion_foundation:
       - "fechaActualizacionCns con aliases [fechaModificacion], dataType LONG — PA-013 punto 1; alternativa CALCULATED [A:OQ-TR-2]"
       - "fechaCorte, dataType LONG — PA-002 (condiciones de cierre de (c1-a))"
     advertencia: >
-      ART-071 con 4 de 6 atributos no produce «sisben» ni cumple la DoD (HU §6); ART-072 no se genera con este insumo. La
-      integración al fork exige PA-013 (6): un nombre ya declarado en la Foundation compartida cambiaría el valor para
-      todas las fuentes de Colombia [PM]. Si se entrega como archivo aparte, su domain no cuenta (ContextUtils.scala:17).
-    estado: "[C] para los 4 campos de campos_a_generar; [A:PA-013] / [A:PA-002] los excluidos"
+      Modo Colombia (modo_colombia): los 4 campos son CANDIDATOS sujetos a PA-013 (6), no una lista final. Si el foundation
+      compartido ya declara uno con la misma clave curada y el mismo dataType, se reutiliza y no se declara; si lo declara con
+      otro dataType u otro significado, es un bloqueo N4 que se escala, nunca un nombre repetido (references/modo-colombia.md
+      §2.1; ContextUtils.scala:15-19). Por §3e #1, ART-071 tampoco queda final antes de PA-013 (6), coherente con APR-030.
+      ART-071 con 4 de 6 atributos no produce «sisben» ni cumple la DoD (HU §6); ART-072 no se genera con este insumo. Si se
+      entrega como archivo aparte, su domain no cuenta (ContextUtils.scala:17).
+    estado: "[C] contenido de los 4 candidatos de campos_a_generar · [PM] su inclusión final, PA-013 (6) · [A:PA-013] / [A:PA-002] los excluidos"
 
 # ═════════════════════════════════════════════════════════════
 # Instrucción de generación — Calculation (ART-072) y prueba (ART-073)
@@ -376,7 +410,7 @@ propuesta_pa_002:
     foundation: "fechaCorte DERIVED LONG en fields[] para que el enricher lo lea (mapeo_campos)"
     supuesto_del_po: "Vigente = mayor periodo aceptado. Con una re-entrega de un REGULAR del mismo periodo (nada en el contrato la impide: spec §2 regex, RA-01..04; HU R-02 «reemplaza todo lo anterior») las dos entregas tienen el mismo fechaCorte y los registros no traen la identidad del archivo (spec §10.1 lista completa): un PIN que salió en la segunda conservaría «sisben». Mitigación: control operativo BKL-003 (detener la corrida hacia producción ante un segundo REGULAR aceptado del mismo periodo hasta que decida una persona; dueño Operación) [PM]; respuesta de negocio en PA-014 (1). Un periodo anterior aceptado después de uno posterior no pasa a ser el vigente (AUD-SC-01)"
     limites:
-      - "Requiere modo completo: deltaMode y deltaModeAccountLevel en false y doesComputeXpm en true, sin features de histórico (attachHistorcData) ni de enriquecimiento de cálculo con appenders que reintroduzcan la sección (SparkStateCalculator.scala:187-190; StateCalcAddOns.scala:30-48, :136-160). PA-013 (5)"
+      - "Requiere modo completo: deltaMode y deltaModeAccountLevel en false y doesComputeXpm en true, sin el feature de histórico (STATECALC_ATTACH_HISTORIC_DATA, clave de conf attachHistorcData con esa grafía real: statecalc-application-local.conf:67, oxygen-config-default.conf:666; StateCalcAddOns.scala:40-48) ni de enriquecimiento de cálculo con appenders que reintroduzcan la sección (SparkStateCalculator.scala:187-190; StateCalcAddOns.scala:30-48, :136-160). PA-013 (5)"
       - "RG-029: un PIN vigente se excluye por error si su evento vigente cae en el mismo periodo que uno anterior con asOfDate MAYOR (LFP por (asOfDate, receivedDate), ConsistencyCheckOps.scala:115-118). Depende de la periodicidad efectiva (minFrequency, RG-028), no del dateType. SC-7"
       - "RG-030: por PA-011, fechaEncuesta puede no salir nula dentro de un mismo periodo. SC-3"
       - "RG-031: con dos documentos SISBEN vigentes en un PIN, la sección toma el más reciente (supuesto del PO; PA-014 (3))"
@@ -460,7 +494,7 @@ criterios_aceptacion:
       dado: "un PIN que Pinning formó con dos documentos SISBEN del corte vigente (regla 2, spec §11)"
       entonces: "la sección es un solo objeto con los datos del registro de mayor asOfPeriod"
       fuente: "PA-012 b; RG-031"
-      estado: "[P]"
+      estado: "[C] exigido por RG-031 antes de certificar"
 
 certificacion_4_dimensiones:
   regla: "Steering 07 §5.7: completitud de mandatorios ≥90%, validez de tipo 100%, unicidad 0% de duplicados por la llave de identidad que declare la spec, consistencia ≥90%, antes de producción"
@@ -483,7 +517,7 @@ preguntas_vinculadas:
       - "(2) App y enricher de Colombia: ¿flag tipo isSisben? ¿cómo reciben un valor por corrida? Cambio de App o motor, no solo de enricher (StateCalcApp.scala:15-16; SparkStateCalculator.scala:205-217)"
       - "(3) Nashorn: where/CALCULATED en los JSON de Colombia y JDK del runtime (OQ-TR-2; migrate.md:12-16 solo da evidencia parcial)"
       - "(4) Cómo escribe el writer una sección null y un atributo null (XpmEventDAO) y cómo los muestra Data Provisioning"
-      - "(5) deltaMode, deltaModeAccountLevel y doesComputeXpm; attachHistorcData, performCalculationEnrichment y appenders que puedan reintroducir la sección"
+      - "(5) deltaMode, deltaModeAccountLevel y doesComputeXpm; feature STATECALC_ATTACH_HISTORIC_DATA (clave attachHistorcData, grafía real), performCalculationEnrichment y appenders que puedan reintroducir la sección"
       - "(6) Si la Foundation y el XPM son los compartidos de Colombia y qué nombres ya declaran, incluidos los 4 de nivel A (ContextUtils.scala:15-19); el domain de un archivo adicional no cuenta (:17)"
       - "(7) Si la corrida de SISBEN lee el sintetizado de Colombia y escribe el XPM compartido, frente a las rutas propias de spec §14"
   - id: "PA-014"
@@ -497,6 +531,7 @@ riesgos_vinculados:
   - {id: "RG-011", nivel: "alto", estado: "abierto", uso: "certificacion_4_dimensiones; BKL-002"}
   - {id: "RG-025", nivel: "alto", estado: "abierto", uso: "bloquea la certificación de State Calculation"}
   - {id: "RG-028", nivel: "alto", estado: "abierto", uso: "bloquea la certificación de State Calculation; periodicidad efectiva para RG-029"}
+  - {id: "RG-032", nivel: "alto", estado: "abierto", uso: "evidencia diferida de synthesis: su evidencia de pipeline es previa a la certificación de State Calculation"}
   - {id: "RG-029", nivel: "medio", estado: "abierto", uso: "límite de (c1-a); SC-7 (a)"}
   - {id: "RG-030", nivel: "medio", estado: "abierto", uso: "SC-3"}
   - {id: "RG-031", nivel: "medio", estado: "abierto", uso: "SC-9; PA-014 (3)"}

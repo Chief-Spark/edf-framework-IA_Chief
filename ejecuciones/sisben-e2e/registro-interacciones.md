@@ -638,6 +638,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T23:10:02-05:00
 - **Pedido:** AUD-SC-14, -16..-19 en ART-070.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** v3: bloque modo_colombia (aplica true [P], filtro DNP/999722, sección «sisben», modo delta [PM]); cabecera 1.9.11; campos de ART-071 como candidatos sujetos a PA-013 (6); SC-9 [C]; RG-032 citado. AUD-SC-16: attachHistorcData es la grafía real de la clave (statecalc-application-local.conf:67, oxygen-config-default.conf:666), se deja y se cita el feature. Verificaciones OK. sha256 e6ab85ba…
+- **Decisión:** ART-070 v3 prevalidado; sin nueva consulta al PO (APR-030 se mantiene; la etapa sigue bloqueada).
 - **Bitácora:** —

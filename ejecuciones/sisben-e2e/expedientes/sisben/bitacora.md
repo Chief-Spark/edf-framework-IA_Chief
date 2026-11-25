@@ -3350,3 +3350,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0197 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | ART-070 v3 (modo Colombia, framework 1.9.11) queda prevalidado y sin aprobar: APR-030 del PO se mantiene; la etapa sigue bloqueada por PA-002 (condiciones), PA-013 y PA-014 |
+| **Quién** | Analista (agente) · registra ORQ-E2E |
+| **Cuándo** | 2026-11-24T23:11:20-05:00 |
+| **Por qué** | INT-080; la verificación por diferencia la hizo el Orquestador; no hay nueva consulta al PO porque nada cambia la razón del bloqueo |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | critico |
+| **Artefactos** | ART-070 |
+| **Trazabilidad** | prompt 08 |
+| **Corrige** | — |
+
+---

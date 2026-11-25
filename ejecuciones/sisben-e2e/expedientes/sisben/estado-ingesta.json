@@ -3,7 +3,7 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T23:10:01-05:00",
+    "actualizado_en": "2026-11-24T23:11:20-05:00",
     "vista_md_regenerada_en": "2026-11-24T22:59:11-05:00"
   },
   "ingesta": {
@@ -816,7 +816,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Analista (INT-077): v2 con las decisiones de INT-075 y AUD-SC-01..13; parse OK (17 secciones); sin estado; ART-072/073 generar false; verificar-claves coherente",
+            "reportada_por": "Analista (INT-080): v3 (AUD-SC-14, 16..19); parse OK; verificar-claves coherente; vista previa de ART-071 con --modo colombia --source-spec OK con los avisos esperados",
             "reportada_en": "2026-11-25"
           }
         },
@@ -2136,8 +2136,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0196",
-    "eventos_totales": 196,
+    "ultimo_evento": "BIT-0197",
+    "eventos_totales": 197,
     "append_only": true,
     "retencion_meses": 24
   }
