@@ -321,3 +321,73 @@ No hay hallazgos de insumo, de spec (salvo la parte de spec de AUD-C-22) ni de m
 | 8 | Referencia, NBSP | `texto(" 123") = "123"`, `fecha_epoch("10/01/2026 ") = 1768021200000` (divergencia con Scala, AUD-C-21) |
 
 No escribí ningún otro archivo del repo, no usé git salvo para leer, ni compilé Scala o Java.
+
+## 8. Re-auditoría por diferencia: ART-030 v2.1 (§3d-bis) y deriva de la propuesta aprobada
+
+| Campo | Valor |
+|---|---|
+| Fecha | 2026-11-25 · framework 1.9.14 (el pedido dice 1.9.13; `VERSION` = 1.9.14) |
+| Alcance | (1) ART-030: aprobado v2 (APR-015, sha256 `506e8b9a…`, copia en `SP/aprobados/`) frente a v2.1 (`EXP/insumos/`, `eb7a75a0…`), con las condiciones (a)-(d) de `edf-orquestador/references/03` §3d-bis (`:90-112`). (2) Deriva de ART-031..033 aprobados (APR-019) frente a una regeneración con el generador actual. `SP` = `/tmp/claude-0/-home-user-edf-framework-IA-Chief/17fd989e-8dfc-5ea8-ad37-44be188bb6cf/scratchpad` |
+| **Dictamen (1)** | **ART-030 v2.1: revisión NO SUSTANTIVA confirmada. Se cumplen (a)-(d).** La cita nueva es correcta. Hay que corregir la evidencia que dio el analista para (a) (AUD-C-25) y conviene precisar (c) y (d) en la justificación de la aprobación (AUD-C-26) |
+| **Dictamen (2)** | **Hay deriva, y una parte cambia código desplegable** (HF-53, en una rama que no se alcanza). Recomiendo **§3d ahora**, en el mismo ciclo de aprobación que el §3d-bis de ART-030 (AUD-C-27) |
+
+### 8.1 ART-030 v2.1: condiciones de §3d-bis
+
+`diff` entre el aprobado y v2.1: cambian la línea de versión (`:3`), la cita de la cabecera (`:26-28`), una nota de cambios nueva (`:48-50`) y el comentario de `omitir_si_nulas` (`:123-125`). Todo son comentarios: el YAML parseado es **idéntico** (`yaml.safe_load` de los dos, `==` → `True`).
+
+| Condición | Evidencia | Dictamen |
+|---|---|---|
+| **(a)** Ningún valor desplegable cambia | Regeneré con el **mismo** generador (1.9.14) el aprobado v2 (`SP/aud-3dbis/out-v2/`, con el fixture ART-035 sin cambios, `050b942d…`) y v2.1 (`SP/deriva-cur/`): **`diff -r` vacío**, también en los comentarios. Coincide con lo que hizo el analista (`SP/nsub/cur-old` = `SP/nsub/cur`, `diff -r` vacío). `--solo-verificar` rc=0; `verificar-claves` coherente | **Cumple** |
+| **(b)** Solo cambian comentarios, citas o metadatos | Ver el `diff` de arriba | **Cumple** |
+| **(c)** Sin cambio de decisión, alcance, riesgo ni marcador | La decisión `omitir_si_nulas` y su marcador `[P]` no cambian. Lo nuevo es la **evidencia**: `[P]` para el matcher de referencia y `[PM]` «para Colombia (RG-025)». Eso no recalifica la decisión. Repite lo que el Orquestador ya registró en la mitigación de RG-019 (`estado-ingesta.json`: «…ISIdentityMatcher.scala:46-54, evidencia corregida por AUD-P-05…; para Colombia queda [PM] (RG-025)») y sigue §3e («la otra se marca `[PM]`») | **Cumple**, con la precisión de AUD-C-26 |
+| **(d)** Sin preguntas ni riesgos nuevos | `curation_flow.riesgos` = RG-005, -007, -008, -016, -019, -023 y `preguntas_abiertas` = [], sin cambios. RG-025 (etapa `pinning`) entra solo como cita dentro de la mitigación de RG-019, que ya lo citaba. Ningún valor ni artefacto de Curation depende de RG-025: el código generado es idéntico por (a) | **Cumple**, con la precisión de AUD-C-26 |
+| Riesgo del insumo | `medio` (no crítico) | §3d-bis aplicable |
+
+**¿La cita nueva es correcta?** Sí. `Motor-Oxigen/oxygen-pinning/src/main/scala/com/experian/edf/oxygen/pinning/extension/ISIdentityMatcher.scala:46-54` hace `identity.attributes.get(<clave>).get.toString`. Un valor `null` presente da `Some(null)` y `toString` lanza NPE. Un atributo ausente llega como `""` (`IdentityMatcher.scala:46-49`) y no lanza. Lo de «válido solo para el matcher de referencia» también es exacto: ese matcher lee los slots `firstName`, `nationalId` y `cellPhone` de `ISIdentityAttributesKey`, no las `standardizedId*`, así que es evidencia por analogía. `ColombiaIdentityMatcher` no está en la copia (RG-025), por eso el `[PM]`. La cita anterior a `EventPinner.scala:64-65` estaba mal atribuida (`addToPinIndex`, que el batch no usa; AUD-P-05).
+
+### 8.2 Deriva de ART-031..033 (aprobados en APR-019) frente al generador 1.9.14
+
+`diff -r SP/deriva-cur EXP/propuestas/curation` (`EXP/propuestas/curation/` no cambió desde 5f47629). Son **idénticos**: los tres fragmentos HOCON/JSON, `expected/curated-events.json`, `accepted-events.json`, `Transformaciones.scala`, `SISBENCurationSpec.scala`, `SISBENCuratedEvent.scala` y `SISBENAcceptedRecord.scala`. **Difieren** los siguientes:
+
+| Archivo (artefacto) | Diferencia | Origen | Clasificación |
+|---|---|---|---|
+| `SISBENCurationProcessor.scala:167-169` (ART-031) | Comentario de RF-CUR-10 corregido | HF-49 (AUD-C-18) | Comentario |
+| `SISBENCurationProcessor.scala:173-176` (ART-031) | **Código.** `advNivel` pasa de `<CAMPO_ENTRADA>:NIVEL_DESCONOCIDO` a una advertencia por destino curado (p. ej. `ERR_015` con nivel nulo: antes `NUM_DOCUMENTO:NIVEL_DESCONOCIDO`, ahora `numeroDocumento:…` y `numeroDocumentoOriginal:…`, según la referencia actual) | HF-53 (AUD-C-22) | **Comportamiento desplegable**: cambia el contenido publicado de `advertenciasCuracion`. Solo con `errorLevel` nulo, que la Validation aprobada no emite (niveles `1`/`3`): con entradas aceptadas no se alcanza, y por eso `expected/curated-events.json` sale idéntico |
+| `FieldMapping.scala:63-67` (ART-031) | Docstring de los motivos defensivos | HF-53 | Comentario |
+| `TransformacionesSpec.scala` (ART-033) | Prueba nueva de NBSP | HF-52 (AUD-C-21) | Prueba |
+| `SISBENCurationProcessorSpec.scala` (ART-033) | Cita del runbook (§2) y prueba fija nueva de `COMPONENTE_FALTANTE` | HF-50, HF-48 (AUD-C-19, -17) | Prueba y comentario |
+| `expected/resumen.json` (ART-033) | `claves_omitidas_por_severidad: {}` y clave nueva `claves_omitidas_por_nulas` (cur-0016) | HF-45 (AUD-C-14) | Metadato de prueba |
+| `MANIFEST.json` | `sha256` en las 12 `archivos` y en `marcas_sintetico`, y el hash nuevo de `resumen.json` | AUD-C-24 | Metadato |
+
+Conclusión: la deriva no toca el HOCON, el domain dictionary ni ningún valor curado alcanzable. Sí cambia una línea de **código desplegable** (HF-53), aunque su efecto sea latente. Por la regla de §3d (`:81-88`), que el código aprobado difiera del que genera la skill corregida requiere regenerar, re-auditar por diferencia y hacer una nueva aprobación `tipo: artefacto`. No se puede tratar como §3d-bis, porque ese procedimiento es para insumos.
+
+**Recomendación: §3d ahora, no diferido al fork.**
+- La evidencia diferida RG-023 (APR-019: compilación y Specs en verde en el fork sobre los 19 aceptados) debe obtenerse sobre el código que se va a desplegar. Si se integra ART-031/033 de APR-019 y luego se regenera, hay que repetir esa evidencia.
+- Los Specs nuevos (HF-48 `COMPONENTE_FALTANTE`, HF-52 NBSP) son justo la cobertura que faltaba (AUD-C-17, AUD-C-21) y deben correr en el fork.
+- El costo es bajo: esta sección ya es la re-auditoría por diferencia (comportamiento alcanzable conservado: `curated-events.json`, fragmentos y `accepted-events.json` idénticos). Solo falta la aprobación `tipo: artefacto` de ART-031/032/033 con los hashes de `SP/deriva-cur/`, copiado a `propuestas/curation/`, con un evento `correccion` que cite APR-019 y HF-45/48/49/50/52/53 y AUD-C-24. Puede ir en el mismo ciclo que la re-aprobación §3d-bis de ART-030.
+- Ni la etapa ni la transición se re-aprueban: no cambia ni el alcance, ni el riesgo, ni el contrato con Pinning (`subscriberRelation`, las tres claves y su normalización son iguales).
+
+Si el aprobador prefiere diferirlo, que quede como **condición explícita antes de integrar en el fork** («integrar solo la regeneración 1.9.14 de ART-031/033, re-aprobada por §3d») y no como simple nota.
+
+### 8.3 Hallazgos nuevos
+
+| ID | Objeto | Clasificación | Sev. | Evidencia | Corrección |
+|---|---|---|:-:|---|---|
+| AUD-C-25 | Evidencia de (a) del analista | insumo (proceso) | P2 | El pedido cita «Curation regenerada con v2.1 idéntica byte a byte (SP/nsub/cur vs EXP/propuestas/curation…)». Esa comparación **no es vacía**: difiere en 6 archivos por la deriva del generador (§8.2). Lo que sí es vacío es `SP/nsub/cur-old` (v2 aprobado) frente a `SP/nsub/cur` (v2.1), ambos con 1.9.14, que es la comparación correcta para (a) | En la `justificacion` de la aprobación §3d-bis, citar como evidencia de (a) la comparación con el mismo generador (`cur-old` ↔ `cur`, o `SP/aud-3dbis/out-v2` ↔ `SP/deriva-cur`), no la comparación contra `propuestas/` |
+| AUD-C-26 | ART-030 v2.1 `:26-28`, `:123-125`, leyenda `:17` | insumo | P2 | (i) El `[PM]` «para Colombia» es un marcador nuevo **sobre la evidencia**, no sobre la decisión. La justificación de (c) y (d) debe decirlo y citar que la mitigación de RG-019 en `estado-ingesta.json` ya lo recogía. (ii) La leyenda de la cabecera (`:17`) sigue definiendo `[PM]` como «propuesta del modelo», mientras que el `[PM]` nuevo se usa como pendiente manual o verificación diferida (steering `05:48`; `references/03` §3e). Es una incoherencia previa que la v2.1 hace visible | (i) En la aprobación. (ii) Próxima versión de ART-030: leyenda de `[PM]` según steering `05` (no sustantivo) |
+| AUD-C-27 | ART-031..033 (APR-019) | framework → artefacto | P2 | Deriva frente a 1.9.14 (§8.2): un cambio de código desplegable latente (HF-53 en `SISBENCurationProcessor.scala:173-176`), más comentarios, pruebas y metadatos | §3d ahora (recomendado) o condición explícita antes del fork |
+
+### 8.4 Verificaciones
+
+| # | Comando | Resultado |
+|:-:|---|---|
+| 1 | `diff SP/aprobados/source-spec-curation.yaml EXP/insumos/source-spec-curation.yaml`; `yaml.safe_load` de los dos | Solo comentarios; parseados iguales (`True`) |
+| 2 | `render_templates.py --spec EXP/insumos/source-spec-curation.yaml --solo-verificar` | rc=0 · 33 campos curados, 18 eventos esperados |
+| 3 | Generación con v2 aprobado → `SP/aud-3dbis/out-v2/` y con v2.1 → `SP/deriva-cur/`; `diff -r` entre ellos | **Vacío** |
+| 4 | `diff -r SP/nsub/cur-old SP/nsub/cur` (del analista) | Vacío |
+| 5 | `diff -r SP/deriva-cur EXP/propuestas/curation` | 6 archivos distintos (§8.2); fragmentos, `curated-events.json`, `accepted-events.json` y 4 `.scala` idénticos |
+| 6 | `python3 tools/verificar-claves.py --dir EXP/insumos` | rc=0, coherentes |
+| 7 | Referencia con `SISBEN_ERR_015` de nivel nulo | `['numeroDocumento:NIVEL_DESCONOCIDO', 'numeroDocumentoOriginal:NIVEL_DESCONOCIDO']` (comportamiento HF-53) |
+| 8 | Lectura de `ISIdentityMatcher.scala:44-56` e `IdentityMatcher.scala:46-49` | La cita es correcta (§8.1) |
+
+Solo modifiqué este archivo del repo. No usé git salvo para leer.

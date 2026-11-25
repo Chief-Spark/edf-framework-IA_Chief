@@ -712,8 +712,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:41:37-05:00
 - **Pedido:** Re-auditar por diferencia ART-053 (ffc146a7…) y ART-034 2.1.0 (4124211f…).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-053 ffc146a7… APROBADO (AUD-P-26/27 cerrados; reproducible; --verificar --insumo OK; la aprobada da 17 hallazgos). Pérdidas aceptables: PA-010 (AUD-P-30) y la etiqueta de RG-025 (AUD-P-31; llevar curatedDir/HBase/common-application a la lista de RG-025 en la próxima versión de ART-050). ART-034 2.1.0 APROBADO §3d-bis: (a) ART-053 idéntico con contrato viejo y nuevo; (b) solo citas y metadatos; (c) cumple para el contenido del contrato, pero el hecho que justifica la omisión pasa de sin marcador a [P]/[PM] (bajada de confianza ya aprobada en RG-019/APR-023): AUD-P-32, el framework debe precisar (c); (d) cumple. AUD-P-33: ART-034 cita ART-030 «v2» y la fila del lector [A:PA-008] (para §3c futura). auditorias/pinning.md §9.
+- **Decisión:** Pasar al aprobador ART-053 (§3d, alto) y ART-034 (§3d-bis, alto, con AUD-P-32 en la justificación). AUD-P-32 se registra como HF-83 y se corrige en references/03 §3d-bis.
 - **Bitácora:** —
 
 ## INT-090 · Auditor (edf-acceptance) · §3d-bis ART-020/023 · `acceptance`
@@ -728,6 +728,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:41:37-05:00
 - **Pedido:** Re-auditar por diferencia ART-030 v2.1 y opinar sobre la deriva de Curation respecto de 1.9.12.
+- **Respuesta:** ART-030 v2.1 cumple (a)-(d) (la comparación correcta para (a) es nsub/cur-old vs nsub/cur; AUD-C-25); cita correcta (por analogía; [PM] para Colombia). AUD-C-26: justificar (c)/(d); la leyenda de [PM] en ART-030 :17 contradice steering 05 (corregir en la próxima versión; el framework ya lo corrigió en HF-47). Deriva (AUD-C-27): HF-53 cambia código desplegable en SISBENCurationProcessor.scala:173-176 (advertenciasCuracion con nivel nulo, que la Validation aprobada no emite); el resto son comentarios, Specs nuevos, resumen.json y MANIFEST. Recomienda §3d ahora con los hashes de SP/deriva-cur. auditorias/curation.md §8.
+- **Decisión:** AUD-P-32/AUD-C-26 → HF-83, corregido en 26be2ab (1.9.15). Consulta consolidada al aprobador: ART-020/023, ART-030, ART-034, ART-053 y §3d de ART-031..033.
+- **Bitácora:** —
+
+## INT-092 · Aprobador simulado (SIM-DEV-01) · cierre de los 3 ajustes · `pinning`
+
+- **Cuándo:** 2026-11-25T06:45:34-05:00
+- **Pedido:** Decidir ART-020/023 (§3d-bis), ART-030 y ART-034 (§3d-bis), ART-053 (§3d) y la deriva de Curation (§3d ahora o condición).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
