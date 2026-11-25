@@ -302,6 +302,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:33:59-05:00
 - **Pedido:** RG-019 (desviación de spec §10.1), RG-020 (descripción) y ajustes del insumo de Curation AUD-C-02/03/11/12.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** (1) Acepta RG-019 (bajo, [P]; omitir = nulo para el matching; null rompe EventPinner) y pide PA-007 no bloqueante para la spec (más el recorte de «Ninguna» → texto como supuesto). (2) RG-020 redactado sobre el juego de códigos; sigue alto; condiciona el insumo de Pinning. (3) Autoriza AUD-C-02 (NUM_DOCUMENTO único en base_registro), -03 (caso RG-019 y tipos 4, 5, 8), -11 (contrato), -12 ([P] y regex literal de spec §2 si el generador la admite). Los P2 del framework que cambian la salida van en el mismo ciclo que AUD-C-01.
+- **Decisión:** RG-019 aceptado, RG-020 redactado, PA-007 abierta (no bloqueante). Ronda 2 del analista cuando el framework 1.9.7 esté publicado.
 - **Bitácora:** —
