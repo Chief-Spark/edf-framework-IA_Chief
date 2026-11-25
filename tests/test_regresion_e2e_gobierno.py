@@ -59,3 +59,12 @@ def test_ref03_3d_conserva_el_estado_aprobado_durante_la_revision():
     """HF-43: durante la revisión §3d el artefacto sigue aprobado con su hash anterior (regla 7e)."""
     seccion = REF03.read_text(encoding="utf-8").split("### 3d.")[1].split("Además aplican")[0]
     assert "siguen `aprobado` con el hash anterior" in seccion and "regla 7e" in seccion
+
+
+def test_09_bloqueo_por_afirmacion_se_mide_por_etapa_afectada():
+    """HF-46: `09` §5.1 #2 se evalúa por la etapa_afectada de la pregunta que cita el [A:<ID>]."""
+    import glob
+    txt = open(glob.glob(str(RAIZ / ".kiro/steering/09-*.md"))[0], encoding="utf-8").read()
+    regla = txt.split("### 5.1")[1].split("### 5.2")[0]
+    assert "`etapa_afectada` igual a esa etapa" in regla
+    assert "sin pregunta registrada en el expediente bloquea siempre" in regla

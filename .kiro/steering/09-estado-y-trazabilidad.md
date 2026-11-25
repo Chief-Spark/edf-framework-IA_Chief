@@ -127,7 +127,7 @@ El Orquestador **exige aprobación entre cada par de etapas** y bloquea el avanc
 Una etapa queda `bloqueada` y no se habilita la siguiente si:
 
 1. La aprobación de la etapa actual no está registrada en la bitácora.
-2. Un artefacto de la etapa depende de una afirmación `[A:<ID>]`.
+2. Un artefacto de la etapa depende de una afirmación `[A:<ID>]` cuya pregunta abierta (`<ID>`) es bloqueante y tiene `etapa_afectada` igual a esa etapa (o a la siguiente que se quiere habilitar). Un `[A:<ID>]` cuya pregunta afecta a una etapa posterior bloquea esa etapa, no la actual; un `[A:<ID>]` sin pregunta registrada en el expediente bloquea siempre (registrarla primero). Mismo criterio que la condición 4 de `edf-orquestador/references/03` §3.
 3. La clasificación de riesgo es N4 y no hay escalamiento resuelto (`06` §3).
 4. El checklist de cierre del análisis tiene casillas vacías (`04` §4.3).
 5. La lista de verificación de seguridad tiene casillas vacías (`08` §8).

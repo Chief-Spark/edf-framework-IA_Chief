@@ -4,6 +4,9 @@
 
 Correcciones de la corrida E2E SISBEN: lote de cierre (commit a205649) y Curation (commit 955bed3).
 
+### Steering
+- **HF-46. `09` §5.1 #2 (artefacto que depende de `[A:<ID>]`) se mide por la `etapa_afectada` de la pregunta**, como la condición 4 desde 1.9.1; un `[A:<ID>]` sin pregunta registrada bloquea siempre (corrida E2E SISBEN, INT-044). Prueba: `tests/test_regresion_e2e_gobierno.py`.
+
 ### Orquestador
 - **HF-43. §3d no decía qué estado tiene el artefacto durante la revisión.** Sigue `aprobado` con el hash anterior hasta la nueva aprobación (regla 7e). Prueba: `tests/test_regresion_e2e_gobierno.py`.
 
