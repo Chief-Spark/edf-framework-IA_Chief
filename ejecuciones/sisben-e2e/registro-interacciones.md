@@ -534,14 +534,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:37:02-05:00
 - **Pedido:** ART-060 v2 con 1.9.10 y las decisiones de INT-065.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-060 v2.0.0 con las decisiones de INT-065: modo_colombia (aplica true), N3 con análisis de impacto, plan de reversión y prueba de no afectación; VD-SYN-01..06 en RG-028; 11 claves de consistencyCheck con se_escribe false; ART-061 con 34 {name, description nueva, handler null}; RG-010 mitigado; RG-026 y PA-011 al día. Verificaciones OK (--modo colombia ARTEFACTOS OK). sha256 1097a0fa…
+- **Decisión:** ART-060 v2 prevalidado; re-auditoría con el auditor de Synthesis.
 - **Bitácora:** —
 
 ## INT-068 · Auditor independiente (state_calculation) · `state_calculation`
 
 - **Cuándo:** 2026-11-24T22:38:51-05:00
 - **Pedido:** Auditar ART-070, PA-002 (opciones c1/d), PA-012, PA-013 y los 4 posibles defectos.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-069 · Auditor independiente (synthesis) · insumo v2 · `synthesis`
+
+- **Cuándo:** 2026-11-24T22:40:57-05:00
+- **Pedido:** Re-auditar ART-060 v2 con 1.9.10.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
