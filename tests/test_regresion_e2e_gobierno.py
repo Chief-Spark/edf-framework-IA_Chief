@@ -76,3 +76,19 @@ def test_ref03_documenta_verificacion_diferida():
     for frase in ("Ningún artefacto generado dependa del hecho no verificado", "`[PM]`",
                   "bloquea la integración al fork y la certificación", "§3c o §3d"):
         assert frase in seccion, frase
+
+
+def test_ref03_documenta_revision_no_sustantiva_de_insumo():
+    """HF-80 (1.9.13): revisión no sustantiva de un insumo aprobado sin suspender transiciones (§3d-bis)."""
+    txt = REF03.read_text(encoding="utf-8")
+    seccion = txt.split("### 3d-bis.")[1].split("### 3e.")[0]
+    for frase in ("**(a)**", "**(b)**", "**(c)**", "**(d)**", "desplegable", "quitando comentarios",
+                  "sigue `aprobado` con el hash anterior", "Re-auditoría por diferencia".lower(),
+                  "mismo riesgo que la primera vez", "evento `correccion`", "revisión no sustantiva (§3d-bis)",
+                  "Decide el aprobador de la etapa", "`critico`", "aplica §3c", "regla 7g"):
+        assert frase in seccion, frase
+    assert "§3d-bis" in txt.split("### 3c.")[1].split("### 3d.")[0]
+    assert "§3d-bis" in txt.split("### 3d.")[1].split("### 3d-bis.")[0]
+    prompt = (RAIZ / ".kiro/skills/edf-orquestador/prompts/03-registrar-aprobacion.md").read_text(encoding="utf-8")
+    assert "revisión no sustantiva (§3d-bis)" in prompt and "regla 7g" in prompt
+    assert _validador().MARCADOR_3D_BIS == "revisión no sustantiva (§3d-bis)"

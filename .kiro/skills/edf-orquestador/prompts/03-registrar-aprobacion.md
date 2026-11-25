@@ -18,6 +18,13 @@ Justificación: <texto>   # obligatoria si el riesgo es alto o critico
 ```
 Para el insumo: verificar que el artefacto esté `propuesto` o `prevalidado` (prompt 08), escribir `APR-nnn` con `tipo: artefacto`, poner ese artefacto en `aprobado` con su `hash`, apendizar bitácora y regenerar la vista. **No** cambia `transicion_habilitada` ni `etapa_actual`.
 
+**Re-aprobación de un insumo ya aprobado** con la transición hacia su etapa habilitada (`references/03`): por defecto aplica §3c (insumo a `propuesto`, transición suspendida, nueva aprobación de la transición después). Solo si el aprobador de la etapa decide que el cambio es **no sustantivo** (§3d-bis, criterios (a)-(d)) y el insumo **no** es `critico`, el insumo sigue `aprobado` durante la revisión y la aprobación se registra sin tocar transiciones ni etapas, con:
+- `condiciones` que incluya el marcador literal `revisión no sustantiva (§3d-bis)`;
+- `justificacion` con la evidencia de la re-auditoría por diferencia citando (a), (b), (c) y (d);
+- el mismo `riesgo` que la primera aprobación del insumo, y una aprobación `tipo: artefacto` por cada artefacto regenerado;
+- evento `correccion` en la bitácora que cite la aprobación anterior.
+Sin el marcador (o con él en un insumo crítico), `validar-expediente.py` lo marca con la regla 7g.
+
 ## Qué debe hacer el Orquestador (transición)
 
 1. **Verificar que exista una propuesta** en estado `pendiente_aprobacion` para esa transición. Si no existe → no registrar nada y remitir al prompt 02.

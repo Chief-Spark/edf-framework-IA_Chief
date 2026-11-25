@@ -67,14 +67,14 @@ El riesgo "evidencia diferida" se cierra cuando el Desarrollador reporta la evid
 
 ### 3c. Revisión de un insumo ya aprobado
 
-Si el insumo de una etapa que ya empezó (N+1 `en_progreso`) tiene que cambiar —por ejemplo, porque la auditoría de su generación encontró que el insumo no expresa una regla de la spec—, se hace en este orden:
+Si el insumo de una etapa que ya empezó (N+1 `en_progreso`) tiene que cambiar —por ejemplo, porque la auditoría de su generación encontró que el insumo no expresa una regla de la spec—, se hace en este orden (si el cambio es **no sustantivo** —no cambia ningún valor desplegable—, el aprobador de la etapa puede usar §3d-bis, que no suspende la transición):
 
 1. **El insumo vuelve a `propuesto`** (prompt `08`) con versión nueva y evento `correccion` que cite la aprobación anterior. El hash aprobado queda en esa aprobación; no se borra.
 2. **Se suspende la transición N → N+1**: `transicion_habilitada = false` con evento `bloqueo` (la condición 3 deja de cumplirse). La etapa N+1 vuelve a `no_iniciada` (evento `bloqueo`; regla 7b: una etapa empezada exige la transición de su dependencia habilitada) y **no se aprueba ningún artefacto de N+1** mientras dure la suspensión. Sus artefactos generados con el insumo anterior quedan como están (no `aprobado`) y se regeneran con el nuevo.
 3. **Re-auditoría y re-aprobación del insumo** (prompt `03`, `tipo: artefacto`, mismo riesgo que la primera vez) con el hash nuevo.
 4. **Nueva aprobación de la transición** (prompts `02` y `03`, `tipo: transicion`) con el checklist reevaluado; `ref_aprobacion` de N pasa a esa aprobación y N+1 vuelve a `en_progreso`. La aprobación de la etapa N no se repite: no cambió.
 
-El validador lo exige con la regla 7b (ninguna transición habilitada con un insumo de N+1 que no esté `aprobado`).
+El validador lo exige con la regla 7b (ninguna transición habilitada con un insumo de N+1 que no esté `aprobado`) y con la regla 7g (una re-aprobación del insumo con la transición habilitada desde antes, sin una aprobación de la transición posterior, solo pasa como §3d-bis).
 
 ### 3d. Revisión de artefactos de una etapa ya aprobada
 
@@ -83,9 +83,33 @@ Si los artefactos de una etapa ya `aprobada` tienen que regenerarse —por ejemp
 1. Se regeneran los artefactos en `propuestas/<etapa>/` con la versión corregida de la skill. En el expediente los artefactos **siguen `aprobado` con el hash anterior** hasta el paso 3 (regla 7e: una etapa aprobada exige sus artefactos aprobados); la diferencia entre el hash registrado y el archivo es, justamente, lo que se está revisando.
 2. **Re-auditoría por diferencia**: el auditor revisa solo lo que cambió frente a lo aprobado y confirma que el comportamiento aprobado se conserva (mismas verificaciones de la etapa).
 3. **Nueva aprobación `tipo: artefacto`** (prompt `03`, mismo riesgo que la primera) con los hashes nuevos, y evento `correccion` que cite la aprobación anterior y el motivo (versión del framework y hallazgo).
-4. Si el cambio altera el alcance, el riesgo o la decisión de la etapa (no solo su implementación), se re-aprueba también la etapa (`tipo: contexto`); si cambia el insumo, aplica §3c.
+4. Si el cambio altera el alcance, el riesgo o la decisión de la etapa (no solo su implementación), se re-aprueba también la etapa (`tipo: contexto`); si cambia el insumo, aplica §3c, o §3d-bis si el cambio del insumo es no sustantivo.
 
 Mientras dure la revisión, la etapa siguiente puede seguir, porque consume el contrato aprobado, no la implementación; si la re-auditoría encuentra que el contrato cambió, se aplica §3c.
+
+### 3d-bis. Revisión no sustantiva de un insumo ya aprobado
+
+Si el insumo de una etapa que ya empezó o ya está aprobada (con sucesoras aprobadas o no) tiene que cambiar, pero el cambio **no es sustantivo**, no se aplica §3c: la transición no se suspende y ninguna etapa se re-aprueba. Evita desaprobar en cascada etapas que no cambian (regla 7b) por una clave de prueba, un comentario o una cita (corrida E2E SISBEN, HF-80).
+
+**No sustantivo** = se cumplen **todas**:
+
+- **(a)** Ningún valor que llegue a un artefacto **desplegable** cambia: al comparar los desplegables regenerados con los aprobados, quitando comentarios, son idénticos.
+- **(b)** Solo cambian pruebas, fixtures de prueba, comentarios, citas o metadatos del insumo.
+- **(c)** No cambia ninguna decisión, alcance, riesgo ni marcador de estado de un hecho (`[C]`, `[P]`, `[PM]`, `[A:]`).
+- **(d)** El insumo no gana ni pierde dependencias de preguntas abiertas ni de riesgos.
+
+Si falla una, o si el insumo es de riesgo `critico` (incluido el de `state_calculation`), aplica §3c sin excepción.
+
+Procedimiento:
+
+1. El insumo **sigue `aprobado` con el hash anterior** hasta el paso 3, como los artefactos en §3d (regla 7e); el validador lo admite: la regla 7b no se dispara y las transiciones siguen habilitadas. La nueva versión se registra con evento `propuesta` sin cambiar `estado_artefacto`.
+2. Se regeneran los artefactos de la etapa que consumen el insumo y se hace la **re-auditoría por diferencia**, que confirma (a)-(d) con evidencia: el diff del insumo, el diff de los desplegables sin comentarios (vacío) y la lista de marcadores, preguntas y riesgos (sin cambios).
+3. **Nueva aprobación `tipo: artefacto` del insumo** y **de cada artefacto regenerado** (prompt `03`), con el **mismo riesgo que la primera vez**, y evento `correccion` que cite la aprobación anterior y el motivo. La aprobación del insumo lleva en `condiciones` el marcador literal **«revisión no sustantiva (§3d-bis)»** y en `justificacion` la evidencia de (a), (b), (c) y (d), citadas así.
+4. No se suspende ninguna transición ni se re-aprueba ninguna etapa (`tipo: contexto` o `transicion`).
+
+**Decide el aprobador de la etapa** (`Desarrollador`, `PO` o `Aprobador designado`, según `06` §4), con justificación escrita aunque el riesgo sea `bajo` o `medio`. Nadie puede convertir un cambio sustantivo en no sustantivo por decisión: si la re-auditoría no confirma (a)-(d), aplica §3c.
+
+El validador lo controla con la **regla 7g**: una re-aprobación `tipo: artefacto` de un artefacto de `insumos/` hecha mientras la transición hacia su etapa sigue habilitada desde antes (no hay una aprobación `tipo: transicion` hacia esa etapa posterior a la re-aprobación, que es la huella de §3c) es hallazgo salvo que declare el marcador en `condiciones`, cite (a)-(d) en `justificacion`, no baje el riesgo de la primera aprobación y la decida el aprobador de la etapa. Una aprobación de un insumo crítico con el marcador también es hallazgo.
 
 ### 3e. Verificación diferida de hechos fuera del repositorio
 

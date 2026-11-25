@@ -25,6 +25,11 @@ Verifica:
      7d. §1/§3b: State Calculation es siempre critico (PO o Aprobador designado) y no admite evidencia diferida.
      7e. Una etapa aprobada tiene aprobados todos sus artefactos obligatorios.
      7f. §4: completada_manualmente exige aprobacion 'regla_de_corte' y una entrada en backlog_evolutivo.
+     7g. (1.9.13, §3d-bis) Una re-aprobacion 'artefacto' de un insumo (`insumos/`) hecha con la transicion
+         hacia su etapa habilitada (ninguna transicion re-aprobada despues: no se siguio §3c) debe declarar en
+         `condiciones` el marcador «revisión no sustantiva (§3d-bis)», con justificacion que cite (a)-(d),
+         riesgo no menor que la primera aprobacion y actor Desarrollador, PO o Aprobador designado. Un insumo
+         critico (o de State Calculation) nunca lleva el marcador: siempre §3c.
   8. Con --cruzado: la bitacora no reusa IDs, sus IDs son crecientes, y eventos_totales / ultimo_evento
      coinciden con la bitacora.
 Opciones:
@@ -144,6 +149,110 @@ def reglas_gobierno(estado):
         if toca_n4 and a.get("decision") == "aprobada" and a.get("riesgo") != "critico":
             fallos.append(f"7d. [03 §1] {aid}: aprobacion de State Calculation con riesgo '{a.get('riesgo')}'; "
                           "es siempre critico (PO o Aprobador designado).")
+
+    fallos += regla_revision_no_sustantiva(estado)
+    return fallos
+
+
+# --- 7g. Revision no sustantiva de un insumo (references/03 §3d-bis, 1.9.13; corrida E2E SISBEN, HF-80) ---
+MARCADOR_3D_BIS = "revisión no sustantiva (§3d-bis)"
+ORDEN_RIESGO = {"bajo": 0, "medio": 1, "alto": 2, "critico": 3}
+ROLES_APROBADOR_ETAPA = ("Desarrollador", "PO", "Aprobador designado")
+
+
+def _normal(texto):
+    import unicodedata
+    t = unicodedata.normalize("NFKD", texto or "")
+    return "".join(c for c in t if not unicodedata.combining(c)).lower()
+
+
+def declara_3d_bis(aprobacion):
+    """True si alguna condicion de la aprobacion trae el marcador (sin distinguir tildes ni mayusculas)."""
+    m = _normal(MARCADOR_3D_BIS)
+    return any(m in _normal(c) for c in aprobacion.get("condiciones") or [])
+
+
+def _orden(aprobacion):
+    """Clave cronologica: timestamp y, a igual timestamp, el numero de APR (append-only)."""
+    from datetime import datetime
+    try:
+        ts = datetime.fromisoformat((aprobacion.get("timestamp") or "").replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        ts = float("-inf")
+    num = int(re.sub(r"\D", "", aprobacion.get("id") or "") or 0)
+    return (ts, num)
+
+
+def regla_revision_no_sustantiva(estado):
+    """Regla 7g. Con la transicion N -> N+1 habilitada, un insumo de N+1 solo se re-aprueba por dos vias:
+
+    - §3c: la transicion se suspende y se re-aprueba DESPUES de la re-aprobacion del insumo (hay una aprobacion
+      'transicion' hacia N+1 posterior), o sigue suspendida;
+    - §3d-bis: la re-aprobacion declara el marcador, con la evidencia (a)-(d), sin ser critica.
+    Una aprobacion anterior a la transicion vigente (p. ej. ART-010 APR-005 en SISBEN, re-aprobado por §3c antes
+    de APR-006) no es hallazgo.
+    """
+    fallos = []
+    etapas = {e.get("id"): e for e in estado.get("etapas", [])}
+    aprs = [a for a in estado.get("aprobaciones", []) if a.get("id")]
+    por_id = {a["id"]: a for a in aprs}
+    transiciones = [a for a in aprs if a.get("tipo") == "transicion" and a.get("decision") == "aprobada"]
+
+    for mid, et in etapas.items():
+        for art in et.get("artefactos", []):
+            if not (art.get("ruta") or "").startswith("insumos/"):
+                continue
+            xid = art.get("id")
+            propias = sorted((a for a in aprs if a.get("tipo") == "artefacto" and a.get("decision") == "aprobada"
+                              and xid in (a.get("artefactos") or [])), key=_orden)
+            critico = (mid == ETAPA_N4 or art.get("riesgo") == "critico"
+                       or any(a.get("riesgo") == "critico" for a in propias))
+            for i, r in enumerate(propias):
+                marca = declara_3d_bis(r)
+                if i == 0:
+                    if marca:
+                        fallos.append(f"7g. [03 §3d-bis] {r['id']}: declara revision no sustantiva de {xid} sin una "
+                                      "aprobacion anterior del insumo que revisar.")
+                    continue
+                # ¿Alguna transicion hacia la etapa del insumo sigue habilitada desde antes de esta re-aprobacion?
+                sin_suspender = []
+                for dep in et.get("depende_de") or []:
+                    n = etapas.get(dep) or {}
+                    if not n.get("transicion_habilitada"):
+                        continue
+                    cands = [t for t in transiciones if t.get("desde_etapa") == dep
+                             and t.get("hacia_etapa") in (mid, None, "")]
+                    ref = por_id.get(n.get("ref_aprobacion") or "")
+                    if ref and ref.get("tipo") == "transicion" and ref.get("hacia_etapa") in (mid, None, ""):
+                        cands.append(ref)
+                    if cands and max(_orden(t) for t in cands) < _orden(r):
+                        sin_suspender.append(dep)
+                if critico and marca:
+                    fallos.append(f"7g. [03 §3d-bis] {r['id']}: {xid} es un insumo critico; la revision no "
+                                  "sustantiva no aplica (siempre §3c).")
+                    continue
+                if not sin_suspender:
+                    continue  # §3c: la transicion se suspendio y se re-aprobo despues (o sigue suspendida)
+                if critico:
+                    fallos.append(f"7g. [03 §3c] {r['id']}: re-aprobacion del insumo critico {xid} con la transicion "
+                                  f"{', '.join(sin_suspender)} -> {mid} habilitada; debe suspenderse (§3c).")
+                    continue
+                if not marca:
+                    fallos.append(f"7g. [03 §3c/§3d-bis] {r['id']}: re-aprobacion de {xid} con la transicion "
+                                  f"{', '.join(sin_suspender)} -> {mid} habilitada y sin el marcador "
+                                  f"«{MARCADOR_3D_BIS}» en condiciones; aplica §3c (suspender la transicion).")
+                    continue
+                just = _normal(r.get("justificacion"))
+                faltan = [x for x in ("(a)", "(b)", "(c)", "(d)") if x not in just]
+                if len(just.strip()) < 10 or faltan:
+                    fallos.append(f"7g. [03 §3d-bis] {r['id']}: la justificacion de la revision no sustantiva de {xid} "
+                                  f"no da la evidencia de {', '.join(faltan) or '(a)-(d)'}.")
+                if ORDEN_RIESGO.get(r.get("riesgo"), -1) < ORDEN_RIESGO.get(propias[0].get("riesgo"), -1):
+                    fallos.append(f"7g. [03 §3d-bis] {r['id']}: riesgo '{r.get('riesgo')}' menor que el de la primera "
+                                  f"aprobacion de {xid} ({propias[0]['id']}, '{propias[0].get('riesgo')}').")
+                if _rol(r) not in ROLES_APROBADOR_ETAPA:
+                    fallos.append(f"7g. [03 §3d-bis] {r['id']}: la revision no sustantiva la decide el aprobador de la "
+                                  f"etapa (Desarrollador, PO o Aprobador designado), no '{_rol(r)}'.")
     return fallos
 
 

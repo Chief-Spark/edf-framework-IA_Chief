@@ -230,3 +230,119 @@ def test_main_reporta_la_regla_5(est, tmp_path, capsys):
     est["preguntas_abiertas"][-1]["etapa_afectada"] = "state_calculation"
     ruta.write_text(json.dumps(est, ensure_ascii=False), encoding="utf-8")
     assert ve.main([str(ruta)]) == 0
+
+
+# --- Regla 7g: revisión no sustantiva de un insumo (references/03 §3d-bis, 1.9.13; corrida E2E SISBEN, HF-80) ---
+
+EVIDENCIA_3D_BIS = ("Re-auditoría por diferencia: (a) desplegables regenerados idénticos sin comentarios; (b) solo cambia "
+                    "una clave de prueba; (c) sin cambios de decisión, alcance, riesgo ni marcadores; (d) mismas "
+                    "preguntas y riesgos.")
+
+
+def con_hora(a, hora):
+    a["timestamp"] = f"2026-11-24T{hora}:00-05:00"
+    return a
+
+
+@pytest.fixture
+def cascada(est):
+    """ART-010 aprobado (APR-001) antes de la transición analisis -> validation (APR-002); validation aprobada y su
+    sucesora acceptance en progreso: un §3c obligaría a desaprobar validation."""
+    est["aprobaciones"] = [con_hora(apr("APR-001", "artefacto", riesgo="medio", artefactos=["ART-010"]), "09:00"),
+                           con_hora(apr("APR-002", "transicion", desde="analisis", hacia="validation"), "10:00")]
+    etapa(est, "analisis")["ref_aprobacion"] = "APR-002"
+    va = etapa(est, "validation")
+    for a in va["artefactos"]:
+        a["estado_artefacto"] = "aprobado"
+    va.update(estado="aprobada", transicion_habilitada=True, ref_aprobacion="APR-003")
+    va["evidencia_pipeline"]["observada"] = "s3://sintetico/validated/"
+    etapa(est, "acceptance")["artefactos"][0]["estado_artefacto"] = "aprobado"
+    etapa(est, "acceptance")["estado"] = "en_progreso"
+    est["aprobaciones"].append(con_hora(apr("APR-003", "transicion", riesgo="medio", desde="validation",
+                                            hacia="acceptance"), "11:00"))
+    assert codigos(est) == []  # durante la revisión el insumo sigue aprobado con el hash anterior
+    return est
+
+
+def reaprobar(e, aid="APR-004", hora="12:00", riesgo="medio", marcador=True, justificacion=EVIDENCIA_3D_BIS, **kw):
+    r = con_hora(apr(aid, "artefacto", riesgo=riesgo, artefactos=["ART-010"], justificacion=justificacion, **kw), hora)
+    if marcador:
+        r["condiciones"] = ["Revisión no sustantiva (§3d-bis)"]
+    e["aprobaciones"].append(r)
+    return r
+
+
+def test_7g_revision_no_sustantiva_aceptada(cascada):
+    reaprobar(cascada)
+    assert codigos(cascada) == []
+
+
+def test_7g_sin_marcador_se_rechaza(cascada):
+    """Cambio sustantivo (o no declarado): re-aprobar el insumo sin suspender la transición es hallazgo."""
+    reaprobar(cascada, marcador=False)
+    fallos = ve.reglas_gobierno(cascada)
+    assert codigos(cascada) == ["7g."] and "aplica §3c" in fallos[0] and "ART-010" in fallos[0]
+
+
+def test_7g_insumo_critico_se_rechaza(cascada):
+    etapa(cascada, "validation")["artefactos"][0]["riesgo"] = "critico"
+    reaprobar(cascada, riesgo="critico", rol="PO")
+    fallos = ve.reglas_gobierno(cascada)
+    assert codigos(cascada) == ["7g."] and "critico" in fallos[0]
+    # Sin el marcador tampoco: con la transición habilitada, un insumo crítico solo se revisa por §3c.
+    cascada["aprobaciones"][-1]["condiciones"] = []
+    assert codigos(cascada) == ["7g."]
+
+
+def test_7g_marcador_exige_evidencia_riesgo_y_aprobador(cascada):
+    r = reaprobar(cascada, justificacion="Cambio menor de una clave de prueba (a) y (b).")
+    assert codigos(cascada) == ["7g."] and "(c), (d)" in ve.reglas_gobierno(cascada)[0]
+    r["justificacion"] = EVIDENCIA_3D_BIS
+    r["riesgo"] = "bajo"  # la primera fue medio
+    assert codigos(cascada) == ["7g."]
+    r["riesgo"] = "medio"
+    r["actor"]["rol"] = "Experto de dominio EDF"
+    assert codigos(cascada) == ["7g."]
+
+
+def test_7g_via_3c_sigue_valida(cascada):
+    """Historial de la corrida SISBEN (ART-010, APR-005 y APR-006): la transición se re-aprueba después del insumo
+    (mismo timestamp, APR posterior). No lleva marcador y no es hallazgo."""
+    reaprobar(cascada, marcador=False, hora="12:00")
+    cascada["aprobaciones"].append(con_hora(apr("APR-005", "transicion", desde="analisis", hacia="validation"),
+                                            "12:00"))
+    etapa(cascada, "analisis")["ref_aprobacion"] = "APR-005"
+    assert codigos(cascada) == []
+
+
+def test_7g_transicion_suspendida_no_es_hallazgo(est):
+    """§3c en curso: insumo re-aprobado con la transición todavía suspendida."""
+    est["aprobaciones"] = [con_hora(apr("APR-001", "artefacto", riesgo="medio", artefactos=["ART-010"]), "09:00"),
+                           con_hora(apr("APR-002", "transicion", desde="analisis", hacia="validation"), "10:00")]
+    etapa(est, "analisis").update(ref_aprobacion="APR-002", transicion_habilitada=False)
+    etapa(est, "validation")["estado"] = "no_iniciada"
+    reaprobar(est, marcador=False)
+    assert codigos(est) == []
+
+
+def test_7g_marcador_sin_aprobacion_anterior(est):
+    reaprobar(est, aid="APR-009", hora="08:00")
+    assert codigos(est) == ["7g."]
+
+
+def test_7g_marcador_sin_tildes_ni_mayusculas(cascada):
+    r = reaprobar(cascada)
+    r["condiciones"] = ["revision no sustantiva (§3d-bis): solo la clave de prueba"]
+    assert codigos(cascada) == []
+
+
+def test_main_reporta_7g(cascada, tmp_path, capsys):
+    pytest.importorskip("jsonschema")
+    reaprobar(cascada, marcador=False)
+    ruta = tmp_path / "estado-ingesta.json"
+    ruta.write_text(json.dumps(cascada, ensure_ascii=False), encoding="utf-8")
+    assert ve.main([str(ruta)]) == 1
+    assert "7g. [03 §3c/§3d-bis] APR-004" in capsys.readouterr().out
+    cascada["aprobaciones"][-1]["condiciones"] = [ve.MARCADOR_3D_BIS]
+    ruta.write_text(json.dumps(cascada, ensure_ascii=False), encoding="utf-8")
+    assert ve.main([str(ruta)]) == 0
