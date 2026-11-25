@@ -2262,3 +2262,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0133 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa pinning: se agrega PA-010 a sus preguntas (PA-008 y PA-009 quedan como historial, resueltas) y RG-025 a sus riesgos (AUD-P-17) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:01:17-05:00 |
+| **Por qué** | Hallazgo AUD-P-17 del auditor de Pinning |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 |
+| **Corrige** | BIT-0127 |
+
+---

@@ -430,6 +430,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:57:48-05:00
 - **Pedido:** Re-auditar ART-050 v2 con el framework 1.9.8.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-050 v2 APROBADO. Ajustes aplicados y citados; ninguna clave compartida con valor para escribir; condición del §3e cumplida (hechos de RG-025 en [PM], lista y reglas vacías); verificadores OK; el verificador detecta la v1. Nuevos: AUD-P-13 (insumo P2, «persona existente» sin marcador), AUD-P-14 (framework P1: semilla, 04-contratos y prompt 00 siguen exigiendo matcher, identifying-attributes.json y bloque con reusePIN=false como ART-051..053), AUD-P-15 (verificador acepta «false (no se escribe…)» y reusePIN con mayúsculas), AUD-P-16 (plantilla pide [A:*] donde el §3e manda [PM]), AUD-P-17 (preguntas de la etapa pinning desactualizadas).
+- **Decisión:** AUD-P-14..16 al corrector (1.9.9) antes de generar Pinning; AUD-P-17 lo corrige el Orquestador; AUD-P-13 para una v3 si hiciera falta.
 - **Bitácora:** —

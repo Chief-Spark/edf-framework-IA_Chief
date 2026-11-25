@@ -98,3 +98,49 @@ Imposible de verificar sin el fork: todo (b) y (c), y el contenido de la lista c
 | Lectura de `pinning-application.conf`, `oxygen-config-default.conf:340-375`, `identifying-attributes.json` | `ISIdentityMatcher` solo en el conf de ejemplo (`:25`); por defecto `identityMatcher = ""` (`:370`), `groupSSR = true` (`:363`), `nearNeighborBlockSize = 700` (`:372`) |
 | Aritmética de `ISIdentityMatcher` con todos los slots en `""` | 0.5 + 0.3 + 0.3 = 1.1 ≥ 0.6: cierto. Llaves `List("")` (`:85`, el prefijo de nombre da `null` y se filtra). No decide el resultado (AUD-P-04) |
 | grep `Colombia`/`reusePin` en `edf-pinning/evals/` y `references/` | 0 casos (AUD-P-10) |
+
+## 6. Insumo v2
+
+| Campo | Valor |
+|---|---|
+| Alcance | ART-050 v2 (`insumos/yaml-skill-pinning.yaml`, versión 2.0.0, sha256 `be720540…` = el reportado en INT-053), framework 1.9.8 (`VERSION`; commit `d9d7488`, HF-57..62), decisiones de INT-052 (`registro-interacciones.md:413-419`) y `edf-orquestador/references/03-gobierno-riesgo-aprobacion.md` §3e (`:90-99`) |
+| **Dictamen de ART-050 v2** | **APROBADO.** Los siete ajustes autorizados (AUD-P-01, -02, -04..-08) están aplicados y citados. Ninguna clave compartida lleva un valor listo para escribir, ni booleano ni de otro tipo. Ningún valor que vaya a un artefacto depende de un hecho de RG-025: esos hechos van `[PM] (RG-025)` y ninguno es `[C]` (§3e, condiciones 1 y 2). Los dos verificadores dan rc=0, y el verificador nuevo rechaza la v1 por `reusePin`. Queda un P2 de marcador en el insumo (AUD-P-13) que no bloquea. Los demás hallazgos son del framework. El P1 (AUD-P-14) no afecta al insumo, pero sí a la aprobación de la etapa |
+
+### 6.1 Ajustes autorizados
+
+| Ajuste | Aplicado en v2 | Resultado |
+|---|---|---|
+| AUD-P-01 | `:206-210`: `valor_en_fuente` como texto; `valor_a_escribir: "no se escribe en modo Colombia (PA-009 resuelta…)"` | Aplicado. Ningún valor de `claves_configuracion_pinning` deja de ser texto (recorrido del YAML parseado: los únicos booleanos son `modo_colombia.aplica`, `reglas_matching_por_campo.aplica` y los indicadores `obligatorio`/`pii` de los atributos) |
+| AUD-P-02 | `:84`, `:207-209` (decisión del PO, PA-009); `:86` (PA-010 para la spec) | Aplicado. El valor ya no se marca `[C]` como instrucción |
+| AUD-P-04 | `:179-194`, `:238` | Aplicado: condición (conf de ejemplo completo), casos fail-fast (`:370`, `ISIdentityMatcher.scala:78-83`), mecanismo `[P]` (`SparkPinner.scala:1756-1770`), `:676`, `:719-723`, efecto. Las líneas citadas se reproducen |
+| AUD-P-05 | `:72`, `:235` | Aplicado. `EventPinner` ya no aparece en el insumo (grep vacío; el verificador no avisa) |
+| AUD-P-06 | `:68` (rama `INPUT_REF_DIR` `[PM]`), `:71` (`[C]` comentario · `[P]` comportamiento), `:74` (`NullIdentityMatcher`, `TestIdentityMatcher.scala:6`) | Aplicado |
+| AUD-P-07 | `:223-227` (`relacion_con_pinnedDir`, `oxygen-config-default.conf:344`, PA-010) | Aplicado |
+| AUD-P-08 | `:66`, `:83` (estados RESUELTA, iguales a `estado-ingesta.json`); `:85` (opción (b) como hallazgo N4 escalado, `06:75-77`) | Aplicado |
+| AUD-P-03 → RG-025 | `:79`, `:106`, `:111` | Registrado como riesgo dentro de RG-025, `[PM]`, con su consecuencia (pregunta bloqueante para la certificación si el fork lo confirma). Coincide con RG-025 en `estado-ingesta.json` |
+| Defecto 5 → campo HF-60 | `:108-112` `modo_colombia.umbral_y_matcher_determinista` | Usa el campo nuevo de la plantilla (`yaml-skill-pinning.yaml.tpl:26-30`) |
+
+Condición §3e: los valores que llegan a un artefacto son el bloque HOCON sin claves compartidas (solo comentarios `VERIFICAR`) y la lista de claves del evento. Ninguno lleva una clase, un FQCN, un umbral ni un valor de RG-025 como valor activo: `identityMatcher`, `identifyingAttributesFile` y `reusePin` dicen «no se redefine» o «no se escribe» (`:199`, `:203`, `:208`). `valor_resultante` y `reglas` son `[]` (`:177`, `:169`). Las únicas dos apariciones de `[A:` son la leyenda (`:13`) y la nota de `marcado_heredado` (`:89`). Residuo aceptado: ART-034 sigue citando `EventPinner.scala:64-65` (`contrato-curation-pinning.md:9,21,69,77`). INT-052 decidió no revisarlo por §3c; el insumo ya no hereda esa cita.
+
+### 6.2 Hallazgos nuevos
+
+| ID | Clasificación | Sev. | Hallazgo | Evidencia | Corrección |
+|---|---|---|---|---|---|
+| AUD-P-13 | insumo | P2 | En `escenarios_hu`, el `[C]` corresponde a la letra de la HU. La frase «Se cumple con el pinning estático de la aplicación compartida (`SparkPinner.scala:881-905`), que no se modifica» queda sin marcador, pero depende de hechos que el propio insumo deja `[PM]`: que el `reusePin` vigente sea `true`, que `pinnedReferenceDir` esté definido y que haya un único identity-pin-map (`SparkPinner.scala:409`, `:420`; insumo `:214`; RG-025). Por §3e, regla 2, el cumplimiento va `[PM]`, nunca `[C]` | `yaml-skill-pinning.yaml:229` | En la próxima versión: «… [C] escenario · cumplimiento [PM] (RG-025: valor vigente de reusePin, pinnedReferenceDir)». Por sí solo no justifica una v3 |
+| AUD-P-14 | framework (orquestador) | **P1** | HF-57/HF-59 no llegaron al catálogo de artefactos del Orquestador. La semilla del expediente sigue exigiendo como obligatorios un `<Fuente>IdentityMatcher.scala (o matcher compartido) (con verificacion aritmetica del umbral)`, un `identifying-attributes.json` y un «bloque HOCON … con reusePIN = false (ingesta nueva)». El contrato de la skill exige además el «Valor declarado de `reusePIN` (**`false` en ingesta nueva**)», y el prompt de inicio sigue diciendo «ingesta nueva → `reusePIN = false`». En el expediente, ART-051..053 son obligatorios con esos nombres. En modo Colombia, la etapa no se podría aprobar sin artefactos que la skill ya no genera, o empujaría a generarlos | `edf-orquestador/templates/estado-ingesta.seed.json:388-406`; `references/04-contratos-por-skill.md:79-82`; `prompts/00-iniciar-ingesta.md:21`; `estado-ingesta.json` ART-051..053 | Catálogo por modo. En modo Colombia: ART-051 y ART-052 «no aplica (piezas compartidas, SKILL «Modo Colombia»)», con justificación; ART-053 «bloque HOCON sin claves compartidas»; la fila de `reusePIN`, «valor de la fuente como dato; no se escribe». Ajustar el expediente con el Orquestador |
+| AUD-P-15 | framework (herramientas) | P2 | `verificar-insumo-pinning.py` tiene dos puntos ciegos, probados con copias mutadas en el scratchpad. (i) Acepta `valor_a_escribir: "false (no se escribe hasta cerrar PA-009)"`, porque basta que la cadena contenga «no se escribe». (ii) Acepta `clave: "reusePIN"` (la grafía de la spec) con `valor_a_escribir: false`, porque compara el nombre de la clave con mayúsculas y minúsculas exactas. Los dos dan «insumo de Pinning OK». Tampoco revisa `pendientes_de_configuracion` | `tools/verificar-insumo-pinning.py:51-53`, `:126-128` | Comparar el nombre de la clave sin distinguir mayúsculas. Rechazar un valor que empiece por `true`/`false` o por un número aunque sea texto. Revisar también `pendientes_de_configuracion`. Añadir los dos casos a `tests/test_verificar_insumo_pinning.py` |
+| AUD-P-16 | framework | P2 | La plantilla pide `estado: "[A:<ID>] mientras no se confirme en el código del fork"` para el campo nuevo. Con verificación diferida, §3e regla 2 manda `[PM]`. El insumo siguió §3e y acertó; la plantilla no prevé el caso | `yaml-skill-pinning.yaml.tpl:30`; `references/03…md:95` | «`[A:<ID>]`; con verificación diferida (§3e), `[PM] (RG-nnn)`» |
+| AUD-P-17 | estado (Orquestador) | P2 | `etapas[pinning].preguntas_abiertas` sigue en `["PA-008", "PA-009"]` (las dos resueltas) y no incluye PA-010 (abierta, `etapa_afectada: pinning`) | `estado-ingesta.json`, etapa `pinning` | Actualizar la lista con el Orquestador |
+
+### 6.3 Verificaciones (sin compilar, sin PowerShell, git solo de lectura)
+
+| Verificación | Resultado |
+|---|---|
+| `sha256sum insumos/yaml-skill-pinning.yaml` | `be720540881c…f4793` (= INT-053) |
+| `python3 tools/verificar-insumo-pinning.py --archivo EXP/insumos/yaml-skill-pinning.yaml --contrato EXP/insumos/contrato-curation-pinning.md` | «insumo de Pinning OK», sin avisos, rc=0 |
+| `python3 tools/verificar-claves.py --dir EXP/insumos` | «claves coherentes» (34 claves, 9 citas), rc=0 |
+| v1 (`git show 5f47629:…/yaml-skill-pinning.yaml` al scratchpad; sha256 `c36f449a…` = la v1 auditada) con el verificador nuevo | rc=1: «X ERROR Colombia: oxygen.stage.pinning.reusePin = False está listo para escribir … (HF-57)», más dos avisos (falta `valor_en_fuente`; cita de `EventPinner`). Detecta la v1 |
+| Dos copias mutadas de la v2 (scratchpad) | Las dos pasan como OK (AUD-P-15) |
+| `pytest tests/test_verificar_insumo_pinning.py tests/test_regresion_e2e_pinning.py` | 23 passed |
+| Recorrido del YAML parseado: valores que no son texto y apariciones de `[A:` y `EventPinner` | Sin booleanos ni números en claves compartidas; `[A:` solo en `:13` y `:89`; `EventPinner` ausente |
+| Lectura de `edf-pinning/SKILL.md` «Modo Colombia», `pinning-application-block.conf.template:15-49`, steering `11:27-32,125`, `references/03` §3e, INT-052, PA-008/009/010, RG-002 y RG-025 en el expediente | HF-57..62 aplicados en la skill, la plantilla y el steering. Lo que queda está en AUD-P-14 y AUD-P-16 |
