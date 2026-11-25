@@ -414,6 +414,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:44:59-05:00
 - **Pedido:** Decidir PA-009 (reusePin), PA-008 sin fork y los ajustes de ART-050.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
-- **Bitácora:** —
+- **Respuesta:** (1, SIM-PO-01) PA-009 opción (a): no escribir reusePin; «reusePIN = false» = ingesta sin PIN previos propios; supuesto del PO; PA-010 no bloqueante para la spec; RG-002 reescrito; escalamiento si en el fork el valor compartido es false. (2) PA-008: (a) resuelta; (b)(c) a verificación diferida (riesgo alto) que bloquea fork y certificación de Pinning, Synthesis y State Calculation, no la corrida; ningún artefacto puede depender de (b)(c). (3) AUD-P-03 como riesgo dentro del mismo. (4) Autoriza AUD-P-01, -02, -04..-08; ART-034 no se revisa por §3c (nota en bitácora). Pide un HF para formalizar la «verificación diferida» en references/03.
+- **Decisión:** PA-009 y PA-008 resueltas, PA-010 abierta, RG-025 (verificación diferida del matcher), RG-002 y RG-019 actualizados, nota de ART-034 (BIT-0125..0131). HF-62 (formalizar la verificación diferida). Ronda 2 del analista cuando 1.9.8 esté publicado.
+- **Bitácora:** BIT-0125..BIT-0131

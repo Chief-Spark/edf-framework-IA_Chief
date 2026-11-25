@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T21:43:42-05:00",
-    "vista_md_regenerada_en": "2026-11-24T21:43:42-05:00"
+    "actualizado_en": "2026-11-24T21:47:14-05:00",
+    "vista_md_regenerada_en": "2026-11-24T21:47:14-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -658,7 +658,8 @@
       "riesgos": [
         "RG-002",
         "RG-020",
-        "RG-021"
+        "RG-021",
+        "RG-025"
       ],
       "transicion_habilitada": false,
       "nota_regla_de_corte": null
@@ -1436,11 +1437,11 @@
       "origen": "AUD-C-11/16; INT-044 punto 2c; steering 11 §6 #2 y #7. Dirigida al Desarrollador con Ingesta 3; cierre N3.",
       "etapa_afectada": "pinning",
       "bloqueante": true,
-      "estado": "abierta",
+      "estado": "resuelta",
       "abierta_en": "2026-11-24T21:30:01-05:00",
-      "resuelta_en": null,
-      "respuesta": null,
-      "ref_bitacora": "BIT-0101"
+      "resuelta_en": "2026-11-24T21:47:03-05:00",
+      "respuesta": "[SIMULADO · aprobador SIM-DEV-01] (a) resuelta con el motor (PinningIOUtils.scala:23-31, OxygenIOReaderUtils.scala:72-75). (b) y (c) pasan a verificación diferida en RG-025 (alto): bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation, no la corrida. Condición: ningún artefacto lleva valores que dependan de (b)/(c) (FQCN, atributos, umbral, comparación); si alguno los necesita, PA-008 vuelve a bloquear. Hechos marcados [PM] (RG-025), nunca [C].",
+      "ref_bitacora": "BIT-0126"
     },
     {
       "id": "PA-009",
@@ -1448,11 +1449,23 @@
       "origen": "Analista (INT-047); spec §11; RG-002; logica-pinning.md §8. Dirigida al Desarrollador con Ingesta 3; cierra el PO.",
       "etapa_afectada": "pinning",
       "bloqueante": true,
-      "estado": "abierta",
+      "estado": "resuelta",
       "abierta_en": "2026-11-24T21:35:47-05:00",
+      "resuelta_en": "2026-11-24T21:47:03-05:00",
+      "respuesta": "[SIMULADO · aprobador SIM-PO-01] Opción (a): el bloque de SISBEN no escribe reusePin. «reusePIN = false» (spec §1, §11; HU §3, R-24, §5.4) significa que SISBEN es ingesta nueva sin PIN previos propios, no un valor de la clave global oxygen.stage.pinning.reusePin (escribir false renumera todas las fuentes, SparkPinner.scala:979-985, y rompe HU §5.4 «persona existente»). (b) es N4: se documenta y se escala, no se ofrece. (c) rompe el cruce entre fuentes. Supuesto del PO simulado; aclaración en PA-010. Si en el fork el valor compartido es false, se escala al PO y a Ingesta 3 sin cambiar nada desde la ingesta.",
+      "ref_bitacora": "BIT-0125"
+    },
+    {
+      "id": "PA-010",
+      "pregunta": "Para la próxima versión de HU y spec: (1) ¿qué significa «reusePIN = false» (ingesta sin PIN previos propios, no la clave global de la aplicación compartida)? (2) La ruta Pinned propia de spec §14 frente al pinnedDir único de la aplicación de Pinning de Colombia (AUD-P-07).",
+      "origen": "PA-009 (INT-052); AUD-P-02, AUD-P-07. Dirigida al PO.",
+      "etapa_afectada": "pinning",
+      "bloqueante": false,
+      "estado": "abierta",
+      "abierta_en": "2026-11-24T21:47:03-05:00",
       "resuelta_en": null,
       "respuesta": null,
-      "ref_bitacora": "BIT-0108"
+      "ref_bitacora": "BIT-0127"
     }
   ],
   "riesgos": [
@@ -1466,10 +1479,10 @@
     },
     {
       "id": "RG-002",
-      "descripcion": "reusePIN mal declarado en una ingesta nueva corrompe la asignacion de PIN.",
+      "descripcion": "reusePin es una clave global de la aplicación de Pinning de Colombia (SparkPinner.scala:223,409): escribirla desde una ingesta renumera los PIN de todas las fuentes (:979-985); en SISBEN no se escribe (PA-009)",
       "nivel": "alto",
       "etapa_afectada": "pinning",
-      "mitigacion": "reusePIN es artefacto obligatorio de Pinning y elevador automatico de riesgo a alto.",
+      "mitigacion": "edf-pinning 1.9.8 no escribe reusePin en modo Colombia (HF-57); cambiar la clave compartida es N4 y se escala",
       "estado": "abierto"
     },
     {
@@ -1605,7 +1618,7 @@
       "descripcion": "Las claves standardizedId* se omiten cuando son nulas (omitir_si_nulas, steering 11 §3) en lugar de salir nulas como dice la letra de spec §10.1 para standardizedIdName",
       "nivel": "bajo",
       "etapa_afectada": "curation_flow",
-      "mitigacion": "Aceptado por el Desarrollador (INT-038): omitir la clave equivale a nulo para el matching (IdentityMatcher.scala:46-49) y un null explícito rompe EventPinner.scala:64-65; marcador [P]; PA-007 para la próxima versión de la spec",
+      "mitigacion": "Aceptado por el Desarrollador (INT-038): omitir la clave equivale a nulo para el matcher; con el matcher de referencia un null rompe la comparación (ISIdentityMatcher.scala:46-54, evidencia corregida por AUD-P-05: EventPinner.scala:64-65 no se usa en batch); para Colombia queda [PM] (RG-025); PA-007",
       "estado": "aceptado"
     },
     {
@@ -1647,14 +1660,22 @@
       "etapa_afectada": "curation_stock",
       "mitigacion": "Prompt 05: corrida de collection-stock con horario confirmado; curatedDir/stock con los SISBEN del corte iguales a flow; demás fuentes sin cambios; después de RG-022 y RG-023",
       "estado": "abierto"
+    },
+    {
+      "id": "RG-025",
+      "descripcion": "Verificación diferida del matcher de Colombia: ColombiaIdentityMatcher no está en Motor-Oxigen; sin fork no se verifican su FQCN, la comparación del standardizedIdType entero y el juego de códigos de las otras fuentes (RG-020), si \"\" cuenta como nulo en la regla 0, identifying-attributes-new.json, la Ñ (RG-021), AUD-P-03 (¿exige nombre además de tipo+número?) ni el umbral vigente (defecto 5)",
+      "nivel": "alto",
+      "etapa_afectada": "pinning",
+      "mitigacion": "Bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation (sus aprobaciones lo citan). Se cierra en el fork con esos hechos y las confirmaciones [PM] de PA-009 (valor vigente de reusePin, *-common-application.conf, pinnedReferenceDir, HBase, curatedDir/INPUT_REF_DIR). Si el fork confirma que la regla exige nombre, pregunta bloqueante para la certificación de pinning al PO",
+      "estado": "abierto"
     }
   ],
   "backlog_evolutivo": [],
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0124",
-    "eventos_totales": 124,
+    "ultimo_evento": "BIT-0132",
+    "eventos_totales": 132,
     "append_only": true,
     "retencion_meses": 24
   }

@@ -2126,3 +2126,139 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0125 · `cierre_pregunta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-009 resuelta: [SIMULADO · aprobador SIM-PO-01] Opción (a): el bloque de SISBEN no escribe reusePin. «reusePIN = false» (spec §1, §11; HU §3, R-24, §5.4) significa que SISBEN es ingesta nueva sin PIN previos propios, no un valor de la clave global oxygen.stage.pinning.reusePin (escribir false renumera todas las fuentes, SparkPinner.scala:979-985, y rompe HU §5.4 «persona existente»). (b) es N4: se documenta y se escala, no se ofrece. (c) rompe el cruce entre fuentes. Supuesto del PO simulado; aclaración en PA-010. Si en el fork el valor compartido es false, se escala al PO y a Ingesta 3 sin cambiar nada desde la ingesta. |
+| **Quién** | PO SIM-PO-01 (SIMULADO, INT-052) |
+| **Cuándo** | 2026-11-24T21:47:03-05:00 |
+| **Por qué** | Respuesta del aprobador simulado con cita a las fuentes. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0126 · `cierre_pregunta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-008 resuelta: [SIMULADO · aprobador SIM-DEV-01] (a) resuelta con el motor (PinningIOUtils.scala:23-31, OxygenIOReaderUtils.scala:72-75). (b) y (c) pasan a verificación diferida en RG-025 (alto): bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation, no la corrida. Condición: ningún artefacto lleva valores que dependan de (b)/(c) (FQCN, atributos, umbral, comparación); si alguno los necesita, PA-008 vuelve a bloquear. Hechos marcados [PM] (RG-025), nunca [C]. |
+| **Quién** | Desarrollador SIM-DEV-01 (SIMULADO, INT-052) |
+| **Cuándo** | 2026-11-24T21:47:03-05:00 |
+| **Por qué** | Respuesta del aprobador simulado con cita a las fuentes. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0127 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-010: Para la próxima versión de HU y spec: (1) ¿qué significa «reusePIN = false» (ingesta sin PIN previos propios, no la clave global de la aplicación compartida)? (2) La ruta Pinned propia de spec §14 frente al pinnedDir único de la aplicación de Pinning de Colombia (AUD-P-07). |
+| **Quién** | PO SIM-PO-01 (SIMULADO, INT-052) |
+| **Cuándo** | 2026-11-24T21:47:03-05:00 |
+| **Por qué** | PA-009 (INT-052); AUD-P-02, AUD-P-07. Dirigida al PO. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0128 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-025 (alto, pinning): Verificación diferida del matcher de Colombia: ColombiaIdentityMatcher no está en Motor-Oxigen; sin fork no se verifican su FQCN, la comparación del standardizedIdType entero y el juego de códigos de las otras fuentes (RG-020), si "" cuenta como nulo en la regla 0, identifying-attributes-new.json, la Ñ (RG-021), AUD-P-03 (¿exige nombre además de tipo+número?) ni el umbral vigente (defecto 5) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:47:04-05:00 |
+| **Por qué** | Desarrollador SIM-DEV-01 (SIMULADO, INT-052), PA-008 (b)(c) y AUD-P-03 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0129 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-002 (alto, pinning): reusePin es una clave global de la aplicación de Pinning de Colombia (SparkPinner.scala:223,409): escribirla desde una ingesta renumera los PIN de todas las fuentes (:979-985); en SISBEN no se escribe (PA-009) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:47:04-05:00 |
+| **Por qué** | PO SIM-PO-01 (SIMULADO, INT-052), condición 2 de PA-009 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0130 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-019 (bajo, curation_flow): Las claves standardizedId* se omiten cuando son nulas (omitir_si_nulas, steering 11 §3) en lugar de salir nulas como dice la letra de spec §10.1 para standardizedIdName |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:47:04-05:00 |
+| **Por qué** | Desarrollador SIM-DEV-01 (SIMULADO, INT-052), AUD-P-05 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | bajo |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0131 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Nota sobre ART-034 (sin revisión §3c): la evidencia de «null lanza» es ISIdentityMatcher.scala:46-54 (EventPinner.scala:64-65 no se usa en batch) y el lector sí está en oxygen-pinning (PinningIOUtils.scala:23-46); se corrige en la próxima versión del contrato. La decisión de omitir nulos (RG-019) no cambia |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:47:04-05:00 |
+| **Por qué** | Desarrollador SIM-DEV-01 (SIMULADO, INT-052), AUD-P-05 y defecto 2 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | ART-034 |
+| **Trazabilidad** | R3.4 |
+| **Corrige** | BIT-0103 |
+
+---
+
+## BIT-0132 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:47:14-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

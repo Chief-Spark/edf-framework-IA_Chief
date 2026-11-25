@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T21:43:42-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T21:47:14-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 124 eventos, último BIT-0124 |
+| Bitácora | 132 eventos, último BIT-0132 |
 
 ## Etapas
 
@@ -97,15 +97,16 @@
 - PA-005 (abierta, no bloqueante): ¿De dónde obtiene el reporting estándar el contador REGISTROS MENORES DE EDAD (HU §5.1, spec §5 RF-02) si el filtro de Validation no deja contador (SparkValidator.scala:1128-1130)?
 - PA-006 (resuelta, bloqueante): ¿Qué valores usa Acceptance donde la HU y la spec callan? (a) nombre de la condición y reasonCode del rechazo por FQS (propuesta de la skill: RQS_BAJO_UMBRAL_SISBEN / SISBFA00001); (b) archivo sin registros (propuesta: aceptar_cuerpo_vacio false, rechazo automático); (c) customReasonForAutomaticRejectionEnabled (propuesta: true).
 - PA-007 (abierta, no bloqueante): Para la próxima versión de la spec: (1) ¿§10.1 debe decir «ausente (clave omitida) si todos faltan» en vez de «nulo» para standardizedIdName (un null rompe EventPinner)? (2) ¿El tipo «Ninguna» → texto debe publicar el valor literal sin recortar bordes? (hoy se recorta: supuesto del aprobador simulado).
-- PA-008 (abierta, bloqueante): Para Pinning: (a) ¿cómo lee oxygen-pinning el evento curado (steering 11 §6 #2)? (b) En el fork: ¿existe ColombiaIdentityMatcher, cuál es su firma, compara por toString, y qué juego de códigos publican en standardizedIdType las otras fuentes de Colombia (RG-020)? (c) ¿Cómo tratan la Ñ las otras fuentes (RG-021)?
-- PA-009 (abierta, bloqueante): oxygen.stage.pinning.reusePin es una sola clave para toda la aplicación de Pinning de Colombia (SparkPinner.scala:223,409), que lee las curadas de todas las fuentes: escribir false regenera los PIN de todas las fuentes. ¿(a) no tocar la clave (SISBEN es ingesta nueva sin generación previa propia), (b) escribir false en el conf de Colombia (riesgo N4 sobre las demás fuentes) o (c) una aplicación de Pinning propia para SISBEN?
+- PA-008 (resuelta, bloqueante): Para Pinning: (a) ¿cómo lee oxygen-pinning el evento curado (steering 11 §6 #2)? (b) En el fork: ¿existe ColombiaIdentityMatcher, cuál es su firma, compara por toString, y qué juego de códigos publican en standardizedIdType las otras fuentes de Colombia (RG-020)? (c) ¿Cómo tratan la Ñ las otras fuentes (RG-021)?
+- PA-009 (resuelta, bloqueante): oxygen.stage.pinning.reusePin es una sola clave para toda la aplicación de Pinning de Colombia (SparkPinner.scala:223,409), que lee las curadas de todas las fuentes: escribir false regenera los PIN de todas las fuentes. ¿(a) no tocar la clave (SISBEN es ingesta nueva sin generación previa propia), (b) escribir false en el conf de Colombia (riesgo N4 sobre las demás fuentes) o (c) una aplicación de Pinning propia para SISBEN?
+- PA-010 (abierta, no bloqueante): Para la próxima versión de HU y spec: (1) ¿qué significa «reusePIN = false» (ingesta sin PIN previos propios, no la clave global de la aplicación compartida)? (2) La ruta Pinned propia de spec §14 frente al pinnedDir único de la aplicación de Pinning de Colombia (AUD-P-07).
 
 ## Riesgos
 
 | ID | Nivel | Etapa | Estado | Descripción |
 |---|---|---|---|---|
 | RG-001 | alto | analisis | abierto | El analisis produce un mapeo incompleto por specs ambiguas; el contexto defectuoso se arrastra a las etapas siguientes. |
-| RG-002 | alto | pinning | abierto | reusePIN mal declarado en una ingesta nueva corrompe la asignacion de PIN. |
+| RG-002 | alto | pinning | abierto | reusePin es una clave global de la aplicación de Pinning de Colombia (SparkPinner.scala:223,409): escribirla desde una ingesta renumera los PIN de todas las fuentes (:979-985); en SISBEN no se escribe (PA-009) |
 | RG-003 | critico | state_calculation | abierto | R-26 sin mecanismo definido: un PIN ausente del archivo vigente podría conservar su sección #sisben (impacto N4). |
 | RG-004 | medio | validation | abierto | Los reportes de ingesta enviados al DNP llevan tipo y número de documento (PII). |
 | RG-005 | bajo | curation_flow | abierto | La precondición 'Ruíz + INC_011' del escenario de HU §5.3 no se puede producir desde Validation (Ruíz es válido). |
@@ -128,3 +129,4 @@
 | RG-022 | alto | acceptance | abierto | Evidencia diferida de acceptance: aprobada sin ejecución de pipeline (observada null) |
 | RG-023 | alto | curation_flow | abierto | Evidencia diferida de curation_flow: aprobada sin ejecución de pipeline |
 | RG-024 | alto | curation_stock | abierto | Evidencia diferida de curation_stock: aprobada sin ejecución de pipeline |
+| RG-025 | alto | pinning | abierto | Verificación diferida del matcher de Colombia: ColombiaIdentityMatcher no está en Motor-Oxigen; sin fork no se verifican su FQCN, la comparación del standardizedIdType entero y el juego de códigos de las otras fuentes (RG-020), si "" cuenta como nulo en la regla 0, identifying-attributes-new.json, la Ñ (RG-021), AUD-P-03 (¿exige nombre además de tipo+número?) ni el umbral vigente (defecto 5) |
