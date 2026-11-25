@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T19:17:53-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T19:23:10-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 79 eventos, último BIT-0079 |
+| Bitácora | 83 eventos, último BIT-0083 |
 
 ## Etapas
 
@@ -18,7 +18,7 @@
 | 0 | Analisis de Requerimiento y Contexto | `aprobada` | bajo | 4/4 | APR-006 | ✅ |
 | 1 | Validation | `aprobada` | alto | 6/6 | APR-011 | ✅ |
 | 2 | Acceptance | `en_progreso` | medio | 1/4 | — | 🔒 |
-| 3 | Curation - Flow | `no_iniciada` | medio | 0/5 | — | 🔒 |
+| 3 | Curation - Flow | `no_iniciada` | medio | 0/6 | — | 🔒 |
 | 4 | Curation - Stock | `no_iniciada` | medio | 0/1 | — | 🔒 |
 | 5 | Pinning | `no_iniciada` | alto | 0/4 | — | 🔒 |
 | 6 | Synthesis / Consistency | `no_iniciada` | alto | 0/3 | — | 🔒 |
@@ -42,11 +42,12 @@
 | acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `prevalidado` | — |
 | acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `prevalidado` | — |
 | acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `prevalidado` | — |
-| curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `ausente` | — |
+| curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `prevalidado` | — |
 | curation_flow | ART-031 | SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado | `ausente` | — |
 | curation_flow | ART-032 | bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary | `ausente` | — |
 | curation_flow | ART-033 | fixture sintetico y tests de curation | `ausente` | — |
-| curation_flow | ART-034 | contrato Curation -> Pinning de la ingesta (steering 11 §4) | `ausente` | — |
+| curation_flow | ART-034 | contrato Curation -> Pinning de la ingesta (steering 11 §4) | `prevalidado` | — |
+| curation_flow | ART-035 | insumo: fixture-curation/ (accepted-events.input.yaml + lookups/) | `prevalidado` | — |
 | curation_stock | ART-040 | mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock) | `ausente` | — |
 | pinning | ART-050 | insumo: yaml-skill-pinning.yaml (edf-analisis) | `ausente` | — |
 | pinning | ART-051 | SISBENIdentityMatcher.scala (o matcher compartido) (con verificacion aritmetica del umbral) | `ausente` | — |
@@ -107,3 +108,6 @@
 | RG-015 | alto | validation | abierto | Evidencia diferida de validation: aprobada sin ejecución de pipeline (observada null) |
 | RG-017 | medio | acceptance | abierto | Las fileConditions son globales (SparkAcceptor.scala:46): si RQS_BAJO_UMBRAL_SISBEN o SISBFA00001 ya existen en el fork, la decisión cambiaría sin avisar (06 §6 #9) |
 | RG-018 | medio | acceptance | abierto | Un archivo sin RQS queda pendiente en validated/ sin otra señal que un error en el log (AUD-A-12, motor) |
+| RG-019 | bajo | curation_flow | abierto | Las claves standardizedId* se omiten cuando son nulas (omitir_si_nulas, steering 11 §3) en lugar de salir nulas como dice la letra de spec §10.1 para standardizedIdName |
+| RG-020 | alto | pinning | abierto | standardizedIdType sale entero con el código Experian; pinning-muric.md:29 lo describe como texto (CC, NIT, CE): si otras fuentes de Colombia publican otro valor, la prioridad 1 no cruza fuentes y se duplican PIN |
+| RG-021 | medio | pinning | abierto | La Ñ se conserva en standardizedIdName (spec §10.2) y otras fuentes podrían transliterarla, lo que afecta el cruce por nombre |

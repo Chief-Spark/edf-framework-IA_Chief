@@ -254,9 +254,9 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:14:45-05:00
 - **Pedido:** Preparar insumos/source-spec-curation.yaml (ART-030) e insumos/contrato-curation-pinning.md (ART-034).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
-- **Bitácora:** —
+- **Respuesta:** ART-030 source-spec-curation.yaml (34 claves de spec §10.1 + advertenciasCuracion; filePattern spec §2; America/Bogota; Ñ; niveles sev. 3 vacíos; homologación 202; subscriberRelation tipo_número; omitir_si_nulas [PM]) y ART-034 contrato-curation-pinning.md (3 claves, subscriberRelation, ColombiaIdentityMatcher, reusePIN false). Fixture nuevo en insumos/fixture-curation/ (15 eventos, 8 escenarios HU §5.3; RG-005 y RG-007 cubiertos). --solo-verificar OK; generación completa OK; hocon_check OK; verificar-claves coherente. Escenario HU §5.3 numeroDocumentoOriginal " 0001000000101" NO se cumple (sale sin espacio). Riesgos sugeridos RG-019..021. 6 posibles defectos (P1: transformación original recorta).
+- **Decisión:** ART-030, ART-034 y ART-035 (fixture) prevalidados; RG-019..021 registrados (BIT-0080..0082); auditor independiente de Curation.
+- **Bitácora:** BIT-0080..BIT-0082
 
 ## INT-033 · Auditor independiente (acceptance) · propuesta · `acceptance`
 
@@ -270,6 +270,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:21:56-05:00
 - **Pedido:** Aprobar ART-021..023 y la etapa acceptance con evidencia diferida.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-035 · Auditor independiente (curation) · `curation_flow`
+
+- **Cuándo:** 2026-11-24T19:23:09-05:00
+- **Pedido:** Auditar ART-030, ART-034, ART-035 y los 6 posibles defectos del framework.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
