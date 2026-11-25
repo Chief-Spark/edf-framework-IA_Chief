@@ -249,3 +249,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
+
+## INT-032 · Analista (edf-analisis) · insumos de Curation · `curation_flow`
+
+- **Cuándo:** 2026-11-24T19:14:45-05:00
+- **Pedido:** Preparar insumos/source-spec-curation.yaml (ART-030) e insumos/contrato-curation-pinning.md (ART-034).
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
