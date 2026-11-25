@@ -438,14 +438,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:01:51-05:00
 - **Pedido:** Corregir HF-63 (artefactos de pinning por modo en semilla, 04 y prompt 00) y HF-64 (verificador y plantilla).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** HF-63: semilla con modo Colombia por defecto, 04-contratos con tabla de dos modos, prompt 00 elige el modo desde la spec/HU (si no lo dicen, pregunta bloqueante), 01-flujo-etapas §5 alineado; forma de ART-051..053 en modo Colombia. HF-64: verificador exige «no se escribe/redefine» al inicio y compara claves sin mayúsculas; plantilla distingue [A:<ID>], [PM] (RG) y [C]. tests 173; suites en verde; auditar-skills OK; insumo de la corrida OK.
+- **Decisión:** Commit 43bf3c7 (1.9.9). Expediente: ART-051/052 no obligatorios y ausentes, ART-053 bloque de verificación (BIT-0134). Consulta al aprobador.
 - **Bitácora:** —
 
 ## INT-056 · Analista (edf-analisis) · insumo de Synthesis (agente nuevo) · `synthesis`
 
 - **Cuándo:** 2026-11-24T22:01:51-05:00
 - **Pedido:** Preparar yaml-skill-synthesis.yaml (ART-060) resolviendo C-CUR-05, C-CUR-06 y RG-010.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-057 · Aprobador simulado SIM-DEV-01 · `pinning`
+
+- **Cuándo:** 2026-11-24T22:05:24-05:00
+- **Pedido:** Aprobar ART-050 v2 y las transiciones curation_flow/curation_stock → pinning; confirmar el modo Colombia de ART-051..053.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

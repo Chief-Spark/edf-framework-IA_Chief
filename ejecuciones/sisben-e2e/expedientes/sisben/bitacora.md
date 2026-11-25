@@ -2279,3 +2279,20 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | BIT-0127 |
 
 ---
+
+## BIT-0134 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Artefactos de pinning según el modo Colombia (framework 1.9.9, HF-63): ART-051 y ART-052 pasan a no obligatorios y ausentes (no aplican: matcher y lista compartidos); ART-053 es el bloque de verificación de las claves compartidas, sin redefinirlas ni escribir reusePin |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:05:23-05:00 |
+| **Por qué** | HF-63 (AUD-P-14): la semilla exigía piezas de modo propio; la spec §11 fija el matcher compartido de Colombia; PA-009 resuelta |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | ART-051, ART-052, ART-053 |
+| **Trazabilidad** | prompt 00 paso 2 (1.9.9) |
+| **Corrige** | — |
+
+---
