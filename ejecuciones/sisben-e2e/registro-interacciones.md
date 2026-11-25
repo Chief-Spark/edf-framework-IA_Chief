@@ -342,6 +342,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:26:58-05:00
 - **Pedido:** AUD-C-15 (citas de supuestos_resueltos) y AUD-C-16 (marcador del matcher).
+- **Respuesta:** C-CUR-05 vuelve a abierto (la spec no responde la confirmación con Synthesis; RG-019); C-CUR-07 cita APR-009; F-12 cita §9 y §9.4; ART-034 marca la clase del matcher como [A:matcher-colombia]. Verificaciones OK; 9 supuestos_resueltos; quedan abiertos CUR-PT01, CUR-PT02 y C-CUR-05. sha256: spec 506e8b9a…, contrato 074743e6…; fixture sin cambios.
+- **Decisión:** Diff verificado por el Orquestador (solo esas líneas). Consulta consolidada al aprobador.
+- **Bitácora:** —
+
+## INT-044 · Aprobador simulado SIM-DEV-01 · `curation_flow`
+
+- **Cuándo:** 2026-11-24T21:27:29-05:00
+- **Pedido:** Re-aprobar ART-023 (§3d), aprobar ART-030/034/035 y la transición acceptance→curation_flow.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

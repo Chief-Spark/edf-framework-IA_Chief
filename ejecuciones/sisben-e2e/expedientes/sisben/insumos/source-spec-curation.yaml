@@ -30,7 +30,9 @@
 #        (recorta los bordes): supuesto del aprobador simulado, PA-007 (2) no bloqueante.
 # Supuestos de plantilla resueltos por la spec o la Validation aprobada: bloque `supuestos_resueltos` (HF-36). Quedan
 # abiertos CUR-PT01 (paquete del código compartido) y CUR-PT02 (lookup caído -> tabla embebida; API de Util.getLookup):
-# la HU y la spec no los fijan.
+# la HU y la spec no los fijan. C-CUR-05 (nulos como null; confirmar con Synthesis) queda abierto (AUD-C-15): la spec
+# fija la política (§10.2 regla 5, §10.4) pero no la confirmación con Synthesis, que va al insumo de Synthesis (spec §12:
+# LFP por defecto), y las claves standardizedId* se omiten si son nulas (RG-019).
 #
 # Cambios respecto de la versión 1 (auditorias/curation.md, AJUSTES; INT-038; framework 1.9.7):
 #   - Cabecera sin estado (HF-32).
@@ -39,7 +41,7 @@
 #   - omitir_si_nulas pasa de [PM] a [P] (AUD-C-12, INT-038).
 #   - regex_derivacion = regex literal de spec §2 (AUD-C-12); el generador la admite (grupo 1 prefijo, grupo 2 AAAAMM).
 #   - homologacion: "7": null con pendientes ["7"] (HF-38): el CSV sintético trae la fila del salvoconducto (spec §9.4).
-#   - supuestos_resueltos nuevo (HF-36, AUD-C-06).
+#   - supuestos_resueltos nuevo (HF-36, AUD-C-06); ajuste AUD-C-15 (C-CUR-05 abierto, APR-009, F-12 con §9).
 #   - Fixture: NUM_DOCUMENTO del base_registro único (AUD-C-02); casos nuevos cur-0016 (RG-019) y cur-0017 a cur-0019
 #     (tipos 4, 5 y 8) (AUD-C-03). Ningún par de eventos comparte tipo + número normalizado (spec §6).
 # Riesgos del expediente que toca: RG-005 (cur-0006 declara SISBEN_INC_011 como precondición inyectada; cur-0007 usa el
@@ -55,11 +57,10 @@ supuestos_resueltos:
   - {id: CUR-PT05, fuente: "spec-sisben.md §10.1 (advertenciasCuracion)"}
   - {id: C-CUR-03, fuente: "spec-sisben.md §10.2 regla 2 (la Ñ se conserva); HU R-23"}
   - {id: C-CUR-04, fuente: "spec-sisben.md §10.1 (inicio del día en Bogotá); HU R-23"}
-  - {id: C-CUR-05, fuente: "spec-sisben.md §10.2 regla 5 y §10.4 reglas 2 y 3 (campo nulo, ninguna clave se omite)"}
-  - {id: C-CUR-07, fuente: "Validation aprobada APR-008 (SISBENValidatedEvent.comoMapa: claves = nombres de dominio)"}
+  - {id: C-CUR-07, fuente: "Validation aprobada APR-009 (SISBENValidatedEvent.comoMapa: claves = nombres de dominio)"}
   - {id: C-CUR-08, fuente: "spec-sisben.md §10.1 (numeroDocumento sin padding ni excepción por tipo)"}
   - {id: F-07, fuente: "spec-sisben.md §2 (tipo de archivo siempre REGULAR)"}
-  - {id: F-12, fuente: "spec-sisben.md §9.4 (columnas, llave y delimitador del catálogo 202)"}
+  - {id: F-12, fuente: "spec-sisben.md §9 (delimitador) y §9.4 (columnas y llave del catálogo 202)"}
   - {id: D8, fuente: "spec-sisben.md §2 (nombre del archivo)"}
 
 meta:
