@@ -230,3 +230,94 @@ Nota fuera de la escala: `original` publica `""` cuando el valor crudo es vacío
 | 7 | Referencia, casos borde | `TIP_DOCUMENTO " 3 "` → `tipoDocumentoSisben " 3 "`, tipo 1. `7` → `HOMOLOGACION_PENDIENTE`, `standardizedIdType` ausente, `COMPONENTE_FALTANTE`. `ppt` → 11 |
 
 No escribí ningún otro archivo del repo ni compilé Scala ni Java.
+
+## 7. Propuesta
+
+| Campo | Valor |
+|---|---|
+| Fecha | 2026-11-25 |
+| Alcance | `EXP/propuestas/curation/` generada por `edf-curation` (framework 1.9.7) desde ART-030 v2.1 (APR-015, sha256 `506e8b9a…`), ART-035 (APR-015, `050b942d…`) y ART-034 2.0.0 (APR-016). ART-031: Capa A `FieldMapping`/`Transformaciones`, `SISBENCurationSpec`, `SISBENCuratedEvent`, `SISBENAcceptedRecord`, `SISBENCurationProcessor`. ART-032: los tres fragmentos. ART-033: `accepted-events.json` (19 eventos), CSV 202 + `LEEME.md`, `TransformacionesSpec`, `SISBENCurationProcessorSpec`, más `expected/` y `MANIFEST.json`. Transición `acceptance → curation_flow` aprobada (APR-017; `transicion_habilitada: true` en `acceptance`) |
+| Cambios del insumo desde la v2 auditada (§6) | ART-030 v2.1 aplica AUD-C-15: C-CUR-05 vuelve a quedar abierto (sale `ASSUMPTION C-CUR-05` en `SISBENCuratedEvent.scala:5`), C-CUR-07 cita APR-009 y F-12 cita §9 y §9.4. ART-034 aplica AUD-C-16: el lector pasa a `[A:PA-008]` y `[PM]` se usa con su significado de steering `05:48` (pendiente manual). Correcto |
+| **Dictamen global** | **APROBADO** (N2), con la compilación y la ejecución **no certificadas** (F-01, RG-006) y la evidencia de pipeline diferida. La propuesta es **reproducible**: `diff -r` contra una regeneración da vacío. Cumple los 8 escenarios de HU §5.3 en `expected/` y en el Spec Scala, las 34 claves de spec §10.1, el contrato con Pinning y los contratos del motor. No hay P0 ni P1. Los 8 posibles defectos son reales salvo el 8, que es real pero latente. Todos son P2 de framework y van al lote de cierre. Ninguno cambia un valor publicado con entradas que Acceptance pueda entregar |
+
+### 7.1 Dictamen por artefacto
+
+**ART-031 código: APROBADO** (observaciones AUD-C-18, AUD-C-21, AUD-C-22).
+
+| Contrato | Evidencia | Resultado |
+|---|---|---|
+| Constructor y firma del motor | `class SISBENCurationProcessor(context: CurationProcessorContext) extends CurationProcessor(context)` (`SISBENCurationProcessor.scala:29`). La base del motor declara `curateEvent` abstracto, `outputEventType` como `val`, y `enrichEventWithPayload` y `subscriberRelation` como métodos con default (`CurationProcessor.scala:36,40,56,59`) | Coincide (compilación sin certificar) |
+| `outputEventType = 30`, `payload` conservado | `:48-52` (`RESUELTO CUR-PA04`). `DefaultOxygenCurationProcessor` no se usa | Correcto (spec §1) |
+| Gancho `subscriberRelation` | El motor lo invoca después de `curateEvent` en las dos rutas (`Curator.scala:78,89`; `:156,179`). El `ThreadLocal` del último evento (`:58-85`) evita curar dos veces, filtra los `errorCode` nulos y todo va dentro del `try` | Correcto |
+| Homologación | Tabla embebida = spec §9.4 (`SISBENCurationSpec.scala:74-78`), `Pendientes = {7}`, fusión con el lookup (gana el lookup). `SparkOxygenLookup.readLookupFile` lee el CSV con `delimiter` (`:32-39`) | Correcto |
+| `original` sin recortar | `Transformaciones.original` y `AcceptedRecord.crudo` (HF-34) | Correcto |
+| `omitir_si_nulas`, severidad 3 | `OmitirSiNulas` = las tres `standardizedId*` (`:67`); `NivelesNoAlmacenar`/`NivelesAnular` vacíos (`:116-117`, spec §10.4) | Correcto. El comentario fijo de `SISBENCurationProcessor.scala:167` contradice esta configuración (AUD-C-18) |
+| Sin PII ni `println` | Los únicos logs (`:42`, `:158`) llevan la tabla y el conteo, o el `eventId` y la clase de la excepción | Correcto |
+| Marcas | 4 `ASSUMPTION` (CUR-PT01, CUR-PT02 ×2, C-CUR-05); 9 `RESUELTO` = `MANIFEST.json["supuestos_resueltos"]` | Coherente con ART-030 v2.1 |
+
+**ART-032 fragmentos: APROBADO** (observación AUD-C-23).
+
+- `curation-common-application-inner.sisben.conf`: un solo objeto `{filePattern, processor}`. El `filePattern` es literal de spec §2 y la clase existe en ART-031. No toca claves de etapa.
+- `oxygen-lookup-inner.sisben.conf`: solo el 202, con `${oxygen.application.paths.lookupHome}`, `delimiter = ";"` y `keys = cod_sisben`. Sin `fileFormat`, igual que los CSV del motor (§3 defecto 6).
+- `colombia-domain-dictionary-inner.sisben.json`: 34 entradas `{name, description}` en formato `DomainDictionaryV2` (`oxygen-synthesis/.../DomainDictionaryV2.java:47-55`). Sin `handler`, de modo que rige LFP, como pide spec §12. Queda abierto C-CUR-06: todos los campos llevan `dataType` por defecto `STRING` (`:51`), también los enteros, los largos y la lista `advertenciasCuracion`. Curation no usa el `dataType`: `domainDictionarType` no se lee en `Curator.scala:152-187`. Lo debe fijar el insumo de Synthesis.
+- `hocon_check` y `pyhocon` real: OK.
+
+**ART-033 pruebas y fixture: APROBADO** (observaciones AUD-C-14 = HF-45, AUD-C-17, AUD-C-19).
+
+- 19 eventos: `fileAsOfDate = 1769835600000` y `fileTag = REGULAR`, salvo cur-0015 (otra fuente, descartado). Documentos sintéticos (`1000000xxx`, `PA…`).
+- Los 18 `esperado` del Spec Scala son **idénticos**, en claves, orden y valores, a `expected/curated-events.json` (comparación automática).
+- `TransformacionesSpec` (14 pruebas) prueba `original` con `" 0001000000101"` y `" 3 "` (`:56-59`).
+- CSV 202 con la fila del 7; `LEEME.md` como marca de sintético.
+
+### 7.2 HU §5.3, spec §10.1 y casos pedidos (en `expected/` y en el Spec Scala)
+
+| Escenario | Evento | Resultado |
+|---|---|---|
+| Estandarización de nombres | cur-0002 | `GARCIA LOPEZ` / `JOSE` ✓ |
+| Nombre completo estandarizado | cur-0003 | `ANA PEÑA RUIZ` ✓ |
+| Homologación del tipo de documento | cur-0001 | `standardizedIdType 1`, `tipoDocumentoSisben "3"` ✓ |
+| Número de documento estandarizado | cur-0004 | `standardizedIdNumber "1000000101"`, `numeroDocumentoOriginal " 0001000000101"` ✓ (también en el Spec Scala) |
+| Fechas a epoch | cur-0001 y cur-0010 | 1768021200000 ✓ |
+| Fecha de corte y tipo de archivo | cur-0001 | 1769835600000, `REGULAR` ✓ |
+| Nombre que queda vacío | cur-0005 | `primerApellido` nulo y `primerApellido:NO_NORMALIZABLE` ✓ |
+| Campo con inconsistencia sev. 3 | cur-0006 | `idMarca` nulo e `idMarca:FORMATO_INVALIDO`, `RUIZ`, 34 claves ✓ |
+| RG-019 | cur-0016 | `standardizedIdName` ausente; `primerApellido:NO_NORMALIZABLE` y `primerNombre:NO_NORMALIZABLE`; `1_1000000116` ✓ |
+| Tipos 4, 5 y 8 (spec §9.4) | cur-0017..0019 | 4, 8 y 9 ✓ |
+| Extensión `.TXT` / otra fuente | cur-0014 / cur-0015 | Curado / descartado sin processor (CUR-AP02) ✓ |
+
+### 7.3 Los 8 posibles defectos que reportó el generador
+
+| # | Defecto | Veredicto | Sev. | Clasificación | Evidencia y corrección |
+|:-:|---|---|:-:|---|---|
+| 1 | HF-45: `resumen.json` llama «por severidad» a la omisión por `omitir_si_nulas` | **Real; sigue abierto** (= AUD-C-14) | P2 | framework | `render_templates.py:357-359,370`; `expected/resumen.json`: `claves_omitidas_por_severidad: {"cur-0016": ["standardizedIdName"]}`. Separar las dos causas |
+| 2 | La prueba de `subscriberRelation` solo cubre el camino feliz | **Real** (AUD-C-17) | P2 | **framework** | `casos_relacion_scala` (`render_templates.py:613-633`) genera aserciones solo desde el fixture. Las 18 dan `.contains("subscriberRelation:COMPONENTE_FALTANTE") == false` (`SISBENCurationProcessorSpec.scala:114` en adelante), así que el camino que devuelve el aceptado (`"COPIADO"`) no se prueba en Scala. Solo lo prueba la referencia Python (`test_curation_reference.py:122`). No es del insumo: con registros aceptados el caso es inalcanzable, porque Validation rechaza el 7 y los tipos desconocidos (ERR_023/ERR_014) y los números vacíos o en ceros (ERR_015/ERR_029). Si se pusiera en el fixture sería una precondición inyectada. Corrección: que el generador agregue al Spec un caso sintético fijo, fuera del fixture (p. ej. `TIP_DOCUMENTO "7"`), que espere el aceptado y la advertencia |
+| 3 | Comentario fijo «severidad 3 → no se almacena; severidad 0 → se anula» | **Real** (AUD-C-18) | P2 | framework | `CurationProcessor.scala.tpl:112` → `SISBENCurationProcessor.scala:167`. Para SISBEN es falso: spec §10.4 publica estandarizado y las dos listas están vacías (`SISBENCurationSpec.scala:116-117`). Es solo un comentario; el código lee la configuración. Generarlo desde `parametros` o decir «según `NivelesNoAlmacenar`/`NivelesAnular`» |
+| 4 | `SourceProcessorSpec.scala.tpl:7` cita «runbook-ejecucion.md §fork» | **Real** (AUD-C-19) | P2 | framework | El runbook no tiene esa sección; la prueba del fork está en §2, «Prueba del lado del fork (AUD-C9)» (`runbook-ejecucion.md:49,60-65`). Sale en `SISBENCurationProcessorSpec.scala:7`. Citar «§2» |
+| 5 | `checklist-entrega.md:25` pide `ASSUMPTION:` en `outputEventType` | **Real** (AUD-C-20) | P2 | framework | Con HF-36 sale `RESUELTO CUR-PA04` (`SISBENCurationProcessor.scala:48`). Además el checklist fija `= 30`, que es el valor de SISBEN, en una lista genérica. Cambiar a «`outputEventType` = event type de la spec, con `ASSUMPTION CUR-PA04` o `RESUELTO CUR-PA04`» |
+| 6 | La referencia usa `strip()`/`\s` Unicode y Scala `trim`/`\\s` ASCII | **Real** (AUD-C-21) | P2 | framework | `curation_reference.py:77,172` frente a `Transformations.scala.tpl:21,80`. Lo comprobé con la referencia: `fecha_epoch("10/01/2026 ")` da 1768021200000, mientras que en Scala `trim` no quita el NBSP y el parseo estricto falla (nulo y `FORMATO_INVALIDO`). Es alcanzable: una fecha de severidad 3 con NBSP pasa Validation (que también recorta en ASCII) con `SISBEN_INC_018`/`019`. El oráculo `expected/` divergiría del Scala sin que ninguna prueba lo detecte (el fixture no trae NBSP). Alinear la referencia con Java (`strip` solo de `\x00-\x20`, `re.ASCII`) y agregar un caso NBSP a las dos suites |
+| 7 | Motivos fuera de la lista cerrada de spec §10.1 | **Real** (AUD-C-22) | P2 | framework (+ spec) | La spec cierra la lista: `NO_NORMALIZABLE`, `FORMATO_INVALIDO`, `NO_HOMOLOGABLE`, `HOMOLOGACION_PENDIENTE`, `ARCHIVO_NO_RECONOCIDO` y `registro:REGISTRO_ILEGIBLE` (`spec-sisben.md:280`). Curation puede emitir además `NIVEL_DESCONOCIDO`, `COMPONENTE_FALTANTE` y `ERROR_INTERNO` (`FieldMapping.scala:71-75`; `SISBENCurationProcessor.scala:129,159,172`). Ninguno sale con entradas aceptadas: Validation siempre pone nivel `1`/`3` a los códigos de campo, los componentes no faltan (defecto 2) y `ERROR_INTERNO` solo aparece ante una excepción. `NIVEL_DESCONOCIDO` usa además el nombre del campo **de entrada** (`ID_MARCA:…`) y no el campo curado, contra el formato `<campo curado>:<MOTIVO>`. Corrección: mapear al destino o destinos curados y declarar los tres motivos defensivos en el contrato y en PA-007, para la próxima versión de la spec |
+| 8 | El 202 queda registrado en los lookups de Validation (con `fileFormat`) y de Curation | **Real, latente** (AUD-C-23) | P2 | framework | `lookups-sisben.conf` de Validation lo agrega al «archivo inner» sin nombrarlo; el de Curation, a `oxygen-lookup-inner.conf` (ART-030 `rutas_destino.lookups_conf`; `runbook-ejecucion.md:42`). Si el fork comparte un solo inner, la tabla queda dos veces. El motor indexa por `tableName` (`loadCache(lookups: Map[String, LookupElement])`, `SparkOxygenLookup.scala:30`), así que una entrada pisa a la otra sin error. Hoy son equivalentes (mismo archivo, `;` y llave; `fileFormat` no cambia nada en CSV), pero si una cambia, la otra se pierde en silencio y contra la regla aditiva. Corrección: que la nota de fusión de los dos generadores diga «si el inner es común y ya existe `tableName`, no duplicarlo», y fijar en `edf-validation` el nombre del archivo destino |
+
+### 7.4 Hallazgos nuevos
+
+| ID | Artefacto | Clasificación | Sev. | Evidencia | Corrección |
+|---|---|---|:-:|---|---|
+| AUD-C-17 a AUD-C-23 | — | framework | P2 | Defectos 2 a 8 (§7.3) | Lote de cierre |
+| AUD-C-24 | ART-033 (`MANIFEST.json`) | framework | P2 | `MANIFEST.json` solo trae `sha256` para `otros_archivos` (CSV 202 y `expected/`). Las 12 entradas de `archivos` (todo el código, el Spec y los fragmentos) y `LEEME.md` no tienen hash, aunque `SKILL.md:190` dice que lo cubre todo salvo el propio manifiesto (ADR-G3). El manifiesto de Validation sí trae hash de sus 18 archivos. La integridad de lo que se aprueba no se puede verificar con el manifiesto. Hoy se compensa con la reproducción (`diff -r` vacío) y con el hash que el Orquestador registra al aprobar | Agregar `sha256` a cada entrada de `archivos` y a `marcas_sintetico` |
+
+No hay hallazgos de insumo, de spec (salvo la parte de spec de AUD-C-22) ni de motor. Ningún hallazgo obliga a regenerar antes de aprobar: AUD-C-18, -19 y -22 cambian comentarios o motivos inalcanzables, y AUD-C-17, -21 y -24 agregan pruebas o metadatos.
+
+### 7.5 Verificaciones
+
+| # | Comando | Resultado |
+|:-:|---|---|
+| 1 | `render_templates.py --spec EXP/insumos/source-spec-curation.yaml --solo-verificar` | rc=0 · 33 campos curados, 12 plantillas, 18 eventos esperados |
+| 2 | Regeneración en `/tmp/claude-0/-home-user-edf-framework-IA-Chief/17fd989e-8dfc-5ea8-ad37-44be188bb6cf/scratchpad/aud-cur-prop/` y `diff -r` contra `EXP/propuestas/curation/` | rc=0 · **diff vacío** (reproducible). Los `sha256` de `otros_archivos` coinciden. MANIFEST: `skill: edf-curation`, `compilacion: no_certificada`, `advertencias: []`, zona `America/Bogota` (requisito) |
+| 3 | `hocon_check.py` sobre los fragmentos de la propuesta, con `PYTHONPATH` al `pyhocon` 0.3.61 del scratchpad | rc=0, OK en los dos |
+| 4 | Suite de la skill con `pyhocon` | 128 pasadas, 0 omitidas |
+| 5 | `python3 tools/verificar-claves.py --dir EXP/insumos` | rc=0 · 34 claves publicadas, 9 citas revisadas (contrato e insumo de Pinning ART-050), coherentes |
+| 6 | Comparación automática Spec Scala ↔ `expected/` | 18/18 iguales; casos de §7.2 ✓ |
+| 7 | Lectura del motor | `CurationProcessor.scala:17-81`; `DefaultOxygenCurationProcessor.scala:16-35`; `Curator.scala:60-104,152-187`; `SparkCurator.scala:173-206`; `SparkOxygenLookup.scala:30-39`; `DomainDictionaryV2.java:47-55` |
+| 8 | Referencia, NBSP | `texto(" 123") = "123"`, `fecha_epoch("10/01/2026 ") = 1768021200000` (divergencia con Scala, AUD-C-21) |
+
+No escribí ningún otro archivo del repo, no usé git salvo para leer, ni compilé Scala o Java.

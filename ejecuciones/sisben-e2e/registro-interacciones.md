@@ -390,6 +390,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:36:45-05:00
 - **Pedido:** Auditar ART-031..033 y los posibles defectos del generador.
+- **Respuesta:** APROBADO ART-031..033 (N2, sin P0/P1): contrato del motor respetado (outputEventType 30, gancho tras curateEvent sin NPE ni doble curación, homologación §9.4, original sin recorte, omitir_si_nulas, sev. 3 se publica, sin PII); fragmentos aditivos y domain dictionary v2 (C-CUR-06 abierto, lo fija Synthesis); 18 casos del Spec = expected/; 8 escenarios HU §5.3. Reproducible; pyhocon OK; suite 128; verificar-claves OK. Los 8 posibles defectos son reales (P2 framework; el 8 latente): AUD-C-14(=HF-45), -17..-23. Nuevo AUD-C-24 (MANIFEST sin sha256 de los 12 principales).
+- **Decisión:** HF-48..55 al lote final; consulta al aprobador: artefactos y etapa curation_flow (diferida), y curation_stock (transición, ART-040, etapa diferida).
+- **Bitácora:** —
+
+## INT-050 · Aprobador simulado SIM-DEV-01 · `curation_flow`
+
+- **Cuándo:** 2026-11-24T21:41:25-05:00
+- **Pedido:** Aprobar ART-031..033 y la etapa curation_flow con evidencia diferida; decidir curation_stock (transición, ART-040, etapa diferida).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
