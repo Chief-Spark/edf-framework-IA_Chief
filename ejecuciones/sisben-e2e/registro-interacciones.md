@@ -326,6 +326,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:18:22-05:00
 - **Pedido:** ART-030/034/035 v2: AUD-C-02/03/11/12 y RG-019 según INT-038, supuestos_resueltos 1.9.7, homologación del 7 pendiente, cabecera sin estado (HF-32).
+- **Respuesta:** v2 de los tres insumos con las 7 decisiones de INT-038: cabecera sin estado; 10 supuestos_resueltos (CUR-PT01/02 quedan abiertos); regex literal de spec §2; omitir_si_nulas [P]; "7": null pendiente; fixture con base_registro 1000000100, cur-0004 con el literal de la HU, cur-0016 (RG-019) y cur-0017..0019 (tipos 4, 5, 8), 19 eventos sin claves de duplicado repetidas; contrato v2.0.0 (encabezado del steering 11 §4, «se omite, nunca null», matcher [C] no presente en Motor-Oxigen, RG-019..021). Verificaciones OK: 18 curados, cur-0015 descartado, cur-0004 = " 0001000000101"; verificar-claves rc 0 con las comillas de §2.
+- **Decisión:** ART-030, ART-034 y ART-035 v2 prevalidados; re-auditoría con el auditor de Curation.
+- **Bitácora:** —
+
+## INT-042 · Auditor independiente (curation) · insumos v2 · `curation_flow`
+
+- **Cuándo:** 2026-11-24T21:22:09-05:00
+- **Pedido:** Re-auditar ART-030, ART-034 y ART-035 v2 con el framework 1.9.7.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

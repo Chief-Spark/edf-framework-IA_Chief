@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T21:19:01-05:00",
-    "vista_md_regenerada_en": "2026-11-24T21:18:22-05:00"
+    "actualizado_en": "2026-11-24T21:22:09-05:00",
+    "vista_md_regenerada_en": "2026-11-24T21:22:09-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -424,7 +424,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Analista (INT-032): --solo-verificar OK (33 campos curados, 12 plantillas, 14 eventos esperados); generación completa rc 0; hocon_check OK; verificar-claves coherente",
+            "reportada_por": "Analista (INT-041): v2 con framework 1.9.7; --solo-verificar OK (33 campos, 18 eventos); generación completa OK (cur-0004 = \" 0001000000101\"); hocon_check OK; verificar-claves coherente",
             "reportada_en": "2026-11-25"
           }
         },
@@ -463,7 +463,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Analista (INT-032): verificar-claves coherente con el insumo de Curation",
+            "reportada_por": "Analista (INT-041): v2 con framework 1.9.7; --solo-verificar OK (33 campos, 18 eventos); generación completa OK (cur-0004 = \" 0001000000101\"); hocon_check OK; verificar-claves coherente",
             "reportada_en": "2026-11-25"
           }
         },
@@ -478,7 +478,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Analista (INT-032): 15 eventos sintéticos, 8 escenarios HU §5.3",
+            "reportada_por": "Analista (INT-041): v2 con framework 1.9.7; --solo-verificar OK (33 campos, 18 eventos); generación completa OK (cur-0004 = \" 0001000000101\"); hocon_check OK; verificar-claves coherente",
             "reportada_en": "2026-11-25"
           }
         }
@@ -1331,8 +1331,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0096",
-    "eventos_totales": 96,
+    "ultimo_evento": "BIT-0097",
+    "eventos_totales": 97,
     "append_only": true,
     "retencion_meses": 24
   }

@@ -3,9 +3,11 @@
 # Eventos TaggedValidatedEvent ya ACEPTADOS (salida de Acceptance). validatedRecordJson lleva el valor CRUDO de cada campo
 # (Validation aprobada, AUD-V-05: SISBENValidatedEvent.comoMapa con Campos.crudo). El generador combina base_registro con
 # el `registro` de cada evento.
-# Casos: HU §5.3 (escenarios de Curation), spec §10.1, §10.2, §10.4; riesgos RG-005 y RG-007.
+# Casos: HU §5.3 (escenarios de Curation), spec §10.1, §10.2, §10.4, §9.4; riesgos RG-005, RG-007 y RG-019.
+# Versión 2 · 2026-11-25 (AUD-C-02: NUM_DOCUMENTO del base_registro único; AUD-C-03: cur-0016 a cur-0019). Ningún par de
+# eventos comparte la clave de duplicado tipo + número sin espacios ni ceros (spec §6; HU R-19): todos llegarían aceptados.
 
-# Registro base: el registro_base del fixture de Validation (Anexo A), sintético.
+# Registro base: el registro_base del fixture de Validation (Anexo A), sintético, con NUM_DOCUMENTO propio (1000000100).
 base_registro:
   ID_FICHA_ORIGEN: "0900000101"
   ID_HOGAR: "1"
@@ -21,7 +23,7 @@ base_registro:
   PRI_NOMBRE: "NOMBREUNO"
   SEG_NOMBRE: "SEGUNDOUNO"
   TIP_DOCUMENTO: "3"
-  NUM_DOCUMENTO: "1000000101"
+  NUM_DOCUMENTO: "1000000100"
   ID_GRUPO: "A"
   ID_NIVEL: "1"
   FECHA_DIGITACION: "15/11/2025"
@@ -32,7 +34,7 @@ base_registro:
 
 eventos:
   - id: cur-0001
-    caso: "Base válida. HU §5.3 «Homologación» (3 -> standardizedIdType 1, tipoDocumentoSisben 3), «Fechas a epoch» (10/01/2026 -> 1768021200000), «Fecha de corte y tipo de archivo» (fechaCorte 1769835600000, tipoArchivo REGULAR); subscriberRelation 1_1000000101 (spec §10.1); idFichaOrigen conserva el cero inicial"
+    caso: "Base válida. HU §5.3 «Homologación» (3 -> standardizedIdType 1, tipoDocumentoSisben 3), «Fechas a epoch» (10/01/2026 -> 1768021200000), «Fecha de corte y tipo de archivo» (fechaCorte 1769835600000, tipoArchivo REGULAR); subscriberRelation 1_1000000100 (spec §10.1); idFichaOrigen conserva el cero inicial"
     archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
     registro: {}
     errores: []
@@ -50,7 +52,7 @@ eventos:
     errores: []
 
   - id: cur-0004
-    caso: "HU §5.3 «Número de documento estandarizado»: ' 0001000000101' -> standardizedIdNumber 1000000101. La HU espera numeroDocumentoOriginal ' 0001000000101' (con el espacio); la transformación `original` del framework recorta espacios (ver cabecera del source-spec)"
+    caso: "HU §5.3 «Número de documento estandarizado»: ' 0001000000101' -> standardizedIdNumber 1000000101 y numeroDocumentoOriginal ' 0001000000101' (valor original con el espacio: `original` no recorta, HF-34)"
     archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
     registro: {NUM_DOCUMENTO: " 0001000000101"}
     errores: []
@@ -125,4 +127,28 @@ eventos:
     caso: "Archivo de otra fuente: fuera del filePattern, el motor no encuentra processor y lo descarta (CUR-AP02)"
     archivo: OTRA_FUENTE_202601.20260205093000-0500.txt
     registro: {NUM_DOCUMENTO: "1000000115"}
+    errores: []
+
+  - id: cur-0016
+    caso: "RG-019: pri_nombre y pri_apellido '!!!' y los segundos vacíos -> primerNombre y primerApellido nulos con NO_NORMALIZABLE, segundos nulos sin advertencia, standardizedIdName AUSENTE (omitir_si_nulas), subscriberRelation armado con tipo y número"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {PRI_NOMBRE: "!!!", PRI_APELLIDO: "!!!", SEG_NOMBRE: "", SEG_APELLIDO: "", NUM_DOCUMENTO: "1000000116"}
+    errores: []
+
+  - id: cur-0017
+    caso: "Spec §9.4: tipo 4 (CEDULA DE EXTRANJERIA) -> 4"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {TIP_DOCUMENTO: "4", NUM_DOCUMENTO: "1000000117"}
+    errores: []
+
+  - id: cur-0018
+    caso: "Spec §9.4: tipo 5 (DNI PAIS DE ORIGEN) -> 8"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {TIP_DOCUMENTO: "5", NUM_DOCUMENTO: "1000000118"}
+    errores: []
+
+  - id: cur-0019
+    caso: "Spec §9.4: tipo 8 (PERMISO ESPECIAL DE PERMANENCIA) -> 9"
+    archivo: SISBEN_EXPERIAN_202601.20260205093000-0500.txt
+    registro: {TIP_DOCUMENTO: "8", NUM_DOCUMENTO: "1000000119"}
     errores: []
