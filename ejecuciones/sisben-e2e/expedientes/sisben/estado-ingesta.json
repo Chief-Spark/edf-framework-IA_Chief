@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T21:36:45-05:00",
-    "vista_md_regenerada_en": "2026-11-24T21:36:45-05:00"
+    "actualizado_en": "2026-11-24T21:43:42-05:00",
+    "vista_md_regenerada_en": "2026-11-24T21:43:42-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -419,7 +419,7 @@
       "dag_airflow": "acceptance-curation-flow",
       "clasificacion_compromiso": "exito",
       "riesgo_tipico": "medio",
-      "estado": "en_progreso",
+      "estado": "aprobada",
       "depende_de": [
         "acceptance"
       ],
@@ -446,14 +446,15 @@
           "nombre": "SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado",
           "ruta": "propuestas/curation/src/main/scala/com/experian/edf/oxygen/curation/source/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-curation (INT-046): --solo-verificar OK; generación reproducible; suite 126; hocon_check OK; verificar-claves coherente; expected = Spec",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:29130301d9fe189a3ae001ba55682c10a5369417435eac1b9b2caa6241a9edc4"
         },
         {
           "id": "ART-032",
@@ -461,14 +462,15 @@
           "nombre": "bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary",
           "ruta": "propuestas/curation/fragmentos/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-curation (INT-046): --solo-verificar OK; generación reproducible; suite 126; hocon_check OK; verificar-claves coherente; expected = Spec",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:84cfb028e141f316ab95a802ada911ee28eb21e3c5df9a68a4e5013070a69157"
         },
         {
           "id": "ART-033",
@@ -476,14 +478,15 @@
           "nombre": "fixture sintetico y tests de curation",
           "ruta": "propuestas/curation/src/test/",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "medio",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-curation (INT-046): --solo-verificar OK; generación reproducible; suite 126; hocon_check OK; verificar-claves coherente; expected = Spec",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:70047f9f1bc3073cea67929fdf4ddfdb725efea500bbdfaffc5baae9d48d8299"
         },
         {
           "id": "ART-034",
@@ -526,18 +529,22 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": null,
+      "ref_aprobacion": "APR-019",
       "preguntas_abiertas": [],
       "riesgos": [
         "RG-005",
         "RG-007",
         "RG-008",
         "RG-016",
-        "RG-019"
+        "RG-019",
+        "RG-023"
       ],
       "transicion_habilitada": false,
       "nota_regla_de_corte": null,
-      "iniciada_en": "2026-11-24T21:30:58-05:00"
+      "iniciada_en": "2026-11-24T21:30:58-05:00",
+      "cerrada_en": "2026-11-24T21:43:23-05:00",
+      "riesgo_evaluado": "alto",
+      "nivel_friccion": "detallada"
     },
     {
       "id": "curation_stock",
@@ -547,7 +554,7 @@
       "dag_airflow": "collection-stock",
       "clasificacion_compromiso": "exito",
       "riesgo_tipico": "medio",
-      "estado": "no_iniciada",
+      "estado": "aprobada",
       "depende_de": [
         "acceptance"
       ],
@@ -556,9 +563,10 @@
           "id": "ART-040",
           "tipo": "documento",
           "nombre": "mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock)",
-          "ruta": "propuestas/curation/",
+          "ruta": "propuestas/curation/src/main/scala/com/experian/edf/oxygen/curation/source/",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "aprobado",
+          "hash": "sha256:29130301d9fe189a3ae001ba55682c10a5369417435eac1b9b2caa6241a9edc4"
         }
       ],
       "evidencia_pipeline": {
@@ -568,11 +576,17 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": null,
+      "ref_aprobacion": "APR-022",
       "preguntas_abiertas": [],
-      "riesgos": [],
+      "riesgos": [
+        "RG-024"
+      ],
       "transicion_habilitada": false,
-      "nota_regla_de_corte": null
+      "nota_regla_de_corte": null,
+      "iniciada_en": "2026-11-24T21:43:42-05:00",
+      "cerrada_en": "2026-11-24T21:43:42-05:00",
+      "riesgo_evaluado": "alto",
+      "nivel_friccion": "detallada"
     },
     {
       "id": "pinning",
@@ -1205,6 +1219,130 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0104"
+    },
+    {
+      "id": "APR-018",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-031",
+        "ART-032",
+        "ART-033"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T21:43:23-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (curation.md §7): contrato del motor (firma de CurationProcessor, gancho subscriberRelation en las dos rutas de Curator.scala:78,89 y :156,179, lookup, DomainDictionaryV2); spec §10.1 (34 claves), §10.4, §12 sin handlers; 8 escenarios HU §5.3. Pruebas: ART-031 SISBENCurationProcessorSpec (18 = expected/) y TransformacionesSpec (original con espacio); ART-032 hocon_check + pyhocon y verificar-claves; ART-033 comparación Spec ↔ expected/. sha256 por archivo en ejecuciones/sisben-e2e/hashes/curation.sha256 (AUD-C-24). Supuesto del aprobador simulado (HF-52): con NBSP en fechas sev. 3 vale el Scala (nulo con FORMATO_INVALIDO).",
+      "condiciones": [
+        "C-CUR-05 y C-CUR-06 abiertos: yaml-skill-synthesis.yaml no se aprueba sin resolverlos (§3d o §3c si cambian ART-032 o el insumo)",
+        "AUD-C-22 se agrega a PA-007; NIVEL_DESCONOCIDO con nombre de entrada al lote final",
+        "HF-54: una sola entrada tableName del 202 en el fork (checklist B), criterio de cierre del riesgo de evidencia",
+        "HF-45, HF-48..55 al lote final"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0111"
+    },
+    {
+      "id": "APR-019",
+      "tipo": "contexto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-030",
+        "ART-031",
+        "ART-032",
+        "ART-033",
+        "ART-034",
+        "ART-035"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T21:43:23-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Curation Flow se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork (F-01). Los artefactos están aprobados por auditoría independiente (curation.md §6 y §7): son reproducibles, cumplen los 8 escenarios de HU §5.3 en expected/ y en Scala, y las 34 claves de spec §10.1. Pinning consume el contrato ART-034 aprobado. La evidencia se reporta con el prompt 05. Escenarios HU §5.3 cubiertos (cur-0006 con precondición inyectada RG-005; cur-0007 el alcanzable); desviaciones RG-019 aceptado, PA-007, RG-007; DoD §6 cumplida (ART-031, ART-032, ART-034; lado Pinning en PA-008/PA-009).",
+      "condiciones": [
+        "RG-023: evidencia diferida de curation_flow; se cierra con acceptance-curation-flow sobre los 19 aceptados (curatedDir/flow con 19 curados, ready-curate, 34 claves), compilación y Specs en verde en el fork con Zephyr, HF-54 comprobado; no antes que RG-022"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0113"
+    },
+    {
+      "id": "APR-020",
+      "tipo": "transicion",
+      "desde_etapa": "acceptance",
+      "hacia_etapa": "curation_stock",
+      "artefactos": [
+        "ART-030"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T21:43:42-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Se habilita Curation Stock con la evidencia diferida de Acceptance (APR-013, RG-022). Stock consume el mismo contrato de Acceptance (spec RQ-03, RQ-04) y usa el insumo ART-030 ya aprobado (APR-015). c1 cumple (APR-013); c2 cumple (esta aprobación; ref_aprobacion de acceptance sigue en APR-017 por HF-56); c3 cumple (ART-030 aprobado en curation_flow); c4 cumple (PA-007 no bloqueante; PA-008/009 de pinning; PA-002 de state_calculation); c5 por evidencia diferida; c6 cumple.",
+      "condiciones": [],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0116"
+    },
+    {
+      "id": "APR-021",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-040"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T21:43:42-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Stock no tiene generación propia (01-flujo-etapas.md:21): usa el mismo processor y runMode lo fija la orquestación. El auditor verificó que el gancho subscriberRelation respeta el orden en la ruta stock (Curator.scala:156,179). El DAG collection-stock existe y no se modifica; el filePattern de ART-032 limita el processor a archivos SISBEN (aditividad). Mismo hash que ART-031; prueba asociada SISBENCurationProcessorSpec más la lectura del motor de la ruta stock.",
+      "condiciones": [
+        "Si ART-031 o ART-032 se revisan (§3d o §3c), ART-040 se re-aprueba con ellos",
+        "Antecedente para PA-002: stock vuelve a curar todos los cortes SISBEN acumulados; State Calculation debe filtrar por el corte vigente (HU R-26, §5.6)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0118"
+    },
+    {
+      "id": "APR-022",
+      "tipo": "contexto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-040"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T21:43:42-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Curation Stock se aprueba con evidencia diferida: no hay pipeline. ART-040 es el processor aprobado de Curation Flow, y en la ruta stock el motor respeta el mismo contrato (Curator.scala:156,179). La evidencia se reporta con el prompt 05.",
+      "condiciones": [
+        "RG-024: evidencia diferida de curation_stock; se cierra con collection-stock (horario confirmado, 03-pipeline §9 #2 [PM]), curatedDir/stock con los SISBEN del corte iguales a flow y las demás fuentes sin cambios; no antes que RG-022 y RG-023"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0120"
     }
   ],
   "preguntas_abiertas": [
@@ -1493,14 +1631,30 @@
       "etapa_afectada": "acceptance",
       "mitigacion": "Cerrar con prompt 05: acceptance-curation-flow sobre la muestra validada (conteos 20/19/1/1, FQS 0.95), Spec en verde en el fork con AUD-A-16 corregido y Zephyr, RG-017 cerrado, claves_de_prueba del filePattern; después de RG-015",
       "estado": "abierto"
+    },
+    {
+      "id": "RG-023",
+      "descripcion": "Evidencia diferida de curation_flow: aprobada sin ejecución de pipeline",
+      "nivel": "alto",
+      "etapa_afectada": "curation_flow",
+      "mitigacion": "Prompt 05: acceptance-curation-flow sobre los 19 aceptados de la muestra (curatedDir/flow, ready-curate, 34 claves), compilación y TransformacionesSpec/SISBENCurationProcessorSpec en verde en el fork con Zephyr, HF-54 comprobado; después de RG-022",
+      "estado": "abierto"
+    },
+    {
+      "id": "RG-024",
+      "descripcion": "Evidencia diferida de curation_stock: aprobada sin ejecución de pipeline",
+      "nivel": "alto",
+      "etapa_afectada": "curation_stock",
+      "mitigacion": "Prompt 05: corrida de collection-stock con horario confirmado; curatedDir/stock con los SISBEN del corte iguales a flow; demás fuentes sin cambios; después de RG-022 y RG-023",
+      "estado": "abierto"
     }
   ],
   "backlog_evolutivo": [],
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0110",
-    "eventos_totales": 110,
+    "ultimo_evento": "BIT-0124",
+    "eventos_totales": 124,
     "append_only": true,
     "retencion_meses": 24
   }

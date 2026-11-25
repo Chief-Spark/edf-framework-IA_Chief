@@ -1,0 +1,17 @@
+2dedbea2277fc3b5262848403ef2d5f1355de0a20c2c4a72d3b1786aae49958d  ./MANIFEST.json
+7b4f9b229d6d0bca8539ecb0d87c3ad7ea2491198a057802a48e313818ff651a  ./expected/curated-events.json
+f6df86cb7b8cfc04e97c36eb871531e53ad86a22a494b7de1b28962fd9951373  ./expected/resumen.json
+d1ee06e3281bef44a8edf12f361677a2e7c36f4faf5f2f04a22cd68132f5628c  ./fragmentos/colombia-domain-dictionary-inner.sisben.json
+b7d71b901a474b59b5f112a75189b0f68ab498fb1bec717b0127051b2ccd608f  ./fragmentos/curation-common-application-inner.sisben.conf
+1d732f5ed4741c889a215c6998dfeb3fda74209dbd1ab8d265325f66dc87b99c  ./fragmentos/oxygen-lookup-inner.sisben.conf
+19351da6821c7b51ea4b2570287c8a35c5cf10e08973335bebe580816bad08b0  ./src/main/scala/com/experian/edf/oxygen/curation/source/common/FieldMapping.scala
+5e951492c63aeb35d8fbdc384ddd8ff27c3362abc95cb7ff50640194b28ad02d  ./src/main/scala/com/experian/edf/oxygen/curation/source/common/Transformaciones.scala
+dc07f105a90067e037f110d7097064052feaec7e37198a9c1f4fc8db6a4b6888  ./src/main/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENAcceptedRecord.scala
+240af7e270513b14130cdfa3cd136ae30290ea75a45f1cf8559d475668e9991d  ./src/main/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCuratedEvent.scala
+83f10f2ccbf6897ce37e4eda270cd41c2fed405f9424f0bd6a941f7919cd7121  ./src/main/scala/com/experian/edf/oxygen/curation/source/sisben/config/SISBENCurationSpec.scala
+ecc66cceaeebf0805606f4db9c21824a79962021a7824a24c694e5fca2d965c0  ./src/main/scala/com/experian/edf/oxygen/curation/source/sisben/processor/SISBENCurationProcessor.scala
+3068abd1bc3b84a4210590298f970a26f7a021d8d5caca36c1c8cf10da9dae6b  ./src/test/resources/sisben/accepted-events.json
+b365484f903dd63983b920fae3cb22a75f3b7c11bec2d2e71051bd713991ec61  ./src/test/resources/sisben/lookups/202_SISBEN_PROCESS_ID_TYPE_HO.csv
+be8d227c19eadf939cf5870dfdf70596ebe81c4fb1610fd43421d856c43e1855  ./src/test/resources/sisben/lookups/LEEME.md
+d34f869dddb5b216af60a08d34385c50614cd07949bf22fbc14f4c50d2b4dc8f  ./src/test/scala/com/experian/edf/oxygen/curation/source/common/TransformacionesSpec.scala
+5c00fac1a60b6eb05c561b9c1960a75886a5ee2c7daeced1e9a6460f51936287  ./src/test/scala/com/experian/edf/oxygen/curation/source/sisben/SISBENCurationProcessorSpec.scala

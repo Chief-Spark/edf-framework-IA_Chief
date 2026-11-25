@@ -1888,3 +1888,241 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0111 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-018 (artefacto): Artefactos de Curation (processor, fragmentos, pruebas) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T21:43:23-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (curation.md §7): contrato del motor (firma de CurationProcessor, gancho subscriberRelation en las dos rutas de Curator.scala:78,89 y :156,179, lookup, DomainDictionaryV2); spec §10.1 (34 claves), §10.4, §12 sin handlers; 8 escenarios HU §5.3. Pruebas: ART-031 SISBENCurationProcessorSpec (18 = expected/) y TransformacionesSpec (original con espacio); ART-032 hocon_check + pyhocon y verificar-claves; ART-033 comparación Spec ↔ expected/. sha256 por archivo en ejecuciones/sisben-e2e/hashes/curation.sha256 (AUD-C-24). Supuesto del aprobador simulado (HF-52): con NBSP en fechas sev. 3 vale el Scala (nulo con FORMATO_INVALIDO). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-031, ART-032, ART-033 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0112 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `curation_flow` → estado `pendiente_evidencia` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:43:23-05:00 |
+| **Por qué** | Artefactos de Curation aprobados; sin pipeline (§3b paso 1). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0113 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-019 (contexto): Aprobación de la etapa curation_flow con evidencia diferida (§3b paso 1) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T21:43:23-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Curation Flow se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork (F-01). Los artefactos están aprobados por auditoría independiente (curation.md §6 y §7): son reproducibles, cumplen los 8 escenarios de HU §5.3 en expected/ y en Scala, y las 34 claves de spec §10.1. Pinning consume el contrato ART-034 aprobado. La evidencia se reporta con el prompt 05. Escenarios HU §5.3 cubiertos (cur-0006 con precondición inyectada RG-005; cur-0007 el alcanzable); desviaciones RG-019 aceptado, PA-007, RG-007; DoD §6 cumplida (ART-031, ART-032, ART-034; lado Pinning en PA-008/PA-009). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-030, ART-031, ART-032, ART-033, ART-034, ART-035 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0114 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-023 (alto, curation_flow): Evidencia diferida de curation_flow: aprobada sin ejecución de pipeline |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:43:23-05:00 |
+| **Por qué** | APR-019 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0115 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `curation_flow` → estado `aprobada` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:43:23-05:00 |
+| **Por qué** | Aplica APR-019 (SIMULADO, SIM-DEV-01, INT-050): aprobada con evidencia diferida. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0116 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-020 (transicion): Transición acceptance → curation_stock con evidencia diferida (§3b paso 3; HF-56: queda solo en aprobaciones[]) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T21:43:42-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Se habilita Curation Stock con la evidencia diferida de Acceptance (APR-013, RG-022). Stock consume el mismo contrato de Acceptance (spec RQ-03, RQ-04) y usa el insumo ART-030 ya aprobado (APR-015). c1 cumple (APR-013); c2 cumple (esta aprobación; ref_aprobacion de acceptance sigue en APR-017 por HF-56); c3 cumple (ART-030 aprobado en curation_flow); c4 cumple (PA-007 no bloqueante; PA-008/009 de pinning; PA-002 de state_calculation); c5 por evidencia diferida; c6 cumple. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-030 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0117 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `curation_stock` → estado `en_progreso` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:43:42-05:00 |
+| **Por qué** | Inicio de Curation Stock tras la aprobación de su transición (HF-56: registrada en aprobaciones[]). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_stock` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0118 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-021 (artefacto): ART-040 aprobado por referencia: el mismo processor de Curation Flow (ART-031, APR-018) en runMode stock |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T21:43:42-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Stock no tiene generación propia (01-flujo-etapas.md:21): usa el mismo processor y runMode lo fija la orquestación. El auditor verificó que el gancho subscriberRelation respeta el orden en la ruta stock (Curator.scala:156,179). El DAG collection-stock existe y no se modifica; el filePattern de ART-032 limita el processor a archivos SISBEN (aditividad). Mismo hash que ART-031; prueba asociada SISBENCurationProcessorSpec más la lectura del motor de la ruta stock. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_stock` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-040 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0119 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `curation_stock` → estado `pendiente_evidencia` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:43:42-05:00 |
+| **Por qué** | ART-040 aprobado; sin pipeline (§3b paso 1). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_stock` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0120 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-022 (contexto): Aprobación de la etapa curation_stock con evidencia diferida (§3b paso 1) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T21:43:42-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Curation Stock se aprueba con evidencia diferida: no hay pipeline. ART-040 es el processor aprobado de Curation Flow, y en la ruta stock el motor respeta el mismo contrato (Curator.scala:156,179). La evidencia se reporta con el prompt 05. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_stock` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-040 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0121 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-024 (alto, curation_stock): Evidencia diferida de curation_stock: aprobada sin ejecución de pipeline |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:43:42-05:00 |
+| **Por qué** | APR-022 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_stock` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0122 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `curation_stock` → estado `aprobada` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:43:42-05:00 |
+| **Por qué** | Aplica APR-022 (SIMULADO): aprobada con evidencia diferida. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_stock` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0123 · `interaccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Antecedentes para preguntas abiertas: PA-007 suma AUD-C-22 (motivos defensivos fuera de la lista cerrada de spec §10.1); PA-002 suma que collection-stock vuelve a curar todos los cortes SISBEN acumulados (refuerza el filtro por corte vigente, HU R-26) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:43:42-05:00 |
+| **Por qué** | INT-050, condiciones 1.4 y 3b.3 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 |
+| **Corrige** | — |
+
+---
+
+## BIT-0124 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:43:42-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

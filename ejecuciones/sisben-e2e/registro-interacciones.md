@@ -398,6 +398,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:41:25-05:00
 - **Pedido:** Aprobar ART-031..033 y la etapa curation_flow con evidencia diferida; decidir curation_stock (transición, ART-040, etapa diferida).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
-- **Bitácora:** —
+- **Respuesta:** Aprueba ART-031..033 (medio) con hashes por archivo (AUD-C-24), supuesto HF-52 (vale el Scala), C-CUR-05/06 condicionan Synthesis, AUD-C-22 a PA-007, HF-54 al checklist B. Aprueba curation_flow con evidencia diferida (alto, RG nuevo) y tabla de escenarios. curation_stock: transición acceptance→curation_stock (alto, diferida; HF-56), ART-040 por referencia (mismo hash que ART-031) y etapa con evidencia diferida (RG propio); nota para PA-002.
+- **Decisión:** Registradas APR-018 (ART-031..033), APR-019 (curation_flow, RG-023), APR-020 (transición a curation_stock), APR-021 (ART-040), APR-022 (curation_stock, RG-024); hashes por archivo en hashes/curation.sha256; antecedentes de PA-002 y PA-007 (BIT-0123).
+- **Bitácora:** BIT-0111..BIT-0123

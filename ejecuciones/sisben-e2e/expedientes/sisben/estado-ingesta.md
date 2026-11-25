@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T21:36:45-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T21:43:42-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 110 eventos, último BIT-0110 |
+| Bitácora | 124 eventos, último BIT-0124 |
 
 ## Etapas
 
@@ -18,8 +18,8 @@
 | 0 | Analisis de Requerimiento y Contexto | `aprobada` | bajo | 4/4 | APR-006 | ✅ |
 | 1 | Validation | `aprobada` | alto | 6/6 | APR-011 | ✅ |
 | 2 | Acceptance | `aprobada` | alto | 4/4 | APR-017 | ✅ |
-| 3 | Curation - Flow | `en_progreso` | medio | 3/6 | — | 🔒 |
-| 4 | Curation - Stock | `no_iniciada` | medio | 0/1 | — | 🔒 |
+| 3 | Curation - Flow | `aprobada` | alto | 6/6 | APR-019 | 🔒 |
+| 4 | Curation - Stock | `aprobada` | alto | 1/1 | APR-022 | 🔒 |
 | 5 | Pinning | `no_iniciada` | alto | 0/4 | — | 🔒 |
 | 6 | Synthesis / Consistency | `no_iniciada` | alto | 0/3 | — | 🔒 |
 | 7 | State Calculation | `no_iniciada` | critico | 0/4 | — | 🔒 |
@@ -43,12 +43,12 @@
 | acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `aprobado` | sha256:520b19dc9bfd |
 | acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `aprobado` | sha256:24a220b6fa17 |
 | curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `aprobado` | sha256:506e8b9a1d4a |
-| curation_flow | ART-031 | SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado | `prevalidado` | — |
-| curation_flow | ART-032 | bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary | `prevalidado` | — |
-| curation_flow | ART-033 | fixture sintetico y tests de curation | `prevalidado` | — |
+| curation_flow | ART-031 | SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado | `aprobado` | sha256:29130301d9fe |
+| curation_flow | ART-032 | bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary | `aprobado` | sha256:84cfb028e141 |
+| curation_flow | ART-033 | fixture sintetico y tests de curation | `aprobado` | sha256:70047f9f1bc3 |
 | curation_flow | ART-034 | contrato Curation -> Pinning de la ingesta (steering 11 §4) | `aprobado` | sha256:6bec343692a7 |
 | curation_flow | ART-035 | insumo: fixture-curation/ (accepted-events.input.yaml + lookups/) | `aprobado` | sha256:5d7381ef2327 |
-| curation_stock | ART-040 | mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock) | `ausente` | — |
+| curation_stock | ART-040 | mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock) | `aprobado` | sha256:29130301d9fe |
 | pinning | ART-050 | insumo: yaml-skill-pinning.yaml (edf-analisis) | `prevalidado` | — |
 | pinning | ART-051 | SISBENIdentityMatcher.scala (o matcher compartido) (con verificacion aritmetica del umbral) | `ausente` | — |
 | pinning | ART-052 | identifying-attributes.json | `ausente` | — |
@@ -82,6 +82,11 @@
 | APR-015 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0100 |
 | APR-016 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0103 |
 | APR-017 | transicion | acceptance → curation_flow | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0104 |
+| APR-018 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0111 |
+| APR-019 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0113 |
+| APR-020 | transicion | acceptance → curation_stock | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0116 |
+| APR-021 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0118 |
+| APR-022 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0120 |
 
 ## Preguntas abiertas
 
@@ -121,3 +126,5 @@
 | RG-020 | alto | pinning | abierto | standardizedIdType lleva el código Experian (spec §10.1). Si otras fuentes de Colombia publican otro juego de códigos (p. ej. CC) o si ColombiaIdentityMatcher no compara por toString, la prioridad 1 de R-24 no cruza la misma persona entre fuentes |
 | RG-021 | medio | pinning | abierto | La Ñ se conserva en standardizedIdName (spec §10.2) y otras fuentes podrían transliterarla, lo que afecta el cruce por nombre |
 | RG-022 | alto | acceptance | abierto | Evidencia diferida de acceptance: aprobada sin ejecución de pipeline (observada null) |
+| RG-023 | alto | curation_flow | abierto | Evidencia diferida de curation_flow: aprobada sin ejecución de pipeline |
+| RG-024 | alto | curation_stock | abierto | Evidencia diferida de curation_stock: aprobada sin ejecución de pipeline |
