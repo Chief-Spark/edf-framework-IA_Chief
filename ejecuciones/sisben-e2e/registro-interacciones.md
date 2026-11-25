@@ -625,3 +625,11 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
+
+## INT-079 · Auditor independiente (state_calculation) · insumo v2 · `state_calculation`
+
+- **Cuándo:** 2026-11-24T23:06:59-05:00
+- **Pedido:** Re-auditar ART-070 v2 con los verificadores de 1.9.11.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
