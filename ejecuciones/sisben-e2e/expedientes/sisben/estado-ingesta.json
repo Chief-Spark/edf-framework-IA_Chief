@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:56:02-05:00",
-    "vista_md_regenerada_en": "2026-11-24T22:56:02-05:00"
+    "actualizado_en": "2026-11-24T22:59:11-05:00",
+    "vista_md_regenerada_en": "2026-11-24T22:59:11-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -816,7 +816,7 @@
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Analista (INT-066): YAML parsea con las secciones de la plantilla; ninguna instrucción de generación depende de [A:*]; verificar-claves coherente; ART-072 con generar false (PA-002, PA-012, PA-013)",
+            "reportada_por": "Analista (INT-077): v2 con las decisiones de INT-075 y AUD-SC-01..13; parse OK (17 secciones); sin estado; ART-072/073 generar false; verificar-claves coherente",
             "reportada_en": "2026-11-25"
           }
         },
@@ -2131,8 +2131,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0194",
-    "eventos_totales": 194,
+    "ultimo_evento": "BIT-0195",
+    "eventos_totales": 195,
     "append_only": true,
     "retencion_meses": 24
   }

@@ -614,6 +614,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:54:31-05:00
 - **Pedido:** ART-070 v2 con las decisiones de INT-075 y AUD-SC-01..13 (quedará prevalidado, sin aprobación).
+- **Respuesta:** ART-070 v2.0.0: PA-002 (c1-a) con filtros separados (fuente en el where con campos inyectados; corte vigente en el enricher + cambio de App/motor, CQ-006/BKL-001), supuesto de vigencia y BKL-003, seis condiciones; sección propuesta fuera de la instrucción de generación (AUD-SC-13); PA-012 aplicada; PA-013/014; RG-007 aceptado (SC-8), RG-011 (BKL-002), RG-003/025/028 como precondiciones; escenarios SC-7, SC-8, SC-9 y SC-5 ampliado; citas corregidas; ART-071 con 4 campos (no se genera por APR-030); ART-072/073 generar false. Parse y verificar-claves OK. sha256 e6ca460b…
+- **Decisión:** ART-070 v2 prevalidado (sin aprobación, APR-030); re-auditoría con el framework 1.9.11.
+- **Bitácora:** —
+
+## INT-078 · Corrector del framework (lote final) · `state_calculation`
+
+- **Cuándo:** 2026-11-24T22:59:11-05:00
+- **Pedido:** Corregir HF-13, 42, 44, 45, 47..55, 65..67, 78, 79 (HF-56 solo propuesta).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
