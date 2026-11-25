@@ -641,3 +641,19 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 - **Respuesta:** v3: bloque modo_colombia (aplica true [P], filtro DNP/999722, sección «sisben», modo delta [PM]); cabecera 1.9.11; campos de ART-071 como candidatos sujetos a PA-013 (6); SC-9 [C]; RG-032 citado. AUD-SC-16: attachHistorcData es la grafía real de la clave (statecalc-application-local.conf:67, oxygen-config-default.conf:666), se deja y se cita el feature. Verificaciones OK. sha256 e6ab85ba…
 - **Decisión:** ART-070 v3 prevalidado; sin nueva consulta al PO (APR-030 se mantiene; la etapa sigue bloqueada).
 - **Bitácora:** —
+
+## INT-081 · Generador (edf-pinning) · ART-053 con 1.9.12 · `pinning`
+
+- **Cuándo:** 2026-11-25T06:29:56-05:00
+- **Pedido:** Regenerar ART-053 con render_bloque_colombia.py (§3d).
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-082 · Aprobador simulado SIM-DEV-01 · `pinning`
+
+- **Cuándo:** 2026-11-25T06:29:56-05:00
+- **Pedido:** Procedimiento de los 3 ajustes posteriores al cierre (§3d, §3c en etapas aprobadas con sucesoras).
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
