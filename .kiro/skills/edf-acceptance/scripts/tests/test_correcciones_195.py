@@ -244,3 +244,11 @@ def test_hf24_comentario_del_spec_sobre_reason_code_matizado():
     tpl = (SKILL / "assets" / "templates" / "AcceptanceExpressionsSpec.scala.tpl").read_text(encoding="utf-8")
     assert "el motor además registra el reasonCode (E4)" not in tpl
     assert "registra el reasonCode solo si alguna condición de reject es verdadera sobre ellos" in tpl
+
+
+def test_hf28_comentario_e4_no_engana():
+    """HF-28 (corrida E2E SISBEN, AUD-A-14): el comentario sobre customReason describe true y false."""
+    tpl = (Path(__file__).resolve().parents[2] / "assets/templates/acceptance-block.conf.tpl").read_text(encoding="utf-8")
+    bloque = tpl.split("customReasonForAutomaticRejectionEnabled")[0].rsplit("recordAcceptance", 1)[1]
+    assert "true:" in bloque and "false (default del motor)" in bloque
+    assert "registra códigos de razón también en el rechazo automático por marcadores." not in tpl

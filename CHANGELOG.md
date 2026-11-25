@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.6 — 2026-11-25
+
+### Corregido
+- **HF-28 (AUD-A-14). Comentario engañoso sobre `customReasonForAutomaticRejectionEnabled`** en `edf-acceptance/assets/templates/acceptance-block.conf.tpl`: ahora explica qué hace con `true` y con `false` (default del motor). Ejemplo de referencia regenerado. Prueba: `test_hf28_comentario_e4_no_engana`.
+
 ## 1.9.5 — 2026-11-25
 
 
