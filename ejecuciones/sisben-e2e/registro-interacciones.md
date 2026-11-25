@@ -494,6 +494,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:16:27-05:00
 - **Pedido:** Aprobar ART-053 (¿v2 con AUD-P-18/19 primero?) y la etapa pinning con evidencia diferida.
+- **Respuesta:** (1) ART-053 condicional: v2 corta con rutas HOCON completas (AUD-P-18), tres VERIFICAR nuevas —curatedDir, HBase estático, *-common-application.conf— citando RG-025 (AUD-P-19), cabecera aclarada y [P] en el mecanismo (AUD-P-20); verificación por diferencia con «0 claves activas fuera de comentarios». (2) Aprueba la etapa pinning con evidencia diferida (alto) después de ART-053 v2, con riesgo nuevo (sugerido RG-026; asignado RG-027 porque RG-026 ya existía), citando RG-025 y RG-002, y tabla de escenarios HU §5.4 y DoD §6.
+- **Decisión:** v2 de ART-053 al generador; después, aprobación de ART-053 y de la etapa.
+- **Bitácora:** —
+
+## INT-063 · Generador (edf-pinning) · ART-053 v2 · `pinning`
+
+- **Cuándo:** 2026-11-24T22:17:54-05:00
+- **Pedido:** AUD-P-18/19/20 en ART-053.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
