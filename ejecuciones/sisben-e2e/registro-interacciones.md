@@ -246,14 +246,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:14:14-05:00
 - **Pedido:** Generar ART-021..023 desde el insumo aprobado ART-020 v3 con el framework 1.9.6.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
-- **Bitácora:** —
+- **Respuesta:** 12 archivos en propuestas/acceptance/: ART-021 acceptance-block.conf (filePattern spec §2, reject anyOf(RQS_BAJO_UMBRAL_SISBEN), accept >= 0.90, recordAcceptance RQ-04, customReason false), ART-022 file-conditions.conf (1 condición SISBFA00001), ART-023 SISBENAcceptanceExpressionsSpec + 9 directorios de fixture. ACC-TPL-03/04 omitidas. Verificaciones OK; 900001 acepta 19. Escenarios HU §5.2 cubiertos (umbral parametrizable con 0.95 solo en prueba). Posibles defectos: S-ACC-03/05 y checklist «mismos supuestos» atados al ejemplo; restos de SISBEN histórico en inventario-plantillas, dsl-config-reference y decisiones-y-abiertos; checklist pide documentos SINT*; cabecera del insumo dice PROPUESTO.
+- **Decisión:** ART-021..023 prevalidados (BIT-0078); auditor independiente de Acceptance para la propuesta y los posibles defectos.
+- **Bitácora:** BIT-0078
 
 ## INT-032 · Analista (edf-analisis) · insumos de Curation · `curation_flow`
 
 - **Cuándo:** 2026-11-24T19:14:45-05:00
 - **Pedido:** Preparar insumos/source-spec-curation.yaml (ART-030) e insumos/contrato-curation-pinning.md (ART-034).
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-033 · Auditor independiente (acceptance) · propuesta · `acceptance`
+
+- **Cuándo:** 2026-11-24T19:17:53-05:00
+- **Pedido:** Auditar ART-021..023 y los 4 posibles defectos del generador.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

@@ -1327,3 +1327,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0078 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Propuesta de Acceptance generada en propuestas/acceptance/ (12 archivos) desde ART-020 v3; registrada como prevalidada |
+| **Quién** | Generador edf-acceptance (agente) · registra ORQ-E2E |
+| **Cuándo** | 2026-11-24T19:17:53-05:00 |
+| **Por qué** | INT-031; render --audit, simulador 9/9 + 2/2, hocon_check, suite 147 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-021, ART-022, ART-023 |
+| **Trazabilidad** | prompt 08 |
+| **Corrige** | — |
+
+---
+
+## BIT-0079 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:17:53-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

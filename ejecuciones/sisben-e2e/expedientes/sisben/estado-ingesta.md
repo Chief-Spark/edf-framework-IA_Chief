@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T19:13:32-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T19:17:53-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 77 eventos, último BIT-0077 |
+| Bitácora | 79 eventos, último BIT-0079 |
 
 ## Etapas
 
@@ -39,9 +39,9 @@
 | validation | ART-014 | HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf | `aprobado` | sha256:7f80dd2717c3 |
 | validation | ART-015 | manifest.json | `aprobado` | sha256:735a2624cf47 |
 | acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `aprobado` | sha256:d8ac9e7d2422 |
-| acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `ausente` | — |
-| acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `ausente` | — |
-| acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `ausente` | — |
+| acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `prevalidado` | — |
+| acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `prevalidado` | — |
+| acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `prevalidado` | — |
 | curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `ausente` | — |
 | curation_flow | ART-031 | SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado | `ausente` | — |
 | curation_flow | ART-032 | bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary | `ausente` | — |

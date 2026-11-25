@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T19:13:32-05:00",
-    "vista_md_regenerada_en": "2026-11-24T19:13:32-05:00"
+    "actualizado_en": "2026-11-24T19:17:53-05:00",
+    "vista_md_regenerada_en": "2026-11-24T19:17:53-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -329,25 +329,43 @@
           "id": "ART-021",
           "tipo": "configuracion",
           "nombre": "bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable)",
-          "ruta": "propuestas/acceptance/",
+          "ruta": "propuestas/acceptance/hocon/sisben-acc-tpl-01-acceptance-block.conf",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Generador edf-acceptance (INT-031): render --audit rc 0; simular_decision 9/9 + 2/2; hocon_check rc 0; suite 147",
+            "reportada_en": "2026-11-25"
+          }
         },
         {
           "id": "ART-022",
           "tipo": "configuracion",
           "nombre": "condiciones con nombre (fileConditions[])",
-          "ruta": "propuestas/acceptance/",
+          "ruta": "propuestas/acceptance/hocon/sisben-acc-tpl-02-file-conditions.conf",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Generador edf-acceptance (INT-031): render --audit rc 0; simular_decision 9/9 + 2/2; hocon_check rc 0; suite 147",
+            "reportada_en": "2026-11-25"
+          }
         },
         {
           "id": "ART-023",
           "tipo": "prueba",
           "nombre": "AcceptanceExpressionsSpec + fixture de eventos validados sinteticos",
-          "ruta": "propuestas/acceptance/",
+          "ruta": "propuestas/acceptance/src/test/",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Generador edf-acceptance (INT-031): render --audit rc 0; simular_decision 9/9 + 2/2; hocon_check rc 0; suite 147",
+            "reportada_en": "2026-11-25"
+          }
         }
       ],
       "evidencia_pipeline": {
@@ -1175,8 +1193,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0077",
-    "eventos_totales": 77,
+    "ultimo_evento": "BIT-0079",
+    "eventos_totales": 79,
     "append_only": true,
     "retencion_meses": 24
   }

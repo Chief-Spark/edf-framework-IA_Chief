@@ -1,0 +1,266 @@
+// ACC-TPL-05 · Casos de prueba de las expresiones de Acceptance de SISBEN.
+// Generado por edf-acceptance 0.1.0. Tipo: ESQUELETO.
+// Compilación NO certificada (F-01): sin acceso al JAR del framework no se pudo compilar.
+// Destino: src/test/scala/com/experian/edf/oxygen/acceptance/source/sisben/  ·  Fixture: src/test/resources/sisben/validated/
+// Motivo: un error de sintaxis no falla en ejecución; acepta todos los registros o deja el archivo
+// pendiente. Estos casos evalúan cada expresión con los mismos parsers del motor.
+package com.experian.edf.oxygen.acceptance.source.sisben
+
+import com.experian.edf.oxygen.acceptance.engines.dsl.{AcceptanceEvaluator, AcceptanceLexer}
+import com.experian.edf.oxygen.acceptance.util.{AggregatesParserDF, RecordValidationParser}
+import com.experian.edf.oxygen.configuration.configs.AcceptanceCondition
+import com.experian.edf.oxygen.domain.internal.TaggedValidatedEvent
+// ASSUMPTION S-ACC-04: JsonUtils está en com.experian.edf.oxygen.utils (el motor lo importa con comodín).
+import com.experian.edf.oxygen.utils.JsonUtils
+import org.apache.spark.sql.{Dataset, SparkSession}
+import org.junit.runner.RunWith
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.junit.JUnitRunner
+
+import scala.io.Source
+import scala.util.Try
+
+@RunWith(classOf[JUnitRunner])
+class SISBENAcceptanceExpressionsSpec extends AnyFunSuite with BeforeAndAfterAll {
+
+  private val RecordAcceptance = "errorlevelNotIn(\"1\") and errorcodeNotIn(\"OxygenDuplicate\")"
+  private val FileReject = "anyOf(RQS_BAJO_UMBRAL_SISBEN)"
+  private val FileAccept = "average(\"qs.RQS\") >= 0.90"
+  private val QualityScoreNames = Seq("RQS")
+  private val AutomaticMarkers = Seq("errorInHeader", "errorInFooter", "errorInFileName", "errorInHistoricAttribute")
+  private val CustomReasonForAutomaticRejection = false
+
+  private val conditions: Map[String, AcceptanceCondition] = Map(
+    "RQS_BAJO_UMBRAL_SISBEN" -> AcceptanceCondition("RQS_BAJO_UMBRAL_SISBEN", "average(\"qs.RQS\") < 0.90", "SISBFA00001", true),
+  )
+
+  // AUD-A1: el motor pasa buildReasonCodeSeverityMap(config.lookupMapping, conditions) (SparkAcceptor.scala:208 y
+  // :224): reasonCode → severidad, solo de los reasonCode de las condiciones y solo si hay lookupMapping. Aquí sale
+  // de severidades.filas cuando severidades.habilitado; sin lookupMapping el motor pasa un mapa vacío.
+  private val ReasonSeverities: Map[String, Int] = Map[String, Int](
+  ).filter { case (code, _) => conditions.values.exists(_.reasonCode == code) }
+
+  // (directorio, eventId, resultado esperado de recordAcceptance)
+  private val expectedRecords: Seq[(String, String, Boolean)] = Seq(
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-01", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-02", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-03", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-04", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-05", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-06", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-07", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-08", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-09", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-10", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-11", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-12", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-13", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-14", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-15", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-16", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-17", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-18", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-19", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "SINT-A-20", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900002", "SINT-B-01", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900002", "SINT-B-02", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900002", "SINT-B-03", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900002", "SINT-B-04", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900002", "SINT-B-05", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-01", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-02", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-03", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-04", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-05", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-06", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-07", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-08", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-09", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "SINT-C-10", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004", "SINT-D-01", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004", "SINT-D-02", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004", "SINT-D-03", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004", "SINT-D-04", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004", "SINT-D-05", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004", "SINT-D-06", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004", "SINT-D-07", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004", "SINT-D-08", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-01", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-02", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-03", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-04", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-05", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-06", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-07", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-08", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-09", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-10", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-11", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "SINT-E-12", true),
+    ("RT_SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInFileName.900006", "SINT-F-01", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInHeader.900007", "SINT-G-01", false),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInEmptyFileBody.900008", "SINT-H-01", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900009", "SINT-I-01", true),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900009", "SINT-I-02", true),
+  )
+
+  // (directorio, marcador, decisión esperada, reasonCode esperado)
+  private val expectedFiles: Seq[(String, String, String, String)] = Seq(
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900001", "", "aceptado", ""),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900002", "", "rechazado", "SISBFA00001"),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900003", "", "aceptado", ""),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900004", "", "rechazado", "SISBFA00001"),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900005", "", "aceptado", ""),
+    ("RT_SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInFileName.900006", "errorInFileName", "rechazo_automatico", ""),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInHeader.900007", "errorInHeader", "rechazo_automatico", ""),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.errorInEmptyFileBody.900008", "errorInEmptyFileBody", "rechazo_automatico", ""),
+    ("SISBEN_EXPERIAN_202601.20260205093000-0500.txt.900009", "", "pendiente", ""),
+  )
+
+  private lazy val spark: SparkSession =
+    SparkSession.builder().master("local[1]").appName("sisben-acceptance-expressions").getOrCreate()
+
+  override def afterAll(): Unit = {
+    spark.stop()
+    super.afterAll()
+  }
+
+  private def loadEvents(dir: String): Seq[TaggedValidatedEvent] = {
+    val src = Source.fromResource("sisben/validated/" + dir + "/part-00000.json")
+    try src.getLines().filter(_.trim.nonEmpty).map(l => JsonUtils.fromJson(l, classOf[TaggedValidatedEvent])).toList
+    finally src.close()
+  }
+
+  /** AUD-A2: misma regla que SparkAcceptor.shouldAutomaticReject (SparkAcceptor.scala:190-198) sobre el nombre del
+    * directorio de validados: marcador de header, footer, nombre o atributos históricos; cuerpo vacío si accept no
+    * contiene isEmptyBodyFile. */
+  private def automaticReject(dir: String): Boolean =
+    AutomaticMarkers.exists(m => dir.contains(m)) ||
+      (dir.contains("errorInEmptyFileBody") && !FileAccept.contains("isEmptyBodyFile"))
+
+  private def aggregatesParser(dir: String): AggregatesParserDF = {
+    import spark.implicits._
+    val ds: Dataset[TaggedValidatedEvent] = spark.createDataset(loadEvents(dir))
+    new AggregatesParserDF(spark.sqlContext, AggregatesParserDF.createQSDataFrame(spark, ds))
+  }
+
+  private def recordAccepted(event: TaggedValidatedEvent): Boolean = {
+    val parser = new RecordValidationParser(Left(event))
+    parser.parseAll(parser.boolExpr, RecordAcceptance).get
+  }
+
+  test("recordAcceptance no contiene nombres de quality score (ACC-R02)") {
+    QualityScoreNames.foreach(qs => assert(!RecordAcceptance.contains(qs), "QS dentro de la expresión: " + qs))
+  }
+
+  test("reject compila en la sintaxis nueva y solo cita condiciones definidas (ACC-P09)") {
+    assert(AcceptanceLexer(FileReject).isDefined, "reject cae a la sintaxis antigua y no registra reasonCode")
+    val evaluator = new AcceptanceEvaluator
+    evaluator.apply(conditions, ReasonSeverities)
+    assert(evaluator.compile(FileReject).isDefined)
+    val cited = "[A-Za-z_][A-Za-z0-9_]*".r.findAllIn(FileReject).toSet -- Set("anyOf", "allOf", "hasErrorlevelIn", "hasErrorlevelNotIn")
+    assert(cited.subsetOf(conditions.keySet), "condiciones no definidas: " + (cited -- conditions.keySet))
+  }
+
+  test("accept usa la sintaxis antigua y no acepta cuerpos vacíos (RF-ACC-02)") {
+    assert(AcceptanceLexer(FileAccept).isEmpty)
+    assert(!FileAccept.contains("isEmptyBodyFile"))
+  }
+
+  test("toda expresión de archivo declarada parsea: accept y cada condición (AUD-A3)") {
+    // En el motor nada de esto falla en ejecución: un accept que lanza vale false y deja el archivo pendiente
+    // (SparkAcceptor.isFileActionValid) y una condición que lanza vale false (AcceptanceAST.evaluateNamedInternal).
+    // Aquí se exige que parseen sobre los archivos que cumplen el contrato con Validation (traen el QS declarado):
+    // si una lanza o no parsea, la prueba falla. Los archivos sin QS (S-ACC-03) se excluyen a propósito.
+    val conContrato = expectedFiles.map(_._1).distinct.filterNot(automaticReject).filter { dir =>
+      val events = loadEvents(dir)
+      events.nonEmpty && events.forall(e => QualityScoreNames.forall(qs => Option(e.qualityScores).exists(_.exists(_.name == qs))))
+    }
+    assert(conContrato.nonEmpty, "el fixture no tiene archivos con el QS declarado que lleguen a evaluar accept")
+    conContrato.foreach { dir =>
+      val parser = aggregatesParser(dir)
+      (("accept" -> FileAccept) +: conditions.values.toSeq.map(c => c.name -> c.expression)).foreach { case (name, expr) =>
+        val parsed = parser.parseAll(parser.boolExpr, expr)
+        assert(parsed.successful, name + " no parsea en " + dir + ": " + parsed)
+      }
+    }
+  }
+
+  test("regla de registro: un caso por fila de la tabla de IN-04") {
+    expectedRecords.groupBy(_._1).foreach { case (dir, cases) =>
+      val byId = loadEvents(dir).map(e => e.eventId -> e).toMap
+      cases.foreach { case (_, eventId, expected) =>
+        val result = Try(recordAccepted(byId(eventId)))
+        assert(result.isSuccess, "la expresión falla y el motor ACEPTARÍA el registro " + eventId)
+        assert(result.get == expected, "registro " + eventId)
+      }
+    }
+  }
+
+  test("decisión de archivo: se acepta, se rechaza con reasonCode, automático y pendiente") {
+    val evaluator = new AcceptanceEvaluator
+    evaluator.apply(conditions, ReasonSeverities)
+    val rejectStatement = evaluator.compile(FileReject).get
+    expectedFiles.foreach { case (dir, marker, expected, reasonCode) =>
+      // AUD-A2: el rechazo automático se decide con la regla del motor, no se da por hecho.
+      assert(marker.isEmpty || dir.contains(marker), "el marcador " + marker + " no está en el directorio " + dir)
+      assert(automaticReject(dir) == (expected == "rechazo_automatico"), dir)
+      if (automaticReject(dir)) {
+        // Con customReasonForAutomaticRejectionEnabled el motor evalúa además reject sobre los eventos del marcador
+        // y registra el reasonCode solo si alguna condición de reject es verdadera sobre ellos (E4). Si los eventos
+        // del marcador no traen el QS de la condición, la condición vale false y no registra ninguno (AUD-A-09).
+        assert(CustomReasonForAutomaticRejection || reasonCode.isEmpty, dir)
+      } else {
+        val parser = aggregatesParser(dir)
+        val (rejected, partials) = evaluator.execute(rejectStatement, conditions.values.toList, parser)
+        // SILENCIO-INTENCIONAL AUD-A3: igual que el motor (SparkAcceptor.isFileActionValid), un accept que lanza vale false.
+        val accepted = !rejected && Try(parser.parseAll(parser.boolExpr, FileAccept).get).getOrElse(false)
+        val decision = if (rejected) "rechazado" else if (accepted) "aceptado" else "pendiente"
+        assert(decision == expected, dir)
+        val logged = partials.filter(p => p.isLogged && p.result).map(_.reasonCode).mkString(",")
+        assert(logged == reasonCode, dir)
+      }
+    }
+  }
+
+  // HF-23 (AUD-A-01): fixture.umbrales_alternativos. Prueba la MISMA configuración con otro umbral sin generar otra
+  // configuración desplegable: accept y cada condición se evalúan con el literal del umbral sustituido (la regla
+  // "escala única" garantiza que es su único número) sobre registros sintéticos con QS binario: registros_validos
+  // con 1 y el resto con 0.
+  private val UmbralDesplegado = "0.90"
+
+  // (umbral, caso, registros válidos, registros totales, decisión esperada, reasonCode esperado)
+  private val umbralesAlternativos: Seq[(String, String, Int, Int, String, String)] = Seq(
+    ("0.95", "FQS_095", 19, 20, "aceptado", ""),
+    ("0.95", "FQS_094", 47, 50, "rechazado", "SISBFA00001"),
+  )
+
+  /** Misma sustitución que render_templates.con_umbral y simular_decision.con_umbral. */
+  private def conUmbral(expr: String, umbral: String): String =
+    ("(?<![\\w.])" + java.util.regex.Pattern.quote(UmbralDesplegado) + "(?![\\w.])").r
+      .replaceAllIn(expr, scala.util.matching.Regex.quoteReplacement(umbral))
+
+  test("umbral alternativo: la misma configuración con otro umbral acepta y rechaza lo esperado (HF-23)") {
+    import spark.implicits._
+    umbralesAlternativos.foreach { case (umbral, caso, validos, totales, expected, reasonCode) =>
+      val accept = conUmbral(FileAccept, umbral)
+      assert(accept != FileAccept, "accept no contiene el umbral " + UmbralDesplegado)
+      val alt = conditions.map { case (n, c) => n -> AcceptanceCondition(c.name, conUmbral(c.expression, umbral), c.reasonCode, c.isLogged) }
+      val qs = (1 to totales).map(i => Tuple1(QualityScoreNames.map(_ -> (if (i <= validos) 1.0 else 0.0)).toMap)).toDF("qs")
+      val parser = new AggregatesParserDF(spark.sqlContext, qs)
+      val evaluator = new AcceptanceEvaluator
+      evaluator.apply(alt, ReasonSeverities)
+      val (rejected, partials) = evaluator.execute(evaluator.compile(FileReject).get, alt.values.toList, parser)
+      // SILENCIO-INTENCIONAL AUD-A3: igual que el motor (SparkAcceptor.isFileActionValid), un accept que lanza vale false.
+      val accepted = !rejected && Try(parser.parseAll(parser.boolExpr, accept).get).getOrElse(false)
+      val decision = if (rejected) "rechazado" else if (accepted) "aceptado" else "pendiente"
+      assert(decision == expected, "umbral " + umbral + ", caso " + caso)
+      val logged = partials.filter(p => p.isLogged && p.result).map(_.reasonCode).mkString(",")
+      assert(logged == reasonCode, "umbral " + umbral + ", caso " + caso)
+    }
+  }
+
+  // PARTE MANUAL (ACC-TPL-05): si se activa ACC-TPL-04 (contextualOverride), agregue aquí un caso que
+  // falle cuando la inferencia de borrados devuelve vacío en silencio (ACC-AP03).
+}
