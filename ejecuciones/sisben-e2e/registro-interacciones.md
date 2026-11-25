@@ -670,8 +670,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:31:25-05:00
 - **Pedido:** Formalizar la revisión no sustantiva de un insumo (§3d-bis) en references/03 y en el validador, con pruebas; 1.9.13.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** §3d-bis en references/03 (definición (a)-(d), procedimiento sin suspender transiciones, decide el aprobador, insumo crítico siempre §3c) y en el prompt 03; regla 7g del validador (re-aprobación de un insumo con la transición de su dependencia ya habilitada antes: exige el marcador «revisión no sustantiva (§3d-bis)», (a)-(d) en la justificación, riesgo no menor y aprobador válido; crítico siempre hallazgo). 9 pruebas; tests 268; auditar-skills OK; expediente de la corrida válido (APR-005 aceptada como §3c).
+- **Decisión:** Commit 39969ed (1.9.13). Se aplica a ART-020 y a ART-030/034 según las condiciones del aprobador.
 - **Bitácora:** —
 
 ## INT-085 · Corrector del framework (HF-81/82) · `pinning`
