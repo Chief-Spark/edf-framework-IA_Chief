@@ -1191,3 +1191,54 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0070 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Revisión §3d de Validation: hashes nuevos de ART-012, ART-013 y ART-015 (manifest 735a2624…) por el framework 1.9.5 (HF-16/17/18); ART-011 mismo hash, comportamiento cambiado vía Capa A; ART-014 sin cambio (APR-007). AUD-V-30: en SISBEN (sin encoding) el \r nunca llegaba a Curation. La desviación AUD-V-27 declarada en APR-008 queda cerrada. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:12:42-05:00 |
+| **Por qué** | references/03 §3d; re-auditoría por diferencia auditorias/validation.md §8; condiciones 1 y 2 de INT-029 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-011, ART-012, ART-013, ART-015 |
+| **Trazabilidad** | prompt 08 · references/03 §3d |
+| **Corrige** | BIT-0054 |
+
+---
+
+## BIT-0071 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-009 (artefacto): Nueva aprobación de artefactos de Validation regenerados con el framework 1.9.5 (references/03 §3d) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T19:12:42-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Re-auditoría por diferencia APROBADO (auditorias/validation.md §8): reproducible; muestra = spec §15 también en CRLF; fixture igual; HOCON OK; 227 pruebas. Cerrados AUD-V-27 (filas sin número no se agrupan, spec §6), AUD-V-28 (RA-02 aislada en Scala) y AUD-V-29 (\r final). AUD-V-31 (UUID) aceptado: basta clave única. La etapa no se re-aprueba: no cambian insumo, alcance, riesgo ni decisión (§3d paso 4). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-011, ART-012, ART-013, ART-015 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0072 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T19:12:47-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `validation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

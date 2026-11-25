@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T18:49:09-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T19:12:47-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 68 eventos, último BIT-0068 |
+| Bitácora | 72 eventos, último BIT-0072 |
 
 ## Etapas
 
@@ -34,10 +34,10 @@
 | analisis | ART-004 | plan-de-ruta.md | `aprobado` | sha256:12aa223e4598 |
 | validation | ART-010 | insumo: source-spec-validation.yaml (edf-analisis) | `aprobado` | sha256:dd707688bc92 |
 | validation | ART-011 | SISBENValidationProcessor.scala + Spec, ValidatedEvent, FileMetadata | `aprobado` | sha256:16dc1080831f |
-| validation | ART-012 | Capa A: FieldSpec, FieldValidators, FieldValidatorsSpec | `aprobado` | sha256:e502b2bb821b |
-| validation | ART-013 | SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv | `aprobado` | sha256:512a21af37dc |
+| validation | ART-012 | Capa A: FieldSpec, FieldValidators, FieldValidatorsSpec | `aprobado` | sha256:a44e4dec6df1 |
+| validation | ART-013 | SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv | `aprobado` | sha256:e7990c96146f |
 | validation | ART-014 | HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf | `aprobado` | sha256:7f80dd2717c3 |
-| validation | ART-015 | manifest.json | `aprobado` | sha256:cb5478fee063 |
+| validation | ART-015 | manifest.json | `aprobado` | sha256:735a2624cf47 |
 | acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `prevalidado` | — |
 | acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `ausente` | — |
 | acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `ausente` | — |
@@ -72,6 +72,7 @@
 | APR-006 | transicion | analisis → validation | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0048 |
 | APR-007 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0054 |
 | APR-008 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0057 |
+| APR-009 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0071 |
 
 ## Preguntas abiertas
 
@@ -100,7 +101,7 @@
 | RG-012 | medio | validation | abierto | Un archivo sin marca de tiempo no coincide con el filePattern: no deja marcador ni reporte de rechazo ERR_024 (HU §5.1 cumplido en parte) |
 | RG-013 | medio | validation | abierto | En duplicados gana el de mayor fec_actualizacion_cns aunque tenga error sev. 1; el registro válido queda sin aceptar (dato incompleto) |
 | RG-014 | medio | validation | abierto | El contador REGISTROS MENORES DE EDAD del Log_Sisben no tiene origen: el filtro de Validation no deja rastro |
-| RG-016 | medio | curation_flow | abierto | Con un archivo CRLF, FECHA_ACTUALIZACION_CNS llega a Curation con \r final (Campos.crudo, AUD-V-29) y alimenta fechaModificacion de #sisben (spec §13); la spec no fija el fin de línea |
+| RG-016 | medio | curation_flow | mitigado | Con un archivo CRLF, FECHA_ACTUALIZACION_CNS llega a Curation con \r final (Campos.crudo, AUD-V-29) y alimenta fechaModificacion de #sisben (spec §13); la spec no fija el fin de línea |
 | RG-015 | alto | validation | abierto | Evidencia diferida de validation: aprobada sin ejecución de pipeline (observada null) |
 | RG-017 | medio | acceptance | abierto | Las fileConditions son globales (SparkAcceptor.scala:46): si RQS_BAJO_UMBRAL_SISBEN o SISBFA00001 ya existen en el fork, la decisión cambiaría sin avisar (06 §6 #9) |
 | RG-018 | medio | acceptance | abierto | Un archivo sin RQS queda pendiente en validated/ sin otra señal que un error en el log (AUD-A-12, motor) |

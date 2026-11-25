@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T19:08:58-05:00",
-    "vista_md_regenerada_en": "2026-11-24T18:49:09-05:00"
+    "actualizado_en": "2026-11-24T19:12:47-05:00",
+    "vista_md_regenerada_en": "2026-11-24T19:12:47-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -207,7 +207,7 @@
             "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
           },
-          "hash": "sha256:e502b2bb821b94269f0f5863ac46e23cf012f964e3dfbf112914cc1776647060"
+          "hash": "sha256:a44e4dec6df168f518b1635f62c2b94e7c28acd37407502e7e27a46e4bc87bc2"
         },
         {
           "id": "ART-013",
@@ -223,7 +223,7 @@
             "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
           },
-          "hash": "sha256:512a21af37dc2cdc5ba3fdf7a96bddc2cd0aac3d18c965cd60c6eba040d6e8be"
+          "hash": "sha256:e7990c96146fb7189b0a0230b0de31d0db4aa07832f60f571e88c49eb1205bec"
         },
         {
           "id": "ART-014",
@@ -255,7 +255,7 @@
             "reportada_por": "Generador edf-validation (INT-017/018) con insumo v2 y framework 1.9.4: 18 archivos + manifest; verificar_hocon OK; suite 216 passed; muestra = spec §15; fixture 26 casos",
             "reportada_en": "2026-11-24"
           },
-          "hash": "sha256:cb5478fee063c7946fe94434018c890283776858aa099755d10028384e978e3a"
+          "hash": "sha256:735a2624cf47c48ec2422628a2e8c228762a1d2f33762802346faff9354734a4"
         }
       ],
       "evidencia_pipeline": {
@@ -860,6 +860,33 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0057"
+    },
+    {
+      "id": "APR-009",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-011",
+        "ART-012",
+        "ART-013",
+        "ART-015"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T19:12:42-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "diff_contexto",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Re-auditoría por diferencia APROBADO (auditorias/validation.md §8): reproducible; muestra = spec §15 también en CRLF; fixture igual; HOCON OK; 227 pruebas. Cerrados AUD-V-27 (filas sin número no se agrupan, spec §6), AUD-V-28 (RA-02 aislada en Scala) y AUD-V-29 (\\r final). AUD-V-31 (UUID) aceptado: basta clave única. La etapa no se re-aprueba: no cambian insumo, alcance, riesgo ni decisión (§3d paso 4).",
+      "condiciones": [
+        "RG-015 sigue abierto; la evidencia del fork incluye las pruebas nuevas de FieldValidatorsSpec y SISBENValidationProcessorSpec",
+        "Documentar AUD-V-31 en interpretar-salida.md (HF-27), no bloquea"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0071"
     }
   ],
   "preguntas_abiertas": [
@@ -1086,8 +1113,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0069",
-    "eventos_totales": 69,
+    "ultimo_evento": "BIT-0072",
+    "eventos_totales": 72,
     "append_only": true,
     "retencion_meses": 24
   }

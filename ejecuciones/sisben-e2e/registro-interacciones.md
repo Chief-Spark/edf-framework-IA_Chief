@@ -230,6 +230,14 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:11:14-05:00
 - **Pedido:** Re-aprobar ART-011..015 (§3d), aprobar ART-020 v2 y la transición validation→acceptance (§3b pasos 2 y 3).
+- **Respuesta:** (1) Re-aprueba ART-011/012/013/015 con hashes nuevos (ART-014 sigue con APR-007); la etapa no se re-aprueba. (2) No aprueba ART-020 v2: pide v3 con AUD-A-13 (900006 receivedDate/asOfDate 0, fileTag vacío) y AUD-A-15 (citas por símbolo), verificada por diferencia; HF-26 aceptada como desviación; HF-28 condición para ART-021; RG-017 antes del fork. (3) Aprueba la transición validation→acceptance (alto, diferida) en el orden: artefactos de Validation → ART-020 v3 → transición.
+- **Decisión:** Registrada la corrección §3d y la nueva aprobación de Validation; v3 al analista; luego ART-020 v3 y la transición.
+- **Bitácora:** —
+
+## INT-030 · Analista (edf-analisis) · insumo de Acceptance v3 · `acceptance`
+
+- **Cuándo:** 2026-11-24T19:12:43-05:00
+- **Pedido:** AUD-A-13 y AUD-A-15 en ART-020 (nada más).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —
