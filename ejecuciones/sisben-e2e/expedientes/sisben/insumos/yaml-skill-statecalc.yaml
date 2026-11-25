@@ -21,12 +21,12 @@
 #   - Contenido de #sisben (spec §13): 6 atributos passthrough. 4 tienen cadena completa y nombre Foundation forzado por el
 #     motor (DERIVED lee curatedRecordJson.get(name)): grupoSisben, nivelSisben, codDepartamentoSisben, codMunicipioSisben.
 #     fechaEncuesta y fechaModificacion cambian de nombre respecto del campo curado: necesitan alias (aliasEnabled del conf
-#     de Colombia, hecho del fork) o un CALCULATED (Nashorn, [A:OQ-TR-2]). Quedan fuera de la generación (PA-013 propuesta).
+#     de Colombia, hecho del fork) o un CALCULATED (Nashorn, [A:OQ-TR-2]). Quedan fuera de la generación (PA-012 propuesta).
 #   - PA-002: (d) queda descartada con evidencia del motor (sección propuesta_pa_002). La única opción compatible es (c1) y
 #     necesita código Scala en el enricher de Colombia ([A:CQ-006]) más un `where` Nashorn ([A:OQ-TR-2]). Además, sin un
 #     filtro por fuente la sección se calcularía con eventos de cualquier fuente de Colombia: el filtro del corte vigente y
 #     el filtro por fuente se resuelven juntos.
-#   - La sección de Calculation (ART-072) NO se genera con este insumo: depende de PA-002, de PA-013 y PA-014 (propuestas)
+#   - La sección de Calculation (ART-072) NO se genera con este insumo: depende de PA-002, de PA-012 y PA-013 (propuestas)
 #     y de [A:OQ-TR-2]. Esos hechos del fork no admiten verificación diferida (edf-orquestador references/03 §3e #1).
 
 documento:
@@ -55,7 +55,7 @@ procedencia:
 
 alcance:
   genera:
-    - "ART-071 · propuestas/statecalc/statecalc-foundation-local.json: fields[] con los 4 campos de nivel A (instruccion_generacion_foundation.campos_a_generar), DERIVED, sin `value`, sin campos base. Los otros 3 quedan en campos_excluidos_hasta_resolver [C] cadena / [PM] integración al JSON compartido de Colombia (PA-014 propuesta, punto 3)"
+    - "ART-071 · propuestas/statecalc/statecalc-foundation-local.json: fields[] con los 4 campos de nivel A (instruccion_generacion_foundation.campos_a_generar), DERIVED, sin `value`, sin campos base. Los otros 3 quedan en campos_excluidos_hasta_resolver [C] cadena / [PM] integración al JSON compartido de Colombia (PA-013 propuesta, punto 3)"
   no_genera:
     - "ART-072 · CalculationSection de #sisben: no se genera con este insumo. Sin el filtro del corte vigente (PA-002) y sin el filtro por fuente, MOST_RECENT_VALUE toma el registro Foundation más reciente del PIN de CUALQUIER fuente de Colombia (MostRecentValue.scala:16-24; FoundationStateCalculator.scala:43-51) y la sección sale para todos los PIN, con nulos o con datos de otra fuente: dato erróneo visible al cliente (N4). Ver instruccion_generacion_calculation"
     - "Código Scala de ningún tipo: ni el cambio del enricher de Colombia que pide (c1), ni un CustomOnSectionProcessor, ni un CalculationType pluggable (edf-statecalc SKILL.md «Qué este skill nunca hace»; steering 07 §5.7 [A:CQ-006])"
@@ -74,10 +74,10 @@ alcance:
     - id: "CQ-006"
       descripcion: "Si State Calculation de SISBEN requiere lógica propia en el enricher (steering 07 §5.7, §7 fila 6). (c1) responde que sí"
       efecto: "Decisión de alcance del PO: el cambio del enricher es código fuera de las skills del framework (edf-statecalc SKILL.md, decisiones-pendientes.md §5)"
-    - id: "PA-013 (propuesta)"
+    - id: "PA-012 (propuesta)"
       descripcion: "Forma visible de la sección: nombre literal de la clave, objeto único o lista por documento, sección ausente frente a valor nulo (preguntas_propuestas)"
       efecto: "Bloquea ART-072"
-    - id: "PA-014 (propuesta)"
+    - id: "PA-013 (propuesta)"
       descripcion: "Hechos del fork de los que dependen ART-071 y ART-072 (aliasEnabled, App y enricher de Colombia, JSON compartidos, serialización de una sección nula)"
       efecto: "Bloquea fechaEncuesta y fechaModificacion en ART-071 y todo ART-072. No admite verificación diferida porque los artefactos dependen de ellos (edf-orquestador references/03 §3e #1)"
     - id: "habilitacion-synthesis"
@@ -88,7 +88,7 @@ alcance:
       efecto: "Aun con PA-002 cerrada, la etapa termina en pendiente_evidencia con los artefactos aprobados por el PO hasta tener la corrida del DAG state-generation y la prueba CA1 (criterios_aceptacion)"
 
 marcado_heredado:
-  nota: "Todo valor con marcador distinto de [C] en logica-statecalc.md se transcribe con su marcador original. Ningún [A:*] se resuelve en este YAML. La regla dura de groupBy plano (logica-statecalc.md §5.4) se respeta; esta sección no usa groupBy (propuesta [A:PA-013]). El pendiente #2 de logica-statecalc.md §12 (sin motor de 4 dimensiones) sigue [A:sin-clasificar] y se cruza con RG-011."
+  nota: "Todo valor con marcador distinto de [C] en logica-statecalc.md se transcribe con su marcador original. Ningún [A:*] se resuelve en este YAML. La regla dura de groupBy plano (logica-statecalc.md §5.4) se respeta; esta sección no usa groupBy (propuesta [A:PA-012]). El pendiente #2 de logica-statecalc.md §12 (sin motor de 4 dimensiones) sigue [A:sin-clasificar] y se cruza con RG-011."
 
 trazabilidad:
   citas_formato: "archivo §sección | archivo:línea | ruta/archivo::símbolo"
@@ -119,7 +119,7 @@ mapeo_campos:
   nota_general: >
     Spec §13 da para cada atributo XPM su campo curado y su tipo, y spec §10.1 declara que los nombres curados son
     definitivos («Pinning, Synthesis y State Calculation los citan literalmente»). Un campo DERIVED de Foundation lee
-    curatedRecordJson.get(name) del evento sintetizado (FoundationFunctions.scala:38-49): el `name` del campo Foundation
+    curatedRecordJson.get(name) del evento sintetizado (FoundationFunctions.scala:24-35): el `name` del campo Foundation
     TIENE que ser el nombre curado; `value` no se usa en DERIVED. Por eso el nombre Foundation no se infiere: lo fija el
     motor. El evento sintetizado solo lleva los campos del GDD (EventSynthesizer.scala:94-116): los 7 nombres de abajo
     están entre las 34 entradas del GDD de ART-060. Clasificación PII: los 7 son públicos (spec §10.1; HU R-28) [C].
@@ -134,7 +134,7 @@ mapeo_campos:
       transformacion: "Ninguna (texto de 1 carácter A-D; toDataType STRING hace toString.trim, CalculationUtils.scala:15-36)"
       nivel_confianza: "A"
       estado: "[C]"
-      fuente: "spec §13 fila grupoSisben, §10.1 fila Grupo; HU R-12, §5.6 «Sección generada»; source-spec-curation.yaml destino grupoSisben; FoundationFunctions.scala:38-49"
+      fuente: "spec §13 fila grupoSisben, §10.1 fila Grupo; HU R-12, §5.6 «Sección generada»; source-spec-curation.yaml destino grupoSisben; FoundationFunctions.scala:24-35"
 
     - campo_xpm_destino: "nivelSisben"
       campo_curado_sisben_origen: "nivelSisben"
@@ -171,7 +171,7 @@ mapeo_campos:
 
     - campo_xpm_destino: "fechaEncuesta"
       campo_curado_sisben_origen: "fechaDigitacion"
-      nombre_en_foundation: "fechaDigitacion, con alias fechaEncuesta [A:PA-014]"
+      nombre_en_foundation: "fechaDigitacion, con alias fechaEncuesta [A:PA-013]"
       tipo_foundation: "DERIVED + aliases [\"fechaEncuesta\"] (propuesto)"
       valor_calculated: ""
       dataType: "LONG"
@@ -182,7 +182,7 @@ mapeo_campos:
         queda nula y la sección se genera igual» (HU §5.6) [C]. Una Fec_digitacion futura con formato válido llega como fecha
         futura (spec §10.4 regla 1; RG-007): no se filtra aquí; lo confirma el PO al aprobar.
       nivel_confianza: "B"
-      estado: "[A:PA-014]"
+      estado: "[A:PA-013]"
       nota: >
         Cadena de origen completa en las fuentes, pero el nombre XPM difiere del curado. Dos maneras de que el registro
         Foundation tenga `fechaEncuesta`: (1) alias, que el motor escribe solo si computeAliasInFoundation =
@@ -190,12 +190,12 @@ mapeo_campos:
         el valor vigente en el conf de State Calculation de Colombia es un hecho del fork (en el conf local es true,
         statecalc-application-local.conf:26-27,34); (2) CALCULATED «return field.fechaDigitacion» con un DERIVED fechaDigitacion
         declarado antes (el `field` del script es el registro Foundation, no el evento curado: FoundationStateCalculator.scala:52-63,
-        FoundationFunctions.scala:57-59): depende de Nashorn [A:OQ-TR-2]. Se prefiere (1). Sin el hecho verificado no se genera.
+        FoundationFunctions.scala:43-49): depende de Nashorn [A:OQ-TR-2]. Se prefiere (1). Sin el hecho verificado no se genera.
       fuente: "spec §13 fila fechaEncuesta («epoch ms (nulo si no viene)»), §10.1 fila Fec_digitacion, §10.4; HU R-05, R-06, §5.6 «Fecha de encuesta ausente»; source-spec-curation.yaml destino fechaDigitacion (largo)"
 
     - campo_xpm_destino: "fechaModificacion"
       campo_curado_sisben_origen: "fechaActualizacionCns"
-      nombre_en_foundation: "fechaActualizacionCns, con alias fechaModificacion [A:PA-014]"
+      nombre_en_foundation: "fechaActualizacionCns, con alias fechaModificacion [A:PA-013]"
       tipo_foundation: "DERIVED + aliases [\"fechaModificacion\"] (propuesto)"
       valor_calculated: ""
       dataType: "LONG"
@@ -205,7 +205,7 @@ mapeo_campos:
         (< 2^53) no pierde precisión. Ojo: no es lo mismo que asOfPeriod (el periodo del evento sintetizado, que depende del
         dateType de Synthesis, VD-SYN de RG-026); por eso se toma el campo curado y no el campo base.
       nivel_confianza: "B"
-      estado: "[A:PA-014]"
+      estado: "[A:PA-013]"
       nota: "Mismo mecanismo y misma dependencia que fechaEncuesta (alias con aliasEnabled del fork; CALCULATED con Nashorn [A:OQ-TR-2])"
       fuente: "spec §13 fila fechaModificacion («epoch ms»), §3 fila 22 y guard-rails, §10.1 fila fec_actualizacion_cns; HU R-07; source-spec-curation.yaml destino fechaActualizacionCns (largo)"
 
@@ -223,13 +223,13 @@ mapeo_campos:
 
   pendientes_del_mapeo:
     - id: 1
-      descripcion: "fechaEncuesta y fechaModificacion: verificar en el fork aliasEnabled del conf de State Calculation de Colombia (PA-014 propuesta, punto 1). Con true, pasan a nivel A como DERIVED con alias; con false, la alternativa CALCULATED espera [A:OQ-TR-2]"
-      estado: "[A:PA-014]"
+      descripcion: "fechaEncuesta y fechaModificacion: verificar en el fork aliasEnabled del conf de State Calculation de Colombia (PA-013 propuesta, punto 1). Con true, pasan a nivel A como DERIVED con alias; con false, la alternativa CALCULATED espera [A:OQ-TR-2]"
+      estado: "[A:PA-013]"
     - id: 2
       descripcion: "fechaCorte: se declara solo si PA-002 se cierra con (c1)"
       estado: "[A:PA-002]"
     - id: 3
-      descripcion: "Nombres ya declarados en los JSON de Foundation compartidos de Colombia (fechaCorte, fechaDigitacion, fechaActualizacionCns, nivelSisben… con otro dataType) y el `domain` del archivo: un nombre duplicado con otro dataType cambiaría el valor que ve otra fuente (PA-014 propuesta, punto 3)"
+      descripcion: "Nombres ya declarados en los JSON de Foundation compartidos de Colombia (fechaCorte, fechaDigitacion, fechaActualizacionCns, nivelSisben… con otro dataType) y el `domain` del archivo: un nombre duplicado con otro dataType cambiaría el valor que ve otra fuente (PA-013 propuesta, punto 3)"
       estado: "[PM]"
 
 # ═════════════════════════════════════════════════════════════
@@ -242,7 +242,7 @@ instruccion_generacion_foundation:
   contenido_a_escribir:
     regla: >
       Solo campos nivel_confianza A. DERIVED implícito: en el JSON se omite la clave `type` y no se escribe `value` (DERIVED
-      lee por `name`, FoundationFunctions.scala:38-49). dataType solo si no es STRING. Nunca dataSource, subscriber,
+      lee por `name`, FoundationFunctions.scala:24-35). dataType solo si no es STRING. Nunca dataSource, subscriber,
       subscriberRelation, asOfPeriod, pin ni parentEventIds (los inyecta el motor, FoundationStateCalculator.scala:46-51).
       Sin comentarios en el JSON.
     campos_a_generar:
@@ -256,14 +256,14 @@ instruccion_generacion_foundation:
       - name: "codMunicipioSisben"
         type: "DERIVED"
     campos_excluidos_hasta_resolver:
-      - "fechaDigitacion con aliases [fechaEncuesta], dataType LONG — PA-014 propuesta, punto 1 (aliasEnabled); alternativa CALCULATED [A:OQ-TR-2]"
-      - "fechaActualizacionCns con aliases [fechaModificacion], dataType LONG — PA-014 propuesta, punto 1; alternativa CALCULATED [A:OQ-TR-2]"
+      - "fechaDigitacion con aliases [fechaEncuesta], dataType LONG — PA-013 propuesta, punto 1 (aliasEnabled); alternativa CALCULATED [A:OQ-TR-2]"
+      - "fechaActualizacionCns con aliases [fechaModificacion], dataType LONG — PA-013 propuesta, punto 1; alternativa CALCULATED [A:OQ-TR-2]"
       - "fechaCorte, dataType LONG — PA-002 (solo con la opción c1)"
     advertencia: >
       ART-071 con 4 de 6 atributos no habilita la sección: ART-072 no se genera con este insumo
       (instruccion_generacion_calculation). El `domain` del archivo es el de Colombia si se integra en el JSON compartido
-      (PA-014 propuesta, punto 3) [PM]; si se entrega como archivo aparte, la skill lo propone y lo declara [P].
-    estado: "[C] para los 4 campos de campos_a_generar; [A:PA-014] / [A:PA-002] los excluidos"
+      (PA-013 propuesta, punto 3) [PM]; si se entrega como archivo aparte, la skill lo propone y lo declara [P].
+    estado: "[C] para los 4 campos de campos_a_generar; [A:PA-013] / [A:PA-002] los excluidos"
 
 # ═════════════════════════════════════════════════════════════
 # Instrucción de generación — Calculation (ART-072)
@@ -279,25 +279,25 @@ instruccion_generacion_calculation:
       Una sección sin filtro produce un dato erróneo visible al cliente (N4): el registro Foundation de un PIN de Colombia
       mezcla eventos de todas las fuentes (FoundationStateCalculator.scala:37-51) y MOST_RECENT_VALUE toma el más reciente
       de cualquiera (MostRecentValue.scala:20-24); con un PIN sin SISBEN vigente la sección sale igual. Los dos filtros
-      necesarios (fuente y corte vigente) dependen de PA-002, [A:OQ-TR-2] y [A:CQ-006]; el nombre y la forma, de PA-013
-      (propuesta); fechaEncuesta y fechaModificacion de select, de PA-014 (propuesta).
+      necesarios (fuente y corte vigente) dependen de PA-002, [A:OQ-TR-2] y [A:CQ-006]; el nombre y la forma, de PA-012
+      (propuesta); fechaEncuesta y fechaModificacion de select, de PA-013 (propuesta).
     valor_resultante: null
     campos_select_pendientes_de_agregar:
       - "grupoSisben, nivelSisben, codDepartamentoSisben, codMunicipioSisben (nivel A en Foundation; esperan el filtro)"
-      - "fechaEncuesta, fechaModificacion (alias; PA-014 propuesta)"
-    estado: "[A:PA-002] · [A:OQ-TR-2] · [A:CQ-006] · [A:PA-013] · [A:PA-014]"
+      - "fechaEncuesta, fechaModificacion (alias; PA-013 propuesta)"
+    estado: "[A:PA-002] · [A:OQ-TR-2] · [A:CQ-006] · [A:PA-012] · [A:PA-013]"
 
   propuesta_sujeta_a_decision:
-    nota: "NO es instrucción de generación. Es la sección que resultaría de cerrar PA-002 con (c1) recomendada y PA-013 con las propuestas de abajo; se deja para que el PO vea qué aprueba"
-    name: "sisben"                                  # [A:PA-013] (a): ¿la clave literal es «sisben» o «#sisben»?
+    nota: "NO es instrucción de generación. Es la sección que resultaría de cerrar PA-002 con (c1) recomendada y PA-012 con las propuestas de abajo; se deja para que el PO vea qué aprueba"
+    name: "sisben"                                  # [A:PA-012] (a): ¿la clave literal es «sisben» o «#sisben»?
     description: "Sección #sisben del XPM (spec §13): clasificación Sisbén IV del corte vigente"   # [P]
     type: "MOST_RECENT_VALUE"                       # [P] decision_formato
-    select: ["grupoSisben", "nivelSisben", "fechaEncuesta", "fechaModificacion", "codDepartamentoSisben", "codMunicipioSisben"]   # [C] spec §13; fechaEncuesta/fechaModificacion [A:PA-014]
-    groupBy: []                                     # [A:PA-013] (b): objeto único por PIN (sin groupBy) o lista por subscriberRelation
+    select: ["grupoSisben", "nivelSisben", "fechaEncuesta", "fechaModificacion", "codDepartamentoSisben", "codMunicipioSisben"]   # [C] spec §13; fechaEncuesta/fechaModificacion [A:PA-013]
+    groupBy: []                                     # [A:PA-012] (b): objeto único por PIN (sin groupBy) o lista por subscriberRelation
     where: "return field.isSisbenCorteVigente == true"   # [A:PA-002] (c1) + [A:OQ-TR-2] (Nashorn); el flag lo pone el enricher
     enabled: true
     transient: false
-    efecto_sin_registros: "Si ningún registro cumple el where, la sección vale null, no se omite (QueryFunctions.scala:61; CalculationStateCalculator.scala:146-163, :92-99). [A:PA-013] (c): ¿«no tiene sección» (HU §5.6) se cumple con el valor nulo?"
+    efecto_sin_registros: "Si ningún registro cumple el where, la sección vale null, no se omite (QueryFunctions.scala:61; CalculationStateCalculator.scala:146-163, :92-99). [A:PA-012] (c): ¿«no tiene sección» (HU §5.6) se cumple con el valor nulo?"
 
   nota_sobre_passthrough_directo:
     descripcion: >
@@ -316,7 +316,7 @@ propuesta_pa_002:
   pregunta: "PA-002 (abierta, bloqueante para state_calculation): ¿cómo se determina el corte vigente de SISBEN y cómo se excluye #sisben de los PIN cuyo último evento SISBEN no pertenece a ese corte (HU R-26, §5.6)?"
   datos_de_entrada:
     - "Cada archivo REGULAR es la foto completa del corte (spec §1, §10.3; HU R-02). collection-stock vuelve a curar todos los cortes acumulados: el input de State Calculation trae eventos SISBEN de todos los cortes aceptados [C] (antecedente del expediente)"
-    - "Synthesis agrupa por periodo y por subscriber+subscriberRelation, ordena por (asOfDate, receivedDate) y LFP deja el último valor no nulo (ConsistencyCheckOps.scala:111-119, :160-166; EventSynthesizer.scala:110-116). Un PIN ausente del corte vigente conserva eventos sintetizados de cortes anteriores, con su fechaCorte [C]"
+    - "Synthesis agrupa por periodo y por subscriber+subscriberRelation, ordena por (asOfDate, receivedDate) y LFP deja el último valor no nulo (ConsistencyCheckOps.scala:111-118, :179-181; EventSynthesizer.scala:110-116). Un PIN ausente del corte vigente conserva eventos sintetizados de cortes anteriores, con su fechaCorte [C]"
     - "El input de State Calculation es synthesizedDir/*/* completo: un SyntheticEvents por PIN con los eventos de todas las fuentes (StateCalcIOUtils.scala:174-177; SparkStateCalculator.scala:205-217) [C]"
 
   opcion_d_el_motor_ya_lo_cumple:
@@ -326,7 +326,7 @@ propuesta_pa_002:
       - "numberOfPeriods es takeRight(n) sobre los registros del PIN (CalculationFunctions.scala:28-30): relativo al propio PIN, no a un corte global. Un PIN solo presente en 202512 conserva su registro"
       - "MOST_RECENT_VALUE elige el registro de mayor recentBy (asOfPeriod por defecto) entre los del PIN (MostRecentValue.scala:16-29): también relativo al PIN"
       - "El enricher por defecto no hace nada (DefaultFoundationStateEnrichmentProcessor.scala:11) y la App lo fija en código (StateCalcApp.scala:15)"
-      - "El borrado inferido V2 (voidIndicator) vive en Synthesis, solo con checkFileTagEnabled = true y Process Management (SparkConsistencyChecker.scala:72-131; HCUtil.scala:76-88, :125-129); voidIndicator no es campo inyectado del GDD (DomainDictionaryInternal.scala:98-104), así que no llega al evento sintetizado si el GDD no lo declara (EventSynthesizer.scala:110-116), y State Calculation no lo filtra (AUD-E0-07). Activarlo cambia Synthesis y su conf compartido: fuera de alcance sin versión nueva de HU/spec (PA-002; spec §12; RG-026)"
+      - "El borrado inferido V2 (voidIndicator) vive en Synthesis, solo con checkFileTagEnabled = true y Process Management (SparkConsistencyChecker.scala:75-130; HCUtil.scala:76-88, :125-129); voidIndicator no es campo inyectado del GDD (DomainDictionaryInternal.scala:98-104), así que no llega al evento sintetizado si el GDD no lo declara (EventSynthesizer.scala:110-116), y State Calculation no lo filtra (AUD-E0-07). Activarlo cambia Synthesis y su conf compartido: fuera de alcance sin versión nueva de HU/spec (PA-002; spec §12; RG-026)"
       - "Un `where` solo ve un registro a la vez (QueryFunctions.scala:49-63) y el enricher solo los registros de un PIN (FoundationStateCalculator.scala:75; FoundationStateEnrichmentProcessor.scala:10): ninguno conoce el máximo fechaCorte del conjunto sin que se lo inyecten"
 
   opcion_c1_filtro_en_el_enricher:
@@ -338,22 +338,22 @@ propuesta_pa_002:
         (HU R-22; spec RQ-03) y collection-stock re-cura todos los cortes aceptados. Se calcula UNA vez por corrida (una
         agregación sobre el input antes de Foundation) y se inyecta en el enricher al construirlo; el enricher no puede
         calcularlo porque solo recibe los registros de un PIN. La App y el motor de la corrida de Colombia son del fork
-        (PA-014 propuesta, punto 2) [PM].
+        (PA-013 propuesta, punto 2) [PM].
       marca: >
         El enricher de Colombia agrega isSisbenCorteVigente = true a los registros Foundation con dataSource = DNP,
         subscriber = 999722 y fechaCorte = corte vigente; no borra registros (los usan las demás secciones del XPM) [P].
         Flag aditivo por ingesta, patrón de steering 07 §5.7 («flag aditivo por ingesta (patrón isSisben)»). Se nombra
-        isSisbenCorteVigente para no chocar con un isSisben que ya exista en el fork (PA-014 propuesta, punto 2).
+        isSisbenCorteVigente para no chocar con un isSisben que ya exista en el fork (PA-013 propuesta, punto 2).
       calculo: "La sección #sisben filtra con where «return field.isSisbenCorteVigente == true» (Nashorn, [A:OQ-TR-2]): resuelve a la vez el filtro por fuente y el del corte (propuesta_sujeta_a_decision)"
       foundation: "fechaCorte DERIVED LONG en fields[] para que el enricher lo lea (mapeo_campos)"
       seguridad: "El enricher no registra valores en logs WARN/ERROR (steering 07 §5.7; 08 §3 S4); los 6 atributos y fechaCorte son públicos (spec §10.1)"
     efecto_en_los_escenarios_hu_5_6:
       - "Sección generada: el PIN del corte vigente tiene su registro SISBEN marcado y MOST_RECENT_VALUE lo proyecta [P]"
-      - "Persona que ya no aparece: ningún registro marcado → la sección vale null ([A:PA-013] (c)) [P]"
+      - "Persona que ya no aparece: ningún registro marcado → la sección vale null ([A:PA-012] (c)) [P]"
       - "Fecha de encuesta ausente: fechaEncuesta null y la sección sale (mapeo_campos) [C], con el residual de PA-011 (riesgos_nuevos R-SC-2)"
       - "Consulta en Data Provisioning: prueba CA1 (criterios_aceptacion) [PM]"
     limites:
-      - "Un PIN cuyo registro del corte vigente cae en el mismo periodo de Synthesis que uno anterior con asOfDate mayor queda con el fechaCorte anterior (LFP por (asOfDate, receivedDate), ConsistencyCheckOps.scala:116-119) y se excluiría por error (riesgos_nuevos R-SC-1). Depende del dateType de Synthesis (VD-SYN de RG-026)"
+      - "Un PIN cuyo registro del corte vigente cae en el mismo periodo de Synthesis que uno anterior con asOfDate mayor queda con el fechaCorte anterior (LFP por (asOfDate, receivedDate), ConsistencyCheckOps.scala:115-118) y se excluiría por error (riesgos_nuevos R-SC-1). Depende del dateType de Synthesis (VD-SYN de RG-026)"
       - "Necesita código Scala en el fork (enricher y cálculo del corte vigente), que ninguna skill del framework genera: es una decisión de alcance del PO (edf-statecalc SKILL.md; decisiones-pendientes.md §5)"
     alternativas_dentro_de_c1_no_recomendadas:
       - "Corte vigente desde metadatos del orquestador o una clave por corrida (último archivo aceptado): mismo resultado con más acoplamiento a hechos del fork y del DAG [P]"
@@ -361,14 +361,14 @@ propuesta_pa_002:
       - "Borrar en el enricher los registros SISBEN no vigentes en lugar de marcarlos: igual necesita un filtro por fuente en la sección; el flag es aditivo y no altera lo que ven otras secciones [P]"
 
   fuera_de_pa_002_para_el_po:
-    - "(e) Borrado inferido V2 en Synthesis (checkFileTagEnabled, eventTypeList, historicAttributeArgs, voidIndicator en el GDD y un where en State Calculation). Es el mecanismo del motor para «carga completa: si el dato no está en el último archivo, no se usa» (SparkConsistencyChecker.scala:74-80), pero cambia Synthesis y su conf compartido de Colombia y depende de que el fileTag de SISBEN no se comparta con otras fuentes (getLatestTimeForEachType toma una fecha por fileTag, :91-104). Solo con versión nueva de HU y spec (PA-002; HU §3 «Estabilidad de las reglas»)"
+    - "(e) Borrado inferido V2 en Synthesis (checkFileTagEnabled, eventTypeList, historicAttributeArgs, voidIndicator en el GDD y un where en State Calculation). Es el mecanismo del motor para «carga completa: si el dato no está en el último archivo, no se usa» (SparkConsistencyChecker.scala:75-79), pero cambia Synthesis y su conf compartido de Colombia y depende de que el fileTag de SISBEN no se comparta con otras fuentes (getLatestTimeForEachType toma una fecha por fileTag, :91-104). Solo con versión nueva de HU y spec (PA-002; HU §3 «Estabilidad de las reglas»)"
 
   hechos_que_solo_estan_en_el_fork:
-    nota: "Sin ellos no se puede cerrar (c1) ni generar ART-072. La verificación diferida de references/03 §3e no aplica: ART-071/ART-072 dependen de ellos (§3e #1). Se proponen como PA-014"
+    nota: "Sin ellos no se puede cerrar (c1) ni generar ART-072. La verificación diferida de references/03 §3e no aplica: ART-071/ART-072 dependen de ellos (§3e #1). Se proponen como PA-013"
     lista:
       - "App de State Calculation de Colombia y su enricher (clase, si ya marca fuentes con un flag tipo isSisben, cómo recibe un valor por corrida, si ya hay una agregación previa sobre el input)"
       - "aliasEnabled en el conf de State Calculation de Colombia"
-      - "JSON de Foundation y Calculation de Colombia (familia statecalcAlpha-js-foundation-stage.json, steering 07 §5.7): domain, nombres ya declarados y su dataType, si ya usan where/CALCULATED (Nashorn) y la versión de Java con la que corre (el motor InnerSource exige JDK 11, migrate.md:11-18)"
+      - "JSON de Foundation y Calculation de Colombia (familia statecalcAlpha-js-foundation-stage.json, steering 07 §5.7): domain, nombres ya declarados y su dataType, si ya usan where/CALCULATED (Nashorn) y la versión de Java con la que corre (el motor InnerSource exige JDK 11, migrate.md:12-16)"
       - "Cómo se serializa una sección null en el XPM y en HBase (XpmEventDAO) y cómo la lee Data Provisioning (sección ausente frente a valor nulo)"
       - "dateType de Synthesis de Colombia (periodo de los eventos SISBEN), ya listado en VD-SYN de RG-026"
 
@@ -385,7 +385,7 @@ criterios_aceptacion:
       fuente: "HU §5.6; spec §13"
     - id: "SC-2 Persona que ya no aparece"
       dado: "un PIN con eventos SISBEN de 202512 y ninguno de 202601, corriendo con 202601 como corte vigente"
-      entonces: "el XPM de 202601 no tiene sección #sisben para ese PIN ([A:PA-013] (c): null o ausente)"
+      entonces: "el XPM de 202601 no tiene sección #sisben para ese PIN ([A:PA-012] (c): null o ausente)"
       fuente: "HU R-26, §5.6"
     - id: "SC-3 Fecha de encuesta ausente"
       dado: "un evento del corte vigente sin Fec_digitacion"
@@ -402,7 +402,7 @@ criterios_aceptacion:
       estado: "[P]"
     - id: "SC-6 Igualdad de asOfDate entre cortes (límite de c1)"
       dado: "un PIN presente en 202512 y 202601 con la misma fec_actualizacion_cns"
-      entonces: "la sección sale con fechaCorte de 202601 (gana el receivedDate mayor, ConsistencyCheckOps.scala:116-119)"
+      entonces: "la sección sale con fechaCorte de 202601 (gana el receivedDate mayor, ConsistencyCheckOps.scala:115-118)"
       fuente: "HU §5.5; propuesta_pa_002.opcion_c1_filtro_en_el_enricher.limites"
       estado: "[P]"
 
@@ -415,7 +415,7 @@ certificacion_4_dimensiones:
 # ═════════════════════════════════════════════════════════════
 
 preguntas_propuestas:
-  - id_propuesto: "PA-013"
+  - id_propuesto: "PA-012"
     pregunta: "¿Qué forma tiene la sección #sisben en el XPM? (a) ¿la clave de la sección es literalmente «sisben» o «#sisben»? (b) Si un PIN tiene más de un documento SISBEN en el corte vigente, ¿un solo objeto (el más reciente, sin groupBy) o una lista por subscriberRelation (groupBy [subscriberRelation])? (c) ¿«no tiene sección» (HU §5.6) se cumple con la sección en null, que es lo que produce el motor?"
     patron: "6 · Dimensión ausente (la spec §13 da los atributos, no el nombre de la clave ni la cardinalidad)"
     etapa_afectada: "state_calculation"
@@ -423,18 +423,18 @@ preguntas_propuestas:
     motivo: "Cambia la forma del XPM visible al cliente (N4) y el contenido de ART-072; en la duda, bloqueante (deteccion-ambiguedades.md §4)"
     fuentes: "HU R-26, §5.6; spec §13; QueryFunctions.scala:61; CalculationStateCalculator.scala:123-163"
     dirigida_a: "PO (N4)"
-  - id_propuesto: "PA-014"
+  - id_propuesto: "PA-013"
     pregunta: "En el fork de Colombia: (1) ¿oxygen.stage.stateCalculation.aliasEnabled es true? (2) ¿qué App y qué enricher corren State Calculation de Colombia, ya marcan las fuentes con un flag (isSisben u otro) y cómo reciben un valor por corrida como el corte vigente? (3) ¿qué domain y qué nombres declaran los JSON de Foundation y Calculation de Colombia (fechaCorte, fechaDigitacion, fechaActualizacionCns, nivelSisben…, con su dataType) y usan where/CALCULATED con Nashorn (versión de Java)? (4) ¿una sección null se guarda y se ve en Data Provisioning como sección ausente?"
     patron: "1 · Dato no confirmado (hechos fuera del workspace)"
     etapa_afectada: "state_calculation"
     bloqueante: true
     motivo: "ART-071 (alias) y ART-072 (where, flag, forma) dependen de estos hechos: no admiten verificación diferida (edf-orquestador references/03 §3e #1)"
-    fuentes: "SparkStateCalculator.scala:66-67; FoundationStateCalculator.scala:103-105; StateCalcApp.scala:15; steering 07 §5.7; migrate.md:11-18"
+    fuentes: "SparkStateCalculator.scala:66-67; FoundationStateCalculator.scala:103-105; StateCalcApp.scala:15; steering 07 §5.7; migrate.md:12-16"
     dirigida_a: "Desarrollador con Ingesta 3 (fork); cierre N4 con el PO por ser State Calculation"
 
 riesgos_nuevos:
   - id_propuesto: "R-SC-1"
-    descripcion: "Con (c1), un PIN presente en el corte vigente se excluye por error si su evento vigente queda en el mismo periodo de Synthesis que uno anterior con asOfDate mayor: LFP deja el fechaCorte anterior (ConsistencyCheckOps.scala:116-119)"
+    descripcion: "Con (c1), un PIN presente en el corte vigente se excluye por error si su evento vigente queda en el mismo periodo de Synthesis que uno anterior con asOfDate mayor: LFP deja el fechaCorte anterior (ConsistencyCheckOps.scala:115-118)"
     nivel: "medio"
     etapa_afectada: "state_calculation"
     mitigacion: "Verificar el dateType de Synthesis (VD-SYN de RG-026) y probar SC-6; si el periodo es por corte, el caso no ocurre"

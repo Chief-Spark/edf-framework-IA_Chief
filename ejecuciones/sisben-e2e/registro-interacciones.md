@@ -526,14 +526,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:26:47-05:00
 - **Pedido:** Preparar yaml-skill-statecalc.yaml (ART-070) e investigar en el motor el mecanismo de PA-002.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-070: 6 atributos de spec §13 (4 de nivel A tal cual; fechaEncuesta y fechaModificacion de nivel B necesitan alias —aliasEnabled solo en el fork— o CALCULATED con Nashorn [A:OQ-TR-2]: excluidos); ART-071 con los 4 de nivel A; ART-072 con generar false. PA-002: (d) descartada con evidencia (Foundation solo excluye isVisible=false; numberOfPeriods/MOST_RECENT_VALUE por PIN; enricher por defecto nulo; voidIndicator en Synthesis); además hace falta filtrar por fuente; recomienda (c1): máximo fechaCorte de DNP/999722 por corrida, el enricher de Colombia marca isSisbenCorteVigente y la sección filtra con where (código Scala en el fork, [A:CQ-006] y Nashorn [A:OQ-TR-2]). §3e no aplica (los artefactos dependen de hechos del fork). Propone PA-012 (forma de la sección), PA-013 (hechos del fork), R-SC-1/2. 4 posibles defectos del framework.
+- **Decisión:** ART-070 prevalidado (crítico); PA-012 y PA-013 bloqueantes; RG-029 y RG-030; auditor independiente de State Calculation; PA-002 al PO simulado tras la auditoría.
 - **Bitácora:** —
 
 ## INT-067 · Analista (edf-analisis) · insumo de Synthesis v2 · `synthesis`
 
 - **Cuándo:** 2026-11-24T22:37:02-05:00
 - **Pedido:** ART-060 v2 con 1.9.10 y las decisiones de INT-065.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-068 · Auditor independiente (state_calculation) · `state_calculation`
+
+- **Cuándo:** 2026-11-24T22:38:51-05:00
+- **Pedido:** Auditar ART-070, PA-002 (opciones c1/d), PA-012, PA-013 y los 4 posibles defectos.
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

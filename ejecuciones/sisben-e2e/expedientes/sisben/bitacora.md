@@ -2755,3 +2755,88 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0162 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-012: Forma de la sección del XPM: (a) ¿la clave es «sisben» o «#sisben»? (b) si un PIN tiene varios documentos SISBEN, ¿un solo objeto o una lista por documento? (c) ¿«no tiene sección» (HU §5.6) se cumple con la sección en null, que es lo que produce el motor? |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:38:51-05:00 |
+| **Por qué** | Analista (INT-066); spec §13; HU R-26, §5.6. La decide el PO. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0163 · `pregunta_abierta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | PA-013: Hechos del fork para State Calculation: valor de aliasEnabled en el conf de Colombia (SparkStateCalculator.scala:66-67); App y enricher de Colombia (¿flag tipo isSisben? ¿cómo reciben un valor por corrida?); domain y nombres que ya declaran los JSON compartidos y si usan Nashorn; si una sección null se ve como «sin sección» en el XPM y en Data Provisioning. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:38:51-05:00 |
+| **Por qué** | Analista (INT-066); ART-071/072 dependen de estos hechos (references/03 §3e no aplica). Dirigida al Desarrollador con Ingesta 3. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.1 · condición 4 |
+| **Corrige** | — |
+
+---
+
+## BIT-0164 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-029 (medio, state_calculation): Con (c1), un PIN vigente se excluye por error si su evento cae en el mismo periodo de Synthesis que uno anterior con asOfDate mayor (LFP, ConsistencyCheckOps.scala:115-118) |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:38:51-05:00 |
+| **Por qué** | Propuesto por el analista (INT-066) (R-SC-1) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0165 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-030 (medio, state_calculation): Por PA-011, fechaEncuesta puede no salir nula dentro de un mismo periodo, contra el escenario de HU §5.6 |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:38:51-05:00 |
+| **Por qué** | Propuesto por el analista (INT-066) (R-SC-2) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `state_calculation` |
+| **Riesgo** | medio |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0166 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:38:51-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

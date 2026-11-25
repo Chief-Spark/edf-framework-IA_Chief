@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:19:40-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:38:51-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 157 eventos, último BIT-0157 |
+| Bitácora | 166 eventos, último BIT-0166 |
 
 ## Etapas
 
@@ -54,9 +54,9 @@
 | pinning | ART-052 | identifying-attributes.json (solo modo propio; no aplica en modo Colombia: se reutiliza la lista compartida identifying-attributes-new.json) | `ausente` | — |
 | pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `aprobado` | sha256:cccd06cf945a |
 | synthesis | ART-060 | insumo: yaml-skill-synthesis.yaml (edf-analisis) | `prevalidado` | — |
-| synthesis | ART-061 | GDD domaindictionary.json (campo -> handler LFP/LAP/EUC, solo confirmados) | `ausente` | — |
-| synthesis | ART-062 | bloque HOCON oxygen.stage.consistencyCheck | `ausente` | — |
-| state_calculation | ART-070 | insumo: yaml-skill-statecalc.yaml (edf-analisis) | `ausente` | — |
+| synthesis | ART-061 | entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68) | `ausente` | — |
+| synthesis | ART-062 | bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68) | `ausente` | — |
+| state_calculation | ART-070 | insumo: yaml-skill-statecalc.yaml (edf-analisis) | `prevalidado` | — |
 | state_calculation | ART-071 | fields[] de statecalc-foundation-local.json | `ausente` | — |
 | state_calculation | ART-072 | CalculationSection de statecalc-calculation-local.json | `ausente` | — |
 | state_calculation | ART-073 | CA1: Data Provisioning consulta la seccion de la ingesta en el XPM | `ausente` | — |
@@ -106,6 +106,8 @@
 - PA-009 (resuelta, bloqueante): oxygen.stage.pinning.reusePin es una sola clave para toda la aplicación de Pinning de Colombia (SparkPinner.scala:223,409), que lee las curadas de todas las fuentes: escribir false regenera los PIN de todas las fuentes. ¿(a) no tocar la clave (SISBEN es ingesta nueva sin generación previa propia), (b) escribir false en el conf de Colombia (riesgo N4 sobre las demás fuentes) o (c) una aplicación de Pinning propia para SISBEN?
 - PA-010 (abierta, no bloqueante): Para la próxima versión de HU y spec: (1) ¿qué significa «reusePIN = false» (ingesta sin PIN previos propios, no la clave global de la aplicación compartida)? (2) La ruta Pinned propia de spec §14 frente al pinnedDir único de la aplicación de Pinning de Colombia (AUD-P-07).
 - PA-011 (abierta, no bloqueante): Para la próxima versión de la spec: dentro de un mismo periodo, si el corte más reciente trae un campo nulo, ¿debe ganar el nulo? Hoy LFP no escribe nulos y el valor anterior del periodo se conserva (ConsistencyCheckOps.scala:118,176-181); entre periodos no se arrastra (mapa vacío por periodo, :125).
+- PA-012 (abierta, bloqueante): Forma de la sección del XPM: (a) ¿la clave es «sisben» o «#sisben»? (b) si un PIN tiene varios documentos SISBEN, ¿un solo objeto o una lista por documento? (c) ¿«no tiene sección» (HU §5.6) se cumple con la sección en null, que es lo que produce el motor?
+- PA-013 (abierta, bloqueante): Hechos del fork para State Calculation: valor de aliasEnabled en el conf de Colombia (SparkStateCalculator.scala:66-67); App y enricher de Colombia (¿flag tipo isSisben? ¿cómo reciben un valor por corrida?); domain y nombres que ya declaran los JSON compartidos y si usan Nashorn; si una sección null se ve como «sin sección» en el XPM y en Data Provisioning.
 
 ## Riesgos
 
@@ -136,5 +138,8 @@
 | RG-023 | alto | curation_flow | abierto | Evidencia diferida de curation_flow: aprobada sin ejecución de pipeline |
 | RG-024 | alto | curation_stock | abierto | Evidencia diferida de curation_stock: aprobada sin ejecución de pipeline |
 | RG-025 | alto | pinning | abierto | Verificación diferida del matcher de Colombia: ColombiaIdentityMatcher no está en Motor-Oxigen; sin fork no se verifican su FQCN, la comparación del standardizedIdType entero y el juego de códigos de las otras fuentes (RG-020), si "" cuenta como nulo en la regla 0, identifying-attributes-new.json, la Ñ (RG-021), AUD-P-03 (¿exige nombre además de tipo+número?) ni el umbral vigente (defecto 5) |
-| RG-026 | medio | synthesis | abierto | El domain dictionary y el conf de Synthesis son únicos para Colombia: una corrida lee un solo diccionario y un solo customRulesFile (SparkConsistencyChecker.scala:241-245); un nombre de SISBEN que ya exista con otro handler cambiaría otra fuente |
+| RG-026 | medio | synthesis | abierto | El GDD, el diccionario de consistencia y las reglas custom son únicos para Colombia. Una entrada existente gobierna también a SISBEN, y modificarla afectaría a la otra fuente. Las reglas compartidas se aplican a los eventos de SISBEN (verificación en RG-028) |
 | RG-027 | alto | pinning | abierto | Evidencia diferida de pinning: aprobada sin ejecución de pipeline |
+| RG-028 | alto | synthesis | abierto | Verificación diferida de Synthesis de Colombia (VD-SYN-01..06): nombres existentes en el GDD y su handler; lecturas .get sin defecto (dateType, fieldHandlerHashFunction, orchestration, readWriteFormat, historicAttributeArgs si checkFileTagEnabled); conf compartido; periodicidad efectiva (minFrequency de la clase base); escenario §5.5 con nulo; reglas CONS, custom y relationshipMigrationProcessor de Colombia aplicadas a todos los eventos del HC (ConsistencyCheckOps.scala:150-173, :240-271) |
+| RG-029 | medio | state_calculation | abierto | Con (c1), un PIN vigente se excluye por error si su evento cae en el mismo periodo de Synthesis que uno anterior con asOfDate mayor (LFP, ConsistencyCheckOps.scala:115-118) |
+| RG-030 | medio | state_calculation | abierto | Por PA-011, fechaEncuesta puede no salir nula dentro de un mismo periodo, contra el escenario de HU §5.6 |

@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:37:01-05:00",
-    "vista_md_regenerada_en": "2026-11-24T22:19:40-05:00"
+    "actualizado_en": "2026-11-24T22:38:51-05:00",
+    "vista_md_regenerada_en": "2026-11-24T22:38:51-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -780,7 +780,14 @@
           "nombre": "insumo: yaml-skill-statecalc.yaml (edf-analisis)",
           "ruta": "insumos/yaml-skill-statecalc.yaml",
           "obligatorio": true,
-          "estado_artefacto": "ausente"
+          "estado_artefacto": "prevalidado",
+          "riesgo": "critico",
+          "prevalidacion": {
+            "compila": null,
+            "linting": true,
+            "reportada_por": "Analista (INT-066): YAML parsea con las secciones de la plantilla; ninguna instrucción de generación depende de [A:*]; verificar-claves coherente; ART-072 con generar false (PA-002, PA-012, PA-013)",
+            "reportada_en": "2026-11-25"
+          }
         },
         {
           "id": "ART-071",
@@ -817,11 +824,15 @@
       "aprobacion_requerida": true,
       "ref_aprobacion": null,
       "preguntas_abiertas": [
-        "PA-002"
+        "PA-002",
+        "PA-012",
+        "PA-013"
       ],
       "riesgos": [
         "RG-003",
-        "RG-011"
+        "RG-011",
+        "RG-029",
+        "RG-030"
       ],
       "transicion_habilitada": false,
       "nota_regla_de_corte": null
@@ -1640,6 +1651,30 @@
       "resuelta_en": null,
       "respuesta": null,
       "ref_bitacora": "BIT-0145"
+    },
+    {
+      "id": "PA-012",
+      "pregunta": "Forma de la sección del XPM: (a) ¿la clave es «sisben» o «#sisben»? (b) si un PIN tiene varios documentos SISBEN, ¿un solo objeto o una lista por documento? (c) ¿«no tiene sección» (HU §5.6) se cumple con la sección en null, que es lo que produce el motor?",
+      "origen": "Analista (INT-066); spec §13; HU R-26, §5.6. La decide el PO.",
+      "etapa_afectada": "state_calculation",
+      "bloqueante": true,
+      "estado": "abierta",
+      "abierta_en": "2026-11-24T22:38:51-05:00",
+      "resuelta_en": null,
+      "respuesta": null,
+      "ref_bitacora": "BIT-0162"
+    },
+    {
+      "id": "PA-013",
+      "pregunta": "Hechos del fork para State Calculation: valor de aliasEnabled en el conf de Colombia (SparkStateCalculator.scala:66-67); App y enricher de Colombia (¿flag tipo isSisben? ¿cómo reciben un valor por corrida?); domain y nombres que ya declaran los JSON compartidos y si usan Nashorn; si una sección null se ve como «sin sección» en el XPM y en Data Provisioning.",
+      "origen": "Analista (INT-066); ART-071/072 dependen de estos hechos (references/03 §3e no aplica). Dirigida al Desarrollador con Ingesta 3.",
+      "etapa_afectada": "state_calculation",
+      "bloqueante": true,
+      "estado": "abierta",
+      "abierta_en": "2026-11-24T22:38:51-05:00",
+      "resuelta_en": null,
+      "respuesta": null,
+      "ref_bitacora": "BIT-0163"
     }
   ],
   "riesgos": [
@@ -1866,14 +1901,30 @@
       "etapa_afectada": "synthesis",
       "mitigacion": "Bloquea la integración al fork y la certificación de Synthesis y State Calculation (§3e). Se cierra con VD-SYN-01..06, la mitad dinámica de la prueba de no afectación (síntesis de otra fuente de Colombia igual antes y después) y un solo juego de entradas del GDD integrado. Si una regla compartida se dispara con SISBEN: pregunta bloqueante para la certificación al PO; no se modifica la regla desde la ingesta",
       "estado": "abierto"
+    },
+    {
+      "id": "RG-029",
+      "descripcion": "Con (c1), un PIN vigente se excluye por error si su evento cae en el mismo periodo de Synthesis que uno anterior con asOfDate mayor (LFP, ConsistencyCheckOps.scala:115-118)",
+      "nivel": "medio",
+      "etapa_afectada": "state_calculation",
+      "mitigacion": "Revisar con PA-011 y la periodicidad efectiva (RG-028); prueba con dos cortes en el mismo periodo antes de certificar",
+      "estado": "abierto"
+    },
+    {
+      "id": "RG-030",
+      "descripcion": "Por PA-011, fechaEncuesta puede no salir nula dentro de un mismo periodo, contra el escenario de HU §5.6",
+      "nivel": "medio",
+      "etapa_afectada": "state_calculation",
+      "mitigacion": "Se decide con PA-011 en la próxima versión de la spec; se señala al PO al aprobar",
+      "estado": "abierto"
     }
   ],
   "backlog_evolutivo": [],
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0161",
-    "eventos_totales": 161,
+    "ultimo_evento": "BIT-0166",
+    "eventos_totales": 166,
     "append_only": true,
     "retencion_meses": 24
   }
