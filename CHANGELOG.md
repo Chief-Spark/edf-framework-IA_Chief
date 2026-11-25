@@ -1,5 +1,58 @@
 # Changelog
 
+## 1.9.7 — 2026-11-25
+
+Correcciones de la corrida E2E SISBEN: lote de cierre (commit a205649) y Curation (commit 955bed3).
+
+### Corregido (lote de cierre de la corrida E2E SISBEN: HF-26, HF-27, HF-29 a HF-33)
+
+- **HF-26 (`edf-acceptance`).** El schema admite `validatedRecordJson: null`, que es lo que emite Validation en los
+  eventos marcador (`SparkValidator.scala:303`). La plantilla del fixture ya lo escribía como `null` (filtro `json`);
+  `SKILL.md` lo documenta en el contrato «Marcadores». Los casos existentes no cambian. Pruebas: `test_hf26_*`
+  (`scripts/tests/test_correcciones_197.py`).
+- **HF-27 (`edf-validation`).** `references/interpretar-salida.md` tiene una sección nueva, «Comparar dos corridas»:
+  se excluyen `eventId` y `keys` (UUID de los registros `SIN_CLAVE`) y se compara por `lineage.recordHash`
+  (multiconjunto). Prueba: `tests/test_regresion_e2e_validation.py::test_hf27_*`.
+- **HF-29 (`edf-acceptance`).** La tabla de supuestos de `decisiones-y-abiertos.md` es un catálogo genérico y ya no
+  cita datos de un fixture («900005», «5 directorios»). El checklist pide declarar en la entrega los supuestos que
+  imprime el generador para esa spec. Se ajustó `test_supuestos_de_la_spec_iguales_a_los_del_documento` y hay
+  pruebas nuevas, `test_hf29_*`, que cubren una spec sin S-ACC-02 y con texto propio. El ejemplo usa el texto del
+  catálogo.
+- **HF-30 (`edf-acceptance`).** Los restos del SISBEN histórico quedan rotulados «ejemplo histórico (no es fuente)»
+  en `inventario-plantillas.md`, `dsl-config-reference.md` §4 y `patrones.md`. F-07 a F-09 remiten a la spec de la
+  ingesta. Prueba: `tests/test_regresion_e2e_acceptance.py::test_hf30_*`.
+- **HF-31 (`edf-acceptance`).** El checklist acepta documentos sintéticos declarados como tales por la spec o con
+  prefijo `SINT`, y mantiene `eventId` `SINT-*`. Prueba: `test_hf31_*`.
+- **HF-32 (`edf-analisis`).** La cabecera de los insumos no lleva estado ni aprobador: el estado vive solo en
+  `estado-ingesta.json`. Cambios: SKILL.md Modo 2, `_cabecera-yaml-skill.yaml.tpl`, `contrato-curation-pinning.md.tpl`
+  y `yaml-skill-synthesis.yaml.tpl`. Los ejemplos quedan rotulados como históricos (`LEEME.md` y un comentario en la
+  cabecera). Prueba: `tests/test_regresion_e2e_analisis.py`.
+- **HF-33 (`edf-acceptance`, AUD-A-16, -17).** ACC-TPL-05 construye `AcceptanceCondition` con el quinto argumento
+  `result = false` explícito y tiene una prueba nueva del `filePattern` con `archivo.claves_de_prueba`, que usa el
+  mismo recorte de extensión del motor (`FilenameUtils.removeExtension`, dos veces con `errorIn`) y `String.matches`.
+  Se regeneró el ejemplo `assets/examples/sisben/generated/.../SISBENAcceptanceExpressionsSpec.scala`. Pruebas:
+  `test_hf33_*`.
+
+### edf-curation y tools/verificar-claves.py (auditoría de Curation, corrida E2E SISBEN)
+
+#### Corregido
+- **HF-34 (AUD-C-01, P1):** la transformación `original` ya no recorta espacios. Publica el valor recibido tal cual y solo da nulo si falta o es `null`. Por eso el escenario de HU SISBEN §5.3 da `numeroDocumentoOriginal = " 0001000000101"`. Hay `Transformaciones.original` y `<F>AcceptedRecord.crudo` en Scala, y `original()` en `curation_reference.py`. Las demás transformaciones siguen recortando. La prueba Scala generada ahora espera el valor con su espacio.
+- **HF-35 (AUD-C-05):** el override `subscriberRelation` descarta los `errorCode` nulos, como `curateEvent`, y hace toda la extracción dentro del `try`, así que ya no lanza. Además reutiliza el registro que acaba de curar `curateEvent` (memoria por hilo, `relacionDesde`) y no cura cada registro dos veces.
+- **HF-37 (AUD-C-08):** `tools/verificar-claves.py` lee del contrato solo la tabla de §1 (desde `## 1` hasta el siguiente `## `; sin esa sección, la primera tabla). No toma en cuenta `subscriber`, `subscriberRelation` ni el resto de los campos inyectados. `parametros.campo_advertencias` cuenta como clave publicada.
+- **HF-39 (AUD-C-10):** `MANIFEST.json` y las 11 plantillas firman `edf-curation`, no `edf-curation-stage`.
+- **HF-40 (AUD-C-04, -07):** en el fixture generado, `lineage.fileAsOfDate` es el último día del periodo AAAAMM a las 00:00 en `zona_asofdate_etapa_anterior` y `fileTag` sale de `tipo_por_prefijo`, como los emite Validation. Si el nombre no coincide quedan en `0` y `""`. `references/especificacion-sisben.md`, `dsl-config-reference.md`, el SKILL y `curation-block.conf.tpl` rotulan las referencias del SISBEN del piloto como históricas, y el SKILL ya no las cita como fuente.
+- **HF-41 (AUD-C-13):** el efecto «Vaciado del campo con preservación» (`<campo>_original`) queda documentado como no soportado por `edf-curation`, en el SKILL, en `references/alcance-y-glosario.md` y en la tabla de efectos de steering `07` §5.1.
+
+#### Nuevo
+- **HF-36 (AUD-C-06):** clave opcional `supuestos_resueltos: [{id, fuente}]`, el mismo mecanismo que `edf-validation` 1.9.2 (AUD-V-08). Cada marca `ASSUMPTION <ID>` sale como `RESUELTO <ID> (<fuente>)`, sin su «; confirmar …» o «; verificar …», y `MANIFEST.json["supuestos_resueltos"]` lista los IDs con su fuente. La generación falla si el ID no tiene marca en la salida, si se repite o si es `C-CUR-02`. Las marcas de las plantillas se normalizaron a `ASSUMPTION <ID>: …`. Sin la clave, nada cambia.
+- **HF-38 (AUD-C-09):** `homologacion_tipo_documento.tabla` admite un valor vacío o `null` para un código que esté en `pendientes` (p. ej. `"7": null`). Si el código no está en `pendientes`, la generación falla. El CSV sintético trae la fila con `cod_experian` vacío. El comportamiento no cambia: ese código no entra a la tabla embebida ni se consulta en el lookup.
+
+#### Ejemplo regenerado
+- `assets/examples/sisben/generated` y `expected`: cambian por la firma de la skill, el texto de las marcas, el código nuevo (HF-34, HF-35) y las pruebas Scala nuevas. En `fileAsOfDate`/`fileTag` del fixture cambian por HF-40. El CSV 202 trae la fila `7` porque el ejemplo declara ahora `"7": null` (HF-38). Los `curatedRecordJson` no cambian.
+
+#### Pruebas
+- `edf-curation/scripts/tests/test_correcciones_197.py` (HF-34, HF-35, HF-36, HF-38, HF-39, HF-40), `tests/test_regresion_e2e_curation.py` (texto de HF-40 y HF-41, claves nuevas y el escenario cur-0004 de la corrida E2E) y cuatro pruebas nuevas de HF-37 en `tests/test_verificar_claves.py`.
+
 ## 1.9.6 — 2026-11-25
 
 ### Corregido
