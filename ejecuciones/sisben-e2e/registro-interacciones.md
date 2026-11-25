@@ -286,8 +286,8 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T19:33:59-05:00
 - **Pedido:** Corregir HF-34..41 con pruebas.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** HF-34..41 corregidos (cortado una vez por el límite de uso y reanudado): original sin recorte (Transformaciones.original, AcceptedRecord.crudo), override sin NPE y sin doble curación, supuestos_resueltos, verificar-claves por §1, código pendiente null en la homologación, nombre de skill, fixture fileAsOfDate/fileTag, referencias históricas, vaciado con preservación no soportado. Con el insumo de la corrida cur-0004 da " 0001000000101". Suites curation 126, tests 141; auditar-skills OK.
+- **Decisión:** Commits 955bed3 (código) y 21b6781 (framework 1.9.7). Ronda 2 de los insumos de Curation con supuestos_resueltos.
 - **Bitácora:** —
 
 ## INT-037 · Corrector del framework (lote de cierre) · `acceptance`
@@ -310,6 +310,22 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T21:16:50-05:00
 - **Pedido:** Regenerar Acceptance con a205649 (HF-26, HF-33); mismo insumo v3.
+- **Respuesta:** Solo cambia SISBENAcceptanceExpressionsSpec.scala (sha256 1f7838db…): 5 argumentos y prueba del filePattern sobre las 7 claves_de_prueba. Verificaciones OK. Nuevo: rutas /home/app/... de las claves de prueba en el Spec (¿criterio C del checklist?), convención implícita del prefijo ruta_, dependencia de commons-io sin certificar.
+- **Decisión:** ART-023 a prevalidado (§3d); re-auditoría por diferencia con las tres observaciones.
+- **Bitácora:** —
+
+## INT-040 · Auditor independiente (acceptance) · re-auditoría §3d · `acceptance`
+
+- **Cuándo:** 2026-11-24T21:18:22-05:00
+- **Pedido:** Re-auditar por diferencia ART-023 regenerado con 1.9.7.
+- **Respuesta:** (pendiente)
+- **Decisión:** (pendiente)
+- **Bitácora:** —
+
+## INT-041 · Analista (edf-analisis) · insumos de Curation v2 · `curation_flow`
+
+- **Cuándo:** 2026-11-24T21:18:22-05:00
+- **Pedido:** ART-030/034/035 v2: AUD-C-02/03/11/12 y RG-019 según INT-038, supuestos_resueltos 1.9.7, homologación del 7 pendiente, cabecera sin estado (HF-32).
 - **Respuesta:** (pendiente)
 - **Decisión:** (pendiente)
 - **Bitácora:** —

@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T19:36:07-05:00",
-    "vista_md_regenerada_en": "2026-11-24T19:36:07-05:00"
+    "actualizado_en": "2026-11-24T21:18:22-05:00",
+    "vista_md_regenerada_en": "2026-11-24T21:18:22-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -361,11 +361,11 @@
           "nombre": "AcceptanceExpressionsSpec + fixture de eventos validados sinteticos",
           "ruta": "propuestas/acceptance/src/test/",
           "obligatorio": true,
-          "estado_artefacto": "aprobado",
+          "estado_artefacto": "prevalidado",
           "prevalidacion": {
             "compila": null,
             "linting": true,
-            "reportada_por": "Generador edf-acceptance (INT-031): render --audit rc 0; simular_decision 9/9 + 2/2; hocon_check rc 0; suite 147",
+            "reportada_por": "Generador edf-acceptance (INT-039): regenerado con 1.9.7 (HF-33); render --audit rc 0; simulador 9/9 + 2/2; hocon_check OK; suite 157",
             "reportada_en": "2026-11-25"
           },
           "hash": "sha256:f9b879a8002f2a22172dcdd21d2ac60aceb23a3178d4ac60fea34bcf67541a80"
@@ -1331,8 +1331,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0093",
-    "eventos_totales": 93,
+    "ultimo_evento": "BIT-0095",
+    "eventos_totales": 95,
     "append_only": true,
     "retencion_meses": 24
   }

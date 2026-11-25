@@ -1599,3 +1599,37 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0094 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Revisión §3d de Acceptance: ART-023 regenerado con el framework 1.9.7 (HF-33: AcceptanceCondition con 5 argumentos y prueba Scala del filePattern); solo cambia SISBENAcceptanceExpressionsSpec.scala; vuelve a prevalidado hasta la re-auditoría por diferencia |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:18:22-05:00 |
+| **Por qué** | references/03 §3d; condición HF-33/S-ACC-06 de APR-012 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-023 |
+| **Trazabilidad** | prompt 08 · references/03 §3d |
+| **Corrige** | BIT-0084 |
+
+---
+
+## BIT-0095 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T21:18:22-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
