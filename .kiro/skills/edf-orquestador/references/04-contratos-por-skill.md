@@ -97,9 +97,17 @@ Llave de identidad: **tipo doc + número doc + nombre estandarizado**; tipo y n�
 | Dir. | Elemento | Oblig. |
 |------|----------|:------:|
 | In (insumo) | `insumos/yaml-skill-synthesis.yaml` | ✅ |
-| Out | GDD `domaindictionary.json` con el mapeo campo → handler (LFP / LAP / EUC) **solo para campos confirmados** | ✅ |
-| Out | Bloque HOCON `oxygen.stage.consistencyCheck` | ✅ |
-| Evidencia | `evals/verificar-artefacto.ps1` | ✅ |
+| Out | Artefactos según el **modo de Synthesis** de la ingesta (tabla siguiente) | ✅ |
+| Evidencia | `evals/verificar-artefacto.ps1` y `tools/verificar-artefactos-etapa.py synthesis --modo <propio\|colombia>` | ✅ |
+
+Los artefactos dependen del modo, que el Orquestador fija al abrir el expediente (prompt `00`, paso 2) y que coincide con `modo_colombia.aplica` del insumo (HF-68). En modo Colombia una corrida de Synthesis lee un solo GDD, un solo diccionario de consistencia y un solo `customRulesFile` y procesa todo el HC de Colombia (`SparkConsistencyChecker.scala:241-245`), así que la ingesta no escribe claves compartidas:
+
+| Artefacto (id de la semilla) | Modo propio (configuración de Synthesis propia) | Modo Colombia (configuración compartida, `edf-synthesis` SKILL «Modo Colombia») |
+|---|---|---|
+| ART-061 GDD | ✅ `domaindictionary.json` con el mapeo campo → handler (LFP / LAP / EUC) **solo para campos confirmados** | ✅ **entradas del GDD de la ingesta** (`"version": 2`, solo sus `fields[]`) que se integran en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes: es la pieza que aporta la ingesta |
+| ART-062 Bloque HOCON | ✅ bloque `oxygen.stage.consistencyCheck` con la raíz y `customRulesFile` no nulo (`--modo propio`) | ✅ **lista de verificación**: solo comentarios `VERIFICAR <ruta HOCON completa>` de las claves compartidas (diccionario, GDD, `customRulesFile`, `dateType`, `checkFileTagEnabled`, `eventTypeList` y las lecturas `.get` sin valor por defecto), **sin escribir claves** (`--modo colombia`); riesgo `alto` |
+
+La semilla (`templates/estado-ingesta.seed.json`) trae el modo Colombia. En modo propio, el Orquestador cambia el nombre de ART-061 a «GDD domaindictionary.json (campo -> handler LFP/LAP/EUC, solo confirmados)» y el de ART-062 a «bloque HOCON oxygen.stage.consistencyCheck con raíz y customRulesFile».
 
 ## Etapa 6 — State Calculation (`state_calculation`) · Éxito · **N4 `critico`**
 

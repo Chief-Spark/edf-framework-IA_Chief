@@ -156,3 +156,74 @@ def test_campo_advertencias_cuenta_como_clave_publicada_hf37(tmp_path, capsys):
     escribir(tmp_path, "source-spec-curation.yaml", CURATION)
     codigo, out = correr(tmp_path, capsys)
     assert codigo == 1 and "'advertenciasCuracion'" in out
+
+
+# ── HF-70 (AUD-S defecto 5): una carpeta de insumos inexistente no es «nada que cruzar» ──
+
+def test_hf70_ingesta_sin_expediente_falla_con_2(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(vc, "RAIZ", tmp_path)
+    assert vc.main(["sisben"]) == 2
+    out = capsys.readouterr().out
+    assert "No existe" in out and "--dir" in out and "nada que cruzar" not in out
+
+
+def test_hf70_expediente_sin_carpeta_de_insumos_falla_con_2(tmp_path, monkeypatch, capsys):
+    """El caso de la corrida: expedientes/sisben/ existe en la raíz (fuentes/, referencia/) pero sin insumos/."""
+    (tmp_path / "expedientes" / "sisben" / "fuentes").mkdir(parents=True)
+    monkeypatch.setattr(vc, "RAIZ", tmp_path)
+    assert vc.main(["sisben"]) == 2
+    out = capsys.readouterr().out
+    assert "insumos" in out and "nada que cruzar" not in out
+
+
+def test_hf70_carpeta_de_insumos_vacia_es_nada_que_cruzar(tmp_path, monkeypatch, capsys):
+    (tmp_path / "expedientes" / "sisben" / "insumos").mkdir(parents=True)
+    monkeypatch.setattr(vc, "RAIZ", tmp_path)
+    assert vc.main(["sisben"]) == 0
+    assert "nada que cruzar" in capsys.readouterr().out
+
+
+def test_hf70_dir_inexistente_falla_con_2(tmp_path, capsys):
+    assert vc.main(["--dir", str(tmp_path / "no-existe")]) == 2
+    assert "nada que cruzar" not in capsys.readouterr().out
+    assert vc.main(["--dir"]) == 2
+
+
+def test_hf70_los_dos_verificadores_documentan_dir_y_fallan_sin_insumo(tmp_path, monkeypatch, capsys):
+    import importlib.util as iu
+    spec = iu.spec_from_file_location("verificar_insumo_pinning_hf70", RAIZ / "tools" / "verificar-insumo-pinning.py")
+    vp = iu.module_from_spec(spec)
+    spec.loader.exec_module(vp)
+    monkeypatch.setattr(vp, "RAIZ", tmp_path)
+    assert vp.main(["sisben"]) == 2 and "--dir" in capsys.readouterr().out
+    for mod in (vc, vp):
+        assert "--dir <carpeta-con-los-insumos>" in mod.__doc__ and "fuera de la raíz" in mod.__doc__
+
+
+# ── HF-71 (AUD-S defecto 4): forma de campos_a_generar (name + description) y alias deprecado ──
+
+def test_hf71_campos_a_generar_acepta_nombre_en_gdd_como_alias_deprecado(base, capsys):
+    escribir(base, "yaml-skill-synthesis.yaml", {"instruccion_generacion_gdd": {"contenido_a_escribir": {
+        "campos_a_generar": [{"nombre_en_gdd": "grupoSISBEN", "handler": None},
+                             {"name": "grupoSisben", "description": "grupo"}]}}})
+    codigo, out = correr(base, capsys)
+    # Antes la entrada con nombre_en_gdd se ignoraba sin aviso y el resultado era coherente (rc 0).
+    assert codigo == 1 and "'grupoSISBEN'" in out and "(campos_a_generar)" in out
+    assert "nombre_en_gdd` (deprecado)" in out and "campos_a_generar[0]" in out
+
+
+def test_hf71_campos_a_generar_sin_name_avisa(base, capsys):
+    escribir(base, "yaml-skill-synthesis.yaml", {"instruccion_generacion_gdd": {"contenido_a_escribir": {
+        "campos_a_generar": [{"handler": "LAP", "description": "sin nombre"}, {"name": "", "description": "", "handler": None}]}}})
+    codigo, out = correr(base, capsys)
+    assert codigo == 0 and "campos_a_generar[0] sin `name`" in out and "campos_a_generar[1]" not in out
+
+
+def test_hf71_fixture_jurad_usa_name_y_description():
+    fixture = yaml.safe_load((RAIZ / ".kiro/skills/edf-synthesis/evals/fixtures/"
+                              "yaml-skill-synthesis-jurad-sintetico.yaml").read_text(encoding="utf-8"))
+    gen = fixture["instruccion_generacion_gdd"]["contenido_a_escribir"]["campos_a_generar"]
+    assert [c["name"] for c in gen] == ["filingDate", "caseStatus", "caseNumber"]
+    assert all(c.get("description") and "nombre_en_gdd" not in c for c in gen)
+    assert vc.avisos_synthesis(fixture) == []
+    assert {n for _, n, _ in vc.citas_synthesis(fixture)} >= {"filingDate", "caseStatus", "caseNumber"}

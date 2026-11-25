@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.9.10 — 2026-11-25
+
+Correcciones de la auditoría del insumo de Synthesis de la corrida E2E SISBEN (`ejecuciones/sisben-e2e/auditorias/synthesis.md` §2-§3, HF-68 a HF-72). Mismo patrón que Pinning en 1.9.8/1.9.9 (HF-57, HF-59, HF-63). No se tocó nada de `ejecuciones/`.
+
+### edf-synthesis y Orquestador
+- **HF-68 (P1, defecto 1). Modo Colombia de Synthesis.** Una corrida de Synthesis lee un solo GDD, un solo diccionario y un solo `customRulesFile` y procesa todo el HC de Colombia (`SparkConsistencyChecker.scala:241-245`); el SKILL y la plantilla suponían un bloque por ingesta. Ahora:
+  - `SKILL.md`, sección nueva «Modo Colombia»: no se escribe ninguna clave compartida; la entrega es (1) las entradas del GDD de la ingesta (ART-061), que se integran en el GDD compartido sin duplicar ni modificar `name` existentes, (2) el bloque solo de comentarios con una línea `VERIFICAR <ruta HOCON completa>` por clave (ART-062), incluidas las lecturas `.get` sin valor por defecto (AUD-S-03), y (3) la verificación de las reglas compartidas (AUD-S-02). `references/decisiones-pendientes.md` §6.
+  - `assets/consistency-application-block.conf.template`: sección «Modo Colombia» (todo comentario) con 11 claves `VERIFICAR oxygen.stage.consistencyCheck.*` y sección «Fuera de modo Colombia» con el bloque propio.
+  - Orquestador: `templates/estado-ingesta.seed.json` trae el modo Colombia (ART-061 = entradas del GDD para el GDD compartido; ART-062 = lista de verificación, obligatorio, riesgo alto); `references/04-contratos-por-skill.md`, etapa 5: tabla de artefactos por modo y qué cambia en modo propio; `prompts/00-iniciar-ingesta.md`, paso 2: «Modo de Synthesis» (si las fuentes no lo dicen, pregunta bloqueante de `synthesis`). `edf-analisis/assets/templates/yaml-skill-synthesis.yaml.tpl` declara `modo_colombia.aplica`.
+- **`tools/verificar-artefactos-etapa.py synthesis --modo {propio,colombia}`** (por defecto `propio`, que sigue exigiendo la raíz y `customRulesFile` no nulo). Con `--modo colombia` exige que el bloque sea solo comentarios, sin `{{huecos}}`, con cada clave de `CLAVES_VERIFICAR_COLOMBIA` en una línea `VERIFICAR` con su ruta completa; no exige raíz ni `customRulesFile`. El modo se indica explícitamente, no se detecta por un comentario del bloque. En modo propio, un bloque solo de comentarios da la pista «verifícalo con --modo colombia» (AUD-S-11).
+
+### Semántica de claves (HF-69, P1, defecto 2)
+- `eventTypeList` guarda **tipos de archivo** (`listFileTypes`, `SparkConsistencyChecker.scala:46`) y no filtra eventos: solo se usa con `checkFileTagEnabled` para el `voidIndicator` (`:87`, `:119-131`). `dateType` y `checkFileTagEnabled` no agrupan por periodo (el periodo sale de `getPeriod`, `HCUtil.scala:109-124`). Corregido en `edf-analisis/references/logica-synthesis.md` §4.1, `edf-synthesis/SKILL.md` paso 4, `references/convenciones-oxygen-synthesis.md` §2, la plantilla del bloque y la plantilla del insumo, que ya no pre-llena `["{{ingesta}}"]` (queda `""` con la explicación). `evals.json` EVAL-SYN-10 y el fixture Jurad hablan de fileTag.
+
+### Herramientas (HF-70, P1, defecto 5)
+- `tools/verificar-claves.py <ingesta-id>` sale con **2** si no existe `expedientes/<id>` o su carpeta `insumos/` en la raíz (antes: «nada que cruzar» con 0, falso verde), y `--dir <carpeta>` inexistente también da 2. «Nada que cruzar» (0) queda solo para una carpeta que existe sin pares. Los dos verificadores documentan `--dir` para corridas fuera de la raíz; `verificar-insumo-pinning.py` ya salía con 2 y ahora lo dice con la pista de `--dir`.
+
+### GDD v2 (HF-71, P2, defectos 3 y 4)
+- `logica-synthesis.md` §5.1 y `diccionarios-oxygen-synthesis.md` §1: raíz `"version": 2` y tabla de claves de `DictionaryFieldV2` (`DomainDictionaryV2.java:46-56`); v1, `struct` y `singleValued` solo como históricos.
+- `campos_a_generar[]` tiene forma: `{name, description, handler}` en la plantilla del insumo. `verificar-claves.py` acepta `nombre_en_gdd` como alias deprecado (con aviso) y avisa de entradas sin nombre. El fixture `yaml-skill-synthesis-jurad-sintetico.yaml` usa `name` + `description`.
+
+### Evals y references (HF-72, P2)
+- `evals/evals.json` 1.2.0: EVAL-SYN-04 ya no espera un GDD vacío para SISBEN (spec §12, HU R-25: sus campos van LFP, sin `handler`); EVAL-SYN-13 cubre el modo Colombia. `verificar-artefacto.ps1` (solo texto) ya no presenta `-ExpectEmptyFields` como el caso SISBEN.
+- `SKILL.md` y EVAL-SYN-02 ya no citan `Diseño/templates-scala/synthesis/README.md` (no existe): el precedente es la spec de la ingesta §12. El ejemplo SISBEN de `edf-analisis` se rotula histórico en el SKILL y en `LEEME.md`.
+- `edf-analisis/references/fuentes/curation-pinning-sisben.md` §6 y §8 llevan la nota «SUPERADO PARA SISBEN (RG-010, HF-72)»: manda la spec.
+
+### Pruebas
+- `tests/test_regresion_e2e_synthesis.py` (nuevo: texto de SKILL, 04, 00 y plantillas; la semilla valida contra el esquema y el validador acepta una etapa `synthesis` de modo Colombia aprobada; `evals.json`; references), `tests/test_verificar_artefactos_etapa.py` (`test_hf68_*`: los dos modos, cada clave VERIFICAR, CLI) y `tests/test_verificar_claves.py` (`test_hf70_*`, `test_hf71_*`).
+
 ## 1.9.9 — 2026-11-25
 
 Correcciones de la re-auditoría del insumo de Pinning de la corrida E2E SISBEN (`ejecuciones/sisben-e2e/auditorias/pinning.md` §6, AUD-P-14 a AUD-P-16): HF-57/HF-59 no habían llegado al Orquestador.

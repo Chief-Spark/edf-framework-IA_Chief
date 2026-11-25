@@ -9,9 +9,9 @@ description: >-
   "config-driven" con esta etapa, o se pida aplicar un YAML intermedio tipo
   `yaml-skill-synthesis.yaml` a una ingesta nueva, aunque no se nombre "GDD" o "domaindictionary".
   No usar para Pinning ni State Calculation (otros skills) ni para el análisis de requerimiento de
-  Synthesis. NUNCA genera código Scala: para SISBEN se confirmó que no requiere `SynthesisProcessor`
-  custom (`Diseño/templates-scala/synthesis/README.md`); un caso futuro que lo requiera es una
-  decisión nueva, no una extensión silenciosa.
+  Synthesis. NUNCA genera código Scala: para SISBEN la spec de la ingesta (§12) confirma que no
+  hay `SynthesisProcessor` ni `ConsistencyCheckProcessor` propios; un caso futuro que lo requiera es
+  una decisión nueva, no una extensión silenciosa.
 ---
 
 # Skill ConfigGen — Synthesis
@@ -30,6 +30,16 @@ Excepción única: trabajo sobre fixtures sintéticos de evaluación (`evals/` o
 Al terminar: escribe la propuesta en `expedientes/<ingesta-id>/propuestas/synthesis/` y entrega al Desarrollador la lista de artefactos (ruta, tipo, supuestos abiertos, resultado de las verificaciones) **para que el Orquestador la registre**. Esta skill **no escribe** `estado-ingesta.json` ni `bitacora.md`.
 
 
+## Modo Colombia · configuración compartida, no un bloque por ingesta (HF-68)
+
+Para ingestas del bureau de Colombia (`bureau.colombia_innersource`) la configuración de Synthesis es **compartida**. Una corrida lee la última carpeta `*-pin-hc` de `pinnedDir` (`SynthesisIOUtils.scala:146-171`), **un solo** GDD (`domainDictionaryFile.head`), **un solo** diccionario de consistencia (`dictionaryFile(0)`) y **un solo** `customRulesFile.head` (`SparkConsistencyChecker.scala:241-245`), y procesa todo el HC de Colombia: cada clave de `oxygen.stage.consistencyCheck` vale para todas las fuentes. Por eso, en modo Colombia, **no se escribe ninguna clave compartida**, tampoco `eventTypeList`, `dateType`, `checkFileTagEnabled`, `paths.*` ni `customRulesFile`. Tu entrega es:
+
+1. **las entradas del GDD de la ingesta** (ART-061): un `domaindictionary.json` con `"version": 2` y solo los `fields[]` de la ingesta, que se integran en el GDD compartido de Colombia. No se agrega una segunda entrada con un `name` que ya exista ni se modifica la existente: el handler es por nombre de campo, así que la entrada existente gobierna también a esta ingesta, y cambiarla afecta a la otra fuente (N3, se escala). Es la pieza que sí aporta la ingesta;
+2. **el bloque HOCON de la ingesta sin claves compartidas** (ART-062): solo comentarios, con una línea `VERIFICAR <ruta HOCON completa>` por cada clave que el motor lee y su valor esperado en el conf compartido (`assets/consistency-application-block.conf.template`, sección «Modo Colombia»). La lista incluye `paths.dictionaryFile`, `paths.domainDictionaryFile`, `paths.customRulesFile`, `dateType`, `checkFileTagEnabled`, `eventTypeList`, `relationshipMigrationProcessorClassName` y las lecturas con `.get` sin valor por defecto, que hacen fallar la etapa si faltan: `dateType` (`:47`), `fieldHandlerHashFunction` (`:202`), `orchestration` (`:68-69`), `datasetFormat` (`readWriteFormat.get`, `SynthesisIOUtils.scala:129`) y, con `checkFileTagEnabled = true`, `historicAttributeArgs` (`:122`) (AUD-S-03);
+3. la verificación de que las reglas compartidas de Colombia (CONS-*, custom y el processor de migración), que se aplican a todos los eventos del HC, no cambian la síntesis de la ingesta (AUD-S-02). Si alguna aplica, es un bloqueo N3.
+
+Verificación del bloque: `python3 tools/verificar-artefactos-etapa.py synthesis --modo colombia --hocon <bloque.conf>` (sin raíz activa ni `customRulesFile`: los exige solo el modo propio, que es el valor por defecto de `--modo`). Si la ingesta necesita otro valor en una clave compartida, es un bloqueo que se reporta, no una clave que se escribe. El modo lo fija el Orquestador al abrir el expediente (`edf-orquestador/prompts/00-iniciar-ingesta.md`, paso 2; `references/04-contratos-por-skill.md`, etapa 5) y lo declara el insumo en `modo_colombia.aplica`.
+
 Este skill convierte un mapeo de campos ya confirmado (normalmente ya resuelto en un YAML intermedio como `yaml-skill-synthesis.yaml`) en dos artefactos de configuración declarativa listos para revisión humana: el GDD (`domaindictionary.json`) y el bloque HOCON de `oxygen.stage.consistencyCheck`.
 
 El principio que gobierna todo lo que sigue es el mismo que en `edf-pinning`, con un matiz propio de esta etapa: **genera mapeo confirmado, nunca handlers inventados.** El bloqueo típico de Synthesis no es "qué implementación usar" (no hay código que elegir), es "qué handler le corresponde a cada campo" — y ese tipo de bloqueo es fácil de rellenar sin darse cuenta con un criterio que suena razonable pero no es una cita de fuente. Un handler mal asignado (EUC donde debía ser LAP, o LFP implícito donde debía ser EUC) cambia silenciosamente qué valor histórico sobrevive la reconciliación — es un error que no falla en build, falla en los datos.
@@ -43,7 +53,7 @@ Necesitas, como mínimo, por cada campo del dominio de la ingesta:
 3. La cita de la fuente que confirma ese handler para ese campo específico: código real, HU formal, o confirmación explícita y consciente del usuario en la conversación actual. Una categoría genérica ("los campos de identidad suelen ser estables") o una afirmación en bloque ("el resto usa LAP") no cuenta como confirmación campo por campo.
 4. Si el campo requiere `synthesizer` custom (FQCN de un `SynthesisProcessor`) — este skill nunca lo asigna por iniciativa propia, solo si el usuario lo confirma explícitamente.
 
-Si el usuario ya tiene un YAML intermedio de Synthesis para su ingesta (siguiendo la estructura de `.kiro/skills/edf-analisis/assets/examples/sisben/yaml-skill-synthesis.yaml`), toma el insumo de ahí — sección `mapeo_campos_handler`. Recuerda que en ese YAML de referencia casi todo quedó marcado `[P]`, no `[C]`: eso es el estado esperado para una etapa donde la mayoría de los mapeos campo→handler todavía no tienen cita de fuente verificable, no un defecto del YAML. No lo tomes como "ya confirmado" solo porque está en ese archivo.
+Si el usuario ya tiene un YAML intermedio de Synthesis para su ingesta (siguiendo la estructura de `.kiro/skills/edf-analisis/assets/examples/sisben/yaml-skill-synthesis.yaml`), toma el insumo de ahí — sección `mapeo_campos_handler`. Recuerda que en ese YAML de referencia casi todo quedó marcado `[P]`, no `[C]`: es un **ejemplo histórico (no es fuente)** de una etapa en la que los mapeos campo→handler todavía no tenían cita verificable. Para SISBEN ya no rige: la spec de la ingesta (§12) y la HU (R-25) confirman LFP para sus campos. Los valores salen siempre del insumo de la ingesta, nunca del ejemplo. No lo tomes como "ya confirmado" solo porque está en ese archivo.
 
 ## El flujo de generación
 
@@ -63,15 +73,16 @@ Copia la plantilla y sustituye cada `{{PLACEHOLDER}}`:
 - `"synthesizer"` solo si el usuario confirmó explícitamente una clase custom, citando de dónde viene esa decisión.
 - Fuerza siempre `"version": 2` salvo que el usuario pida compatibilidad explícita con versión 1 (deprecated, con warning del motor).
 - **Nunca** declares `inferredAsDeleted`, `shouldDelete` ni `fileTag` — el motor los inyecta automáticamente; declararlos es un error de generación, no una mejora de completitud. Tampoco `subscriberRelationStartDate`, `subscriberRelationEndDate` ni `firstEventDate`: el motor los agrega como EUC (`DomainDictionaryInternal.getAllEUCFields`, AUD-S3).
-- Cada `name` debe ser **literal** una clave publicada por Curation (`campos_curados[].destino`): un nombre distinto no da error, el campo simplemente pierde su handler. `python tools/verificar-claves.py <ingesta>` lo cruza (AUD-S2).
+- Cada `name` debe ser **literal** una clave publicada por Curation (`campos_curados[].destino`): un nombre distinto no da error, el campo simplemente pierde su handler. `python tools/verificar-claves.py <ingesta>` (o `--dir <carpeta-de-insumos>`) lo cruza (AUD-S2).
 - `dataType` (enum `Datatype` de oxygen-global, fuera del repo) se omite salvo confirmación: el motor usa `STRING` por defecto y un valor inválido hace fallar la lectura de todo el diccionario.
-- Verificación en Python, además del `.ps1`: `python tools/verificar-artefactos-etapa.py synthesis --gdd <domaindictionary.json> --hocon <bloque.conf>`.
+- Verificación en Python, además del `.ps1`: `python tools/verificar-artefactos-etapa.py synthesis --gdd <domaindictionary.json> --hocon <bloque.conf>` (modo propio) o `... synthesis --modo colombia --gdd <domaindictionary.json> --hocon <bloque.conf>` (modo Colombia). En una corrida fuera de la raíz, `verificar-claves.py` se invoca con `--dir <expediente>/insumos`: con `<ingesta-id>` busca en `expedientes/<id>/insumos` de la raíz y falla (rc 2) si esa carpeta no existe (HF-70).
 - Elimina todos los comentarios `//` de la plantilla antes de entregar el archivo final — el JSON real no los admite.
 
 ### 4. Genera el bloque HOCON desde `assets/consistency-application-block.conf.template`
 
-Completa solo las claves para las que tengas una fuente o una decisión explícita del usuario:
-- `eventTypeList`: agrega únicamente el `eventType` real de esta ingesta. Nunca copies los valores de ejemplo del fixture local del repo (`sisben`, `jurad`, `judicial`) salvo que la ingesta sea, literalmente, una de esas tres.
+En modo Colombia usa solo la sección «Modo Colombia» de la plantilla: ninguna clave se escribe (ver arriba). Fuera de modo Colombia, completa solo las claves para las que tengas una fuente o una decisión explícita del usuario:
+- `eventTypeList`: guarda **tipos de archivo** (`fileTag`), no el `eventType` (la variable del motor es `listFileTypes`, `SparkConsistencyChecker.scala:46`). **No filtra eventos**: solo se consulta al Process Management con `checkFileTagEnabled = true` (`:87`, `:119-131`) para marcar el `voidIndicator` (HF-69). Escribe solo los `fileTag` reales confirmados de la aplicación; nunca copies los valores de ejemplo del fixture local del repo (`sisben`, `jurad`, `judicial`).
+- `dateType` y `checkFileTagEnabled` **no agrupan por periodo**: solo alimentan el `voidIndicator` (`HCUtil.scala:76-87`); el periodo sale de `getPeriod` del evento (`HCUtil.scala:109-124`). `dateType` es obligatoria aunque `checkFileTagEnabled` sea `false` (`dateType.get`, `:47`).
 - La clave raíz es `oxygen.stage.consistencyCheck`, nunca `oxygen.stage.synthesis` — lee `references/convenciones-oxygen-synthesis.md` §1 antes de escribir cualquier ruta o comentario; el nombre de producto y el nombre de la clave real son distintos a propósito.
 - `paths.domainDictionaryFile` debe coincidir con el nombre de archivo del GDD que generaste en el paso 3.
 - `paths.dictionaryFile` queda como `TODO` explícito salvo que el usuario confirme que la ingesta usa reglas de consistencia propias — nunca completes con un path inventado.
@@ -89,7 +100,7 @@ No entierres esto solo en comentarios de los archivos — repítelo en tu respue
 
 ## Qué este skill nunca hace
 
-- No genera código Scala en ninguna forma — ni un `SynthesisProcessor` custom, ni una clase de ejemplo "por si acaso". Para la ingesta de referencia de este proyecto (SISBEN) ya se confirmó explícitamente que la etapa no lo requiere (`Diseño/templates-scala/synthesis/README.md`); si una ingesta nueva sí lo necesitara, es una decisión de alcance nueva que el usuario debe plantear aparte, no una extensión que este skill asuma por similitud.
+- No genera código Scala en ninguna forma — ni un `SynthesisProcessor` custom, ni una clase de ejemplo "por si acaso". Para la ingesta de referencia de este proyecto (SISBEN) la spec de la ingesta (§12) confirma que no hay `SynthesisProcessor` ni `ConsistencyCheckProcessor` propios; si una ingesta nueva sí lo necesitara, es una decisión de alcance nueva que el usuario debe plantear aparte, no una extensión que este skill asuma por similitud.
 - No asigna el handler `LFP` como string literal — LFP es siempre la ausencia de la clave `handler`.
 - No genera contenido en `consistency-checks.json` ni en `custom-rules.json` sin evidencia explícita de que la ingesta los necesita.
 - No hace el análisis de requerimiento de Synthesis: ese es un tipo de análisis (T2/Skill-Curation en su acepción de etapa), no esta skill de generación. Se prepara con `edf-analisis`.

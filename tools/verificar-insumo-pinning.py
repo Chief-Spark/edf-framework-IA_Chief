@@ -6,7 +6,8 @@ Uso:
     python3 tools/verificar-insumo-pinning.py --dir <carpeta-con-los-insumos>
     python3 tools/verificar-insumo-pinning.py --archivo <yaml-skill-pinning.yaml> [--contrato <contrato-curation-pinning.md>]
 
-Con <ingesta-id> lee expedientes/<ingesta-id>/insumos/; con --dir, esa carpeta. En los dos casos el contrato es
+Con <ingesta-id> lee expedientes/<ingesta-id>/insumos/ de la raíz del framework; con --dir, esa carpeta (úsalo en una
+corrida fuera de la raíz, p. ej. ejecuciones/<corrida>/expedientes/<id>/insumos). Si el insumo no está, sale con 2. En los dos casos el contrato es
 contrato-curation-pinning.md de la misma carpeta (si no existe, se avisa y no se cruza).
 
 Errores (salida 1):
@@ -198,7 +199,9 @@ def main(argv=None) -> int:
         ruta = base / "yaml-skill-pinning.yaml"
         contrato_ruta = base / "contrato-curation-pinning.md"
     if not ruta.is_file():
-        print(f"Falta el insumo {ruta}")
+        # HF-70: rc 2 (nunca un verde). Con <ingesta-id> solo se mira la raíz del framework.
+        print(f"Falta el insumo {ruta}. Con <ingesta-id> se busca en expedientes/<id>/insumos de la raíz; en una "
+              "corrida fuera de la raíz usa --dir <expediente>/insumos.")
         return 2
     texto = ruta.read_text(encoding="utf-8")
     insumo = yaml.safe_load(texto) or {}

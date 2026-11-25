@@ -74,9 +74,9 @@ Synthesis agrupa eventos ya pineados por `pin + cuenta + periodo` y genera un ú
 | `oxygen.stage.consistencyCheck.paths.domainDictionaryFile` | `["domaindictionary.json"]` | Nombre del GDD (ver §5.1) |
 | `oxygen.stage.consistencyCheck.paths.customRulesFile` | `["custom-rules-empty.json"]` | Diccionario de reglas custom de filtrado/visibilidad (ver §5.3) — **vacío por defecto en el fixture local, confirmando que esta funcionalidad está deshabilitada salvo activación explícita** |
 | `oxygen.stage.consistencyCheck.relationshipMigrationProcessorClassName` | FQCN de ejemplo | Procesador de migración de relaciones suscriptor-cuenta, cargado por reflexión |
-| `oxygen.stage.consistencyCheck.checkFileTagEnabled` | `false` | Si se usa `fileTag` para agrupar eventos en periodos |
-| `oxygen.stage.consistencyCheck.eventTypeList` | lista de nombres de ejemplo | Tipos de evento considerados — **valores de ejemplo del fixture, no genéricos; para SISBEN debe sustituirse con el tipo de evento real (30, con la ambigüedad ya registrada en `07-contratos-frontera.md` §2)** |
-| `oxygen.stage.consistencyCheck.dateType` | `receivedDate` | Campo de fecha usado para agrupar por periodo |
+| `oxygen.stage.consistencyCheck.checkFileTagEnabled` | `false` | Con `true`, Synthesis pide al Process Management la fecha más reciente de cada tipo de archivo de `eventTypeList` y marca `voidIndicator` en los eventos de ese `fileTag` más antiguos que ella (`SparkConsistencyChecker.scala:119-131`; `HCUtil.scala:76-87`). **No agrupa por periodo**: el periodo sale de `getPeriod` del evento (`HCUtil.scala:109-124`). Con `true` exige `historicAttributeArgs` (`.get`, `:122`) (HF-69) |
+| `oxygen.stage.consistencyCheck.eventTypeList` | lista de nombres de ejemplo | **Tipos de archivo** (`fileTag`), no tipos de evento: el motor la lee como `listFileTypes` (`SparkConsistencyChecker.scala:46`) y la consulta valor por valor al Process Management (`:87`). **No filtra eventos**; solo se usa con `checkFileTagEnabled = true` (`:119-131`). Los valores del fixture son de ejemplo, no genéricos, y no se sustituyen por el event type de la ingesta. En modo Colombia la lista es compartida y no se escribe (`edf-synthesis` SKILL «Modo Colombia») (HF-69) |
+| `oxygen.stage.consistencyCheck.dateType` | `receivedDate` | Campo de fecha con que se compara cada evento contra la fecha más reciente de su `fileTag` para el `voidIndicator` (`HCUtil.scala:76-87`). **No agrupa por periodo.** Obligatoria aunque `checkFileTagEnabled` sea `false` (`dateType.get`, `:47`) (HF-69) |
 | `oxygen.stage.consistencyCheck.historicAttributeArgs` | filtro de ejemplo | Filtra qué generaciones históricas de HBase se consideran al reconstruir estado |
 | `oxygen.stage.consistencyCheck.synthesisOutputAsTSV` | `false` | Si se escribe adicionalmente el output sintetizado como TSV |
 | `oxygen.stage.consistencyCheck.saveConsistencyInfoToFile` | `true` | Si se persiste el resultado de consistencia como Avro |
@@ -102,22 +102,27 @@ Synthesis se gobierna por **tres diccionarios independientes**, no uno. Confundi
 
 ### 5.1 GDD — Global Domain Dictionary (`domaindictionary.json`)
 
-Raíz: `{"domain": "<nombre>", "version": 1, "fields": [...]}`. Cada elemento de `fields`:
+Raíz: `{"domain": "<nombre>", "version": 2, "fields": [...]}` (HF-71). Cada elemento de `fields`, según `DictionaryFieldV2` (`DomainDictionaryV2.java:46-56`):
 
 | Campo | Tipo | Obligatorio | Efecto |
 |---|---|---|---|
-| `name` | string | sí | nombre del campo del dominio |
-| `handler` | `"EUC"` \| `"LAP"` \| ausente | no | ausente = LFP implícito (sin clase propia, es el comportamiento `else` del motor) |
+| `name` | string | sí | nombre del campo del dominio: literal una clave publicada por Curation |
+| `handler` | `"EUC"` \| `"LAP"` \| ausente | no, default LFP | ausente = LFP implícito (sin clase propia, es el comportamiento `else` del motor) |
 | `periodicity` | boolean | no, default `true` | si el campo participa en la lógica periódica |
-| `struct` | array de strings | no | subcampos de un campo compuesto (ej. `address` → `["street1","city","State"]`) |
-| `singleValued` | boolean | no | acompaña a `struct` |
+| `complexTypeDefinition` | objeto (`SchemaElement`) | no | definición de un campo compuesto |
+| `dataType` | enum `Datatype` (oxygen-global, fuera del repo) | no, default `STRING` | solo lo lee el DSL de consistencia; no se escribe sin confirmación |
 | `synthesizer` | string (FQCN) | no | clase `SynthesisProcessor` custom, cargada por reflexión (ver §7) |
+| `description` | string | no | texto descriptivo; inerte para el motor |
+| `section` | string | no, default `"default"` | sección del campo |
+| `enabled` | boolean | no, default `true` | si el campo está habilitado |
+
+**Versión 1, solo histórica:** `"version": 1` está deprecada (el motor deja un warning) y es la del fixture local `domaindictionary-local.json`. Las claves `struct` y `singleValued` aparecen solo en ese fixture v1: no las lee ni `DomainDictionaryV1` (`DomainDictionaryV1.java:44-51`) ni `DomainDictionaryV2`, así que se ignoran y no se generan. `fieldType` es del lector v1 y la v2 lo ignora.
 
 **Hallazgo verificado, no documentado en análisis previos**: `handler` y `synthesizer` son **ortogonales** — un campo puede declarar `synthesizer` custom combinado con cualquiera de los tres handlers base. El fixture real confirma esto con tres campos (`accountInformation` LFP+synthesizer, `accountInformationLAP` LAP+mismo synthesizer, `accountInformationEUC` EUC+mismo synthesizer) que comparten el mismo processor custom, el cual discrimina por `fieldName` internamente — es decir, **un solo processor puede atender varios campos del GDD simultáneamente**, contradiciendo la expectativa de "un handler por campo" que otros documentos de diseño podrían sugerir. `[C]`
 
 **Campos de sistema inyectados automáticamente** (no declarados por el usuario en el GDD, pero siempre presentes): `inferredAsDeleted`, `shouldDelete`, `fileTag` — los tres como `LAP` (`DomainDictionaryInternal.readDomainDictionary`). `[C]`
 
-Soporta versión 1 (deprecated, con warning) y versión 2 del formato — no se profundizó en las diferencias exactas entre ambas versiones de parseo (`DomainDictionaryV1`/`DomainDictionaryV2`, clases Java). `[PM]`
+Soporta versión 1 (deprecated, con warning) y versión 2 del formato; las claves de la v2 son las de la tabla de arriba (`DomainDictionaryV2.java:46-56`). Se genera siempre la versión 2. `[C]`
 
 ### 5.1.1 Resolución del conflicto de nomenclatura LFP/LAP/EUC — decisión del usuario `[C]`
 

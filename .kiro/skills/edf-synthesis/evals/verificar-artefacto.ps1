@@ -22,12 +22,14 @@
     Ruta al bloque .conf (HOCON, oxygen.stage.consistencyCheck) generado por el skill.
 
 .PARAMETER ExpectEmptyFields
-    Si se indica, exige que "fields" del GDD sea un array vacío (caso SISBEN,
-    EVAL-SYN-04). Si NO se indica, exige que "fields" no esté vacío (caso del
-    fixture Jurad, camino feliz positivo).
+    Si se indica, exige que "fields" del GDD sea un array vacío: solo para un
+    insumo sin ningún campo confirmado (EVAL-SYN-01). Ya NO es el caso de
+    SISBEN: la spec 1.0.2 §12 y la HU R-25 confirman LFP para sus 34 campos,
+    así que su GDD trae contenido (EVAL-SYN-04, HF-72). Si NO se indica, exige
+    que "fields" no esté vacío (camino feliz positivo: SISBEN, fixture Jurad).
 
 .EXAMPLE
-    # Caso SISBEN (EVAL-SYN-04) -- GDD vacío es el resultado correcto
+    # Insumo sin ningún campo confirmado -- GDD vacío es el resultado correcto
     .\verificar-artefacto.ps1 -GddPath .\domaindictionary.json -ExpectEmptyFields
 
 .EXAMPLE
@@ -110,13 +112,13 @@ if ($GddPath) {
 
             if ($ExpectEmptyFields) {
                 if ($parsed.fields -and $parsed.fields.Count -gt 0) {
-                    $failures += "FAIL - se esperaba fields=[] (EVAL-SYN-04, insumo SISBEN sin handler confirmado) pero el GDD trae $($parsed.fields.Count) campo(s): $($fieldNames -join ', ')"
+                    $failures += "FAIL - se esperaba fields=[] (insumo sin ningún campo confirmado) pero el GDD trae $($parsed.fields.Count) campo(s): $($fieldNames -join ', ')"
                 } else {
-                    Write-Host "PASS - fields[] está vacío, como corresponde al insumo SISBEN sin handler confirmado (EVAL-SYN-04)" -ForegroundColor Green
+                    Write-Host "PASS - fields[] está vacío, como corresponde a un insumo sin ningún campo confirmado" -ForegroundColor Green
                 }
             } else {
                 if (-not $parsed.fields -or $parsed.fields.Count -eq 0) {
-                    $warnings += "WARN - fields[] vacío; si el insumo tenía campos [C] confirmados (ej. fixture Jurad), se esperaba contenido real"
+                    $warnings += "WARN - fields[] vacío; si el insumo tenía campos [C] confirmados (ej. SISBEN, EVAL-SYN-04, o el fixture Jurad), se esperaba contenido real"
                 } else {
                     Write-Host "PASS - fields[] contiene $($parsed.fields.Count) campo(s)" -ForegroundColor Green
                 }

@@ -6,24 +6,23 @@
 # EVAL-SYN-04 a EVAL-SYN-12 del arnés de evals de Skill-ConfigGen-Synthesis
 # sobre un insumo DISTINTO de SISBEN.
 #
-# A diferencia del insumo real de SISBEN (yaml-skill-synthesis.yaml), donde
-# NINGÚN campo llegó a [C] y el GDD generable es vacío por diseño, este
-# fixture declara deliberadamente:
+# Este fixture declara deliberadamente (SISBEN, con la spec 1.0.2 §12, tiene
+# sus campos confirmados como LFP: EVAL-SYN-04; el ejemplo histórico de
+# edf-analisis, con todo [P] y GDD vacío, ya no rige, HF-72):
 #   - un campo con handler EUC confirmado por fuente verificable ([C] real,
-#     no [P]), para poder ejercitar el camino feliz positivo (EVAL-SYN-04
-#     necesita contraste: SISBEN prueba el camino feliz NEGATIVO —GDD vacío—,
-#     este fixture prueba que el skill SÍ genera contenido cuando la fuente
-#     sí lo confirma, sin ampliarlo a más de lo confirmado),
+#     no [P]), para ejercitar un handler explícito (SISBEN no tiene ninguno:
+#     todos sus campos van sin la clave handler),
 #   - un campo con handler LAP confirmado, para que no todo el fixture sea EUC,
 #   - un bloque de campos "restantes" sin desglosar (igual que SISBEN), para
 #     poder reusar EVAL-SYN-05 sobre un insumo distinto si se necesita en el
 #     futuro,
-#   - un eventType real distinto de los tres de ejemplo del fixture del repo
-#     (sisben/jurad/judicial) — OJO: el nombre de la ingesta ficticia es
-#     "Jurad" pero su eventType real NO es literalmente "jurad" del fixture
-#     del repo; se usa "jurad-v2" a propósito para que EVAL-SYN-10 pueda
-#     detectar si el skill copia el valor de ejemplo del repo en vez de usar
-#     el valor real de esta ingesta.
+#   - un tipo de archivo (fileTag) real distinto de los tres de ejemplo del
+#     fixture del repo (sisben/jurad/judicial) para eventTypeList, que guarda
+#     tipos de archivo y no filtra eventos (HF-69) — OJO: el nombre de la
+#     ingesta ficticia es "Jurad" pero su fileTag real NO es literalmente
+#     "jurad" del fixture del repo; se usa "jurad-v2" a propósito para que
+#     EVAL-SYN-10 pueda detectar si el skill copia el valor de ejemplo del
+#     repo en vez de usar el valor real de esta ingesta.
 #
 # Ningún dato de este archivo representa personas, entidades o reglas de
 # negocio reales. Toda cifra, nombre de campo y handler es inventado para
@@ -119,12 +118,17 @@ instruccion_generacion_gdd:
       Generar ÚNICAMENTE los 3 campos de campos_con_mapeo_confirmado. El
       campo "caseNumber" se declara en el GDD SIN la clave "handler" (LFP
       implícito), nunca con el string literal "LFP".
+    # Forma de cada entrada (HF-71): la del GDD v2, name + description; handler
+    # solo EUC o LAP (null = LFP = sin la clave en el GDD).
     campos_a_generar:
-      - nombre_en_gdd: "filingDate"
+      - name: "filingDate"
+        description: "Fecha de radicación inicial del caso (fixture sintético)"
         handler: "EUC"
-      - nombre_en_gdd: "caseStatus"
+      - name: "caseStatus"
+        description: "Estado del proceso judicial (fixture sintético)"
         handler: "LAP"
-      - nombre_en_gdd: "caseNumber"
+      - name: "caseNumber"
+        description: "Número de radicado del caso (fixture sintético)"
         handler: null
     estado: "[C] para los 3 campos listados; el resto del dominio queda [A:sin-clasificar]"
 
@@ -133,12 +137,13 @@ claves_configuracion_synthesis:
     - clave: "oxygen.stage.consistencyCheck.eventTypeList"
       valor_a_escribir: '["jurad-v2"]'
       regla: >
-        El eventType real de esta ingesta ficticia es "jurad-v2", NO "jurad"
-        (que es uno de los tres valores de ejemplo del fixture local real del
+        El tipo de archivo (fileTag) real de esta ingesta ficticia es
+        "jurad-v2", NO "jurad" (que es uno de los tres valores de ejemplo del fixture local real del
         repo oxygen-synthesis). Esta distinción es deliberada: si el skill
         genera "jurad" en vez de "jurad-v2", es evidencia de que copió el
-        valor de ejemplo del repo en vez de usar el eventType real de esta
-        ingesta (ver EVAL-SYN-10).
+        valor de ejemplo del repo en vez de usar el fileTag real de esta
+        ingesta (ver EVAL-SYN-10). La clave guarda tipos de archivo para el
+        voidIndicator con checkFileTagEnabled; no filtra eventos (HF-69).
       estado: "[C]"
       fuente: "fixture sintético — confirmación de prueba 2026-10-13"
 

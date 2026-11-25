@@ -6,16 +6,21 @@ Este skill solo genera contenido para el **primero** (GDD). Los otros dos se des
 
 ## 1. GDD — Global Domain Dictionary (`domaindictionary.json`) — EL QUE ESTE SKILL GENERA
 
-Raíz: `{"domain": "<nombre>", "version": 1, "fields": [...]}`.
+Raíz: `{"domain": "<nombre>", "version": 2, "fields": [...]}` (HF-71). Claves de cada elemento según `DictionaryFieldV2` (`DomainDictionaryV2.java:46-56`):
 
 | Campo de cada elemento de `fields` | Tipo | Obligatorio | Efecto |
 |---|---|---|---|
-| `name` | string | sí | nombre del campo del dominio en el GDD |
-| `handler` | `"EUC"` \| `"LAP"` \| ausente | no | ausente = LFP implícito (comportamiento por defecto del motor, sin clase propia) |
+| `name` | string | sí | nombre del campo del dominio en el GDD: literal una clave publicada por Curation |
+| `handler` | `"EUC"` \| `"LAP"` \| ausente | no, default LFP | ausente = LFP implícito (comportamiento por defecto del motor, sin clase propia) |
 | `periodicity` | boolean | no, default `true` | si el campo participa en la lógica periódica |
-| `struct` | array de strings | no | subcampos de un campo compuesto (ej. `address` → `["street1","city","State"]`) |
-| `singleValued` | boolean | no | acompaña a `struct` |
+| `complexTypeDefinition` | objeto (`SchemaElement`) | no | definición de un campo compuesto |
+| `dataType` | enum `Datatype` (oxygen-global) | no, default `STRING` | no se escribe sin confirmación (sus valores no están en el repo) |
 | `synthesizer` | string (FQCN) | no | clase `SynthesisProcessor` custom — este skill NUNCA la asigna, ver `decisiones-pendientes.md` |
+| `description` | string | no | texto descriptivo; inerte para el motor |
+| `section` | string | no, default `"default"` | sección del campo |
+| `enabled` | boolean | no, default `true` | si el campo está habilitado |
+
+**Versión 1, solo histórica:** `"version": 1` (deprecated, con warning del motor) es la del fixture local `domaindictionary-local.json`. `struct` y `singleValued` aparecen solo en ese fixture: no las lee ni el lector v1 ni el v2, así que no se generan.
 
 Reglas verificadas que debes respetar al generar:
 

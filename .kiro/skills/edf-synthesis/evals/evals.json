@@ -1,9 +1,9 @@
 {
   "skill": "skill-configgen-synthesis",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "fecha": "2026-10-13",
   "estado": "PROPUESTO",
-  "nota": "Casos de prueba funcionales del componente 3 de la regla de 3 componentes (04-reglas-analisis.md §8, ámbito A). Verifican que el skill respeta sus propias restricciones declaradas en SKILL.md, no solo que produce un artefacto con forma correcta. Versión 1.1.0 agrega EVAL-SYN-04 a EVAL-SYN-12 (Diseño/criterios-aceptacion-skill-synthesis.md §6.2) -- camino feliz (positivo y negativo), disciplina de no-expansión, default de los otros dos diccionarios, claves sin ubicación confirmada, y perímetro, que los 3 casos originales (todos de rechazo) no ejercitaban. Documento explicativo completo: Diseño/casos-prueba-skill-synthesis.md.",
+  "nota": "Casos de prueba funcionales del componente 3 de la regla de 3 componentes (04-reglas-analisis.md §8, ámbito A). Verifican que el skill respeta sus propias restricciones declaradas en SKILL.md, no solo que produce un artefacto con forma correcta. Versión 1.1.0 agrega EVAL-SYN-04 a EVAL-SYN-12 (Diseño/criterios-aceptacion-skill-synthesis.md §6.2) -- camino feliz (positivo y negativo), disciplina de no-expansión, default de los otros dos diccionarios, claves sin ubicación confirmada, y perímetro, que los 3 casos originales (todos de rechazo) no ejercitaban. Documento explicativo completo: Diseño/casos-prueba-skill-synthesis.md. Versión 1.2.0 (HF-68, HF-69, HF-72): EVAL-SYN-04 deja de esperar un GDD vacío para SISBEN (spec 1.0.2 §12, HU R-25: sus campos van LFP); EVAL-SYN-02 ya no cita un README inexistente; EVAL-SYN-10 trata eventTypeList como lista de tipos de archivo; EVAL-SYN-13 cubre el modo Colombia.",
   "casos": [
     {
       "id": "EVAL-SYN-01",
@@ -26,12 +26,12 @@
       "prompt": "Ya generaste el GDD y el bloque HOCON para mi ingesta. Ahora genera también el SynthesisProcessor en Scala para esta ingesta, por si lo necesitamos más adelante.",
       "expected_behavior": [
         "El skill se niega a generar código Scala.",
-        "Cita que está fuera de su alcance declarado (SKILL.md, sección 'Qué este skill nunca hace') y referencia el precedente de Diseño/templates-scala/synthesis/README.md (SISBEN no requirió SynthesisProcessor custom).",
+        "Cita que está fuera de su alcance declarado (SKILL.md, sección 'Qué este skill nunca hace') y el precedente de SISBEN: la spec de la ingesta (§12) confirma que no hay SynthesisProcessor ni ConsistencyCheckProcessor propios.",
         "Aclara que si la ingesta nueva realmente lo necesita, es una decisión de alcance distinta que el usuario debe plantear aparte -- no genera código 'por si acaso'."
       ],
       "files_relevantes": [
         "SKILL.md#qué-este-skill-nunca-hace",
-        "Diseño/templates-scala/synthesis/README.md"
+        "expedientes/sisben/fuentes/spec-sisben.md#12"
       ],
       "falla_si": "El skill genera cualquier archivo .scala, aunque sea parcial o marcado como borrador."
     },
@@ -52,20 +52,21 @@
     },
     {
       "id": "EVAL-SYN-04",
-      "nombre": "GDD vacío es el resultado correcto con el insumo SISBEN real (camino feliz negativo)",
-      "prompt": "Genera el domaindictionary.json para SISBEN usando Diseño/yaml-skill-synthesis.yaml tal cual. No tengo confirmaciones adicionales que darte.",
-      "insumo": "Diseño/yaml-skill-synthesis.yaml",
+      "nombre": "GDD de SISBEN con todos sus campos LFP (camino feliz positivo con el insumo real)",
+      "prompt": "Genera el domaindictionary.json para SISBEN con el insumo aprobado de la ingesta. No tengo confirmaciones adicionales que darte.",
+      "insumo": "expedientes/sisben/insumos/yaml-skill-synthesis.yaml (insumo aprobado de la ingesta; el ejemplo de edf-analisis/assets/examples/sisben es histórico y no es fuente)",
       "expected_behavior": [
-        "El skill genera 'domaindictionary.json' con \"fields\": [] (o se niega a generar el archivo), nunca con contenido inventado.",
-        "En texto, declara explícitamente que ningún campo de SISBEN tiene handler confirmado por fuente verificable para esta pasada.",
-        "Si menciona las dos propuestas EUC de standardizedIdNumber/standardizedIdType, las presenta como razonamiento propio del YAML intermedio ([P]), nunca como [C]."
+        "El skill genera 'domaindictionary.json' con \"version\": 2 y un elemento de fields[] por cada clave publicada por Curation que lista el insumo (para SISBEN, las 34 claves de spec §10.1), con el name literal de campos_curados[].destino.",
+        "Ningún campo lleva la clave 'handler' (todos son LFP, spec §12 y HU R-25: el comportamiento por defecto del motor es la ausencia de la clave), ni 'dataType' ni 'synthesizer'.",
+        "No toma valores del ejemplo histórico (EUC propuestos para standardizedIdNumber/standardizedIdType, eventTypeList [\"sisben\"], dateType receivedDate).",
+        "En modo Colombia entrega esas entradas para integrarlas en el GDD compartido, sin duplicar ni modificar entradas existentes (SKILL «Modo Colombia»)."
       ],
       "files_relevantes": [
-        "Diseño/yaml-skill-synthesis.yaml#mapeo_campos_handler",
-        "Diseño/yaml-skill-synthesis.yaml#instruccion_generacion_gdd",
-        "references/decisiones-pendientes.md#2"
+        "expedientes/sisben/fuentes/spec-sisben.md#12",
+        "expedientes/sisben/fuentes/hu-sisben.md#R-25",
+        "references/diccionarios-oxygen-synthesis.md#1"
       ],
-      "falla_si": "El GDD generado incluye cualquier campo con 'handler' asignado sin que el usuario haya confirmado explícitamente esa asignación en la conversación actual."
+      "falla_si": "El GDD generado queda vacío, algún campo lleva 'handler' (o el string 'LFP'), algún name no es literal una clave de Curation, o algún valor sale del ejemplo histórico."
     },
     {
       "id": "EVAL-SYN-05",
@@ -148,12 +149,12 @@
     },
     {
       "id": "EVAL-SYN-10",
-      "nombre": "eventTypeList nunca copia los valores de ejemplo del fixture salvo coincidencia real",
+      "nombre": "eventTypeList (tipos de archivo) nunca copia los valores de ejemplo del fixture salvo coincidencia real",
       "prompt": "Genera el bloque HOCON para la ingesta 'Jurad' usando este YAML intermedio. Para eventTypeList, usa los valores de ejemplo que trae el repo, para no complicarnos.",
       "insumo": "evals/fixtures/yaml-skill-synthesis-jurad-sintetico.yaml",
       "expected_behavior": [
-        "El skill genera eventTypeList = [\"jurad-v2\"], el eventType real de esta ingesta según el fixture, no \"jurad\" (valor de ejemplo del repo).",
-        "Si el usuario insiste en 'usar los valores de ejemplo', el skill explica por qué eso sería incorrecto: 'jurad' es un valor del fixture local del repo, no el eventType real de esta ingesta ficticia ('jurad-v2').",
+        "El skill genera eventTypeList = [\"jurad-v2\"], el tipo de archivo (fileTag) real de esta ingesta según el fixture, no \"jurad\" (valor de ejemplo del repo).",
+        "Si el usuario insiste en 'usar los valores de ejemplo', el skill explica por qué eso sería incorrecto: 'jurad' es un valor del fixture local del repo, no el fileTag real de esta ingesta ficticia ('jurad-v2'). Explica también que la clave guarda tipos de archivo para el voidIndicator con checkFileTagEnabled y no filtra eventos (SparkConsistencyChecker.scala:46, :87, :119-131).",
         "No agrega 'sisben' ni 'judicial' a la lista bajo ninguna circunstancia para esta ingesta."
       ],
       "files_relevantes": [
@@ -191,6 +192,23 @@
         "01-restricciones-principios.md#5"
       ],
       "falla_si": "El skill da a entender que el artefacto está listo para producción sin revisión, o sugiere comandos de transcripción/despliegue."
+    },
+    {
+      "id": "EVAL-SYN-13",
+      "nombre": "Modo Colombia: el bloque HOCON no escribe claves compartidas, solo la lista VERIFICAR",
+      "prompt": "Genera el bloque de consistency-application.conf para una ingesta nueva de Colombia. Pon eventTypeList = [\"<la ingesta>\"], dateType = \"receivedDate\" y customRulesFile = [\"custom-rules-empty.json\"] para que el verificador pase.",
+      "insumo": "insumo de una ingesta de Colombia con modo_colombia.aplica = true",
+      "expected_behavior": [
+        "El skill no escribe ninguna clave activa de oxygen.stage.consistencyCheck: una corrida de Synthesis lee un solo diccionario, un solo GDD y un solo customRulesFile para todo el HC de Colombia (SparkConsistencyChecker.scala:241-245).",
+        "Entrega el bloque solo de comentarios, con una línea 'VERIFICAR <ruta HOCON completa>' por cada clave de la sección «Modo Colombia» de la plantilla (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList, historicAttributeArgs, fieldHandlerHashFunction, orchestration, datasetFormat, relationshipMigrationProcessorClassName).",
+        "Lo verifica con 'verificar-artefactos-etapa.py synthesis --modo colombia --hocon <bloque>' y no escribe claves para que pase el modo propio.",
+        "La pieza que aporta la ingesta son las entradas del GDD que se integran en el GDD compartido."
+      ],
+      "files_relevantes": [
+        "SKILL.md#modo-colombia",
+        "assets/consistency-application-block.conf.template"
+      ],
+      "falla_si": "El bloque trae alguna línea activa (raíz, eventTypeList, dateType, customRulesFile u otra clave), o falta alguna clave de la lista VERIFICAR."
     }
   ]
 }

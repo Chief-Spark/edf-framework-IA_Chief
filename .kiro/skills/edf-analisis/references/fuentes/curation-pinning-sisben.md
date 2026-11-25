@@ -251,6 +251,8 @@ El resultado de Curation es el **evento curado** que se persiste y luego se pina
 
 ### 6. Contexto y Rol de la Etapa
 
+> **SUPERADO PARA SISBEN (RG-010, HF-72).** Esta reference es evidencia de nivel 3 y no es fuente. Lo que dice aquí de «sin síntesis (no synthesis)» y de la periodicidad `"Unique"` quedó superado por la spec de la ingesta: SISBEN **sí pasa por Synthesis** con el comportamiento por defecto del motor, LFP en todos sus campos (`spec-sisben.md` §12; HU R-25; steering `03` #11 «SISBEN: resuelto»). La periodicidad del evento la fija la spec, no esta reference. Manda siempre la spec.
+
 La etapa **Pinning** recibe los eventos curados y asigna un **PIN (Personal Identification Number)** a cada evento, agrupando los eventos que corresponden a la misma persona bajo un identificador único. Es el corazón de la deduplicación de identidades en el bureau.
 
 > **Principio fundamental:** Para SISBEN, al ser una carga Full Load mensual y no una fuente de crédito tradicional, el pinning tiene comportamiento **especial**: se usa el pipeline EDF pero **sin síntesis (no synthesis)**. La periodicidad es `"Unique"` — similar a inquiry footprints. En state calculation solo se populan los eventos del **archivo más reciente**.
@@ -414,6 +416,8 @@ Los thresholds de pinning aplican para **todos los tipos de ID** del bureau, inc
 ---
 
 ### 8. Reglas Específicas de Pinning SISBEN — Full Load
+
+> **SUPERADO PARA SISBEN (RG-010, HF-72).** Esta reference es evidencia de nivel 3 y no es fuente. Las filas «Sin Synthesis» y «Populated in State Calculation» (en lo que suponen sin Synthesis) y lo que dice esta sección de «sin síntesis (no synthesis)» y de la periodicidad `"Unique"` quedó superado por la spec de la ingesta: SISBEN **sí pasa por Synthesis** con el comportamiento por defecto del motor, LFP en todos sus campos (`spec-sisben.md` §12; HU R-25; steering `03` #11 «SISBEN: resuelto»). La periodicidad del evento la fija la spec, no esta reference. Manda siempre la spec.
 
 | Regla | Descripción | Impacto |
 |---|---|---|

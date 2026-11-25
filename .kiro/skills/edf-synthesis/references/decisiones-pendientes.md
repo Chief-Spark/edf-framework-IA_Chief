@@ -34,6 +34,10 @@ Dos ejemplos reales de este proyecto que debes usar como plantilla de cómo actu
 - `periodType` apareció en un documento de negocio como decisión confirmada, pero **no corresponde a ninguna clave verificada en el código real** de `oxygen-synthesis` — podría vivir en otra capa (orquestación) no visible en este repo. No generes esta clave en el bloque HOCON sin confirmar primero dónde vive realmente en la configuración del motor.
 - `dictionaryFile` (ruta al diccionario de consistencia) depende de si la ingesta usa consistencia estándar o reglas propias — no asumas automáticamente ninguno de los dos caminos sin que el usuario lo confirme.
 
+## 6. Modo Colombia: una clave compartida nunca se resuelve escribiéndola (HF-68)
+
+En modo Colombia (`SKILL.md` «Modo Colombia») cada clave de `oxygen.stage.consistencyCheck` vale para todas las fuentes del HC de Colombia. Si la ingesta parece necesitar un valor distinto del vigente (p. ej. otro `checkFileTagEnabled`, su fileTag en `eventTypeList` o una regla custom propia), no lo escribas en el bloque ni lo «arregles» para que pase el verificador del modo propio: es un bloqueo N3 que se reporta con el formato de abajo. Tampoco se cambia una entrada existente del GDD compartido con el mismo `name` (la entrada existente gobierna también a esta ingesta). Registro: HF-68 a HF-71 (corrida E2E SISBEN, `CHANGELOG.md` 1.9.10).
+
 ## Formato de la nota en el artefacto generado
 
 Cuando un campo o clave queda sin resolver, dilo en tu respuesta de texto con esta forma, no solo en un comentario que después se pierde:

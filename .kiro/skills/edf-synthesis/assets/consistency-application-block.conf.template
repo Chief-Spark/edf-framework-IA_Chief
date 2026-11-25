@@ -12,16 +12,69 @@
 # bloque de claves con efecto directo verificado en el código real que
 # dependen de la ingesta nueva. Las claves de infraestructura de ejecución
 # (env.conf, spark.conf) están fuera de alcance de este skill.
+#
+# ── Modo Colombia (bureau.colombia_innersource; SKILL.md «Modo Colombia», HF-68) ──
+# La configuración de Synthesis es COMPARTIDA: una corrida lee la última
+# carpeta *-pin-hc de pinnedDir (SynthesisIOUtils.scala:146-171), UN solo GDD
+# (domainDictionaryFile.head), UN diccionario de consistencia (dictionaryFile(0))
+# y UN customRulesFile.head (SparkConsistencyChecker.scala:241-245), y procesa
+# todo el HC de Colombia. Cada clave de oxygen.stage.consistencyCheck vale para
+# todas las fuentes. En modo Colombia NO se escribe el bloque
+# oxygen.stage.consistencyCheck de abajo: se entrega solo esta lista de
+# verificación (todo comentario), con el valor vigente que el equipo confirma
+# en el conf compartido. La pieza que sí aporta la ingesta son sus entradas
+# del GDD (ART-061), que se integran en el GDD compartido de Colombia sin
+# duplicar ni modificar entradas existentes. Si la ingesta necesita otro valor
+# en una clave compartida, es un bloqueo que se reporta (N3), no una clave que
+# se escribe. Verificación:
+#   python3 tools/verificar-artefactos-etapa.py synthesis --modo colombia --hocon <este bloque>
+#
+#   VERIFICAR oxygen.stage.consistencyCheck.paths.dictionaryFile = diccionario de
+#             consistencia de Colombia (dictionaryFile(0), :242). La ingesta no le
+#             agrega reglas CONS-* sin evidencia.
+#   VERIFICAR oxygen.stage.consistencyCheck.paths.domainDictionaryFile = GDD
+#             compartido de Colombia donde se integran las entradas de la ingesta
+#             (head, :241; Curation también la lee, SparkCurator.scala:63-64).
+#   VERIFICAR oxygen.stage.consistencyCheck.paths.customRulesFile = presente y no
+#             null (customRulesFile.head, :245; AUD-S1).
+#   VERIFICAR oxygen.stage.consistencyCheck.dateType = presente (dateType.get, :47:
+#             sin ella la etapa no arranca). No agrupa por periodo.
+#   VERIFICAR oxygen.stage.consistencyCheck.checkFileTagEnabled = valor vigente. Con
+#             true, cada evento cuyo fileTag esté en el mapa recibe voidIndicator
+#             (HCUtil.scala:76-87): revisar si otra fuente usa el mismo fileTag.
+#   VERIFICAR oxygen.stage.consistencyCheck.eventTypeList = lista de Colombia. Guarda
+#             TIPOS DE ARCHIVO (listFileTypes, :46), no filtra eventos; no se
+#             reemplaza ni se le agrega el event type de la ingesta.
+#   VERIFICAR oxygen.stage.consistencyCheck.historicAttributeArgs = presente si
+#             checkFileTagEnabled = true (.get, :122).
+#   VERIFICAR oxygen.stage.consistencyCheck.fieldHandlerHashFunction = presente
+#             (.get, :202; el nombre HOCON exacto se confirma en el fork).
+#   VERIFICAR oxygen.stage.consistencyCheck.orchestration = presente, con source y
+#             target (orchestration.get, :68-69).
+#   VERIFICAR oxygen.stage.consistencyCheck.datasetFormat = presente (readWriteFormat.get,
+#             SynthesisIOUtils.scala:129).
+#   VERIFICAR oxygen.stage.consistencyCheck.relationshipMigrationProcessorClassName =
+#             valor vigente; actúa sobre todos los eventos del HC (:250-253).
+#
+# ── Fuera de modo Colombia (aplicación de Synthesis propia de la ingesta) ──
 
 oxygen.stage.consistencyCheck {
 
-  # [C] si el usuario confirma el eventType real de la ingesta. El valor de
-  # ejemplo del fixture local del repo (["sisben","jurad","judicial"]) NO se
-  # copia -- solo agrega el eventType real de esta ingesta a la lista.
-  eventTypeList = ["{{EVENT_TYPE}}"]
+  # Tipos de ARCHIVO (fileTag) que se consultan al Process Management para saber
+  # la fecha más reciente de cada uno (la variable del motor es listFileTypes,
+  # SparkConsistencyChecker.scala:46, :87). NO filtra eventos y NO es el event
+  # type: solo se usa con checkFileTagEnabled = true (:119-131) para el
+  # voidIndicator. El valor de ejemplo del fixture local del repo
+  # (["sisben","jurad","judicial"]) NO se copia. [C] solo con los fileTag reales
+  # confirmados de la aplicación.
+  eventTypeList = {{FILE_TAG_LIST_O_PENDIENTE}}
 
-  # Campo de fecha usado para agrupar por periodo. "receivedDate" es el
-  # default del fixture local, úsalo solo si el usuario no confirma otro.
+  # Campo de fecha (p. ej. receivedDate) con que se compara cada evento contra la
+  # fecha más reciente de su fileTag para el voidIndicator (HCUtil.scala:76-87).
+  # NO agrupa por periodo: el periodo sale de getPeriod del evento
+  # (HCUtil.scala:109-124). Obligatoria aunque checkFileTagEnabled sea false
+  # (dateType.get, :47). "receivedDate" es el valor del fixture local, no una
+  # confirmación.
   dateType = "{{DATE_TYPE}}"
 
   paths {
@@ -49,9 +102,11 @@ oxygen.stage.consistencyCheck {
   # confirmados hasta ahora en este proyecto -- no asumir true sin confirmación.
   synthesisOutputAsTSV = {{SYNTHESIS_OUTPUT_AS_TSV}}
 
-  # TODO(decisión de negocio pendiente): si esta ingesta usa fileTag para
-  # agrupar eventos en periodos (relevante si hay cargas tipo Full Load sin
-  # histórico multi-periodo nativo). No fijar sin confirmar explícitamente.
+  # TODO(decisión de negocio pendiente): con true, Synthesis consulta la fecha
+  # más reciente de cada fileTag de eventTypeList y marca voidIndicator en los
+  # eventos más antiguos que ella (HCUtil.scala:76-87; caso Full Load: truncar y
+  # cargar completo). NO agrupa por periodo. Con true exige también
+  # historicAttributeArgs (.get, :122). No fijar sin confirmar explícitamente.
   checkFileTagEnabled = {{CHECK_FILE_TAG_ENABLED_O_PENDIENTE}}
 
   # null salvo evidencia de que esta ingesta requiera migración de relaciones

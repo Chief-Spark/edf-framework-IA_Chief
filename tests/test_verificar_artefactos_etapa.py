@@ -1,6 +1,7 @@
 """Pruebas de tools/verificar-artefactos-etapa.py. Datos sintéticos y golden de edf-statecalc."""
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -104,3 +105,62 @@ def test_cli(tmp_path, capsys):
     assert "comentarios" in capsys.readouterr().err
     with pytest.raises(SystemExit):
         va.main(["synthesis"])
+
+
+# ── HF-68 (AUD-S defecto 1): modo Colombia del bloque HOCON de Synthesis ──
+
+TPL_BLOQUE = RAIZ / ".kiro/skills/edf-synthesis/assets/consistency-application-block.conf.template"
+
+
+def bloque_colombia() -> str:
+    """Cabecera + sección «Modo Colombia» de la plantilla, como la entregaría edf-synthesis."""
+    texto = TPL_BLOQUE.read_text(encoding="utf-8")
+    return texto[:texto.index("# ── Fuera de modo Colombia")].replace("{{INGESTA_NOMBRE}}", "sintetica")
+
+
+def test_hf68_bloque_colombia_de_la_plantilla_pasa_en_modo_colombia():
+    bloque = bloque_colombia()
+    assert all(not l.strip() or l.lstrip().startswith("#") for l in bloque.splitlines())
+    assert va.verificar_hocon_synthesis(bloque, "colombia") == []
+    # El mismo bloque en modo propio da los 2 hallazgos de la corrida (raíz y customRulesFile), con la pista del modo.
+    propio = va.verificar_hocon_synthesis(bloque)
+    assert len(propio) == 2 and "--modo colombia" in propio[0] and "customRulesFile" in propio[1]
+
+
+@pytest.mark.parametrize("clave", va.CLAVES_VERIFICAR_COLOMBIA)
+def test_hf68_modo_colombia_exige_cada_clave_verificar(clave):
+    lineas = [l for l in bloque_colombia().splitlines()
+              if not ("VERIFICAR" in l and re.search(re.escape(clave) + r"(?![A-Za-z0-9_])", l))]
+    hall = va.verificar_hocon_synthesis("\n".join(lineas), "colombia")
+    assert hall == [f"falta `VERIFICAR {clave}` en la lista de verificación del modo Colombia"], hall
+
+
+def test_hf68_modo_colombia_rechaza_claves_activas_y_huecos():
+    activo = bloque_colombia() + 'oxygen.stage.consistencyCheck {\n  eventTypeList = ["sintetica"]\n}\n'
+    hall = va.verificar_hocon_synthesis(activo, "colombia")
+    assert len(hall) == 3 and all("activa en modo Colombia" in h for h in hall)
+    assert any("quedan {{huecos}}" in h for h in va.verificar_hocon_synthesis(bloque_colombia() + "# {{X}}\n", "colombia"))
+    # Una lista que solo nombra la clave corta (sin la ruta HOCON completa) no cuenta.
+    corto = bloque_colombia().replace("oxygen.stage.consistencyCheck.dateType", "dateType")
+    assert va.verificar_hocon_synthesis(corto, "colombia") == [
+        "falta `VERIFICAR oxygen.stage.consistencyCheck.dateType` en la lista de verificación del modo Colombia"]
+
+
+def test_hf68_modo_propio_sigue_exigiendo_raiz_y_custom_rules(tmp_path):
+    assert va.verificar_hocon_synthesis(HOCON_OK, "propio") == []
+    sin = "\n".join(l for l in HOCON_OK.splitlines() if "customRulesFile" not in l)
+    assert any("falta paths.customRulesFile" in h for h in va.verificar_hocon_synthesis(sin, "propio"))
+    # Un bloque propio no pasa como Colombia: tiene líneas activas.
+    assert any("activa en modo Colombia" in h for h in va.verificar_hocon_synthesis(HOCON_OK, "colombia"))
+
+
+def test_hf68_cli_modo(tmp_path, capsys):
+    b = tmp_path / "bloque.conf"
+    b.write_text(bloque_colombia(), encoding="utf-8")
+    assert va.main(["synthesis", "--modo", "colombia", "--hocon", str(b)]) == 0
+    assert "ARTEFACTOS OK" in capsys.readouterr().out
+    assert va.main(["synthesis", "--hocon", str(b)]) == 1
+    assert va.main(["synthesis", "--modo", "propio", "--hocon", str(b)]) == 1
+    with pytest.raises(SystemExit):
+        va.main(["synthesis", "--modo", "otro", "--hocon", str(b)])
+    assert "--modo colombia" in va.__doc__ and "--modo propio" in va.__doc__

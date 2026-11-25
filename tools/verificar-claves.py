@@ -2,8 +2,10 @@
 """Verifica que los nombres de campo curado sean coherentes entre los insumos de una ingesta.
 
 Uso:
-    python tools/verificar-claves.py <ingesta-id>
+    python tools/verificar-claves.py <ingesta-id>                  # expedientes/<ingesta-id>/insumos de la raíz
     python tools/verificar-claves.py --dir <carpeta-con-los-insumos>
+En una corrida fuera de la raíz (p. ej. ejecuciones/<corrida>/expedientes/<id>/insumos) usa --dir: con <ingesta-id> la
+herramienta solo mira la raíz del framework (HF-70).
 
 Lee (de expedientes/<ingesta-id>/insumos/ o de --dir):
   - source-spec-curation.yaml   -> claves publicadas: campos_curados[].destino
@@ -17,7 +19,9 @@ Lee (de expedientes/<ingesta-id>/insumos/ o de --dir):
                                    subscriberRelation…) no son claves de curatedRecordJson
 
   - yaml-skill-synthesis.yaml   -> (1.9.0) nombre_en_gdd de las entradas [C] y los nombres de
-                                   instruccion_generacion_gdd.contenido_a_escribir.campos_a_generar
+                                   instruccion_generacion_gdd.contenido_a_escribir.campos_a_generar[].name
+                                   (forma del GDD v2: name + description; HF-71). `nombre_en_gdd` en
+                                   campos_a_generar se acepta como alias deprecado, con aviso
   - yaml-skill-statecalc.yaml   -> (1.9.0) value de los campos DERIVED y las referencias field.X de los scripts
                                    CALCULATED (mapeo nivel A e instruccion_generacion_foundation)
 
@@ -27,8 +31,9 @@ como subscriber o dataSource (INYECTADOS, también en el contrato). Un nombre
 errado no da error en el motor: Synthesis pierde el handler del campo y State Calculation devuelve el valor
 por defecto (AUD-S2, AUD-SC1). Las claves declaradas en campos_abiertos se informan como pendientes, y las
 citas de entradas no confirmadas ([P], nivel B) como avisos, sin cambiar la salida.
-Salida: 0 si todo coincide, 1 si hay claves inexistentes, 2 si falta PyYAML o hay citas aguas abajo sin el
-source-spec de Curation para cruzarlas.
+Salida: 0 si todo coincide (o si la carpeta de insumos existe y no hay nada que cruzar), 1 si hay claves
+inexistentes, 2 si falta PyYAML, si no existe el expediente o la carpeta de insumos (HF-70: antes daba «nada que
+cruzar» con 0, un falso verde) o si hay citas aguas abajo sin el source-spec de Curation para cruzarlas.
 """
 import pathlib
 import re
@@ -85,9 +90,33 @@ def citas_synthesis(syn):
     gen = (((syn.get("instruccion_generacion_gdd") or {}).get("contenido_a_escribir") or {})
            .get("campos_a_generar") or [])
     for c in gen:
-        nombre = c.get("name") if isinstance(c, dict) else c
+        nombre = nombre_a_generar(c)
         if concreto(nombre):
             out.append(("yaml-skill-synthesis.yaml (campos_a_generar)", nombre.strip(), True))
+    return out
+
+
+def nombre_a_generar(entrada):
+    """HF-71: `name` (forma del GDD v2); `nombre_en_gdd` se acepta como alias deprecado."""
+    if not isinstance(entrada, dict):
+        return entrada
+    return entrada.get("name") if entrada.get("name") is not None else entrada.get("nombre_en_gdd")
+
+
+def avisos_synthesis(syn):
+    """HF-71: entradas de campos_a_generar con el alias deprecado o sin nombre (no se cruzarían en silencio)."""
+    gen = (((syn.get("instruccion_generacion_gdd") or {}).get("contenido_a_escribir") or {})
+           .get("campos_a_generar") or [])
+    out = []
+    for i, c in enumerate(gen):
+        if not isinstance(c, dict):
+            continue
+        if c.get("name") is None and c.get("nombre_en_gdd") is not None:
+            out.append(f"campos_a_generar[{i}] usa `nombre_en_gdd` (deprecado): usar `name`, la forma del GDD v2 "
+                       "(name + description)")
+        elif not concreto(c.get("name")) and not concreto(c.get("nombre_en_gdd")) and any(
+                str(v).strip() for v in c.values() if v is not None):
+            out.append(f"campos_a_generar[{i}] sin `name`: la entrada no se cruza con Curation")
     return out
 
 
@@ -140,7 +169,22 @@ def main(argv=None):
     if not args:
         print(__doc__)
         return 2
-    base = pathlib.Path(args[1]) if args[0] == "--dir" and len(args) > 1 else RAIZ / "expedientes" / args[0] / "insumos"
+    if args[0] == "--dir":
+        if len(args) < 2:
+            print(__doc__)
+            return 2
+        base = pathlib.Path(args[1])
+        if not base.is_dir():
+            print(f"No existe la carpeta de insumos {base}: no hay nada que verificar (no es un resultado verde).")
+            return 2
+    else:
+        expediente = RAIZ / "expedientes" / args[0]
+        base = expediente / "insumos"
+        if not expediente.is_dir() or not base.is_dir():
+            falta = expediente if not expediente.is_dir() else base
+            print(f"No existe {falta}: <ingesta-id> busca en expedientes/<id>/insumos de la raíz del framework. "
+                  "En una corrida fuera de la raíz usa --dir <expediente>/insumos (no es un resultado verde).")
+            return 2
 
     spec = cargar(base / "source-spec-curation.yaml")
     if spec is None:
@@ -174,6 +218,7 @@ def main(argv=None):
                 citas.append(("yaml-skill-pinning.yaml", campo_curado(a)))
     syn = cargar(base / "yaml-skill-synthesis.yaml")
     sc = cargar(base / "yaml-skill-statecalc.yaml")
+    avisos_forma = avisos_synthesis(syn) if syn else []
     for archivo, clave, obligatoria in (citas_synthesis(syn) if syn else []) + (citas_statecalc(sc) if sc else []):
         if clave in INYECTADOS:
             continue
@@ -191,6 +236,8 @@ def main(argv=None):
         (pendientes if clave in abiertas else faltan).append((archivo, clave))
 
     print(f"Claves publicadas por Curation: {len(publicadas)} · citas revisadas: {len(citas)}")
+    for aviso in avisos_forma:
+        print(f"  ! AVISO      yaml-skill-synthesis.yaml: {aviso}")
     for archivo, clave in avisos_previos:
         if clave not in publicadas:
             print(f"  ! AVISO      {clave!r} citada en {archivo} (entrada no confirmada): no está en campos_curados[].destino")

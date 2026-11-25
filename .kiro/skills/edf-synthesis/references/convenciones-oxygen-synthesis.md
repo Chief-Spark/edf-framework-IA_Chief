@@ -10,7 +10,7 @@ El producto se llama "Synthesis" en toda la documentación de negocio, pero **el
 
 ## 2. Nombres de archivo de ejemplo del fixture — no son genéricos
 
-El `.conf` de ejemplo del repo declara `eventTypeList = ["sisben","jurad","judicial"]` — estos tres valores son del fixture local de ejemplo del propio repositorio InnerSource, **no una lista genérica que debas copiar**. Si estás generando configuración para una ingesta nueva, el único valor que corresponde es el `eventType` real de esa ingesta — nunca copies los otros dos solo porque aparecen en el ejemplo.
+El `.conf` de ejemplo del repo declara `eventTypeList = ["sisben","jurad","judicial"]` — estos tres valores son del fixture local de ejemplo del propio repositorio InnerSource, **no una lista genérica que debas copiar**. La clave guarda **tipos de archivo** (`fileTag`), no el `eventType`: el motor la lee como `listFileTypes` (`SparkConsistencyChecker.scala:46`), pide al Process Management la fecha más reciente de cada valor (`:87`) y solo la usa con `checkFileTagEnabled = true` para el `voidIndicator` (`:119-131`). **No filtra eventos** (HF-69). En una aplicación propia, el único valor que corresponde es el `fileTag` real confirmado de la ingesta; en modo Colombia no se escribe (la lista es de Colombia, SKILL «Modo Colombia»). Nunca copies los tres valores solo porque aparecen en el ejemplo.
 
 ## 3. Verbos y nombres que vas a encontrar citados en comentarios de configuración
 
