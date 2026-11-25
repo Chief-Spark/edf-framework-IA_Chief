@@ -3418,3 +3418,292 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | — |
 
 ---
+
+## BIT-0201 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | ART-020 v4 (a3c9174d…): ruta_otra_fuente y cabecera sin estado; revisión no sustantiva (§3d-bis), el insumo sigue aprobado con el hash de APR-010 hasta la nueva aprobación |
+| **Quién** | Orquestador (emulado) · sesión principal |
+| **Cuándo** | 2026-11-25T06:47:17-05:00 |
+| **Por qué** | HF-44 / AUD-A-19; HF-32; INT-086 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | ART-020 |
+| **Trazabilidad** | references/03 §3d-bis paso 1 |
+| **Corrige** | — |
+
+---
+
+## BIT-0202 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Revisión §3d-bis de ART-020 (v3→v4) y §3d de ART-023 (Spec :132 clave ruta_otra_fuente; :181 comentario de la plantilla 1.9.13) |
+| **Quién** | Orquestador (emulado) · sesión principal |
+| **Cuándo** | 2026-11-25T06:47:17-05:00 |
+| **Por qué** | AUD-A-19/HF-44 (insumo) y plantilla 1.9.13 (AUD-A-20); re-auditoría APROBADO (auditorias/acceptance.md §9, INT-090) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | ART-020, ART-023 |
+| **Trazabilidad** | references/03 §3d/§3d-bis |
+| **Corrige** | APR-012 |
+
+---
+
+## BIT-0203 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-033 (artefacto): Re-aprobación de ART-020 v4 (references/03 §3d-bis) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-25T06:47:17-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (auditorias/acceptance.md §9; INT-090, INT-092). (a) los dos .conf idénticos, también sin comentarios; la única diferencia estructural es claves_de_prueba[4].clave, que no llega a ningún .conf. (b) solo cambian una clave de prueba y la cabecera (metadato, HF-32). (c) marcadores iguales en v3 y v4 (16 [C] / 7 [P] / 5 [PM] / 0 [A:]); simulador 9/9 y 2/2. (d) mismas PA y RG. Mismo riesgo que la primera aprobación (medio). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-020 |
+| **Trazabilidad** | prompt 03 · R3.2 · §3d-bis |
+| **Corrige** | — |
+
+---
+
+## BIT-0204 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-034 (artefacto): Nueva aprobación de ART-023 regenerado con ART-020 v4 (references/03 §3d) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-25T06:47:18-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Solo cambia el Spec en :132 (clave ruta_otra_fuente) y :181 (comentario); la prueba del filePattern ahora prueba de verdad el caso negativo (excluye RUNT_). ART-021/022 idénticos byte a byte. Reproducible; suite 161. AUD-A-19 cerrado. Mismo riesgo (medio). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-023 |
+| **Trazabilidad** | prompt 03 · R3.2 · §3d |
+| **Corrige** | — |
+
+---
+
+## BIT-0205 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | ART-030 v2.1 (eb7a75a0…): citas a ISIdentityMatcher.scala:46-54 en lugar de EventPinner (cabecera y comentario de la clave); revisión no sustantiva (§3d-bis) |
+| **Quién** | Orquestador (emulado) · sesión principal |
+| **Cuándo** | 2026-11-25T06:47:18-05:00 |
+| **Por qué** | AUD-P-25; INT-052; INT-086 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | ART-030 |
+| **Trazabilidad** | references/03 §3d-bis paso 1 |
+| **Corrige** | — |
+
+---
+
+## BIT-0206 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Revisión §3d-bis de ART-030 (v2→v2.1): solo citas |
+| **Quién** | Orquestador (emulado) · sesión principal |
+| **Cuándo** | 2026-11-25T06:47:18-05:00 |
+| **Por qué** | AUD-P-25; re-auditoría APROBADO (auditorias/curation.md §8, INT-091) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | ART-030 |
+| **Trazabilidad** | references/03 §3d-bis |
+| **Corrige** | APR-015 |
+
+---
+
+## BIT-0207 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-035 (artefacto): Re-aprobación de ART-030 v2.1 (references/03 §3d-bis) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-25T06:47:18-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (auditorias/curation.md §8; INT-091, INT-092). (a) diff -r vacío entre las salidas de v2 y v2.1 con el mismo generador (1.9.14). (b) solo comentarios y cita; YAML parseado idéntico. (c) la decisión omitir_si_nulas conserva su [P]; el [PM] nuevo solo califica la evidencia para Colombia y copia lo ya aprobado en RG-019 (mitigación, INT-052) y APR-023 (HF-83). (d) riesgos y preguntas de curation_flow sin cambio; RG-025 ya estaba en RG-019. Mismo riesgo (medio). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-030 |
+| **Trazabilidad** | prompt 03 · R3.2 · §3d-bis |
+| **Corrige** | — |
+
+---
+
+## BIT-0208 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | ART-034 2.1.0 (4124211f…): cita EventPinner.scala:64-65 → ISIdentityMatcher.scala:46-54 [P]; para Colombia [PM] (RG-025); revisión no sustantiva (§3d-bis) |
+| **Quién** | Orquestador (emulado) · sesión principal |
+| **Cuándo** | 2026-11-25T06:47:18-05:00 |
+| **Por qué** | AUD-P-25; INT-086 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | ART-034 |
+| **Trazabilidad** | references/03 §3d-bis paso 1 |
+| **Corrige** | — |
+
+---
+
+## BIT-0209 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Revisión §3d-bis de ART-034 (2.0.0→2.1.0): solo citas y metadatos |
+| **Quién** | Orquestador (emulado) · sesión principal |
+| **Cuándo** | 2026-11-25T06:47:18-05:00 |
+| **Por qué** | AUD-P-25; re-auditoría APROBADO (auditorias/pinning.md §9, AUD-P-32, INT-089); HF-83 (1.9.15) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | ART-034 |
+| **Trazabilidad** | references/03 §3d-bis |
+| **Corrige** | APR-016 |
+
+---
+
+## BIT-0210 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-036 (artefacto): Re-aprobación de ART-034 2.1.0 (references/03 §3d-bis) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-25T06:47:18-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (auditorias/pinning.md §9; INT-089, INT-092). (a) ART-053 sale idéntico con el contrato 2.0.0 y con el 2.1.0; la tabla §1 es idéntica fuera de la columna de citas. (b) solo versión, fila de cambios, fuentes, una celda de cita, la mitigación de RG-019 y el pie. (c) marcadores del contenido sin cambio ([C] 10→10, [A: 3→3); los [P]/[PM] nuevos solo califican la cita del motor, bajada de confianza ya aprobada en RG-019 (INT-052) y APR-023; la decisión «se omite, nunca null» conserva su marcador (HF-83, AUD-P-32). (d) PA-007 y PA-008 sin cambio; la relación con RG-025 ya estaba aprobada. Mismo riesgo (alto). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-034 |
+| **Trazabilidad** | prompt 03 · R3.2 · §3d-bis |
+| **Corrige** | — |
+
+---
+
+## BIT-0211 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Revisión §3d de ART-053: regenerado con render_bloque_colombia.py 1.9.14 (ffc146a7…) desde ART-050 v3 sin cambios |
+| **Quién** | Orquestador (emulado) · sesión principal |
+| **Cuándo** | 2026-11-25T06:47:18-05:00 |
+| **Por qué** | HF-65 (1.9.12), HF-81/82 (1.9.14, commit 9f5db12); AUD-P-26/27 cerrados; re-auditoría APROBADO (auditorias/pinning.md §9, INT-088, INT-089) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | RG-025 |
+| **Artefactos** | ART-053 |
+| **Trazabilidad** | references/03 §3d |
+| **Corrige** | APR-026 |
+
+---
+
+## BIT-0212 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-037 (artefacto): Nueva aprobación de ART-053 regenerado con 1.9.14 (references/03 §3d) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-25T06:47:18-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Caso §3d: ART-050 v3 no cambia y la skill se corrigió (HF-81/82). --verificar --insumo BLOQUE OK; reproducible; pyhocon {}; 0 claves activas. AUD-P-26/27 cerrados: conserva los [PM] (RG-025) del FQCN y de la lista y el escalamiento N4 de reusePin (RG-002). Las tres comprobaciones exigidas (curatedDir, HBase, *-common-application.conf) siguen como VERIFICAR, sin la etiqueta RG-025. Mismo riesgo (alto), cita RG-025. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-053 |
+| **Trazabilidad** | prompt 03 · R3.2 · §3d |
+| **Corrige** | — |
+
+---
+
+## BIT-0213 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Precisión de BIT-0202: las aprobaciones anteriores que revisa son APR-010 (ART-020) y APR-014 (ART-023, que ya había sustituido a APR-012) |
+| **Quién** | Orquestador (emulado) · sesión principal |
+| **Cuándo** | 2026-11-25T06:47:31-05:00 |
+| **Por qué** | BIT-0202 citó solo APR-012; la bitácora es append-only |
+| **Resultado** | `aplicado` |
+| **Etapa** | `acceptance` |
+| **Riesgo** | — |
+| **Artefactos** | ART-020, ART-023 |
+| **Trazabilidad** | references/03 §3d |
+| **Corrige** | BIT-0202 |
+
+---
+
+## BIT-0214 · `correccion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Revisión §3d de Curation: propuesta regenerada con 1.9.14 desde ART-030 v2.1 (SP/deriva-cur); cambian SISBENCurationProcessor.scala (HF-53 desplegable, HF-49 comentarios), FieldMapping.scala (HF-49), SISBENCurationProcessorSpec y TransformacionesSpec (HF-48/50/52), resumen.json (HF-45) y MANIFEST; ART-032 sin cambio (84cfb028…) |
+| **Quién** | Orquestador (emulado) · sesión principal |
+| **Cuándo** | 2026-11-25T06:47:41-05:00 |
+| **Por qué** | Deriva de los artefactos aprobados (APR-018/019, APR-021) frente a 1.9.12-1.9.14 (AUD-C-27, AUD-C-24); re-auditoría por diferencia en auditorias/curation.md §8.2 (INT-091); decisión del aprobador en INT-092, opción (A) |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | — |
+| **Artefactos** | ART-031, ART-033, ART-040 |
+| **Trazabilidad** | references/03 §3d |
+| **Corrige** | APR-018 |
+
+---
+
+## BIT-0215 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-038 (artefacto): Nueva aprobación de ART-031, ART-033 y ART-040 regenerados con 1.9.14 (references/03 §3d) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-25T06:47:41-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] HF-53 cambia código desplegable en una rama latente (solo con nivel nulo, que la Validation aprobada no emite). La evidencia de RG-023 debe corresponder al código que se despliega; diferir obligaría a repetirla. Fragmentos (ART-032), curated-events.json y accepted-events.json idénticos; el contrato con Pinning no cambia, así que no cambian alcance, riesgo ni decisión de la etapa (§3d paso 4). Re-auditoría por diferencia hecha (auditorias/curation.md §8.2). Mismo riesgo (medio). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `curation_flow` |
+| **Riesgo** | medio |
+| **Artefactos** | ART-031, ART-033, ART-040 |
+| **Trazabilidad** | prompt 03 · R3.2 · §3d |
+| **Corrige** | — |
+
+---
+
+## BIT-0216 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-25T06:47:41-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0217 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-25T06:48:30-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `synthesis` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---

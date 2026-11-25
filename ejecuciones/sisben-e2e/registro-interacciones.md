@@ -736,6 +736,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-25T06:45:34-05:00
 - **Pedido:** Decidir ART-020/023 (§3d-bis), ART-030 y ART-034 (§3d-bis), ART-053 (§3d) y la deriva de Curation (§3d ahora o condición).
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** Aprueba los cinco puntos con condiciones: (1) ART-020 v4 §3d-bis y ART-023 §3d, medio; (2) ART-030 v2.1 §3d-bis, medio (evidencia de (a) sin propuestas/, AUD-C-25; leyenda [PM] en la próxima versión); (3) ART-034 2.1.0 §3d-bis, alto (HF-83; AUD-P-33 para una §3c futura); (4) ART-053 §3d, alto (acepta AUD-P-30/31; la próxima versión de ART-050 añade curatedDir, HBase y *-common-application.conf a la pendiente de RG-025); (5) opción (A): §3d de Curation ahora para ART-031, ART-033 y ART-040, medio; ART-032 sin cambio.
+- **Decisión:** Registradas APR-033..APR-038 (BIT-0201..BIT-0215; BIT-0213 precisa la aprobación anterior que citó BIT-0202). propuestas/curation/ = SP/deriva-cur; hashes/curation.sha256 regenerado. Validador limpio.
 - **Bitácora:** —

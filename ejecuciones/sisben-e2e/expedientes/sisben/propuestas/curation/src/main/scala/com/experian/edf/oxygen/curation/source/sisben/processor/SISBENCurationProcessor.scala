@@ -164,12 +164,16 @@ object SISBENCurationProcessor {
       case Right(r) => (r, Vector.empty[String])
       case Left(_) => (SISBENAcceptedRecord.vacio, Vector("registro:" + Motivos.RegistroIlegible))
     }
-    // RF-CUR-10: severidad 3 → no se almacena; severidad 0 → se anula. errores nulo = sin errores (AUD-C5).
+    // RF-CUR-10: un nivel de NivelesNoAlmacenar omite la clave y uno de NivelesAnular la anula; los dos conjuntos
+    // salen de parametros del source-spec (vacíos = el campo se publica estandarizado; HF-49). errores nulo = sin
+    // errores (AUD-C5).
     val porCampo = Option(errores).getOrElse(Seq.empty).flatMap(Option(_)).flatMap { case (codigo, nivel) =>
       CodigosError.get(codigo).map(_ -> Option(nivel))
     }
-    // AUD-C7: un nivel nulo conserva el campo, pero el registro lo advierte (antes quedaba implícito).
-    val advNivel = porCampo.collect { case (c, None) => s"$c:${Motivos.NivelDesconocido}" }
+    // AUD-C7: un nivel nulo conserva el campo, pero el registro lo advierte (antes quedaba implícito). HF-53: la
+    // advertencia va con el campo CURADO (formato <campo curado>:<MOTIVO>), una por destino del campo de entrada.
+    val advNivel = porCampo.collect { case (c, None) => c }.flatMap(c =>
+      Mapeos.filter(_.origen == c).map(m => s"${m.destino}:${Motivos.NivelDesconocido}"))
     val omitirEntrada = porCampo.collect { case (c, Some(n)) if NivelesNoAlmacenar(n) => c }.toSet
     val anularEntrada = porCampo.collect { case (c, Some(n)) if NivelesAnular(n) => c }.toSet
 

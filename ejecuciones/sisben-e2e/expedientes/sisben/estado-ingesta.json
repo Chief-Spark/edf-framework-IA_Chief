@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-25T06:33:15-05:00",
-    "vista_md_regenerada_en": "2026-11-24T23:19:42-05:00"
+    "actualizado_en": "2026-11-25T06:48:30-05:00",
+    "vista_md_regenerada_en": "2026-11-25T06:48:30-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -323,7 +323,7 @@
             "reportada_por": "Analista (INT-026): v2; render --audit rc 0 sin avisos; simular_decision 9/9 y 2/2 umbrales alternativos coinciden; muestra acepta 19; hocon_check OK",
             "reportada_en": "2026-11-25"
           },
-          "hash": "sha256:d8ac9e7d2422a0c04c07449380c755d8a58c130955ba8ded363ca0c693d49e75"
+          "hash": "sha256:a3c9174da1e0ab95de47ffa3d009081b8f46614b1547cd22af98f25ba7659964"
         },
         {
           "id": "ART-021",
@@ -368,7 +368,7 @@
             "reportada_por": "Generador edf-acceptance (INT-039): regenerado con 1.9.7 (HF-33); render --audit rc 0; simulador 9/9 + 2/2; hocon_check OK; suite 157",
             "reportada_en": "2026-11-25"
           },
-          "hash": "sha256:24a220b6fa17dcb7401217a5b878f63e4d8aaa16d43c216c6fae8bba9d41be4b"
+          "hash": "sha256:cc241e16fbe54c78a7b9e93f40009918b7c356d5d515a540ef9058ab77bb32c8"
         }
       ],
       "evidencia_pipeline": {
@@ -438,7 +438,7 @@
             "reportada_por": "Analista (INT-041): v2 con framework 1.9.7; --solo-verificar OK (33 campos, 18 eventos); generación completa OK (cur-0004 = \" 0001000000101\"); hocon_check OK; verificar-claves coherente",
             "reportada_en": "2026-11-25"
           },
-          "hash": "sha256:506e8b9a1d4afd725f547257185e506042d77fbdc832d57d43b780877f97290d"
+          "hash": "sha256:eb7a75a05010fc9bd12dab61eee327bdd27ed17524e2dba3b52a2392b7f96f54"
         },
         {
           "id": "ART-031",
@@ -454,7 +454,7 @@
             "reportada_por": "Generador edf-curation (INT-046): --solo-verificar OK; generación reproducible; suite 126; hocon_check OK; verificar-claves coherente; expected = Spec",
             "reportada_en": "2026-11-25"
           },
-          "hash": "sha256:29130301d9fe189a3ae001ba55682c10a5369417435eac1b9b2caa6241a9edc4"
+          "hash": "sha256:9e89e2c58289625b4bfeb43c509cb4c223cbd707caa113897fb7ec5be46c0816"
         },
         {
           "id": "ART-032",
@@ -486,7 +486,7 @@
             "reportada_por": "Generador edf-curation (INT-046): --solo-verificar OK; generación reproducible; suite 126; hocon_check OK; verificar-claves coherente; expected = Spec",
             "reportada_en": "2026-11-25"
           },
-          "hash": "sha256:70047f9f1bc3073cea67929fdf4ddfdb725efea500bbdfaffc5baae9d48d8299"
+          "hash": "sha256:abb8053f81fcde2705283b69290ee2358c1e7747f5f2e6557fde6214ed24aaef"
         },
         {
           "id": "ART-034",
@@ -502,7 +502,7 @@
             "reportada_por": "Analista (INT-041): v2 con framework 1.9.7; --solo-verificar OK (33 campos, 18 eventos); generación completa OK (cur-0004 = \" 0001000000101\"); hocon_check OK; verificar-claves coherente",
             "reportada_en": "2026-11-25"
           },
-          "hash": "sha256:6bec343692a78bbb1b79a6b2346ea55b930b390e93be4a122673c832c99c9a2e"
+          "hash": "sha256:4124211f43c581773a8f139ac90fc1d8754f687fd386120e26fb88c8922e0cd6"
         },
         {
           "id": "ART-035",
@@ -577,7 +577,7 @@
           "ruta": "propuestas/curation/src/main/scala/com/experian/edf/oxygen/curation/source/",
           "obligatorio": true,
           "estado_artefacto": "aprobado",
-          "hash": "sha256:29130301d9fe189a3ae001ba55682c10a5369417435eac1b9b2caa6241a9edc4"
+          "hash": "sha256:9e89e2c58289625b4bfeb43c509cb4c223cbd707caa113897fb7ec5be46c0816"
         }
       ],
       "evidencia_pipeline": {
@@ -670,7 +670,7 @@
             "reportada_por": "Generador edf-pinning (INT-059): pyhocon y hocon_check OK (sin claves activas); grep de claves prohibidas vacío; EVAL-PIN-12..14 a mano: pasan",
             "reportada_en": "2026-11-25"
           },
-          "hash": "sha256:cccd06cf945ad856a4ffe078f9164fb9ddb157812d76bbba5c9caf5f6ea54490"
+          "hash": "sha256:ffc146a7fc3efbdbe4a941fd910c6e09a8cfdb37d084f6275c225add69994c98"
         }
       ],
       "evidencia_pipeline": {
@@ -1677,6 +1677,156 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0190"
+    },
+    {
+      "id": "APR-033",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-020"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-25T06:47:17-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "ligera",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (auditorias/acceptance.md §9; INT-090, INT-092). (a) los dos .conf idénticos, también sin comentarios; la única diferencia estructural es claves_de_prueba[4].clave, que no llega a ningún .conf. (b) solo cambian una clave de prueba y la cabecera (metadato, HF-32). (c) marcadores iguales en v3 y v4 (16 [C] / 7 [P] / 5 [PM] / 0 [A:]); simulador 9/9 y 2/2. (d) mismas PA y RG. Mismo riesgo que la primera aprobación (medio).",
+      "condiciones": [
+        "revisión no sustantiva (§3d-bis)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0203"
+    },
+    {
+      "id": "APR-034",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-023"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-25T06:47:18-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "ligera",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Solo cambia el Spec en :132 (clave ruta_otra_fuente) y :181 (comentario); la prueba del filePattern ahora prueba de verdad el caso negativo (excluye RUNT_). ART-021/022 idénticos byte a byte. Reproducible; suite 161. AUD-A-19 cerrado. Mismo riesgo (medio).",
+      "condiciones": [
+        "El evento correccion cita AUD-A-19/HF-44 y la plantilla 1.9.13 (AUD-A-20)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0204"
+    },
+    {
+      "id": "APR-035",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-030"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-25T06:47:18-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "ligera",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (auditorias/curation.md §8; INT-091, INT-092). (a) diff -r vacío entre las salidas de v2 y v2.1 con el mismo generador (1.9.14). (b) solo comentarios y cita; YAML parseado idéntico. (c) la decisión omitir_si_nulas conserva su [P]; el [PM] nuevo solo califica la evidencia para Colombia y copia lo ya aprobado en RG-019 (mitigación, INT-052) y APR-023 (HF-83). (d) riesgos y preguntas de curation_flow sin cambio; RG-025 ya estaba en RG-019. Mismo riesgo (medio).",
+      "condiciones": [
+        "revisión no sustantiva (§3d-bis)",
+        "La evidencia de (a) es SP/nsub/cur-old frente a SP/nsub/cur (o SP/aud-3dbis/out-v2 frente a SP/deriva-cur), no contra propuestas/ (AUD-C-25)",
+        "La leyenda [PM] de :17 se alinea con steering 05:48 en la próxima versión (AUD-C-26)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0207"
+    },
+    {
+      "id": "APR-036",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-034"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-25T06:47:18-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "ligera",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Auditoría APROBADO (auditorias/pinning.md §9; INT-089, INT-092). (a) ART-053 sale idéntico con el contrato 2.0.0 y con el 2.1.0; la tabla §1 es idéntica fuera de la columna de citas. (b) solo versión, fila de cambios, fuentes, una celda de cita, la mitigación de RG-019 y el pie. (c) marcadores del contenido sin cambio ([C] 10→10, [A: 3→3); los [P]/[PM] nuevos solo califican la cita del motor, bajada de confianza ya aprobada en RG-019 (INT-052) y APR-023; la decisión «se omite, nunca null» conserva su marcador (HF-83, AUD-P-32). (d) PA-007 y PA-008 sin cambio; la relación con RG-025 ya estaba aprobada. Mismo riesgo (alto).",
+      "condiciones": [
+        "revisión no sustantiva (§3d-bis)",
+        "AUD-P-33 (versión citada de ART-030 y fila del lector [A:PA-008]) queda para una revisión sustantiva futura por §3c"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0210"
+    },
+    {
+      "id": "APR-037",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-053"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-25T06:47:18-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "ligera",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Caso §3d: ART-050 v3 no cambia y la skill se corrigió (HF-81/82). --verificar --insumo BLOQUE OK; reproducible; pyhocon {}; 0 claves activas. AUD-P-26/27 cerrados: conserva los [PM] (RG-025) del FQCN y de la lista y el escalamiento N4 de reusePin (RG-002). Las tres comprobaciones exigidas (curatedDir, HBase, *-common-application.conf) siguen como VERIFICAR, sin la etiqueta RG-025. Mismo riesgo (alto), cita RG-025.",
+      "condiciones": [
+        "Se aceptan AUD-P-30 (PA-010 sigue en el expediente) y AUD-P-31",
+        "En la próxima versión de ART-050 se añaden curatedDir, HBase y *-common-application.conf a la pendiente :214 (RG-025)",
+        "Las aprobaciones de certificación de Pinning y de las etapas siguientes citan los criterios de cierre de RG-025",
+        "La etapa pinning no se re-aprueba"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0212"
+    },
+    {
+      "id": "APR-038",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-031",
+        "ART-033",
+        "ART-040"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-25T06:47:41-05:00",
+      "riesgo": "medio",
+      "nivel_friccion": "ligera",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] HF-53 cambia código desplegable en una rama latente (solo con nivel nulo, que la Validation aprobada no emite). La evidencia de RG-023 debe corresponder al código que se despliega; diferir obligaría a repetirla. Fragmentos (ART-032), curated-events.json y accepted-events.json idénticos; el contrato con Pinning no cambia, así que no cambian alcance, riesgo ni decisión de la etapa (§3d paso 4). Re-auditoría por diferencia hecha (auditorias/curation.md §8.2). Mismo riesgo (medio).",
+      "condiciones": [
+        "Orden: después de la re-aprobación de ART-030 v2.1 (APR-035)",
+        "Hashes de la regeneración 1.9.14 (SP/deriva-cur) copiada a propuestas/curation/",
+        "El evento correccion cita APR-018/019, HF-45/48/49/50/52/53 y AUD-C-24",
+        "RG-023 y RG-024 se evidencian sobre este código y con los Specs nuevos (NBSP, COMPONENTE_FALTANTE)",
+        "El motivo NIVEL_DESCONOCIDO por campo curado sigue dentro de PA-007 (motivos defensivos fuera de spec §10.1)"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0215"
     }
   ],
   "preguntas_abiertas": [
@@ -2136,8 +2286,8 @@
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0200",
-    "eventos_totales": 200,
+    "ultimo_evento": "BIT-0217",
+    "eventos_totales": 217,
     "append_only": true,
     "retencion_meses": 24
   }

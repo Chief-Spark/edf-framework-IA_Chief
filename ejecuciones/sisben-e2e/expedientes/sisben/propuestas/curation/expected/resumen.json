@@ -26,7 +26,8 @@
       "primerNombre:NO_NORMALIZABLE"
     ]
   },
-  "claves_omitidas_por_severidad": {
+  "claves_omitidas_por_severidad": {},
+  "claves_omitidas_por_nulas": {
     "cur-0016": [
       "standardizedIdName"
     ]

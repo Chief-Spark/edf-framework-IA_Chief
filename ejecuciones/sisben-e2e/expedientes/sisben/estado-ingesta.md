@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T23:19:42-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-25T06:48:30-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 199 eventos, último BIT-0199 |
+| Bitácora | 217 eventos, último BIT-0217 |
 
 ## Etapas
 
@@ -38,21 +38,21 @@
 | validation | ART-013 | SISBENValidationProcessorSpec + fixture y catalogos sinteticos + codigos-error-<fuente>.csv | `aprobado` | sha256:e7990c96146f |
 | validation | ART-014 | HOCON aditivo: validation-configs-<fuente>.conf, lookups-<fuente>.conf | `aprobado` | sha256:7f80dd2717c3 |
 | validation | ART-015 | manifest.json | `aprobado` | sha256:735a2624cf47 |
-| acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `aprobado` | sha256:d8ac9e7d2422 |
+| acceptance | ART-020 | insumo: source-spec-acceptance.yaml (edf-analisis) | `aprobado` | sha256:a3c9174da1e0 |
 | acceptance | ART-021 | bloque HOCON de la ingesta (fileActions, recordAcceptance; umbral 0.90 parametrizable) | `aprobado` | sha256:957f935d18a5 |
 | acceptance | ART-022 | condiciones con nombre (fileConditions[]) | `aprobado` | sha256:520b19dc9bfd |
-| acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `aprobado` | sha256:24a220b6fa17 |
-| curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `aprobado` | sha256:506e8b9a1d4a |
-| curation_flow | ART-031 | SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado | `aprobado` | sha256:29130301d9fe |
+| acceptance | ART-023 | AcceptanceExpressionsSpec + fixture de eventos validados sinteticos | `aprobado` | sha256:cc241e16fbe5 |
+| curation_flow | ART-030 | insumo: source-spec-curation.yaml (edf-analisis) | `aprobado` | sha256:eb7a75a05010 |
+| curation_flow | ART-031 | SISBENCurationProcessor + CuratedEvent + CurationSpec + lector del evento aceptado | `aprobado` | sha256:9e89e2c58289 |
 | curation_flow | ART-032 | bloque HOCON (filePattern + processor), lookups, entradas del domain dictionary | `aprobado` | sha256:84cfb028e141 |
-| curation_flow | ART-033 | fixture sintetico y tests de curation | `aprobado` | sha256:70047f9f1bc3 |
-| curation_flow | ART-034 | contrato Curation -> Pinning de la ingesta (steering 11 §4) | `aprobado` | sha256:6bec343692a7 |
+| curation_flow | ART-033 | fixture sintetico y tests de curation | `aprobado` | sha256:abb8053f81fc |
+| curation_flow | ART-034 | contrato Curation -> Pinning de la ingesta (steering 11 §4) | `aprobado` | sha256:4124211f43c5 |
 | curation_flow | ART-035 | insumo: fixture-curation/ (accepted-events.input.yaml + lookups/) | `aprobado` | sha256:5d7381ef2327 |
-| curation_stock | ART-040 | mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock) | `aprobado` | sha256:29130301d9fe |
+| curation_stock | ART-040 | mismo processor de curation_flow corriendo en runMode stock (evidencia del DAG collection-stock) | `aprobado` | sha256:9e89e2c58289 |
 | pinning | ART-050 | insumo: yaml-skill-pinning.yaml (edf-analisis) | `aprobado` | sha256:9c548c3e5b76 |
 | pinning | ART-051 | <Fuente>IdentityMatcher.scala con la verificacion aritmetica del umbral (solo modo propio; no aplica en modo Colombia: se reutiliza el matcher compartido, edf-pinning SKILL «Modo Colombia») | `ausente` | — |
 | pinning | ART-052 | identifying-attributes.json (solo modo propio; no aplica en modo Colombia: se reutiliza la lista compartida identifying-attributes-new.json) | `ausente` | — |
-| pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `aprobado` | sha256:cccd06cf945a |
+| pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `aprobado` | sha256:ffc146a7fc3e |
 | synthesis | ART-060 | insumo: yaml-skill-synthesis.yaml (edf-analisis) | `aprobado` | sha256:0b6d46cc792a |
 | synthesis | ART-061 | entradas del GDD de la ingesta en modo Colombia: domaindictionary.json version 2 con los fields[] de la ingesta (handler LFP/LAP/EUC solo confirmados) para integrar en el GDD compartido de Colombia, sin duplicar ni modificar entradas existentes (HF-68) | `aprobado` | sha256:65e2b4829274 |
 | synthesis | ART-062 | bloque HOCON de la ingesta en modo Colombia: lista de verificacion, solo comentarios VERIFICAR con las rutas HOCON completas de las claves compartidas de oxygen.stage.consistencyCheck en el conf de Colombia (diccionario, GDD, customRulesFile, dateType, checkFileTagEnabled, eventTypeList y lecturas .get sin valor por defecto), sin redefinirlas ni escribir claves (HF-68) | `aprobado` | sha256:1751c72b5fc3 |
@@ -97,6 +97,12 @@
 | APR-030 | artefacto | — → — | rechazada | PO `SIM-PO-01` | critico | BIT-0177 |
 | APR-031 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0187 |
 | APR-032 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0190 |
+| APR-033 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0203 |
+| APR-034 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0204 |
+| APR-035 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0207 |
+| APR-036 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0210 |
+| APR-037 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0212 |
+| APR-038 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | medio | BIT-0215 |
 
 ## Preguntas abiertas
 

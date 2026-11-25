@@ -2,7 +2,7 @@
 
 Esta corrida ejecutó el framework EDF etapa por etapa, de punta a punta, con la HU y la spec de SISBEN (`hu-sisben.md` y `spec-sisben.md` 1.0.2). Cada skill generó sus artefactos, un auditor independiente los revisó y un aprobador simulado respondió las aprobaciones del Orquestador. Todo quedó trazado.
 
-- **Rama:** `claude/e2e-sisben-autonomo`. Salió de `claude/auditoria-framework-edf` en la versión 1.9.0 y terminó en el framework **1.9.12**.
+- **Rama:** `claude/e2e-sisben-autonomo`. Salió de `claude/auditoria-framework-edf` en la versión 1.9.0 y terminó en el framework **1.9.15** (1.9.12 al cerrar la corrida; 1.9.13 a 1.9.15 en el cierre de los tres ajustes, sección 8).
 - **Carpeta de la corrida:** `ejecuciones/sisben-e2e/`.
 - **Sin Kiro:** el entorno no tiene Kiro. El Orquestador lo emuló la sesión principal con `herramientas/orquestador_e2e.py`, y los hooks se corrieron a mano (validador después de cada cambio).
 - **Datos:** solo sintéticos. No se compiló Scala ni Java, y no se usó PowerShell.
@@ -15,10 +15,10 @@ Esta corrida ejecutó el framework EDF etapa por etapa, de punta a punta, con la
 |---|---|---|---|---|
 | 0 · `analisis` | aprobada | APR-002 (contexto, N1) | No aplica: no corre en el pipeline | ART-001..004 aprobados |
 | 1 · `validation` | aprobada | APR-008 (alto) | Diferida: RG-015 | ART-010 (insumo v2), ART-011..015 aprobados; revisión §3d con APR-009 |
-| 2 · `acceptance` | aprobada | APR-013 (alto) | Diferida: RG-022 | ART-020 (insumo v3), ART-021..023 aprobados; revisión §3d de ART-023 con APR-014 |
-| 3a · `curation_flow` | aprobada | APR-019 (alto) | Diferida: RG-023 | ART-030 y ART-035 (insumos v2.1), ART-034 (contrato 2.0.0), ART-031..033 aprobados |
-| 3b · `curation_stock` | aprobada | APR-022 (alto) | Diferida: RG-024 | ART-040 aprobado por referencia (mismo processor) |
-| 4 · `pinning` | aprobada | APR-027 (alto) | Diferida: RG-027 | ART-050 (insumo v3), ART-053 (v2, modo Colombia) aprobados; ART-051/052 no aplican en modo Colombia |
+| 2 · `acceptance` | aprobada | APR-013 (alto) | Diferida: RG-022 | ART-020 (insumo v4), ART-021..023 aprobados; §3d de ART-023 con APR-014 y APR-034; §3d-bis de ART-020 con APR-033 |
+| 3a · `curation_flow` | aprobada | APR-019 (alto) | Diferida: RG-023 | ART-030 (insumo v2.1, §3d-bis APR-035), ART-035, ART-034 (contrato 2.1.0, §3d-bis APR-036), ART-031..033 aprobados (§3d APR-038) |
+| 3b · `curation_stock` | aprobada | APR-022 (alto) | Diferida: RG-024 | ART-040 aprobado por referencia (mismo processor; §3d APR-038) |
+| 4 · `pinning` | aprobada | APR-027 (alto) | Diferida: RG-027 | ART-050 (insumo v3), ART-053 (modo Colombia, regenerado con 1.9.14, §3d APR-037) aprobados; ART-051/052 no aplican en modo Colombia |
 | 5 · `synthesis` | aprobada | APR-032 (alto) | Diferida: RG-032 | ART-060 (insumo v3), ART-061 (GDD), ART-062 (bloque de verificación) aprobados |
 | 6 · `state_calculation` | **bloqueada, no aprobada** | APR-030: el PO rechaza el insumo en esta corrida | No admite evidencia diferida (N4) | ART-070 v3 prevalidado; ART-071..073 sin generar |
 
@@ -54,7 +54,7 @@ Cada etapa tuvo un auditor independiente, que no veía el razonamiento del gener
 
 ## 3. Hallazgos del framework corregidos
 
-Se encontraron 79 hallazgos del framework (HF-01 a HF-79, en `hallazgos-framework.md`). Cada uno se corrigió con su prueba de regresión, en commits aparte. Uno es de diseño (HF-56) y quedó como propuesta.
+Se encontraron 83 hallazgos del framework (HF-01 a HF-83, en `hallazgos-framework.md`). Cada uno se corrigió con su prueba de regresión, en commits aparte. Uno es de diseño (HF-56) y quedó como propuesta.
 
 | Versión | Qué corrige (lo principal) |
 |---|---|
@@ -70,6 +70,9 @@ Se encontraron 79 hallazgos del framework (HF-01 a HF-79, en `hallazgos-framewor
 | 1.9.10 | Synthesis en modo Colombia (`--modo colombia`). `eventTypeList`. `verificar-claves.py` ya no da falso verde |
 | 1.9.11 | State Calculation en modo Colombia. Verificadores con alias y campos Foundation. Golden con el DERIVED previo |
 | 1.9.12 | Lote final: HF-13, 42, 44, 45, 47..55, 65..67, 78, 79 |
+| 1.9.13 | §3d-bis: revisión no sustantiva de un insumo aprobado, sin desaprobar en cascada; regla 7g del validador (HF-80) |
+| 1.9.14 | El bloque de Pinning en modo Colombia conserva los marcadores del insumo y el escalamiento N4; el verificador los exige (HF-81, HF-82) |
+| 1.9.15 | §3d-bis (c): qué cuenta como cambio de marcador (HF-83) |
 
 Además se corrigió la herramienta de la corrida en cinco puntos (HC-01 a HC-05):
 
@@ -109,31 +112,45 @@ Ninguna etapa queda certificada ni integrada al fork mientras sigan abiertos los
 
 | Archivo | Contenido |
 |---|---|
-| `expedientes/sisben/bitacora.md` | 199 eventos append-only (BIT-0001..BIT-0199) |
-| `expedientes/sisben/estado-ingesta.json` | 32 aprobaciones, 14 preguntas, 32 riesgos y 3 ítems de backlog |
+| `expedientes/sisben/bitacora.md` | 217 eventos append-only (BIT-0001..BIT-0217) |
+| `expedientes/sisben/estado-ingesta.json` | 38 aprobaciones, 14 preguntas, 32 riesgos y 3 ítems de backlog |
 | `expedientes/sisben/estado-ingesta.md` | Vista generada desde el JSON |
-| `registro-interacciones.md` | 80 interacciones con agentes (INT-001..INT-080): qué se pidió, qué se respondió, qué se decidió y su BIT asociado |
+| `registro-interacciones.md` | 92 interacciones con agentes (INT-001..INT-092): qué se pidió, qué se respondió, qué se decidió y su BIT asociado |
 | `auditorias/` | Siete informes de auditoría, uno por etapa |
 | `hallazgos-framework.md` | Hallazgos del framework, de la spec y de la herramienta de la corrida, cada uno con su commit |
 | `hashes/curation.sha256` | sha256 por archivo de la propuesta de Curation |
 
 ## 7. Verificación final
 
-Comandos corridos al cierre (framework 1.9.12):
+Comandos corridos al cierre (framework 1.9.15):
 
 ```
-validation: 222 passed, 7 skipped in 9.73s
-acceptance: 161 passed, 1 skipped in 2.81s
-curation: 141 passed, 2 skipped in 2.71s
-tests: 258 passed in 2.33s
+validation: 222 passed, 7 skipped
+acceptance: 161 passed, 1 skipped
+curation: 141 passed, 2 skipped
+tests: 279 passed
 auditar-skills: AUDITORIA OK
 verificar-claves (insumos de la corrida): RESULTADO: claves coherentes.
 verificar-insumo-pinning: RESULTADO: insumo de Pinning OK.
 validar-expediente (con --cruzado): EXPEDIENTE VALIDO: ninguna transicion habilitada sin aprobacion registrada.
 ```
 
-Notas del lote 1.9.12 que no cambian lo aprobado:
+## 8. Cierre de los tres ajustes posteriores
 
-- El verificador nuevo de Pinning (`render_bloque_colombia.py --verificar`) daría 5 hallazgos sobre ART-053 aprobado, porque su lista VERIFICAR tiene varias claves por línea sin la ruta completa (es el defecto HF-65). El artefacto de la corrida no se regenera; se rehace con el generador nuevo antes de integrar al fork.
-- El insumo de Acceptance da ahora un aviso por la clave `otra_fuente` sin prefijo `ruta_` (HF-44 y AUD-A-19). Queda para su próxima versión.
-- Las citas a `EventPinner` en ART-030 y ART-034 se corrigen en su próxima versión (AUD-P-25, INT-052).
+Las tres notas que dejó el lote 1.9.12 quedaron resueltas, cada una con regeneración, re-auditoría por diferencia y una aprobación nueva (simulada). Ninguna etapa se desaprobó ni se suspendió ninguna transición.
+
+| Ajuste | Procedimiento | Re-auditoría | Aprobación |
+|---|---|---|---|
+| ART-053 de Pinning regenerado con el generador nuevo. La primera regeneración (1.9.12) perdía los `[PM]` (RG-025) y el escalamiento de `reusePin` (AUD-P-26), lo que llevó a HF-81/82 y al framework 1.9.14 | §3d | `auditorias/pinning.md` §9: APROBADO; se aceptan dos pérdidas menores (AUD-P-30/31) | APR-037 (alto) |
+| ART-020 v4: `otra_fuente` pasa a `ruta_otra_fuente` y la cabecera queda sin estado. Se regenera ART-023 | §3d-bis (nuevo en 1.9.13, HF-80) y §3d | `auditorias/acceptance.md` §9: APROBADO, (a)-(d) | APR-033 y APR-034 (medio) |
+| ART-030 v2.1 y ART-034 2.1.0: las citas a `EventPinner` pasan a `ISIdentityMatcher.scala:46-54` | §3d-bis; la condición (c) se precisó en 1.9.15 (HF-83) | `auditorias/curation.md` §8 y `pinning.md` §9: APROBADO | APR-035 (medio) y APR-036 (alto) |
+| Deriva de Curation frente a 1.9.12-1.9.14, detectada en la re-auditoría: HF-53 cambia código desplegable en una rama latente; el resto son comentarios, Specs nuevos y metadatos | §3d | `auditorias/curation.md` §8.2 | APR-038 (medio): ART-031, ART-033 y ART-040. ART-032 no cambia |
+
+Lo que queda anotado para versiones futuras de los insumos:
+
+- ART-050: añadir `curatedDir`, HBase y `*-common-application.conf` a la pendiente de RG-025 (AUD-P-31).
+- ART-030: alinear la leyenda `[PM]` con el steering 05 (AUD-C-26).
+- ART-034: corregir la versión citada de ART-030 y la fila del lector `[A:PA-008]` (AUD-P-33). Esto pide §3c.
+- El `.ps1` de `edf-pinning` no hace el cruce con el insumo que sí hace `render_bloque_colombia.py --verificar --insumo`.
+
+Ninguno de estos ajustes cambia lo que sigue bloqueado: la certificación y la integración al fork dependen de RG-025, RG-028 y de los riesgos de evidencia diferida, y State Calculation sigue sin aprobar (APR-030).
