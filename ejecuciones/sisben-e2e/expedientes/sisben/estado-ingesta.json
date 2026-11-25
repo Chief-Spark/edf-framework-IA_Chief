@@ -3,8 +3,8 @@
   "generado_por": {
     "skill": "edf-orquestador",
     "version": "1.3.0",
-    "actualizado_en": "2026-11-24T22:16:27-05:00",
-    "vista_md_regenerada_en": "2026-11-24T22:14:23-05:00"
+    "actualizado_en": "2026-11-24T22:19:40-05:00",
+    "vista_md_regenerada_en": "2026-11-24T22:19:40-05:00"
   },
   "ingesta": {
     "id": "sisben",
@@ -618,7 +618,7 @@
       "dag_airflow": "state-generation",
       "clasificacion_compromiso": "exito",
       "riesgo_tipico": "alto",
-      "estado": "en_progreso",
+      "estado": "aprobada",
       "depende_de": [
         "curation_flow",
         "curation_stock"
@@ -662,14 +662,15 @@
           "nombre": "bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59)",
           "ruta": "propuestas/pinning/pinning-application-block.sisben.conf",
           "obligatorio": true,
-          "estado_artefacto": "prevalidado",
+          "estado_artefacto": "aprobado",
           "riesgo": "alto",
           "prevalidacion": {
             "compila": null,
             "linting": true,
             "reportada_por": "Generador edf-pinning (INT-059): pyhocon y hocon_check OK (sin claves activas); grep de claves prohibidas vacío; EVAL-PIN-12..14 a mano: pasan",
             "reportada_en": "2026-11-25"
-          }
+          },
+          "hash": "sha256:cccd06cf945ad856a4ffe078f9164fb9ddb157812d76bbba5c9caf5f6ea54490"
         }
       ],
       "evidencia_pipeline": {
@@ -679,7 +680,7 @@
         "verificada_en": null
       },
       "aprobacion_requerida": true,
-      "ref_aprobacion": null,
+      "ref_aprobacion": "APR-027",
       "preguntas_abiertas": [
         "PA-010"
       ],
@@ -687,11 +688,15 @@
         "RG-002",
         "RG-020",
         "RG-021",
-        "RG-025"
+        "RG-025",
+        "RG-027"
       ],
       "transicion_habilitada": false,
       "nota_regla_de_corte": null,
-      "iniciada_en": "2026-11-24T22:07:17-05:00"
+      "iniciada_en": "2026-11-24T22:07:17-05:00",
+      "cerrada_en": "2026-11-24T22:19:40-05:00",
+      "riesgo_evaluado": "alto",
+      "nivel_friccion": "detallada"
     },
     {
       "id": "synthesis",
@@ -1450,6 +1455,55 @@
       ],
       "resultado": "aplicado",
       "ref_bitacora": "BIT-0139"
+    },
+    {
+      "id": "APR-026",
+      "tipo": "artefacto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-053"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T22:19:40-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Bloque sin claves activas, fiel a la sección «Modo Colombia» de la plantilla y al insumo ART-050 v3 (APR-023). Ninguna clave compartida se escribe (PA-009, HF-57) y ningún valor depende de RG-025. La lista VERIFICAR usa las rutas HOCON que lee el motor y remite a los criterios de cierre de RG-025. v2 = v1 (auditoría APROBADO, pinning.md §7) + AUD-P-18/19/20; verificación por diferencia del Orquestador: 0 líneas activas fuera de comentarios, 0 claves compartidas activas en cualquier grafía, 0 {{, pyhocon vacío.",
+      "condiciones": [
+        "HF-65..67 (lista VERIFICAR en la plantilla, generador, verificador PowerShell) al lote final",
+        "AUD-P-25: ART-030 no se revisa por §3c; la cita a EventPinner se corrige en su próxima versión"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0152"
+    },
+    {
+      "id": "APR-027",
+      "tipo": "contexto",
+      "desde_etapa": null,
+      "hacia_etapa": null,
+      "artefactos": [
+        "ART-050",
+        "ART-053"
+      ],
+      "decision": "aprobada",
+      "actor": {
+        "rol": "Desarrollador",
+        "identificador": "SIM-DEV-01"
+      },
+      "timestamp": "2026-11-24T22:19:40-05:00",
+      "riesgo": "alto",
+      "nivel_friccion": "detallada",
+      "justificacion": "[SIMULADO · aprobador SIM-DEV-01] Pinning se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork. Los artefactos ART-050 v3 y ART-053 v2 están aprobados por auditoría independiente (pinning.md §6 y §7). No se escribe ninguna clave compartida (PA-009). La verificación del matcher de Colombia sigue diferida en RG-025, que bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation (§3e). La evidencia se reporta con el prompt 05. RG-002 reescrito. Escenarios HU §5.4: Background según PA-009; persona existente [C] con cumplimiento [PM] (RG-025; AUD-P-03); persona nueva: PIN nuevo con cualquier reusePin, unión correcta [PM] (RG-025); CC sin coincidencia en BDIIREGI no certificable por la skill (criterio de RG-027). DoD §6: reusePIN = false cumplida según PA-009 (PA-010); atributos de identidad cumplidos en el contrato ART-034 (identifying-attributes-new.json [PM] RG-025).",
+      "condiciones": [
+        "RG-027: evidencia diferida de pinning; se cierra con state-generation (paso Pinning) sobre la salida curada (generación EPOC, eventos SISBEN con PIN), conteo de personas existentes y nuevas contra los escenarios, evidencia del proceso RNEC para CC (PENDIENTE_VALIDACION_REGIS) y Zephyr; no antes que RG-025, RG-023 y RG-024",
+        "Transición pinning → synthesis: requiere yaml-skill-synthesis.yaml aprobado con C-CUR-05/06 resueltos y citando RG-025"
+      ],
+      "resultado": "aplicado",
+      "ref_bitacora": "BIT-0154"
     }
   ],
   "preguntas_abiertas": [
@@ -1794,14 +1848,22 @@
       "etapa_afectada": "synthesis",
       "mitigacion": "[PM] VD-SYN-01..05 en el fork (nombres existentes y su handler, dateType/customRulesFile/domainDictionaryFile/checkFileTagEnabled, conf compartido, periodo de los eventos, escenario §5.5 con nulo); si un nombre colisiona con otro handler, sube a N3",
       "estado": "abierto"
+    },
+    {
+      "id": "RG-027",
+      "descripcion": "Evidencia diferida de pinning: aprobada sin ejecución de pipeline",
+      "nivel": "alto",
+      "etapa_afectada": "pinning",
+      "mitigacion": "Prompt 05: state-generation (paso Pinning) sobre la salida curada; conteo de personas existentes y nuevas; evidencia RNEC para CC (PENDIENTE_VALIDACION_REGIS); Zephyr; después de RG-025, RG-023 y RG-024",
+      "estado": "abierto"
     }
   ],
   "backlog_evolutivo": [],
   "patrones_conocidos": [],
   "bitacora": {
     "ruta": "bitacora.md",
-    "ultimo_evento": "BIT-0151",
-    "eventos_totales": 151,
+    "ultimo_evento": "BIT-0157",
+    "eventos_totales": 157,
     "append_only": true,
     "retencion_meses": 24
   }

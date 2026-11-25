@@ -1,6 +1,6 @@
 # Estado de la ingesta — SISBEN IV (`sisben`)
 
-> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:14:23-05:00. No se edita a mano: la fuente de verdad es el JSON.
+> Vista regenerada desde `estado-ingesta.json` el 2026-11-24T22:19:40-05:00. No se edita a mano: la fuente de verdad es el JSON.
 > **Corrida autónoma: todas las aprobaciones son SIMULADAS** (SIM-DEV-01, SIM-PO-01).
 
 | Campo | Valor |
@@ -9,7 +9,7 @@
 | Fuente oficial | mixto |
 | reusePIN | `false` |
 | Business Light Code | batch |
-| Bitácora | 150 eventos, último BIT-0150 |
+| Bitácora | 157 eventos, último BIT-0157 |
 
 ## Etapas
 
@@ -20,7 +20,7 @@
 | 2 | Acceptance | `aprobada` | alto | 4/4 | APR-017 | ✅ |
 | 3 | Curation - Flow | `aprobada` | alto | 6/6 | APR-024 | ✅ |
 | 4 | Curation - Stock | `aprobada` | alto | 1/1 | APR-025 | ✅ |
-| 5 | Pinning | `en_progreso` | alto | 1/4 | — | 🔒 |
+| 5 | Pinning | `aprobada` | alto | 2/4 | APR-027 | 🔒 |
 | 6 | Synthesis / Consistency | `no_iniciada` | alto | 0/3 | — | 🔒 |
 | 7 | State Calculation | `no_iniciada` | critico | 0/4 | — | 🔒 |
 
@@ -52,7 +52,7 @@
 | pinning | ART-050 | insumo: yaml-skill-pinning.yaml (edf-analisis) | `aprobado` | sha256:9c548c3e5b76 |
 | pinning | ART-051 | <Fuente>IdentityMatcher.scala con la verificacion aritmetica del umbral (solo modo propio; no aplica en modo Colombia: se reutiliza el matcher compartido, edf-pinning SKILL «Modo Colombia») | `ausente` | — |
 | pinning | ART-052 | identifying-attributes.json (solo modo propio; no aplica en modo Colombia: se reutiliza la lista compartida identifying-attributes-new.json) | `ausente` | — |
-| pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `prevalidado` | — |
+| pinning | ART-053 | bloque HOCON de la ingesta en modo Colombia: sin claves compartidas, solo la lista de verificacion de las claves compartidas en el conf de Colombia (matcher compartido y lista identifying-attributes-new.json referenciados), sin redefinirlas ni escribir reusePin (HF-57, HF-59) | `aprobado` | sha256:cccd06cf945a |
 | synthesis | ART-060 | insumo: yaml-skill-synthesis.yaml (edf-analisis) | `prevalidado` | — |
 | synthesis | ART-061 | GDD domaindictionary.json (campo -> handler LFP/LAP/EUC, solo confirmados) | `ausente` | — |
 | synthesis | ART-062 | bloque HOCON oxygen.stage.consistencyCheck | `ausente` | — |
@@ -90,6 +90,8 @@
 | APR-023 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0136 |
 | APR-024 | transicion | curation_flow → pinning | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0137 |
 | APR-025 | transicion | curation_stock → pinning | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0139 |
+| APR-026 | artefacto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0152 |
+| APR-027 | contexto | — → — | aprobada | Desarrollador `SIM-DEV-01` | alto | BIT-0154 |
 
 ## Preguntas abiertas
 
@@ -135,3 +137,4 @@
 | RG-024 | alto | curation_stock | abierto | Evidencia diferida de curation_stock: aprobada sin ejecución de pipeline |
 | RG-025 | alto | pinning | abierto | Verificación diferida del matcher de Colombia: ColombiaIdentityMatcher no está en Motor-Oxigen; sin fork no se verifican su FQCN, la comparación del standardizedIdType entero y el juego de códigos de las otras fuentes (RG-020), si "" cuenta como nulo en la regla 0, identifying-attributes-new.json, la Ñ (RG-021), AUD-P-03 (¿exige nombre además de tipo+número?) ni el umbral vigente (defecto 5) |
 | RG-026 | medio | synthesis | abierto | El domain dictionary y el conf de Synthesis son únicos para Colombia: una corrida lee un solo diccionario y un solo customRulesFile (SparkConsistencyChecker.scala:241-245); un nombre de SISBEN que ya exista con otro handler cambiaría otra fuente |
+| RG-027 | alto | pinning | abierto | Evidencia diferida de pinning: aprobada sin ejecución de pipeline |

@@ -502,6 +502,6 @@ Cada mensaje enviado a un agente (analista, generador, auditor, aprobador simula
 
 - **Cuándo:** 2026-11-24T22:17:54-05:00
 - **Pedido:** AUD-P-18/19/20 en ART-053.
-- **Respuesta:** (pendiente)
-- **Decisión:** (pendiente)
+- **Respuesta:** ART-053 v2: cabecera literal + aclaración de modo Colombia, [P] en el mecanismo (AUD-P-20); rutas completas (AUD-P-18; domainDictionaryFile solo como texto en SparkPinner.scala:193; pinnedReferenceDir en oxygen-config-default.conf:355); tres VERIFICAR nuevas (AUD-P-19). pyhocon {}; hocon_check OK; 0 líneas activas; EVAL-PIN-12..14 pasan. sha256 cccd06cf…
+- **Decisión:** Diff verificado por el Orquestador. Registradas la aprobación de ART-053 v2, pinning pendiente_evidencia → aprobación de contexto (alto, diferida) → aprobada; RG-027 abierto.
 - **Bitácora:** —

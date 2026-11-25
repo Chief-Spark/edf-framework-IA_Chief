@@ -2585,3 +2585,105 @@ Tipos de evento válidos: `inicio_expediente` · `interaccion` · `propuesta` ·
 | **Corrige** | BIT-0136 |
 
 ---
+
+## BIT-0152 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-026 (artefacto): ART-053 v2: bloque HOCON de Pinning en modo Colombia |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T22:19:40-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Bloque sin claves activas, fiel a la sección «Modo Colombia» de la plantilla y al insumo ART-050 v3 (APR-023). Ninguna clave compartida se escribe (PA-009, HF-57) y ningún valor depende de RG-025. La lista VERIFICAR usa las rutas HOCON que lee el motor y remite a los criterios de cierre de RG-025. v2 = v1 (auditoría APROBADO, pinning.md §7) + AUD-P-18/19/20; verificación por diferencia del Orquestador: 0 líneas activas fuera de comentarios, 0 claves compartidas activas en cualquier grafía, 0 {{, pyhocon vacío. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-053 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0153 · `propuesta`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `pinning` → estado `pendiente_evidencia` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:19:40-05:00 |
+| **Por qué** | ART-050 y ART-053 aprobados; ART-051/052 no obligatorios en modo Colombia; sin pipeline (§3b paso 1). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0154 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | APR-027 (contexto): Aprobación de la etapa pinning con evidencia diferida (§3b paso 1) |
+| **Quién** | Desarrollador (simulado) · `SIM-DEV-01` |
+| **Cuándo** | 2026-11-24T22:19:40-05:00 |
+| **Por qué** | [SIMULADO · aprobador SIM-DEV-01] Pinning se aprueba con evidencia diferida: la corrida autónoma no tiene pipeline ni fork. Los artefactos ART-050 v3 y ART-053 v2 están aprobados por auditoría independiente (pinning.md §6 y §7). No se escribe ninguna clave compartida (PA-009). La verificación del matcher de Colombia sigue diferida en RG-025, que bloquea la integración al fork y la certificación de Pinning, Synthesis y State Calculation (§3e). La evidencia se reporta con el prompt 05. RG-002 reescrito. Escenarios HU §5.4: Background según PA-009; persona existente [C] con cumplimiento [PM] (RG-025; AUD-P-03); persona nueva: PIN nuevo con cualquier reusePin, unión correcta [PM] (RG-025); CC sin coincidencia en BDIIREGI no certificable por la skill (criterio de RG-027). DoD §6: reusePIN = false cumplida según PA-009 (PA-010); atributos de identidad cumplidos en el contrato ART-034 (identifying-attributes-new.json [PM] RG-025). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | alto |
+| **Artefactos** | ART-050, ART-053 |
+| **Trazabilidad** | prompt 03 · R3.2 |
+| **Corrige** | — |
+
+---
+
+## BIT-0155 · `riesgo`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | RG-027 (alto, pinning): Evidencia diferida de pinning: aprobada sin ejecución de pipeline |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:19:40-05:00 |
+| **Por qué** | APR-027 |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | alto |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.4 · riesgos |
+| **Corrige** | — |
+
+---
+
+## BIT-0156 · `aprobacion`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Etapa `pinning` → estado `aprobada` · transicion_habilitada=False |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:19:40-05:00 |
+| **Por qué** | Aplica APR-027 (SIMULADO, SIM-DEV-01, INT-062): aprobada con evidencia diferida. |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R3.2 · prompt 02 |
+| **Corrige** | — |
+
+---
+
+## BIT-0157 · `regeneracion_vista`
+
+| Campo | Valor |
+|-------|-------|
+| **Qué** | Regeneración de estado-ingesta.md desde el JSON. |
+| **Quién** | Orquestador (emulado) · `ORQ-E2E` |
+| **Cuándo** | 2026-11-24T22:19:40-05:00 |
+| **Por qué** | La vista se regenera tras cada cambio de estado (R2.2). |
+| **Resultado** | `aplicado` |
+| **Etapa** | `pinning` |
+| **Riesgo** | — |
+| **Artefactos** | — |
+| **Trazabilidad** | R2.2 |
+| **Corrige** | — |
+
+---
